@@ -1,0 +1,45 @@
+
+# Stage
+
+floor_bmp=Stage\building2\floor.bmp
+back_bmp=Stage\building2\back.bmp
+
+# Model
+
+model_file=Model\mei\mei.pmd
+
+# Model alias
+
+initial_model_alias=ÉÅÉC
+
+# Motion
+
+initial_motion_file=Motion\mei_wait\mei_wait.vmd
+
+# Position
+
+initial_model_position=(0.0,0.0,-14.0)
+
+# Window
+
+window_width=600
+window_height=600
+fullscreen=false
+lookatcursor=false
+
+# Rendering
+
+display_fps=false
+opengl_multisample_maxnum=8
+opengl_multisample_color_maxnum=8
+model_scale=5.50
+model_pos=0.0, 2.500000, 0.000000
+model_rot=1.0,0.0,0.0,0.0
+viewport_frustum_near=5.000000
+viewport_frustum_far=1000.000000
+viewport_camera_z=-100.000000
+viewport_y_offset=-17.000000
+light_direction_from=0.500000, 1.000000, 0.500000, 0.000000
+background_color=0.000000, 0.000000, 0.200000
+shadow_density=0.500000
+cartoon_edge_width=0.35

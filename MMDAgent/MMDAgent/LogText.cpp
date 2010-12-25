@@ -1,0 +1,213 @@
+﻿/* ----------------------------------------------------------------- */
+/*           The Toolkit for Building Voice Interaction Systems      */
+/*           "MMDAgent" developed by MMDAgent Project Team           */
+/*           http://www.mmdagent.jp/                                 */
+/* ----------------------------------------------------------------- */
+/*                                                                   */
+/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*                           Department of Computer Science          */
+/*                                                                   */
+/* All rights reserved.                                              */
+/*                                                                   */
+/* Redistribution and use in source and binary forms, with or        */
+/* without modification, are permitted provided that the following   */
+/* conditions are met:                                               */
+/*                                                                   */
+/* - Redistributions of source code must retain the above copyright  */
+/*   notice, this list of conditions and the following disclaimer.   */
+/* - Redistributions in binary form must reproduce the above         */
+/*   copyright notice, this list of conditions and the following     */
+/*   disclaimer in the documentation and/or other materials provided */
+/*   with the distribution.                                          */
+/* - Neither the name of the MMDAgent project team nor the names of  */
+/*   its contributors may be used to endorse or promote products     */
+/*   derived from this software without specific prior written       */
+/*   permission.                                                     */
+/*                                                                   */
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
+/* POSSIBILITY OF SUCH DAMAGE.                                       */
+/* ----------------------------------------------------------------- */
+
+/* headers */
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+
+#include "TextRenderer.h"
+#include "LogText.h"
+#include "GLee.h"
+
+/* LogText::initialize: initialize logger */
+void LogText::initialize()
+{
+   m_textWidth = 0;
+   m_textHeight = 0;
+   m_textX = 0.0;
+   m_textY = 0.0;
+   m_textZ = 0.0;
+   m_textScale = 0.0;
+
+   m_textBufArray = NULL;
+   m_displayListIdArray = NULL;
+   m_length = NULL;
+   m_updated = NULL;
+}
+
+/* LogText::clear: free logger */
+void LogText::clear()
+{
+   int i;
+
+   if (m_textBufArray) {
+      for (i = 0; i < m_textHeight; i++)
+         free(m_textBufArray[i]);
+      free(m_textBufArray);
+   }
+   if (m_displayListIdArray) {
+      for (i = 0; i < m_textHeight; i++)
+         free(m_displayListIdArray[i]);
+      free(m_displayListIdArray);
+   }
+   if (m_length)
+      free(m_length);
+   if (m_updated)
+      free(m_updated);
+   initialize();
+}
+
+/* LogText::LogText: constructor */
+LogText::LogText()
+{
+   initialize();
+}
+
+/* LogText::~LogText: destructor */
+LogText::~LogText()
+{
+   clear();
+}
+
+/* LogText::setup: initialize and setup logger with args */
+void LogText::setup(int w, int h, float x, float y, float z, float scale)
+{
+   int i;
+
+   if (w <= 0 || h <= 0 || scale <= 0.0) return;
+
+   clear();
+
+   m_textWidth = w;
+   m_textHeight = h;
+   m_textX = x;
+   m_textY = y;
+   m_textZ = z;
+   m_textScale = scale;
+
+   m_textBufArray = (wchar_t **) malloc(sizeof(wchar_t *) * m_textHeight);
+   for (i = 0; i < m_textHeight; i++) {
+      m_textBufArray[i] = (wchar_t *) malloc(sizeof(wchar_t) * m_textWidth);
+      m_textBufArray[i][0] = L'\0';
+   }
+
+   m_displayListIdArray = (unsigned int **) malloc(sizeof(unsigned int *) * m_textHeight);
+   for (i = 0; i < m_textHeight; i++)
+      m_displayListIdArray[i] = (unsigned int *) malloc(sizeof(unsigned int) * m_textWidth);
+
+   m_length = (int *) malloc(sizeof(int) * m_textHeight);
+   for (i = 0; i < m_textHeight; i++)
+      m_length[i] = -1;
+
+   m_updated = (bool *) malloc(sizeof(bool) * m_textHeight);
+   for (i = 0; i < m_textHeight; i++)
+      m_updated[i] = false;
+
+   m_textLine = 0;
+}
+
+/* LogText::log: store log text */
+void LogText::log(const wchar_t *format, ...)
+{
+   wchar_t *p, *psave;
+   wchar_t buff[LOGTEXT_MAXBUFLEN];
+   va_list args;
+
+   if (!m_textBufArray) return;
+
+   va_start(args, format);
+   if (m_textBufArray) {
+      vswprintf(buff, LOGTEXT_MAXBUFLEN - 1, format, args);
+      buff[LOGTEXT_MAXBUFLEN - 1] = L'\0';
+      for (p = wcstok_s(buff, L"\n", &psave); p; p = wcstok_s(NULL, L"\n", &psave)) {
+         wcsncpy(m_textBufArray[m_textLine], p, m_textWidth - 1);
+         m_textBufArray[m_textLine][m_textWidth - 1] = L'\0';
+         m_updated[m_textLine] = true;
+         if (++m_textLine >= m_textHeight)
+            m_textLine = 0;
+      }
+   }
+   va_end(args);
+}
+
+/* LogText::render: render log text */
+void LogText::render(TextRenderer *text)
+{
+   int i, j;
+   float x, y, z, w, h;
+
+   if (!m_textBufArray) return;
+
+   x = m_textX;
+   y = m_textY;
+   z = m_textZ;
+   w = 0.5f * (float) (m_textWidth) * 0.85f + 1.0f;
+   h = 1.0f * (float) (m_textHeight) * 0.85f + 1.0f;
+
+   glPushMatrix();
+   glDisable(GL_CULL_FACE);
+   glDisable(GL_LIGHTING);
+   glScalef(m_textScale, m_textScale, m_textScale);
+   glNormal3f(0.0f, 1.0f, 0.0f);
+   glColor4f(LOGTEXT_BGCOLOR);
+   glBegin(GL_QUADS);
+   glVertex3f(x    , y    , z);
+   glVertex3f(x + w, y    , z);
+   glVertex3f(x + w, y + h, z);
+   glVertex3f(x    , y + h, z);
+   glEnd();
+   glTranslatef(x + 0.5f, y + h - 0.4f, z + 0.01f);
+   for (i = 0; i < m_textHeight; i++) {
+      glTranslatef(0.0f, -0.85f, 0.0f);
+      j = m_textLine + i;
+      if (j >= m_textHeight)
+         j -= m_textHeight;
+      if (m_textBufArray[j][0] != L'\0') {
+         glColor4f(LOGTEXT_COLOR);
+         glPushMatrix();
+         if (m_updated[j]) {
+            /* cache display list array */
+            m_length[j] = text->getDisplayListArrayOfString(m_textBufArray[j], m_displayListIdArray[j], m_textWidth);
+            m_updated[j] = false;
+         }
+         if (m_length[j] >= 0)
+            text->renderDisplayListArrayOfString(m_displayListIdArray[j], m_length[j]);
+         glPopMatrix();
+      }
+   }
+   glEnable(GL_LIGHTING);
+   glEnable(GL_CULL_FACE);
+   glPopMatrix();
+}

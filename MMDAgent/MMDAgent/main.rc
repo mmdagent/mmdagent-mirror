@@ -1,0 +1,163 @@
+/* ----------------------------------------------------------------- */
+/*           The Toolkit for Building Voice Interaction Systems      */
+/*           "MMDAgent" developed by MMDAgent Project Team           */
+/*           http://www.mmdagent.jp/                                 */
+/* ----------------------------------------------------------------- */
+/*                                                                   */
+/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*                           Department of Computer Science          */
+/*                                                                   */
+/* All rights reserved.                                              */
+/*                                                                   */
+/* Redistribution and use in source and binary forms, with or        */
+/* without modification, are permitted provided that the following   */
+/* conditions are met:                                               */
+/*                                                                   */
+/* - Redistributions of source code must retain the above copyright  */
+/*   notice, this list of conditions and the following disclaimer.   */
+/* - Redistributions in binary form must reproduce the above         */
+/*   copyright notice, this list of conditions and the following     */
+/*   disclaimer in the documentation and/or other materials provided */
+/*   with the distribution.                                          */
+/* - Neither the name of the MMDAgent project team nor the names of  */
+/*   its contributors may be used to endorse or promote products     */
+/*   derived from this software without specific prior written       */
+/*   permission.                                                     */
+/*                                                                   */
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
+/* POSSIBILITY OF SUCH DAMAGE.                                       */
+/* ----------------------------------------------------------------- */
+
+/* headers */
+
+#ifndef APSTUDIO_INVOKED
+#ifndef WINVER
+#define WINVER 0x0600 /* Windows Vista */
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600 /* Windows Vista */
+#endif
+#ifndef _WIN32_WINDOWS
+#define _WIN32_WINDOWS 0x0410 /* Windows 98 */
+#endif
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0700 /* IE 7 */
+#endif
+#endif
+
+#define APSTUDIO_READONLY_SYMBOLS
+#define APSTUDIO_HIDDEN_SYMBOLS
+
+#include <windows.h>
+
+#undef APSTUDIO_HIDDEN_SYMBOLS
+#undef APSTUDIO_READONLY_SYMBOLS
+
+#include "resource.h"
+
+/* beginning of Japanese */
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+LANGUAGE 17, 1
+#pragma code_page(932) /* sjis */
+
+/* icon */
+
+IDI_MMDAGENT ICON "main.ico"
+IDI_SMALL    ICON "main.ico"
+
+/* menu */
+
+IDC_MMDAGENT MENU
+BEGIN
+   POPUP "File(&F)"
+   BEGIN
+      MENUITEM "Exit(&X)",       IDM_EXIT
+   END
+   POPUP "Help(&H)"
+   BEGIN
+      MENUITEM "Version(&A)...", IDM_ABOUT
+   END
+END
+
+/* accelerators */
+
+IDC_MMDAGENT ACCELERATORS
+BEGIN
+   "B",       IDM_TOGGLE_DISP_BONE,       VIRTKEY, NOINVERT
+   "D",       IDM_TOGGLE_DISP_LOG,        VIRTKEY, NOINVERT
+   "D",       IDM_TOGGLE_DISP_LOG,        VIRTKEY, NOINVERT, SHIFT
+   "E",       IDM_CARTOON_EDGE_PLUS,      VIRTKEY, NOINVERT
+   "E",       IDM_CARTOON_EDGE_MINUS,     VIRTKEY, NOINVERT, SHIFT
+   "F",       IDM_TOGGLE_FULLSCREEN,      VIRTKEY, NOINVERT
+   "P",       IDM_TOGGLE_PHYSICS,         VIRTKEY, NOINVERT
+   "S",       IDM_TOGGLE_INFOSTRING,      VIRTKEY, NOINVERT
+   "V",       IDM_TEST_COMMAND,           VIRTKEY, NOINVERT
+   "V",       IDM_TOGGLE_VSYNC,           VIRTKEY, NOINVERT, SHIFT
+   "W",       IDM_TOGGLE_DISP_WIRE,       VIRTKEY, NOINVERT
+   "W",       IDM_TOGGLE_DISP_RIGIDBODY,  VIRTKEY, NOINVERT, SHIFT
+   "X",       IDM_TOGGLE_SHADOWMAP,       VIRTKEY, NOINVERT
+   "X",       IDM_TOGGLE_SHADOWMAP_ORDER, VIRTKEY, NOINVERT, SHIFT
+   "-",       IDM_ZOOM_OUT,               ASCII,   NOINVERT
+   "+",       IDM_ZOOM_IN,                ASCII,   NOINVERT
+   "?",       IDM_ABOUT,                  ASCII,   ALT
+   "/",       IDM_ABOUT,                  ASCII,   ALT
+   VK_LEFT,   IDM_TIME_MINUS,             VIRTKEY, NOINVERT, CONTROL
+   VK_RIGHT,  IDM_TIME_PLUS,              VIRTKEY, NOINVERT, CONTROL
+   VK_LEFT,   IDM_ROTATE_LEFT,            VIRTKEY, NOINVERT
+   VK_RIGHT,  IDM_ROTATE_RIGHT,           VIRTKEY, NOINVERT
+   VK_UP,     IDM_ROTATE_UP,              VIRTKEY, NOINVERT
+   VK_DOWN,   IDM_ROTATE_DOWN,            VIRTKEY, NOINVERT
+   VK_LEFT,   IDM_MOVE_LEFT,              VIRTKEY, NOINVERT, SHIFT
+   VK_RIGHT,  IDM_MOVE_RIGHT,             VIRTKEY, NOINVERT, SHIFT
+   VK_UP,     IDM_MOVE_UP,                VIRTKEY, NOINVERT, SHIFT
+   VK_DOWN,   IDM_MOVE_DOWN,              VIRTKEY, NOINVERT, SHIFT
+   VK_DELETE, IDM_DELETE_MODEL,           VIRTKEY, NOINVERT
+   VK_ESCAPE, IDM_EXIT,                   VIRTKEY, NOINVERT
+END
+
+/* dialog box for copyright */
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 275, 50
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About MMDAgent"
+FONT 9, "MS UI Gothic"
+BEGIN
+   ICON          IDR_MAINFRAME,IDC_STATIC,14,14,21,20
+   LTEXT         "MMDAgent version Alpha",IDC_STATIC,5,5,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 2009-2010 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,15,280,8
+   DEFPUSHBUTTON "OK",IDOK,115,30,50,14,WS_GROUP
+END
+
+/* dialog box for command */
+
+IDD_COMMANDBOX DIALOGEX 0, 0, 150, 35
+STYLE DS_SETFONT | DS_MODALFRAME | WS_VISIBLE
+CAPTION "Send command message"
+FONT 9, "MS UI Gothic", 0, 0, 0x1 | WS_CAPTION | WS_SYSMENU
+BEGIN
+   EDITTEXT      IDC_EDIT,5,5,100,12,ES_AUTOHSCROLL | WS_GROUP
+   DEFPUSHBUTTON "Send",IDOK,110,5,36,12,WS_GROUP
+   PUSHBUTTON    "Close",IDCANCEL,5,20,40,12,WS_GROUP
+END
+
+/* string table */
+
+STRINGTABLE
+BEGIN
+   IDC_MMDAGENT  "MMDAgent - Toolkit for building voice interaction systems"
+   IDS_APP_TITLE "MMDAgent - Toolkit for building voice interaction systems"
+END
+
+#endif /* end of Japanese */

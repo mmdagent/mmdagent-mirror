@@ -1,0 +1,14 @@
+# ----------------------------------------------------------------- #
+#           MMDAgent Motion "Rotation of NIT Menu"                  #
+#           released by MMDAgent Project Team                       #
+#           http://www.mmdagent.jp/                                 #
+# ----------------------------------------------------------------- #
+#                                                                   #
+#  Copyright (c) 2009-2010  Nagoya Institute of Technology          #
+#                           Department of Computer Science          #
+#                                                                   #
+# Some rights reserved.                                             #
+#                                                                   #
+# This work is licensed under the Creative Commons Attribution 3.0  #
+# license. See http://creativecommons.org/ for details.             #
+# ----------------------------------------------------------------- #
