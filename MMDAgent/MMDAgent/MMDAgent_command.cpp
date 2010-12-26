@@ -442,7 +442,7 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
    /* check */
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next)
       if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
-         g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", motionAlias);
+         g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", name);
          free(name);
          return false;
       }

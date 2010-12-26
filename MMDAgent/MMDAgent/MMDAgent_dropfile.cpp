@@ -84,6 +84,8 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
       DragQueryFile(hDrop, i, droppedFileName, MAX_PATH);
 
       if (hasSuffix(droppedFileName, L"vmd")) {
+         dropAllowedModelID = -1;
+         targetModelID = -1;
          if (m_keyCtrl) {
             /* if Ctrl-key, start motion on all models */
             targetModelID = MODEL_ALL;
@@ -121,11 +123,11 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                   /* all model */
                   for (j = 0; j < m_numModel; j++) {
                      if (m_model[j].isEnable() && m_model[j].allowMotionFileDrop())
-                        addMotion(m_model[j].getAlias(), NULL, droppedFileName, true, false, false, false);
+                        addMotion(m_model[j].getAlias(), L"insert", droppedFileName, false, true, true, true);
                   }
                } else {
                   /* target model */
-                  addMotion(m_model[targetModelID].getAlias(), NULL, droppedFileName, true, false, false, false);
+                  addMotion(m_model[targetModelID].getAlias(), L"insert", droppedFileName, false, true, true, true);
                }
             } else {
                /* change base motion */
@@ -140,7 +142,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                            }
                         }
                         if (!motionPlayer)
-                           addMotion(m_model[j].getAlias(), L"base", droppedFileName, false, true, false, false);
+                           addMotion(m_model[j].getAlias(), L"base", droppedFileName, true, false, true, true);
                      }
                   }
                } else {
@@ -152,7 +154,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                      }
                   }
                   if (!motionPlayer)
-                     addMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName, false, true, false, false);
+                     addMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName, true, false, true, true);
                }
             }
             /* check mp3 */
