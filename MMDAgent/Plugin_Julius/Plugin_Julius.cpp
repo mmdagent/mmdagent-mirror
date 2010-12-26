@@ -90,8 +90,7 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
    SetCurrentDirectory(buff);
 
    /* load models and start thread */
-   if (julius_thread.loadAndStart(hWnd, WM_MMDAGENT_EVENT) == false)
-      MessageBox(NULL, L"ERROR: Cannot start recognition process.", L"Error", MB_OK);
+   julius_thread.loadAndStart(hWnd, WM_MMDAGENT_EVENT);
 
    /* move directory */
    SetCurrentDirectory(current_dir);

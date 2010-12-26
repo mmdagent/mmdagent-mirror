@@ -178,10 +178,8 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
 
    /* load config file */
    m_jconf = j_config_load_file_new(JULIUSTHREAD_NAME);
-   if (m_jconf == NULL) {
-      MessageBox(NULL, L"ERROR: Cannot load jconf.txt.", L"Error", MB_OK);
+   if (m_jconf == NULL)
       return false;
-   }
 
    /* create instance */
    m_recog = j_create_instance_from_jconf(m_jconf);
