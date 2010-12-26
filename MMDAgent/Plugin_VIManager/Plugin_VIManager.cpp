@@ -62,6 +62,7 @@
 /* headers */
 
 #include <windows.h>
+#include <locale.h>
 
 #include "VIManager.h"
 #include "VIManager_Thread.h"
@@ -78,6 +79,8 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
    wchar_t *buf1;
    char buf2[VIMANAGER_MAXBUFLEN];
    size_t len2;
+
+   setlocale(LC_CTYPE, "japanese");
 
    buf1 = m->getConfigFileName();
    wcstombs_s(&len2, buf2, VIMANAGER_MAXBUFLEN, buf1, _TRUNCATE);
