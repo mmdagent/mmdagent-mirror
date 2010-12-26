@@ -45,7 +45,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_MUTEX_LOCK;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="2"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
