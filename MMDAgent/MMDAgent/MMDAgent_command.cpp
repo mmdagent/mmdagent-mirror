@@ -596,7 +596,7 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    wcsncpy(m_model[id].getAlias(), name, 50);
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_MODEL_ADD, L"%s|%s", m_model[id].getAlias(), m_model[id].getPMDModel()->getModelNameW());
+   sendEventMessage(MMDAGENT_EVENT_MODEL_ADD, L"%s", name);
    free(name);
    if (boneName) free(boneName);
    return true;
