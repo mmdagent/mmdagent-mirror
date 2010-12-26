@@ -152,9 +152,16 @@ bool hasSuffix(wchar_t *fileName, wchar_t *suffix)
 /* getNumDigit: get number of digit */
 int getNumDigit(int in)
 {
-   int out;
+   int out = 0;
 
-   for (out = 0; in != 0; out++)
+   if(in == 0)
+      return 1;
+   if(in < 0) {
+      out = 1;
+      in *= -1;
+   }
+
+   for (; in != 0; out++)
       in /= 10;
 
    return out;
