@@ -637,7 +637,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
          i++;
       if (i >= m_numModel)
          break;
-      addMotion(m_model[i].getAlias(), NULL, p, true, true, true, true);
+      addMotion(m_model[i].getAlias(), NULL, p, true, false, true, true);
       i++;
    }
    /* re-set current directory */
@@ -717,6 +717,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* start timer */
    m_timer.startSystem();
 
+   SetCurrentDirectory(m_configDirName);
    return m_hWnd;
 }
 
