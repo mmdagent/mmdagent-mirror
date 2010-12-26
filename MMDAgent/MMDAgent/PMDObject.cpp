@@ -133,15 +133,15 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* copy absolute position flag */
    for (i = 0; i < 3; i++)
       m_absPosFlag[i] = false;
-   //m_absPosFlag[i] = param->absPosFlag[i];
 
    /* copy toon rendering flag */
-   //m_allowToonShading = param->toonShade;
    m_allowToonShading = true;
 
    /* copy flag for motion file drop or all motion */
-   //m_allowMotionFileDrop = param->allowMotionFileDrop;
-   m_allowMotionFileDrop = true;
+   if(boneName || assignBone || assignObject)
+      m_allowMotionFileDrop = false;
+   else
+      m_allowMotionFileDrop = true;
 
    /* save position when position is fixed */
    if (m_baseBone) m_origBasePos = m_baseBone->getTransform()->getOrigin();
