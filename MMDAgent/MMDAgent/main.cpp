@@ -134,6 +134,7 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    /* process message for MMDAgent */
    hitAgent = mmdagent.procMessage(hWnd, message, wParam, lParam);
 
+   hitThis = true;
    switch (message) {
    case WM_COMMAND:
       switch (LOWORD(wParam)) {
@@ -153,13 +154,11 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    case WM_PAINT:
       mmdagent.renderScene(hWnd);
       ValidateRect(hWnd, NULL);
-      hitThis = true;
       break;
    case WM_DESTROY:
       isRunning = false;
       mmdagent.release();
       PostQuitMessage(0);
-      hitThis = true;
       break;
    default:
       hitThis = false;
