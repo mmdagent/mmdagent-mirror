@@ -92,9 +92,6 @@ class VMD
 {
 private:
 
-   char m_nameA[PMD_FILE_NAME_LEN+1];    /* model name (multi-byte char) */
-   wchar_t m_nameW[PMD_FILE_NAME_LEN+1]; /* model name (wide char) */
-
    unsigned long m_numTotalBoneKeyFrame; /* total number of bone frames */
    unsigned long m_numTotalFaceKeyFrame; /* total number of face frames */
 
@@ -138,14 +135,11 @@ public:
    /* ~VMD: destructor */
    ~VMD();
 
-   /* load: initialize and load from file name (wide char) */
-   bool load(const wchar_t *filePath);
+   /* load: initialize and load from file name */
+   bool load(char *file);
 
    /* parse: initialize and load from data memories */
    bool parse(unsigned char *data, unsigned long size);
-
-   /* getNameW: get VMD name (wide char) */
-   wchar_t *VMD::getNameW();
 
    /* getTotalKeyFrame: get total number of key frames */
    unsigned long getTotalKeyFrame();

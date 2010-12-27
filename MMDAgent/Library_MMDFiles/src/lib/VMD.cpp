@@ -186,8 +186,6 @@ void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
 /* VMD::initialize: initialize VMD */
 void VMD::initialize()
 {
-   m_nameA[0] = '\0';
-   m_nameW[0] = L'\0';
    m_numTotalBoneKeyFrame = 0;
    m_numTotalFaceKeyFrame = 0;
    m_boneLink = NULL;
@@ -246,8 +244,8 @@ VMD::~VMD()
    clear();
 }
 
-/* VMD::load: initialize and load from file name (wide char) */
-bool VMD::load(const wchar_t *filePath)
+/* VMD::load: initialize and load from file name */
+bool VMD::load(char *file)
 {
    FILE *fp;
    fpos_t size;
@@ -255,7 +253,7 @@ bool VMD::load(const wchar_t *filePath)
    bool ret;
 
    /* open file */
-   fp = _wfopen(filePath, L"rb");
+   fp = fopen(file, "rb");
    if (!fp)
       return false;
 
@@ -299,10 +297,6 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    VMDFile_Header *header = (VMDFile_Header *) data;
    if (strncmp(header->header, "Vocaloid Motion Data 0002", 30) != 0)
       return false;
-   /* name */
-   strncpy(m_nameA, header->name, PMD_FILE_NAME_LEN);
-   m_nameA[PMD_FILE_NAME_LEN] = '\0';
-   mbstowcs_s(&len, m_nameW, PMD_FILE_NAME_LEN + 1, m_nameA, _TRUNCATE);
 
    data += sizeof(VMDFile_Header);
 
@@ -393,12 +387,6 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    data += sizeof(VMDFile_FaceFrame) * m_numTotalFaceKeyFrame;
 
    return true;
-}
-
-/* VMD::getNameW: get VMD name (wide char) */
-wchar_t *VMD::getNameW()
-{
-   return m_nameW;
 }
 
 /* VMD::getTotalKeyFrame: get total number of key frames */

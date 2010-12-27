@@ -92,30 +92,23 @@ VMD * MotionStocker::load(wchar_t *fileName)
    VMD *ret;
    int i;
    wchar_t buf[VMDGRID_MAXBUFLEN];
+   size_t len;
+   char fileNameA[VMDGRID_MAXBUFLEN];
 
-   for (i = m_current - 1; i >= 0; i--) {
-      if (wcscmp(m_vmdFileName[i], fileName) == 0) {
-#if 0
-         g_logger.log(L"Motion \"%s\" in cache", fileName);
-#endif
+   /* load from cache */
+   for (i = m_current - 1; i >= 0; i--)
+      if (wcscmp(m_vmdFileName[i], fileName) == 0)
          return &(m_vmdList[i]);
-      }
-   }
-   for (i = m_num - 1; i >= m_current; i--) {
-      if (wcscmp(m_vmdFileName[i], fileName) == 0) {
-#if 0
-         g_logger.log(L"Motion \"%s\" in cache", fileName);
-#endif
+   for (i = m_num - 1; i >= m_current; i--)
+      if (wcscmp(m_vmdFileName[i], fileName) == 0)
          return &(m_vmdList[i]);
-      }
-   }
-   if (m_vmdList[m_current].load(fileName) == false) {
+
+   /* load VMD */
+   wcstombs_s(&len, fileNameA, VMDGRID_MAXBUFLEN, fileName, _TRUNCATE);
+   if (m_vmdList[m_current].load(fileNameA) == false) {
       g_logger.log(L"! Error: failed to load vmd file: %s", fileName);
       return NULL;
    }
-#if 0
-   g_logger.log(L"Motion \"%s\" loaded", fileName);
-#endif
    if (m_vmdFileName[m_current])
       free(m_vmdFileName[m_current]);
    m_vmdFileName[m_current] = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(fileName) + 1));
