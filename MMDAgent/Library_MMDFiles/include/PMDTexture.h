@@ -87,11 +87,8 @@ public:
    /* ~PMDTexture: destructor */
    ~PMDTexture();
 
-   /* load: load from file (wide character) */
-   bool load(char *textureFileNameA);
-
-   /* load: load from file (multi-byte character) */
-   bool load(wchar_t *textureFileNameW);
+   /* load: load from file name */
+   bool load(char *fileName);
 
    /* getID: get OpenGL texture ID */
    GLuint getID();

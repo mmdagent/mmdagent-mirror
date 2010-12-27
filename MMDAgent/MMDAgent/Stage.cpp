@@ -148,11 +148,14 @@ TileTexture::~TileTexture()
 bool TileTexture::load(wchar_t *fileName)
 {
    bool ret = true;
+   char buf[MAX_PATH];
+   size_t len;
 
    if (fileName == NULL) return false;
    if (wcslen(fileName) <= 0) return false;
 
-   if (m_texture.load(fileName) == false)
+   wcstombs_s(&len, buf, MAX_PATH, fileName, _TRUNCATE);
+   if (m_texture.load(buf) == false)
       ret = false;
 
    m_isLoaded = true;

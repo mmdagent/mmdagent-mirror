@@ -464,27 +464,6 @@ PMDTexture::~PMDTexture()
    clear();
 }
 
-/* PMDTexture::load: load from file (wide character) */
-bool PMDTexture::load(wchar_t *textureFileNameW)
-{
-   size_t len = 0, converted = 0;
-   char *buf;
-   bool ret;
-
-   if (!textureFileNameW)
-      return false;
-   wcstombs_s(&len, NULL, 0, textureFileNameW, _TRUNCATE);
-   if (len <= 0)
-      return false;
-   buf = (char *) malloc(sizeof(char) * len + 1);
-   wcstombs_s(&converted, buf, len + 1, textureFileNameW, _TRUNCATE);
-
-   ret = load(buf);
-
-   free(buf);
-   return ret;
-}
-
 /* PMDTexture::load: load from file (multi-byte character) */
 bool PMDTexture::load(char *fileName)
 {
