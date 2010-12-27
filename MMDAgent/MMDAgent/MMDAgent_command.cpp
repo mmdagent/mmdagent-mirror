@@ -412,6 +412,8 @@ bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
 /* MMDAgent::addMotion: add motion */
 bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
 {
+   int i;
+   bool find;
    int id;
    VMD *vmd;
    MotionPlayer *motionPlayer;
@@ -433,19 +435,32 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
 
    /* alias */
    if (motionAlias) {
+      /* check the same alias */
       name = _wcsdup(motionAlias);
-   } else {
-      name = (wchar_t *) malloc(sizeof(wchar_t) * (getNumDigit(id) + 1));
-      wsprintf(name, L"%d", id);
-   }
-
-   /* check */
-   for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next)
-      if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
-         g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", name);
-         free(name);
-         return false;
+      for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+         if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
+            g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", name);
+            free(name);
+            return false;
+         }
       }
+   } else {
+      /* if motion alias is not specified, unused digit is used */
+      for(i = 0;; i++) {
+         find = false;
+         name = (wchar_t *) malloc(sizeof(wchar_t) * (getNumDigit(i) + 1));
+         wsprintf(name, L"%d", i);
+         for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+            if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
+               find = true;
+               break;
+            }
+         }
+         if(find == false)
+            break;
+         free(name);
+      }
+   }
 
    /* start motion */
    if (m_model[id].startMotion(vmd, name, full, once, enableSmooth, enableRePos) == false) {
@@ -520,6 +535,7 @@ bool MMDAgent::deleteMotion(wchar_t *modelAlias, wchar_t *motionAlias)
 /* MMDAgent::addModel: add model */
 bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, btQuaternion *rot, wchar_t *baseModelAlias, wchar_t *baseBoneName)
 {
+   int i;
    int id;
    int baseID;
    wchar_t *name;
@@ -567,19 +583,26 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
       return false;
    }
 
-   /* check */
+   /* determine name */
    if (modelAlias) {
+      /* check the same alias */
       name = _wcsdup(modelAlias);
+      if (findModelAlias(name) >= 0) {
+         g_logger.log(L"! Error: addModel: model alias \"%s\" is already used.", name);
+         free(name);
+         if (boneName) free(boneName);
+         return false;
+      }
    } else {
-      name = (wchar_t *) malloc(sizeof(wchar_t *) * (getNumDigit(id) + 1));
-      wsprintf(name, L"%d", id);
-   }
-
-   if (findModelAlias(name) >= 0) {
-      g_logger.log(L"! Error: addModel: model alias \"%s\" is already used.", name);
-      free(name);
-      if (boneName) free(boneName);
-      return false;
+      /* if model alias is not specified, unused digit is used */
+      for(i = 0;; i++) {
+         name = (wchar_t *) malloc(sizeof(wchar_t) * (getNumDigit(i) + 1));
+         wsprintf(name, L"%d", i);
+         if (findModelAlias(name) >= 0)
+            free(name);
+         else
+            break;
+      }
    }
 
    /* add model */

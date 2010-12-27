@@ -637,7 +637,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
          i++;
       if (i >= m_numModel)
          break;
-      addMotion(m_model[i].getAlias(), NULL, p, true, false, true, true);
+      addMotion(m_model[i].getAlias(), L"base", p, true, false, true, true);
       i++;
    }
    /* re-set current directory */

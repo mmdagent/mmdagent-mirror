@@ -89,29 +89,12 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
          if (m_keyCtrl) {
             /* if Ctrl-key, start motion on all models */
             targetModelID = MODEL_ALL;
-         } else if (m_doubleClicked && m_selectedModel != -1) {
-            /* if already selected */
+         } else if (m_doubleClicked && m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
             targetModelID = m_selectedModel;
-            if (m_model[m_selectedModel].allowMotionFileDrop()) {
-               targetModelID = m_selectedModel;
-            } else {
-               targetModelID = m_render->pickModel(this, pos.x, pos.y, &dropAllowedModelID); /* model ID in curpor position */
-               if (targetModelID == -1)
-                  targetModelID = dropAllowedModelID;
-            }
          } else {
-            /* others */
             targetModelID = m_render->pickModel(this, pos.x, pos.y, &dropAllowedModelID); /* model ID in curpor position */
             if (targetModelID == -1)
                targetModelID = dropAllowedModelID;
-            if (targetModelID == -1) {
-               for (j = 0; j < m_numModel; j++) {
-                  if (m_model[j].isEnable() && m_model[j].allowMotionFileDrop()) {
-                     targetModelID = j;
-                     break;
-                  }
-               }
-            }
          }
          if (targetModelID == -1) {
             g_logger.log(L"Warning: vmd file dropped but no model exit at the point");
@@ -123,11 +106,11 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                   /* all model */
                   for (j = 0; j < m_numModel; j++) {
                      if (m_model[j].isEnable() && m_model[j].allowMotionFileDrop())
-                        addMotion(m_model[j].getAlias(), L"insert", droppedFileName, false, true, true, true);
+                        addMotion(m_model[j].getAlias(), NULL, droppedFileName, false, true, true, true);
                   }
                } else {
                   /* target model */
-                  addMotion(m_model[targetModelID].getAlias(), L"insert", droppedFileName, false, true, true, true);
+                  addMotion(m_model[targetModelID].getAlias(), NULL, droppedFileName, false, true, true, true);
                }
             } else {
                /* change base motion */
@@ -137,7 +120,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                      if (m_model[j].isEnable() && m_model[j].allowMotionFileDrop()) {
                         for (motionPlayer = m_model[j].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
                            if (motionPlayer->active && wcscmp(motionPlayer->name, L"base") == 0) {
-                              changeMotion(m_model[j].getAlias(), L"base", droppedFileName);
+                              changeMotion(m_model[j].getAlias(), L"base", droppedFileName); /* if 'base' motion is already used, change motion */
                               break;
                            }
                         }
@@ -149,7 +132,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                   /* target model */
                   for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
                      if (motionPlayer->active && wcscmp(motionPlayer->name, L"base") == 0) {
-                        changeMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName);
+                        changeMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName); /* if 'base' motion is already used, change motion */
                         break;
                      }
                   }
