@@ -609,7 +609,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    wcsncpy(buf, opt[CONF_INIT_MODEL_ALIAS].s, CONF_STR_LEN_MAX);
    for (p = wcstok(buf, L",\t\r\n"); p; p = wcstok(NULL, L",\t\r\n")) {
       if (i >= MAXMODEL) break;
-      wcsncpy(m_model[i].getAlias(), p, 50);
+      m_model[i].setAlias(p);
       i++;
    }
 

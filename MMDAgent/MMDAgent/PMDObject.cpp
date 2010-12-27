@@ -63,7 +63,7 @@ void PMDObject::initialize()
    m_assignTo = NULL;
    m_baseBone = NULL;
    m_needResetKinematic = false;
-   m_alias[0] = L'\0';
+   m_alias = NULL;
 }
 
 /* PMDOjbect::clear: free PMDObject */
@@ -72,6 +72,8 @@ void PMDObject::clear()
    m_pmd.release();
    if (m_motionManager)
       delete m_motionManager;
+   if(m_alias)
+      free(m_alias);
    initialize();
 }
 
@@ -173,7 +175,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* set up lip sync */
    m_lipSync.setup(&m_pmd);
    /* set initial alias name as the same as model name */
-   wcsncpy(m_alias, m_pmd.getModelNameW(), PMDOBJECT_ALIASNAMELEN);
+   setAlias(m_pmd.getModelNameW());
    /* show model information */
 #if 0
    g_logger.log(L"---- %s ----------\n%s\n------------------------\n- %d vertices, %d surfaces, %d matrials\n- %d bones, %d IKs, %d faces\n- %d rigid bodies, %d constraints",
@@ -436,7 +438,22 @@ bool PMDObject::updateModelRootRotation(float fps)
 /* PMDObject::getAlias: get alias name */
 wchar_t *PMDObject::getAlias()
 {
-   return m_alias;
+   wchar_t *none = L"";
+
+   if(m_alias)
+      return m_alias;
+   else
+      return none;
+}
+
+/* PMDObject::setAlias: set alias name */
+void PMDObject::setAlias(wchar_t *alias)
+{
+   if(alias && wcslen(alias) > 0) {
+      if(m_alias)
+         free(m_alias);
+      m_alias = _wcsdup(alias);
+   }
 }
 
 /* PMDObject::getPMDModel: get PMDModel */

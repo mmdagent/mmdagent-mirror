@@ -61,10 +61,10 @@ class PMDObject
 {
 private:
 
-   wchar_t m_alias[PMDOBJECT_ALIASNAMELEN]; /* alias */
-   PMDModel m_pmd;                          /* model */
-   MotionManager *m_motionManager;          /* motion manager */
-   LipSync m_lipSync;                       /* lip sync */
+   wchar_t *m_alias;               /* alias */
+   PMDModel m_pmd;                 /* model */
+   MotionManager *m_motionManager; /* motion manager */
+   LipSync m_lipSync;              /* lip sync */
 
    bool m_isEnable; /* true if this model is enabled */
 
@@ -149,6 +149,9 @@ public:
 
    /* PMDObject::getAlias: get alias name */
    wchar_t *getAlias();
+
+   /* PMDObject::setAlias: set alias name */
+   void setAlias(wchar_t *alias);
 
    /* PMDObject::getPMDModel: get PMDModel */
    PMDModel *getPMDModel();

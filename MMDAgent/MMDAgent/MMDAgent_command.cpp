@@ -434,7 +434,7 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
    }
 
    /* alias */
-   if (motionAlias) {
+   if (motionAlias && wcslen(motionAlias) > 0) {
       /* check the same alias */
       name = _wcsdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
@@ -584,7 +584,7 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    }
 
    /* determine name */
-   if (modelAlias) {
+   if (modelAlias && wcslen(modelAlias) > 0) {
       /* check the same alias */
       name = _wcsdup(modelAlias);
       if (findModelAlias(name) >= 0) {
@@ -616,7 +616,7 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
 
    /* initialize motion manager */
    m_model[id].resetMotionManager();
-   wcsncpy(m_model[id].getAlias(), name, 50);
+   m_model[id].setAlias(name);
 
    /* send event message */
    sendEventMessage(MMDAGENT_EVENT_MODEL_ADD, L"%s", name);
@@ -658,7 +658,7 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
    }
 
    /* set alias */
-   wcsncpy(m_model[id].getAlias(), modelAlias, 50);
+   m_model[id].setAlias(modelAlias);
 
    /* delete accessories  */
    for (i = 0; i < m_numModel; i++)
