@@ -39,18 +39,25 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VMDGRIDSIZE       100  /* number of cache VMD files */
-#define VMDGRID_MAXBUFLEN 1024
+#define VMDGRIDSIZE       10    /* number of cache VMD files */
+#define VMDGRID_MAXBUFLEN 2048
+
+/* VMDList: VMD list */
+typedef struct _VMDList {
+   VMD vmd;
+   char *name;
+   int use;
+   struct _VMDList *prev;
+   struct _VMDList *next;
+} VMDList;
 
 /* MotionStocker: cache list for VMD files */
 class MotionStocker
 {
 private:
 
-   VMD m_vmdList[VMDGRIDSIZE];          /* VMD list */
-   wchar_t *m_vmdFileName[VMDGRIDSIZE]; /* file name */
-   int m_num;                           /* number of definitions */
-   int m_current;                       /* current index */
+   VMDList *m_head;
+   VMDList *m_tail;
 
    /* initialize: initialize MotionStocker */
    void initialize();
@@ -66,6 +73,9 @@ public:
    /* ~MotionStocker: destructor */
    ~MotionStocker();
 
-   /* load: load a model or return cached one */
+   /* load: load VMD or return cached one */
    VMD *load(wchar_t *fileName);
+
+   /* unload: unload VMD */
+   void unload(VMD *vmd);
 };

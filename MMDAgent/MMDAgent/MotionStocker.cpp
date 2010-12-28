@@ -54,22 +54,21 @@
 /* MotionStocker::initialize: initialize MotionStocker */
 void MotionStocker::initialize()
 {
-   int i;
-
-   for (i = 0; i < VMDGRIDSIZE; i++)
-      m_vmdFileName[i] = NULL;
-   m_num = 0;
-   m_current = 0;
+   m_head = NULL;
+   m_tail = NULL;
 }
 
 /* MotionStocker::clear: free MotionStocker */
 void MotionStocker::clear()
 {
-   int i;
+   VMDList *vl, *tmp;
 
-   for (i = 0; i < VMDGRIDSIZE; i++)
-      if (m_vmdFileName[i])
-         free(m_vmdFileName[i]);
+   for(vl = m_head; vl; vl = tmp) {
+      tmp = vl->next;
+      if(vl->name)
+         free(vl->name);
+      delete vl;
+   }
 
    initialize();
 }
@@ -89,42 +88,126 @@ MotionStocker::~MotionStocker()
 /* MotionStocker::load: load a model or return cached one */
 VMD * MotionStocker::load(wchar_t *fileName)
 {
-   VMD *ret;
-   int i;
-   wchar_t buf[VMDGRID_MAXBUFLEN];
-   size_t len;
+   VMDList *vl, *tmp;
    char fileNameA[VMDGRID_MAXBUFLEN];
+   size_t len;
 
-   /* load from cache */
-   for (i = m_current - 1; i >= 0; i--)
-      if (wcscmp(m_vmdFileName[i], fileName) == 0)
-         return &(m_vmdList[i]);
-   for (i = m_num - 1; i >= m_current; i--)
-      if (wcscmp(m_vmdFileName[i], fileName) == 0)
-         return &(m_vmdList[i]);
-
-   /* load VMD */
    wcstombs_s(&len, fileNameA, VMDGRID_MAXBUFLEN, fileName, _TRUNCATE);
-   if (m_vmdList[m_current].load(fileNameA) == false) {
+
+#if 0
+   /* debug */
+   int x = 0;
+   for(vl = m_head; vl; vl = tmp) {
+      tmp = vl->next;
+      wchar_t buff[1024];
+      size_t len;
+      mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
+      g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
+   }
+#endif
+
+   /* search cache */
+   for(vl = m_tail; vl; vl = tmp) {
+      tmp = vl->prev;
+      if(strcmp(vl->name, fileNameA) == 0) {
+         if(vl != m_tail) {
+            if(vl == m_head) {
+               m_head = vl->next;
+               vl->next->prev = NULL;
+            } else {
+               vl->prev->next = vl->next;
+               vl->next->prev = vl->prev;
+            }
+            m_tail->next = vl;
+            vl->prev = m_tail;
+            m_tail = vl;
+         }
+         vl->use++;
+#if 0
+         g_logger.log(L"use cache");
+#endif
+         return &vl->vmd;
+      }
+   }
+
+#if 0
+   g_logger.log(L"load from file");
+#endif
+   /* load VMD */
+   vl = new VMDList;
+   if(vl->vmd.load(fileNameA) == false) {
+      delete vl;
       g_logger.log(L"! Error: failed to load vmd file: %s", fileName);
       return NULL;
    }
-   if (m_vmdFileName[m_current])
-      free(m_vmdFileName[m_current]);
-   m_vmdFileName[m_current] = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(fileName) + 1));
-   wcscpy(m_vmdFileName[m_current], fileName);
-   ret = &(m_vmdList[m_current]);
-   m_current++;
-   if (m_num < m_current)
-      m_num = m_current;
-   if (m_current >= VMDGRIDSIZE)
-      m_current = 0;
 
+   /* save name */
+   vl->name = _strdup(fileNameA);
+   vl->use = 1;
+   vl->next = NULL;
+
+   /* store cache */
+   if(m_head == NULL) {
+      vl->prev = NULL;
+      m_head = vl;
+   } else {
+      vl->prev = m_tail;
+      m_tail->next = vl;
+   }
+   m_tail = vl;
+
+   return &vl->vmd;
+}
+
+/* MotionStocker::unload: unload VMD */
+void MotionStocker::unload(VMD *vmd)
+{
+   int count;
+   VMDList *vl, *tmp;
+
+   /* set disable flag */
+   for(vl = m_tail; vl; vl = tmp) {
+      tmp = vl->prev;
+      if(&vl->vmd == vmd) {
+         vl->use--;
+         break;
+      }
+   }
+
+   /* count unused cache */
+   count = 0;
+   for(vl = m_head; vl; vl = tmp) {
+      tmp = vl->next;
+      if(vl->use <= 0)
+         count++;
+   }
+
+   /* remove unused cache */
+   for(vl = m_head; vl && count > VMDGRIDSIZE; vl = tmp) {
+      tmp = vl->next;
+      if(vl->use <= 0) {
+         if(vl == m_head && vl == m_tail) {
+            m_head = NULL;
+            m_tail = NULL;
+         } else if(vl == m_head) {
+            m_head = vl->next;
+            vl->next->prev = NULL;
+         } else if(vl == m_tail) {
+            m_tail = vl->prev;
+            vl->prev->next = NULL;
+         } else {
+            vl->prev->next = vl->next;
+            vl->next->prev = vl->prev;
+         }
 #if 0
-   _snwprintf(buf, VMDGRID_MAXBUFLEN, L"- %d frames (%.1f sec), %d bones, %d faces\n- total %d key frames for %s",
-              (int) ret->getMaxFrame(), ret->getMaxFrame() / 30.0f, ret->getNumBoneKind(), ret->getNumFaceKind(), ret->getTotalKeyFrame(), ret->getNameW());
-   g_logger.log(buf);
+         wchar_t buf[1024];
+         size_t len;
+         mbstowcs_s(&len, buf, 1024, vl->name, _TRUNCATE);
+         g_logger.log(L"remove %s", buf);
 #endif
-
-   return ret;
+         if(vl->name) free(vl->name);
+         delete vl;
+         count--;
+      }
+   }
 }

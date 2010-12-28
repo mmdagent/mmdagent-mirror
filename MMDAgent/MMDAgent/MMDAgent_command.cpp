@@ -477,7 +477,8 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
 bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName)
 {
    int id;
-   VMD *vmd;
+   VMD *vmd, *old = NULL;
+   MotionPlayer *motionPlayer;
 
    /* ID */
    id = findModelAlias(modelAlias);
@@ -499,11 +500,28 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *
       return false;
    }
 
+   /* get motion before change */
+   for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if (motionPlayer->active && wcscmp(motionPlayer->name, motionAlias) == 0) {
+         old = motionPlayer->vmd;
+         break;
+      }
+   }
+   if(old == NULL) {
+      g_logger.log(L"! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_motion.unload(vmd);
+      return false;
+   }
+
    /* change motion */
    if (m_model[id].swapMotion(vmd, motionAlias) == false) {
       g_logger.log(L"! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_motion.unload(vmd);
       return false;
    }
+
+   /* unload old motion from motion stocker */
+   m_motion.unload(old);
 
    /* send event message */
    sendEventMessage(MMDAGENT_EVENT_MOTION_CHANGE, L"%s|%s", modelAlias, motionAlias);

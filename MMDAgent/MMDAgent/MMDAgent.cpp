@@ -209,6 +209,8 @@ void MMDAgent::updateScene()
                      sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", m_model[i].getAlias());
                   else
                      sendEventMessage(MMDAGENT_EVENT_MOTION_DELETE, L"%s|%s", m_model[i].getAlias(), motionPlayer->name);
+                  /* unload from motion stocker */
+                  m_motion.unload(motionPlayer->vmd);
                }
             }
          }
