@@ -66,10 +66,6 @@ private:
    wchar_t **m_faceName; /* name list of expression */
    float *m_table[6];    /* table of phoneme ID and blend rate*/
 
-   VMD m_motion;                /* generated lip motion */
-   unsigned char *m_genRawData; /* generated data (VMD file format) */
-   size_t m_genRawDataSize;     /* size of generated data */
-
    /* initialize: initialize LipSync */
    void initialize();
 
@@ -88,14 +84,7 @@ public:
    bool setup(PMDModel *pmd);
 
    /* composeMotion: create motion from phoneme sequence */
-   bool composeMotion(char *lipSequence);
-
-   /* getLipMotion: get lip motion */
-   VMD *getLipMotion();
-
-#if _DEBUG
-   bool saveLastMotion(const wchar_t *filename);
-#endif
+   bool createMotion(char *lipSequence, unsigned char **vmdData, unsigned long *vmdSize);
 };
 
 #endif /* __mmdagent_lipsync_h__ */

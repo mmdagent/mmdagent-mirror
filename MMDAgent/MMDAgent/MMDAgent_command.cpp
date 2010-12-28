@@ -420,7 +420,7 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
    wchar_t *name;
 
    /* motion file */
-   vmd = m_motion.load(fileName);
+   vmd = m_motion.loadFromFile(fileName);
    if (vmd == NULL) {
       g_logger.log(L"! Error: addMotion: failed to load %s.", fileName);
       return false;
@@ -494,7 +494,7 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *
    }
 
    /* motion file */
-   vmd = m_motion.load(fileName);
+   vmd = m_motion.loadFromFile(fileName);
    if (vmd == NULL) {
       g_logger.log(L"! Error: changeMotion: failed to load %s.", fileName);
       return false;
@@ -1031,6 +1031,11 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
    int id;
    size_t len;
    char buf[8192];
+   unsigned char *vmdData;
+   unsigned long vmdSize;
+   VMD *vmd;
+   bool find = false;
+   MotionPlayer *motionPlayer;
 
    /* ID */
    id = findModelAlias(modelAlias);
@@ -1039,19 +1044,37 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
       return false;
    }
 
-   /* if lipsync now, then stop */
-   if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTION_NAME) == false) {
-      /* don't send message */
-   }
-
    /* create motion */
    wcstombs_s(&len, buf, MMDAGENT_MAXLIPSYNCBUFLEN, seq, _TRUNCATE);
-   m_model[id].getLipSync()->composeMotion(buf);
+   if(m_model[id].getLipSync()->createMotion(buf, &vmdData, &vmdSize) == false) {
+      g_logger.log(L"! Error: startLipSync: cannot create lip motion.");
+      return false;
+   }
+   vmd = m_motion.loadFromData(vmdData, vmdSize);
+   free(vmdData);
+
+   /* search running lip motion */
+   for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if (motionPlayer->active && wcscmp(motionPlayer->name, LIPSYNC_MOTION_NAME) == 0) {
+         find = true;
+         break;
+      }
+   }
 
    /* start lip sync */
-   if (m_model[id].startMotion(m_model[id].getLipSync()->getLipMotion(), LIPSYNC_MOTION_NAME, false, true, true, true) == false) {
-      g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
-      return false;
+   if(find == true) {
+      if (m_model[id].swapMotion(vmd, LIPSYNC_MOTION_NAME) == false) {
+         g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
+         m_motion.unload(vmd);
+         return false;
+      }
+      sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", modelAlias);
+   } else {
+      if (m_model[id].startMotion(vmd, LIPSYNC_MOTION_NAME, false, true, true, true) == false) {
+         g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
+         m_motion.unload(vmd);
+         return false;
+      }
    }
 
    /* send event message */

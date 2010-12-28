@@ -59,7 +59,6 @@ void LipSync::initialize()
       m_table[i] = NULL;
    }
    m_faceName = NULL;
-   m_genRawData = NULL;
 }
 
 /* LipSync::clear: free LipSync */
@@ -83,8 +82,6 @@ void LipSync::clear()
          free(m_faceName[i]);
       free(m_faceName);
    }
-   if (m_genRawData)
-      free(m_genRawData);
 
    initialize();
 }
@@ -499,8 +496,8 @@ typedef struct _KeyFrame {
    struct _KeyFrame *next;
 } KeyFrame;
 
-/* LipSync::composeMotion: create motion from phoneme sequence */
-bool LipSync::composeMotion(char *seq)
+/* LipSync::createMotion: create motion from phoneme sequence */
+bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *rawSize)
 {
    int i, j;
 
@@ -528,6 +525,10 @@ bool LipSync::composeMotion(char *seq)
    char mbuf[VMD_BONE_FACE_NAME_LEN+2];
    size_t converted;
    VMDFile_FaceFrame *face;
+
+   /* initialize */
+   (*rawData) = NULL;
+   (*rawSize) = 0;
 
    /* analysis phoneme sequence */
    if (seq == NULL)
@@ -664,15 +665,12 @@ bool LipSync::composeMotion(char *seq)
       for (kf = keyframe[i]; kf; kf = kf->next)
          totalKeyNum++;
 
-   m_genRawDataSize =
-      sizeof(VMDFile_Header) /* header */
-      + sizeof(unsigned long) /* number of bone */
-      + sizeof(unsigned long) /* number of key frame for expression */
-      + sizeof(VMDFile_FaceFrame) * totalKeyNum;
-   if (m_genRawData)
-      free(m_genRawData);
-   m_genRawData = (unsigned char *) malloc(m_genRawDataSize);
-   data = m_genRawData;
+   /* create memories */
+   *rawSize = sizeof(VMDFile_Header) + sizeof(unsigned long) + sizeof(unsigned long)
+              + sizeof(VMDFile_FaceFrame) * totalKeyNum;
+   *rawData = (unsigned char *) malloc(*rawSize);
+
+   data = *rawData;
    /* header */
    header = (VMDFile_Header *) data;
    strncpy(header->header, "Vocaloid Motion Data 0002", 30);
@@ -697,9 +695,6 @@ bool LipSync::composeMotion(char *seq)
       }
    }
 
-   /* initialize and load from data memories */
-   m_motion.parse(m_genRawData, (unsigned long) m_genRawDataSize);
-
    /* release */
    for (i = 0; i < m_numFaces; i++) {
       kf = keyframe[i];
@@ -714,8 +709,3 @@ bool LipSync::composeMotion(char *seq)
    return true;
 }
 
-/* LipSync::getLipMotion: get lip motion */
-VMD *LipSync::getLipMotion()
-{
-   return &m_motion;
-}

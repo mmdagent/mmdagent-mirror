@@ -85,8 +85,8 @@ MotionStocker::~MotionStocker()
    clear();
 }
 
-/* MotionStocker::load: load a model or return cached one */
-VMD * MotionStocker::load(wchar_t *fileName)
+/* MotionStocker::loadFromFile: load VMD from file or return cached one */
+VMD * MotionStocker::loadFromFile(wchar_t *fileName)
 {
    VMDList *vl, *tmp;
    char fileNameA[VMDGRID_MAXBUFLEN];
@@ -99,17 +99,21 @@ VMD * MotionStocker::load(wchar_t *fileName)
    int x = 0;
    for(vl = m_head; vl; vl = tmp) {
       tmp = vl->next;
-      wchar_t buff[1024];
-      size_t len;
-      mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
-      g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
+      if(vl->name) {
+         wchar_t buff[1024];
+         size_t len;
+         mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
+         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
+      } else {
+         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, NULL);
+      }
    }
 #endif
 
-   /* search cache */
+   /* search cache from tail to head */
    for(vl = m_tail; vl; vl = tmp) {
       tmp = vl->prev;
-      if(strcmp(vl->name, fileNameA) == 0) {
+      if(vl->name && strcmp(vl->name, fileNameA) == 0) {
          if(vl != m_tail) {
             if(vl == m_head) {
                m_head = vl->next;
@@ -138,7 +142,7 @@ VMD * MotionStocker::load(wchar_t *fileName)
    vl = new VMDList;
    if(vl->vmd.load(fileNameA) == false) {
       delete vl;
-      g_logger.log(L"! Error: failed to load vmd file: %s", fileName);
+      g_logger.log(L"! Error: failed to load vmd from file: %s", fileName);
       return NULL;
    }
 
@@ -147,7 +151,7 @@ VMD * MotionStocker::load(wchar_t *fileName)
    vl->use = 1;
    vl->next = NULL;
 
-   /* store cache */
+   /* store cache to tail */
    if(m_head == NULL) {
       vl->prev = NULL;
       m_head = vl;
@@ -156,6 +160,40 @@ VMD * MotionStocker::load(wchar_t *fileName)
       m_tail->next = vl;
    }
    m_tail = vl;
+
+   return &vl->vmd;
+}
+
+/* MotionStocker::loadFromData: load VMD from data memories*/
+VMD * MotionStocker::loadFromData(unsigned char *rawData, unsigned long rawSize)
+{
+   VMDList *vl;
+
+#if 0
+   g_logger.log(L"load from data");
+#endif
+   /* load VMD  */
+   vl = new VMDList;
+   if(vl->vmd.parse(rawData, rawSize) == false) {
+      delete vl;
+      g_logger.log(L"! Error: failed to load vmd from memories");
+      return NULL;
+   }
+
+   /* don't save name */
+   vl->name = NULL;
+   vl->use = 1;
+   vl->prev = NULL;
+
+   /* store cache to head */
+   if(m_head == NULL) {
+      vl->next = NULL;
+      m_tail = vl;
+   } else {
+      vl->next = m_head;
+      m_head->prev = vl;
+   }
+   m_head = vl;
 
    return &vl->vmd;
 }
@@ -201,14 +239,36 @@ void MotionStocker::unload(VMD *vmd)
             vl->next->prev = vl->prev;
          }
 #if 0
-         wchar_t buf[1024];
-         size_t len;
-         mbstowcs_s(&len, buf, 1024, vl->name, _TRUNCATE);
-         g_logger.log(L"remove %s", buf);
+         if(vl->name) {
+            wchar_t buf[1024];
+            size_t len;
+            mbstowcs_s(&len, buf, 1024, vl->name, _TRUNCATE);
+            g_logger.log(L"remove %s", buf);
+         } else {
+            g_logger.log(L"remove lip");
+         }
 #endif
          if(vl->name) free(vl->name);
          delete vl;
          count--;
       }
    }
+
+
+#if 0
+   /* debug */
+   int x = 0;
+   for(vl = m_head; vl; vl = tmp) {
+      tmp = vl->next;
+      if(vl->name) {
+         wchar_t buff[1024];
+         size_t len;
+         mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
+         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
+      } else {
+         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, NULL);
+      }
+   }
+#endif
+
 }
