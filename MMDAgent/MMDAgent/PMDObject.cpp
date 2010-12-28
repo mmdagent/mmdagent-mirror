@@ -570,6 +570,7 @@ PMDObject *PMDObject::getAssignedModel()
 void PMDObject::renderComment(TextRenderer * text)
 {
    wchar_t buf[PMD_COMMENT_LEN];
+   size_t len;
    btVector3 pos;
    float w, h;
    float tpos[3];
@@ -578,7 +579,10 @@ void PMDObject::renderComment(TextRenderer * text)
    if (m_displayCommentFrame == 0.0)
       return;
 
-   wcscpy(buf, m_pmd.getComment());
+   if(m_pmd.getComment() == NULL)
+      return;
+
+   mbstowcs_s(&len, buf, PMD_COMMENT_LEN, m_pmd.getComment(), _TRUNCATE);
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    w = 13.0f;

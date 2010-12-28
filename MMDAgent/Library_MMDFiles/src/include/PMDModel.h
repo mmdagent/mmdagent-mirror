@@ -74,7 +74,7 @@ private:
    char m_nameA[PMD_FILE_NAME_LEN + 1];    /* model name (multi-byte char) */
    wchar_t m_nameW[PMD_FILE_NAME_LEN + 1]; /* model name (wide char) */
    wchar_t m_modelDir[MAX_PATH];           /* where this model is located */
-   wchar_t m_comment[PMD_COMMENT_LEN];     /* comment string in wide char */
+   char *m_comment;                        /* comment string */
 
    unsigned long m_numVertex; /* number of vertices */
    btVector3 *m_vertexList;   /* vertex list */
@@ -251,7 +251,7 @@ public:
    float getMaxHeight();
 
    /* getComment: get comment of PMD */
-   wchar_t *getComment();
+   char *getComment();
 
    /* getModelDir: get model directory */
    wchar_t *getModelDir();

@@ -114,7 +114,9 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    size_t len = 0;
    mbstowcs_s(&len, m_nameW, PMD_FILE_NAME_LEN + 1, m_nameA, _TRUNCATE);
    /* comment */
-   mbstowcs_s(&len, m_comment, PMD_COMMENT_LEN, fileHeader->comment, _TRUNCATE);
+   m_comment = (char *) malloc(sizeof(char) * (PMD_COMMENT_LEN + 1));
+   strncpy(m_comment, fileHeader->comment, PMD_COMMENT_LEN);
+   m_comment[PMD_COMMENT_LEN] = '\0';
    data += sizeof(PMDFile_Header);
 
    /* vertex data and bone weights */

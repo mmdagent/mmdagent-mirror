@@ -86,6 +86,7 @@ static bool getDir(const wchar_t *filePath, wchar_t *dirName, wchar_t *baseName,
 /* PMDModel::initialize: initialize PMDModel */
 void PMDModel::initialize()
 {
+   m_comment = NULL;
    m_bulletPhysics = NULL;
 
    m_vertexList = NULL;
@@ -225,6 +226,10 @@ void PMDModel::clear()
    if (m_IKSimulated) {
       free(m_IKSimulated);
       m_IKSimulated = NULL;
+   }
+   if(m_comment) {
+      free(m_comment);
+      m_comment = NULL;
    }
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
@@ -550,7 +555,7 @@ float PMDModel::getMaxHeight()
 }
 
 /* PMDModel::getComment: get comment of PMD */
-wchar_t *PMDModel::getComment()
+char *PMDModel::getComment()
 {
    return m_comment;
 }
