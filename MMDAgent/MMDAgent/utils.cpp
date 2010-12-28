@@ -51,7 +51,7 @@ void getDirName(wchar_t *wszDir, const wchar_t *wszPath)
 {
    int i;
    wchar_t ch;
-   bool found = FALSE;
+   bool found = false;
 
    wszDir[0] = L'\0';
    for (i = wcslen(wszPath); i >= 0; i--) {
@@ -59,7 +59,7 @@ void getDirName(wchar_t *wszDir, const wchar_t *wszPath)
       if (found) {
          wszDir[i] = wszPath[i];
       } else if (ch == L'\\' || ch == L'/' || ch == L':') {
-         found = TRUE;
+         found = true;
          wszDir[i+1] = L'\0';
          wszDir[i] = wszPath[i];
       }

@@ -109,7 +109,7 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
       m_bitmapFontID = 0;
       return;
    }
-   if (wglUseFontBitmaps(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_bitmapFontID) == FALSE) {
+   if (wglUseFontBitmaps(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_bitmapFontID) == false) {
       glDeleteLists(m_bitmapFontID, TEXTRENDERER_ASCIISIZE);
       m_bitmapFontID = 0;
       return;
@@ -122,7 +122,7 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
       return;
 
    /* get outline font */
-   m_outlineFont = CreateFontW(30, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+   m_outlineFont = CreateFontW(30, 0, 0, 0, FW_NORMAL, false, false, false,
                                DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
                                fontName);
    if (!m_outlineFont) {
@@ -137,7 +137,7 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
       m_outlineFontID = 0;
       return;
    }
-   if (wglUseFontOutlinesW(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_outlineFontID, 0.0f, 0.1f, WGL_FONT_POLYGONS, gmf) == FALSE) {
+   if (wglUseFontOutlinesW(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_outlineFontID, 0.0f, 0.1f, WGL_FONT_POLYGONS, gmf) == false) {
       glDeleteLists(m_outlineFontID, TEXTRENDERER_ASCIISIZE);
       m_outlineFontID = 0;
       return;
@@ -234,7 +234,7 @@ int TextRenderer::getDisplayListArrayOfString(wchar_t *wstr, unsigned int *idLis
                oldfont = SelectObject(m_hDC, m_outlineFont);
                if (!oldfont)
                   return -1;
-               if (wglUseFontOutlinesW(m_hDC, wstr[i], 1, id, 0.0f, 0.1f, WGL_FONT_POLYGONS, &gmf) == FALSE)
+               if (wglUseFontOutlinesW(m_hDC, wstr[i], 1, id, 0.0f, 0.1f, WGL_FONT_POLYGONS, &gmf) == false)
                   continue;
                SelectObject(m_hDC, oldfont);
                /* make id as relative to base id */

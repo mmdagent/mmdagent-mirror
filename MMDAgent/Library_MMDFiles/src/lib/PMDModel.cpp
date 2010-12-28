@@ -69,7 +69,7 @@ static bool getDir(const wchar_t *filePath, wchar_t *dirName, wchar_t *baseName,
    for (i = len; i >= 0; i--) {
       ch = filePath[i];
       if (found == false && (ch == L'\\' || ch == L'/' || ch == L':')) {
-         found = TRUE;
+         found = true;
          wcsncpy(baseName, &(filePath[i+1]), len - i);
          dirName[i+1] = L'\0';
       }

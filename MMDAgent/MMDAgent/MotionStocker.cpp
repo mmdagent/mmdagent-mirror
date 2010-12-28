@@ -120,7 +120,7 @@ VMD * MotionStocker::load(wchar_t *fileName)
             }
             m_tail->next = vl;
             vl->prev = m_tail;
-			vl->next = NULL;
+            vl->next = NULL;
             m_tail = vl;
          }
          vl->use++;

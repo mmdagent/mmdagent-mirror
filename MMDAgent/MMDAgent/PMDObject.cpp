@@ -148,7 +148,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* save position when position is fixed */
    if (m_baseBone) m_origBasePos = m_baseBone->getTransform()->getOrigin();
    /* set toon rendering flag */
-   if (opt[CONF_CARTOON_ENABLED].b == TRUE && m_allowToonShading == true)
+   if (opt[CONF_CARTOON_ENABLED].b == true && m_allowToonShading == true)
       m_pmd.setToonFlag(true);
    else
       m_pmd.setToonFlag(false);
