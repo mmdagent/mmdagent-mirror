@@ -67,12 +67,8 @@ CONF_OPT opt[] = {
       CONF_INIT_MODEL_ALIAS, "initial_model_alias", CT_STR, 0, 0, 0.0f, {}, 0, L"", 0
    },
    {
-      L"Floor texture file (*.bmp, *.png, *.tga, or *.pmd)",
-      CONF_FLOOR_BMP, "floor_bmp", CT_STR, 0, 0, 0.0f, {}, 0, L"", 0
-   },
-   {
-      L"Background texture file (*.bmd, *.png, *.tga)",
-      CONF_BACK_BMP, "back_bmp", CT_STR, 0, 0, 0.0f, {}, 0, L"", 0
+      L"Stage file(s) (*.xpmd, *.png, *.tga, *.bmp)",
+      CONF_STAGE, "stage", CT_STR, 0, 0, 0.0f, {}, 0, L"", 0
    },
    {
       L"Initial music file (*.wav, *.mp3)",

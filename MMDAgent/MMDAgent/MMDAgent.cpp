@@ -456,8 +456,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 {
    int i;
    size_t len;
+   wchar_t buf[MAX_PATH];
+   wchar_t *p;
+
    wchar_t binaryDirName[MAX_PATH]; /* path of MMDAgent.exe */
-   wchar_t fbuf[MAX_PATH];
    wchar_t startDirName[MAX_PATH];
 
    m_hInst = hInstance;
@@ -475,20 +477,20 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    GetCurrentDirectory(MAX_PATH, startDirName);
 
    /* get path of MMDAgent.exe */
-   GetModuleFileName(NULL, fbuf, MAX_PATH);
-   getFullDirName(binaryDirName, fbuf);
+   GetModuleFileName(NULL, buf, MAX_PATH);
+   getFullDirName(binaryDirName, buf);
 
    /* get default config file name */
-   len = wcslen(fbuf);
+   len = wcslen(buf);
    if (len > 4) {
-      fbuf[len-4] = L'.';
-      fbuf[len-3] = L'm';
-      fbuf[len-2] = L'd';
-      fbuf[len-1] = L'f';
+      buf[len-4] = L'.';
+      buf[len-3] = L'm';
+      buf[len-2] = L'd';
+      buf[len-1] = L'f';
 
       /* load default config file */
-      if (config_load(fbuf, 1))
-         wcscpy(m_configFileName, fbuf);
+      if (config_load(buf, 1))
+         wcscpy(m_configFileName, buf);
    }
    wcscpy(m_configDirName, binaryDirName);
 
@@ -509,12 +511,12 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    g_logger.log(L"system_data_dir: %s", m_appDirName);
 
    /* get plugin directory */
-   wcsncpy(fbuf, binaryDirName, MAX_PATH);
-   wcsncat_s(fbuf, MAX_PATH, opt[CONF_PLUGIN_DIR].s, _TRUNCATE);
-   g_logger.log(L"searching plugins at %s", fbuf);
+   wcsncpy(buf, binaryDirName, MAX_PATH);
+   wcsncat_s(buf, MAX_PATH, opt[CONF_PLUGIN_DIR].s, _TRUNCATE);
+   g_logger.log(L"searching plugins at %s", buf);
 
    /* load and start plugins */
-   m_plugin.load(fbuf);
+   m_plugin.load(buf);
    m_plugin.execAppStart(this);
 
    /* create components */
@@ -555,8 +557,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_text.setup(m_screen->getDC(), L"Arial Unicode MS");
 
    /* set model positions from config file */
-   wchar_t buf[CONF_STR_LEN_MAX];
-   wchar_t *p;
    btVector3 pos;
    pos.setZero();
    int c = 0;
@@ -645,48 +645,34 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* re-set current directory */
    SetCurrentDirectory(startDirName);
 
-   /* load stage */
-   bool stage_flag = false;
+   /* set stage size */
    m_stage->setSize(opt[CONF_FLOOR_WIDTH].f, (opt[CONF_FLOOR_DEPTH].f == 0.0f) ? opt[CONF_FLOOR_WIDTH].f : opt[CONF_FLOOR_DEPTH].f, opt[CONF_BACK_HEIGHT].f , 1.0f, 1.0f);
-   switch (opt[CONF_FLOOR_BMP].src) {
-   case 0:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 1:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 2:
-      SetCurrentDirectory(m_configDirName);
-      break;
-   }
-   if (hasSuffix(opt[CONF_FLOOR_BMP].s, L"pmd")) {
-      m_stage->loadStagePMD(opt[CONF_FLOOR_BMP].s , &m_bullet, m_systex);
-      stage_flag = true;
-   } else {
-      m_stage->loadFloor(opt[CONF_FLOOR_BMP].s, &m_bullet);
-   }
-   /* re-set current directory */
-   SetCurrentDirectory(startDirName);
 
-   /* load background and floor */
-   switch (opt[CONF_BACK_BMP].src) {
-   case 0:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 1:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 2:
-      SetCurrentDirectory(m_configDirName);
-      break;
+   /* load stage */
+   if(wcslen(opt[CONF_STAGE].s) > 0) {
+      switch (opt[CONF_STAGE].src) {
+      case 0:
+         SetCurrentDirectory(binaryDirName);
+         break;
+      case 1:
+         SetCurrentDirectory(binaryDirName);
+         break;
+      case 2:
+         SetCurrentDirectory(m_configDirName);
+         break;
+      }
+      wcscpy(buf, opt[CONF_STAGE].s);
+      p = wcsstr(buf, L",");
+      if(p == NULL) {
+         setStage(buf);
+      } else {
+         *p = L'\0';
+         setFloor(buf);
+         p++;
+         setBackground(p);
+      }
+      SetCurrentDirectory(startDirName);
    }
-   if (hasSuffix(opt[CONF_BACK_BMP].s, L"pmd")) {
-      m_stage->loadStagePMD(opt[CONF_BACK_BMP].s, &m_bullet, m_systex);
-   } else if (stage_flag == false) {
-      m_stage->loadBackground(opt[CONF_BACK_BMP].s, &m_bullet);
-   }
-   /* re-set current directory */
-   SetCurrentDirectory(startDirName);
 
    /* set full screen */
    if (opt[CONF_FULLSCREEN_ENABLED].b)
