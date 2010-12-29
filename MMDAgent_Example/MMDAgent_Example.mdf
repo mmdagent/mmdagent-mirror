@@ -1,8 +1,7 @@
 
 # Stage
 
-floor_bmp=Stage\building2\floor.bmp
-back_bmp=Stage\building2\back.bmp
+stage=Stage\building2\floor.bmp,Stage\building2\background.bmp
 
 # Model
 
