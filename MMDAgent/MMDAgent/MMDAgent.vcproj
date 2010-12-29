@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib"
+				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../Library_Bullet_Physics/lib;../Library_MMDFiles/lib;../Library_zlib/lib;../Library_libpng/lib;..\Library_GLee\lib;"
 				GenerateDebugInformation="true"
