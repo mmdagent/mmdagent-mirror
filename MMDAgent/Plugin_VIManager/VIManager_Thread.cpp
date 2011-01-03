@@ -135,8 +135,8 @@ static unsigned __stdcall main_thread(void *param)
 {
    VIManager_Thread *vimanager_thread = (VIManager_Thread *) param;
 
-   while (1)
-      vimanager_thread->stateTransition();
+   vimanager_thread->stateTransition();
+   return 0;
 }
 
 /* VIManager_Thread::initialize: initialize thread */
@@ -243,32 +243,40 @@ void VIManager_Thread::stateTransition()
    char oargs[VIMANAGER_MAXBUFLEN];
    int remain = 1;
 
-   /* wait transition event */
-   if (WaitForSingleObject(m_transEvent, INFINITE) != WAIT_OBJECT_0)
-      MessageBox(NULL, L"ERROR: Cannot wait event.", L"Error", MB_OK);
-   ResetEvent(m_transEvent);
-
-   while (remain) {
-      /* wait queue access */
-      if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
-         MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);
-      /* load input message */
-      remain = VIManager_EventQueue_dequeue(&eventQueue, itype, iargs);
-      ReleaseMutex(m_queueMutex);
-
-      if (remain == 0)
-         break;
-
-      /* state transition with input symbol */
-      m_vim.transition(itype, iargs, otype, oargs);
+   /* first epsilon step */
+   while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
       if (strcmp(otype, VIMANAGER_EPSILON) != 0)
          sendMessage(otype, oargs);
+   }
 
-      /* state transition with epsilon */
-      while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
+   while(1) {
+      /* wait transition event */
+      if (WaitForSingleObject(m_transEvent, INFINITE) != WAIT_OBJECT_0)
+         MessageBox(NULL, L"ERROR: Cannot wait event.", L"Error", MB_OK);
+      ResetEvent(m_transEvent);
+
+      do {
+         /* wait queue access */
+         if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
+            MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);
+         /* load input message */
+         remain = VIManager_EventQueue_dequeue(&eventQueue, itype, iargs);
+         ReleaseMutex(m_queueMutex);
+
+         if (remain == 0)
+            break;
+
+         /* state transition with input symbol */
+         m_vim.transition(itype, iargs, otype, oargs);
          if (strcmp(otype, VIMANAGER_EPSILON) != 0)
             sendMessage(otype, oargs);
-      }
+
+         /* state transition with epsilon */
+         while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
+            if (strcmp(otype, VIMANAGER_EPSILON) != 0)
+               sendMessage(otype, oargs);
+         }
+      } while (remain);
    }
 }
 
