@@ -235,8 +235,7 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int 
       0, 0
    };
    UINT numFormats;
-   BOOL found;
-   BOOL valid;
+   bool found;
    int offset;
 
    info->multiSampleNum = 0;
@@ -280,8 +279,7 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int 
                continue;
             iAttribs[offset] = i;
             iAttribs[offset+2] = j;
-            valid = wglChoosePixelFormatARB(hdc, iAttribs, fAttribs, 1, &(info->pixelformat_ARB), &numFormats);
-            if (valid && numFormats >= 1) {
+            if (wglChoosePixelFormatARB(hdc, iAttribs, fAttribs, 1, &(info->pixelformat_ARB), &numFormats) && numFormats >= 1) {
                found = true;
                info->multiSampleNum = i;
                info->multiSampleColNum = j;
@@ -293,8 +291,7 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int 
    } else {
       for (i = max_sample_num; i > 0; i /= 2) {
          iAttribs[offset] = i;
-         valid = wglChoosePixelFormatARB(hdc, iAttribs, fAttribs, 1, &(info->pixelformat_ARB), &numFormats);
-         if (valid && numFormats >= 1) {
+         if (wglChoosePixelFormatARB(hdc, iAttribs, fAttribs, 1, &(info->pixelformat_ARB), &numFormats) && numFormats >= 1) {
             found = true;
             info->multiSampleNum = i;
             break;
