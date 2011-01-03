@@ -76,7 +76,7 @@
 # SOUND_EVENT_START|サウンドエイリアス
 # SOUND_EVENT_STOP|サウンドエイリアス
 # STAGE|ステージファイル(.xpmd)
-# STAGE|背景画像ファイル(.bmp, .png, .tga),床画像ファイル(.bmp, .png, .tga)
+# STAGE|床画像ファイル(.bmp, .png, .tga),背景画像ファイル(.bmp, .png, .tga)
 #
 # カメラ・照明
 # LIGHTCOLOR|R,G,B
@@ -103,17 +103,20 @@
 # TIMER_EVENT_START|カウントダウンエイリアス
 # TIMER_EVENT_STOP|カウントダウンエイリアス
 
-# 0000-0011 Initialize
+# 0000-0010 Initialize
 
-0   1   <eps> MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ|センター
-1   2   <eps> MOTION_ADD|メニュー|表情|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+0   1   <eps> MODEL_ADD|メイ|Model\mei\mei.pmd|0.0,0.0,-14.0
+1   3   <eps> MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
+3   4   <eps> MOTION_ADD|メニュー|表情|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+4   5   <eps> STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
+5   2   <eps> MOTION_ADD|メイ|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
 
 # 0011-0020 Hello (key 1)
 
 2   11  RECOG_EVENT_STOP|こんにちは SYNTH_START|メイ|メイ（普）|こんにちは。
 2   11  RECOG_EVENT_STOP|こんにちわ SYNTH_START|メイ|メイ（普）|こんにちは。
 2   11  KEY|1                       SYNTH_START|メイ|メイ（普）|こんにちは。
-11  12  <eps>                       MOTION_ADD|メイ|挨拶|Motion\mei_greeting\mei_greeting.vmd|PART|ONCE
+11  12  <eps>                       MOTION_ADD|メイ|挨拶|Motion\mei_greeting\mei_greeting.vmd|PART
 12  2   SYNTH_EVENT_STOP|メイ       <eps>
 
 # 0021-0030 Self introduction (key 2)
@@ -122,7 +125,7 @@
 2   21  RECOG_EVENT_STOP|あなた,誰 SYNTH_START|メイ|メイ（普）|メイと言います。
 2   21  RECOG_EVENT_STOP|君,誰     SYNTH_START|メイ|メイ（普）|メイと言います。
 2   21  KEY|2                      SYNTH_START|メイ|メイ（普）|メイと言います。
-21  22  <eps>                      MOTION_ADD|メイ|挨拶|Motion\mei_self_introduction\mei_self_introduction.vmd|PART|ONCE
+21  22  <eps>                      MOTION_ADD|メイ|挨拶|Motion\mei_self_introduction\mei_self_introduction.vmd|PART
 22  23  SYNTH_EVENT_STOP|メイ      SYNTH_START|メイ|メイ（普）|よろしくお願いします。
 23  2   SYNTH_EVENT_STOP|メイ      <eps>
 
@@ -133,7 +136,7 @@
 2   31  RECOG_EVENT_STOP|有難う     SYNTH_START|メイ|メイ（普）|どういたしまして。
 2   31  RECOG_EVENT_STOP|有り難う   SYNTH_START|メイ|メイ（普）|どういたしまして。
 2   31  KEY|3                       SYNTH_START|メイ|メイ（普）|どういたしまして。
-31  32  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART|ONCE
+31  32  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART
 32  33  SYNTH_EVENT_STOP|メイ       SYNTH_START|メイ|メイ（喜）|いつでも、話しかけてくださいね。
 33  2   SYNTH_EVENT_STOP|メイ       <eps>
 
@@ -144,5 +147,5 @@
 2   41  RECOG_EVENT_STOP|綺麗     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
 2   41  RECOG_EVENT_STOP|きれい   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
 2   41  KEY|4                     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-41  42  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART|ONCE
+41  42  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART
 42  2   SYNTH_EVENT_STOP|メイ     <eps>
