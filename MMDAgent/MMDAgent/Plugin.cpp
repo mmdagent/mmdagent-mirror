@@ -42,7 +42,6 @@
 #include <windows.h>
 
 #include "TextRenderer.h"
-#include "UserOption.h"
 #include "Plugin.h"
 #include "utils.h"
 

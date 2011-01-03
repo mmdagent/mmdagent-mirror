@@ -45,7 +45,6 @@
 
 #include "TextRenderer.h"
 #include "Screen.h"
-#include "UserOption.h"
 #include "resource.h"
 #include "GLee.h"
 #include <stdio.h>
@@ -91,10 +90,6 @@ static ATOM dummyMyRegisterClass(HINSTANCE hInstance)
 /* Screen::initialize: initialize screen */
 void Screen::initialize()
 {
-   m_requiredSampleNum = opt[CONF_OPENGL_MULTISAMPLE_MAXNUM].i;
-   m_requiredSampleColNum = opt[CONF_OPENGL_MULTISAMPLE_COLOR_MAXNUM].i;
-   m_enableTopMost = opt[CONF_TOPMOST_ENABLED].b;
-
    m_vsync = true;
    m_fullscreen = false;
    m_mouseDisp = true;
@@ -218,7 +213,7 @@ void Screen::setUpPixelFormat(DeviceContextInfo *info)
 }
 
 /* Screen::getPixelFormatARB: get pixel format */
-void Screen::getPixelFormatARB(DeviceContextInfo *info)
+void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int max_sample_col_num)
 {
    int i, j;
    HDC hdc = info->hDC;
@@ -243,7 +238,6 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info)
    BOOL found;
    BOOL valid;
    int offset;
-   int max_sample_num, max_sample_col_num;
 
    info->multiSampleNum = 0;
 
@@ -256,19 +250,16 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info)
    offset = 20; /* index of WGL_SAMPLES_ARB */
 
    /* if CSAA is supported, use it */
-   if (extensionSupported("GL_NV_multisample_coverage") && extensionSupported("WGL_NV_multisample_coverage") && m_requiredSampleColNum > 0)
+   if (extensionSupported("GL_NV_multisample_coverage") && extensionSupported("WGL_NV_multisample_coverage") && max_sample_col_num > 0)
       info->csaa = true;
    else
       info->csaa = false;
-   /* set parameter */
-   max_sample_num = m_requiredSampleNum;
    /* coverage limit is 16 */
    if (max_sample_num > 16)
       max_sample_num = 16;
    if (info->csaa) {
       iAttribs[offset] = WGL_COVERAGE_SAMPLES_NV;
       iAttribs[offset+2] = WGL_COLOR_SAMPLES_NV;
-      max_sample_col_num = m_requiredSampleColNum;
       /* CSAA color limit is 8 */
       if (max_sample_col_num > 8)
          max_sample_col_num = 8;
@@ -327,7 +318,7 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info)
 }
 
 /* Screen::createWindow: create window */
-HWND Screen::createWindow(int width, int height, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass)
+HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int max_sample_num, int max_sample_col_num, bool topMost)
 {
    HWND hWnd;
    int currentPixelFormat;
@@ -337,14 +328,14 @@ HWND Screen::createWindow(int width, int height, HINSTANCE hInstance, TCHAR *szT
 
    /* make dummy window */
    hWnd = CreateWindowEx(
-             (m_enableTopMost ? WS_EX_TOPMOST : 0),
-             m_requiredSampleNum > 0 ? DUMMY_CLASS_NAME : szWindowClass,
+             (topMost ? WS_EX_TOPMOST : 0),
+             max_sample_num > 0 ? DUMMY_CLASS_NAME : szWindowClass,
              szTitle,
              WS_VISIBLE | WS_OVERLAPPEDWINDOW,
              CW_USEDEFAULT,
              0,
-             width,
-             height,
+             size[0],
+             size[1],
              NULL,
              NULL,
              hInstance,
@@ -357,24 +348,24 @@ HWND Screen::createWindow(int width, int height, HINSTANCE hInstance, TCHAR *szT
    /* prepare initial device context (if FSAA is used, dummy) */
    initDC(hWnd, -1);
 
-   if (m_requiredSampleNum > 0) {
+   if (max_sample_num > 0) {
 
       /* get pixel format (extension) */
-      getPixelFormatARB(&m_dcinfo);
+      getPixelFormatARB(&m_dcinfo, max_sample_num, max_sample_col_num);
       /* save parameter */
       currentPixelFormat = m_dcinfo.pixelformat;
       /* close winodw */
       DestroyWindow(hWnd);
       /* re-make window */
       hWnd = CreateWindowEx(
-                (m_enableTopMost ? WS_EX_TOPMOST : 0),
+                (topMost ? WS_EX_TOPMOST : 0),
                 szWindowClass,
                 szTitle,
                 WS_VISIBLE | WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT,
                 0,
-                width,
-                height,
+                size[0],
+                size[1],
                 NULL,
                 NULL,
                 hInstance,

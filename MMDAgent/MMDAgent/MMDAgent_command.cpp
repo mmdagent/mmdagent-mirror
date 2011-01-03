@@ -43,9 +43,9 @@
 
 #include <windows.h>
 
+#include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
-#include "UserOption.h"
 #include "MMDAgent_command.h"
 
 #define MMDAGENT_MAXNUMCOMMAND    10
@@ -148,12 +148,16 @@ bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
             g_logger.log(L"! Error: %s: not a position string: %s", command, warg[2]);
             return false;
          }
+      } else {
+         tmpPos = btVector3(0.0, 0.0, 0.0);
       }
       if (num >= 4) {
          if (arg2rot(&tmpRot, warg[3]) == false) {
             g_logger.log(L"! Error: %s: not a rotation string: %s", command, warg[3]);
             return false;
          }
+      } else {
+         tmpRot.setEulerZYX(0.0, 0.0, 0.0);
       }
       if (num >= 5) {
          tmpStr1 = warg[4];
@@ -563,6 +567,8 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    wchar_t *boneName = NULL;
    PMDBone *assignBone = NULL;
    PMDObject *assignObject = NULL;
+   float *l = m_option.getLightDirection();
+   btVector3 light = btVector3(l[0], l[1], l[2]);
 
    /* set */
    if (pos)
@@ -624,7 +630,7 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, boneName, assignBone, assignObject, &m_bullet, m_systex)) {
+   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, boneName, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
       g_logger.log(L"! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
@@ -650,6 +656,8 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
    int id;
    MotionPlayer *motionPlayer;
    double currentFrame;
+   float *l = m_option.getLightDirection();
+   btVector3 light = btVector3(l[0], l[1], l[2]);
 
    /* ID */
    id = findModelAlias(modelAlias);
@@ -659,7 +667,7 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, NULL, &m_bullet, m_systex)) {
+   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
       g_logger.log(L"! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }
@@ -767,7 +775,7 @@ bool MMDAgent::startSound(wchar_t *soundAlias, wchar_t *fileName, bool adjust)
 
    /* start timer to adjust audio */
    if (adjust) {
-      m_timer.adjustSetTarget((double) opt[CONF_MOTION_ADJUST].i * 0.03);
+      m_timer.adjustSetTarget((double) m_option.getMotionAdjustFrame() * 0.03);
       m_timer.adjustStart();
    }
 
@@ -791,9 +799,13 @@ bool MMDAgent::stopSound(wchar_t *soundAlias)
 /* MMDAgent::changeLightDirection: change light direction */
 bool MMDAgent::changeLightDirection(float x, float y, float z)
 {
-   opt[CONF_LIGHT_DIRECTION_FROM].fv[0] = x;
-   opt[CONF_LIGHT_DIRECTION_FROM].fv[1] = y;
-   opt[CONF_LIGHT_DIRECTION_FROM].fv[2] = z;
+   float f[4];
+
+   f[0] = x;
+   f[1] = y;
+   f[2] = z;
+   f[3] = 0.0f;
+   m_option.setLightDirection(f);
    updateLight();
 
    /* send event message */
@@ -804,9 +816,12 @@ bool MMDAgent::changeLightDirection(float x, float y, float z)
 /* MMDAgent::changeLightColor: change light color */
 bool MMDAgent::changeLightColor(float r, float g, float b)
 {
-   opt[CONF_LIGHT_COLOR].fv[0] = r;
-   opt[CONF_LIGHT_COLOR].fv[1] = g;
-   opt[CONF_LIGHT_COLOR].fv[2] = b;
+   float f[3];
+
+   f[0] = r;
+   f[1] = g;
+   f[2] = b;
+   m_option.setLightColor(f);
    updateLight();
 
    /* send event message */

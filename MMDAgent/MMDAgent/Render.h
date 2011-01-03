@@ -62,6 +62,11 @@
 #define RENDER_MINSPINDIFF    0.000001f
 #define RENDER_SPINSPEEDRATE  0.9f
 
+#define RENDER_VIEWPOINT_CAMERA_Z     -100.0f
+#define RENDER_VIEWPOINT_Y_OFFSET     -13.0f
+#define RENDER_VIEWPOINT_FRUSTUM_NEAR 5.0f
+#define RENDER_VIEWPOINT_FRUSTUM_FAR  2000.0f
+
 class MMDAgent;
 
 /* Render: render */
@@ -86,13 +91,9 @@ private:
    int m_highlightingModel;      /* highlighting model */
 
    float m_backgroundColor[3]; /* background color */
-   float m_shadowDensity;      /* shadow color */
-   float m_shadowMapDensity;   /* shadow mapping density */
 
    bool m_enableShadowMapping;            /* true if shadow mapping */
    bool m_shadowMapInitialized;           /* true if initialized */
-   int m_shadowMapTextureSize;            /* size of depth texture */
-   bool m_shadowMapLightFirst;            /* first light */
    GLuint m_depthTextureID;               /* depth texture for FBO */
    GLuint m_fboID;                        /* frame buffer object name */
    btVector3 m_lightVec;                  /* light vector for shadow maapping */
@@ -115,7 +116,7 @@ private:
    void updateTransRotMatrix();
 
    /* initializeShadowMap: initialize OpenGL for shadow mapping */
-   void initializeShadowMap();
+   void initializeShadowMap(int shadowMapTextureSize);
 
    /* renderSceneShadowMap: shadow mapping */
    void renderSceneShadowMap(MMDAgent *mmdagent);
@@ -138,7 +139,7 @@ public:
    ~Render();
 
    /* setup: initialize and setup Render */
-   bool setup(int w, int h);
+   bool setup(int *size, float *campusColor, bool useShadowMapping, int shadowMapTextureSize, bool shadowMapLightFirst);
 
    /* setSize: set size */
    void setSize(int w, int h);
@@ -159,13 +160,7 @@ public:
    void translate(float x, float y, float z);
 
    /* setShadowMapping: switch shadow mapping */
-   void setShadowMapping(bool flag);
-
-   /* getShadowMapOrder: return shadow mapping order */
-   bool getShadowMapOrder();
-
-   /* setShadowMapOrder: switch shadow mapping order */
-   void setShadowMapOrder(bool flag);
+   void setShadowMapping(bool flag, int shadowMapTextureSize, bool shadowMapLightFirst);
 
    /* render: render all */
    void render(MMDAgent *mmdagent);
@@ -176,11 +171,8 @@ public:
    /* hilightModel: highlight selected model */
    void highlightModel(MMDAgent *mmdagent, int id);
 
-   /* getShadowMapping: return true if shadow mapping frag */
-   bool getShadowMapping();
-
    /* updateLigithing: update light */
-   void updateLighting();
+   void updateLighting(bool useCartoonRendering, bool useMMDLikeCartoon, float *lightDirection, float lightIntensy, float *lightColor);
 
    /* updateDepthTextureViewParam: update center and radius information to get required range for shadow mapping */
    void updateDepthTextureViewParam(PMDObject *objList, int num);

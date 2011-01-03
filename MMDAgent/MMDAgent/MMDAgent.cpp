@@ -45,9 +45,9 @@
 #include <locale.h>
 
 #include "resource.h"
+#include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
-#include "UserOption.h"
 #include "MMDAgent_command.h"
 
 extern void initializeLookAt(MMDAgent *mmdagent, PluginList *pluginList);
@@ -177,8 +177,8 @@ void MMDAgent::updateScene()
    /* get frame interval */
    intervalFrame = m_timer.getFrameInterval();
 
-   stepmax = opt[CONF_BULLET_FPS].i;
-   stepFrame = 30.0 / opt[CONF_BULLET_FPS].i;
+   stepmax = m_option.getBulletFps();
+   stepFrame = 30.0 / m_option.getBulletFps();
    restFrame = intervalFrame;
 
    for (ite = 0; ite < stepmax; ite++) {
@@ -229,7 +229,7 @@ void MMDAgent::updateScene()
          m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
 
    /* calculate rendering range for shadow mapping */
-   if (m_render->getShadowMapping())
+   if(m_option.getUseShadowMapping())
       m_render->updateDepthTextureViewParam(m_model, m_numModel);
 
    /* decrement each indicator */
@@ -302,13 +302,13 @@ void MMDAgent::renderScene(HWND hWnd)
    m_timer.countFrame();
 
    /* show fps */
-   if (opt[CONF_FPS_ENABLED].b) {
+   if (m_option.getShowFps()) {
       _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%5.1ffps ", m_timer.getFps());
       m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXDISPSTRLEN - 9);
       glDisable(GL_LIGHTING);
       glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
       glPushMatrix();
-      glRasterPos3fv(opt[CONF_FPS_POS].fv);
+      glRasterPos3fv(m_option.getFpsPosition());
       m_text.drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
@@ -316,10 +316,10 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show adjustment time for audio */
    if (m_dispFrameAdjust > 0.0) {
-      if (opt[CONF_MOTION_ADJUST].i > 0)
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec advance", opt[CONF_MOTION_ADJUST].i);
+      if (m_option.getMotionAdjustFrame() > 0)
+         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec advance", m_option.getMotionAdjustFrame());
       else
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec delay", opt[CONF_MOTION_ADJUST].i);
+         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec delay", m_option.getMotionAdjustFrame());
       glDisable(GL_LIGHTING);
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
@@ -390,14 +390,16 @@ void MMDAgent::updateWindowSize(HWND hWnd)
 void MMDAgent::updateLight()
 {
    int i;
+   float *f;
    btVector3 l;
 
    /* udpate OpenGL light */
-   m_render->updateLighting();
+   m_render->updateLighting(m_option.getUseCartoonRendering(), m_option.getUseMMDLikeCartoon(), m_option.getLightDirection(), m_option.getLightIntensity(), m_option.getLightColor());
    /* update shadow matrix */
-   m_stage->updateShadowMatrix(opt[CONF_LIGHT_DIRECTION_FROM].fv);
+   f = m_option.getLightDirection();
+   m_stage->updateShadowMatrix(f);
    /* update vector for cartoon */
-   l = btVector3(opt[CONF_LIGHT_DIRECTION_FROM].fv[0], opt[CONF_LIGHT_DIRECTION_FROM].fv[1], opt[CONF_LIGHT_DIRECTION_FROM].fv[2]);
+   l = btVector3(f[0], f[1], f[2]);
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() == true)
          m_model[i].setLightForToon(&l);
@@ -457,15 +459,12 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    int i;
    size_t len;
    wchar_t buf[MAX_PATH];
-   wchar_t *p;
+   char mbsbuf[MAX_PATH];
 
    wchar_t binaryDirName[MAX_PATH]; /* path of MMDAgent.exe */
    wchar_t startDirName[MAX_PATH];
 
    m_hInst = hInstance;
-
-   /* initialize logger */
-   g_logger.setup((int) (opt[CONF_LOG_WINDOW].fv[0]), (int) (opt[CONF_LOG_WINDOW].fv[1]), opt[CONF_LOG_WINDOW].fv[2], opt[CONF_LOG_WINDOW].fv[3], opt[CONF_LOG_WINDOW].fv[4], opt[CONF_LOG_WINDOW].fv[5]);
 
    /* set timer precision to 2ms */
    m_timer.setPrecision(2);
@@ -480,6 +479,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    GetModuleFileName(NULL, buf, MAX_PATH);
    getFullDirName(binaryDirName, buf);
 
+   /* get application directory */
+   wcsncpy(m_appDirName, binaryDirName, MAX_PATH);
+   wcsncat_s(m_appDirName, MAX_PATH, MMDAGENT_SYSDATADIR, _TRUNCATE);
+
    /* get default config file name */
    len = wcslen(buf);
    if (len > 4) {
@@ -489,7 +492,8 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       buf[len-1] = L'f';
 
       /* load default config file */
-      if (config_load(buf, 1))
+      wcstombs_s(&len, mbsbuf, MAX_PATH, buf, _TRUNCATE);
+      if(m_option.load(mbsbuf))
          wcscpy(m_configFileName, buf);
    }
    wcscpy(m_configDirName, binaryDirName);
@@ -497,27 +501,22 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* load additional config file name */
    for (i = 1; i < argc; i++) {
       if (hasSuffix(argv[i], L"mdf")) {
-         if (config_load(argv[i], 2)) {
+         wcstombs_s(&len, mbsbuf, MAX_PATH, argv[i], _TRUNCATE);
+         if (m_option.load(mbsbuf)) {
             wcscpy(m_configFileName, argv[i]);
             getFullDirName(m_configDirName, argv[i]);
-            break; /* load only one config file */
          }
       }
    }
 
-   /* get application directory */
-   wcsncpy(m_appDirName, binaryDirName, MAX_PATH);
-   wcsncat_s(m_appDirName, MAX_PATH, opt[CONF_SYSTEM_DATA_DIR].s, _TRUNCATE);
-   g_logger.log(L"system_data_dir: %s", m_appDirName);
-
-   /* get plugin directory */
-   wcsncpy(buf, binaryDirName, MAX_PATH);
-   wcsncat_s(buf, MAX_PATH, opt[CONF_PLUGIN_DIR].s, _TRUNCATE);
-   g_logger.log(L"searching plugins at %s", buf);
-
    /* load and start plugins */
+   wcsncpy(buf, binaryDirName, MAX_PATH);
+   wcsncat_s(buf, MAX_PATH, MMDAGENT_PLUGINDIR, _TRUNCATE);
    m_plugin.load(buf);
    m_plugin.execAppStart(this);
+
+   /* initialize logger */
+   g_logger.setup(m_option.getLogSize(), m_option.getLogPosition(), m_option.getLogScale());
 
    /* create components */
    m_screen = new Screen;
@@ -526,7 +525,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_render = new Render;
 
    /* create window */
-   m_hWnd = m_screen->createWindow(opt[CONF_WINDOW_WIDTH].i, opt[CONF_WINDOW_HEIGHT].i, hInstance, szTitle, szWindowClass);
+   m_hWnd = m_screen->createWindow(m_option.getWindowSize(), hInstance, szTitle, szWindowClass, m_option.getMaxMultiSampling(), m_option.getMaxMultiSamplingColor(), m_option.getTopMost());
    if (!m_hWnd)
       return m_hWnd;
 
@@ -534,8 +533,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    DragAcceptFiles(m_hWnd, true);
 
    /* initialize bullet phisics */
-   m_bullet.setup(opt[CONF_BULLET_FPS].i);
-   g_logger.log(L"Physics simulation step: 1/%d sec.", opt[CONF_BULLET_FPS].i);
+   m_bullet.setup(m_option.getBulletFps());
 
    /* initialize audio */
    m_audio.setup(m_hWnd);
@@ -550,152 +548,26 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       return false;
 
    /* initialize render */
-   if (m_render->setup(opt[CONF_WINDOW_WIDTH].i, opt[CONF_WINDOW_HEIGHT].i) == false)
+   if (m_render->setup(m_option.getWindowSize(), m_option.getCampusColor(), m_option.getUseShadowMapping(), m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst()) == false)
       return false;
 
    /* initialize text render */
    m_text.setup(m_screen->getDC(), L"Arial Unicode MS");
-
-   /* set model positions from config file */
-   btVector3 pos;
-   pos.setZero();
-   int c = 0;
-   wcsncpy(buf, opt[CONF_INIT_MODEL_LOCATION].s, CONF_STR_LEN_MAX);
-   i = 0;
-   for (p = wcstok(buf, L", ()\t\r\n"); p; p = wcstok(NULL, L", ()\t\r\n")) {
-      switch (c) {
-      case 0:
-         pos.setX(btScalar(_wtof(p)));
-         break;
-      case 1:
-         pos.setY(btScalar(_wtof(p)));
-         break;
-      case 2:
-         pos.setZ(btScalar(_wtof(p)));
-         break;
-      }
-      if (c < 2) {
-         c++;
-      } else {
-         c = 0;
-         if (i >= MAXMODEL) break;
-         m_model[i++].setPosition(pos);
-      }
-   }
-
-   /* load models from config file */
-   switch (opt[CONF_MODEL_FILE].src) {
-   case 0:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 1:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 2:
-      SetCurrentDirectory(m_configDirName);
-      break;
-   }
-   wcsncpy(buf, opt[CONF_MODEL_FILE].s, CONF_STR_LEN_MAX);
-   wchar_t *psave;
-   i = 0;
-   for (p = wcstokWithDoubleQuotation(buf, L",\t\r\n", &psave); p; p = wcstokWithDoubleQuotation(NULL, L",\t\r\n", &psave)) {
-      if (i >= MAXMODEL) break;
-      m_model[i].getPosition(pos);
-      if (addModel(NULL, p, &pos, NULL, NULL, NULL)) i++;
-   }
-   /* re-set current directory */
-   SetCurrentDirectory(startDirName);
-
-   /* overwrite alias from config file */
-   i = 0;
-   wcsncpy(buf, opt[CONF_INIT_MODEL_ALIAS].s, CONF_STR_LEN_MAX);
-   for (p = wcstok(buf, L",\t\r\n"); p; p = wcstok(NULL, L",\t\r\n")) {
-      if (i >= MAXMODEL) break;
-      m_model[i].setAlias(p);
-      i++;
-   }
 
    /* load model from arguments */
    for (i = 1; i < argc; i++)
       if (hasSuffix(argv[i], L"pmd"))
          addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
 
-   /* load motion from config file */
-   switch (opt[CONF_INIT_MOTION_FILE].src) {
-   case 0:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 1:
-      SetCurrentDirectory(binaryDirName);
-      break;
-   case 2:
-      SetCurrentDirectory(m_configDirName);
-      break;
-   }
-   wcsncpy(buf, opt[CONF_INIT_MOTION_FILE].s, CONF_STR_LEN_MAX);
-   i = 0;
-   for (p = wcstok(buf, L", \t\r\n"); p; p = wcstok(NULL, L", \t\r\n")) {
-      while (i < m_numModel && m_model[i].isEnable() == false)
-         i++;
-      if (i >= m_numModel)
-         break;
-      addMotion(m_model[i].getAlias(), L"base", p, true, false, true, true);
-      i++;
-   }
-   /* re-set current directory */
-   SetCurrentDirectory(startDirName);
-
    /* set stage size */
-   m_stage->setSize(opt[CONF_FLOOR_WIDTH].f, (opt[CONF_FLOOR_DEPTH].f == 0.0f) ? opt[CONF_FLOOR_WIDTH].f : opt[CONF_FLOOR_DEPTH].f, opt[CONF_BACK_HEIGHT].f , 1.0f, 1.0f);
-
-   /* load stage */
-   if(wcslen(opt[CONF_STAGE].s) > 0) {
-      switch (opt[CONF_STAGE].src) {
-      case 0:
-         SetCurrentDirectory(binaryDirName);
-         break;
-      case 1:
-         SetCurrentDirectory(binaryDirName);
-         break;
-      case 2:
-         SetCurrentDirectory(m_configDirName);
-         break;
-      }
-      wcscpy(buf, opt[CONF_STAGE].s);
-      p = wcsstr(buf, L",");
-      if(p == NULL) {
-         setStage(buf);
-      } else {
-         *p = L'\0';
-         setFloor(buf);
-         p++;
-         setBackground(p);
-      }
-      SetCurrentDirectory(startDirName);
-   }
+   m_stage->setSize(m_option.getStageSize(), 1.0f, 1.0f);
 
    /* set full screen */
-   if (opt[CONF_FULLSCREEN_ENABLED].b)
+   if (m_option.getFullScreen())
       m_screen->setFullScreen(m_hWnd);
 
    /* set mouse enable timer */
    m_screen->setMouseActiveTime(45.0f);
-
-   /* if music file is specified, start sound */
-   if (wcslen(opt[CONF_MUSIC_FILE].s) > 0) {
-      switch (opt[CONF_MUSIC_FILE].src) {
-      case 0:
-         SetCurrentDirectory(binaryDirName);
-         break;
-      case 1:
-         SetCurrentDirectory(binaryDirName);
-         break;
-      case 2:
-         SetCurrentDirectory(m_configDirName);
-         break;
-      }
-      startSound(L"audio", opt[CONF_MUSIC_FILE].s, true);
-   }
 
    /* update light */
    updateLight();
@@ -716,6 +588,7 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
    bool hit_mouse = true;
    bool hit_window = true;
    int i;
+   float *f;
    float s;
    wchar_t *aliasName;
    GLint polygonMode[2];
@@ -773,7 +646,7 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
       break;
    case WM_MOUSEWHEEL:
       /* zoom */
-      tmp1 = opt[CONF_UI_SCALE_STEP].f;
+      tmp1 = m_option.getScaleStep();
       tmp2 = m_render->getScale();
       if (wParam & MK_SHIFT) /* faster */
          tmp1 = (tmp1 - 1.0f) * 5.0f + 1.0f;
@@ -802,7 +675,8 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
          if (r2 < -32768) r2 += 65536;
          if (wParam & MK_SHIFT && wParam & MK_CONTROL) {
             /* if Shift- and Ctrl-key, rotate light direction */
-            v = btVector3(opt[CONF_LIGHT_DIRECTION_FROM].fv[0], opt[CONF_LIGHT_DIRECTION_FROM].fv[1], opt[CONF_LIGHT_DIRECTION_FROM].fv[2]);
+            f = m_option.getLightDirection();
+            v = btVector3(f[0], f[1], f[2]);
             bm = btMatrix3x3(btQuaternion(0, r2 * 0.007f, 0) * btQuaternion(r1 * 0.007f, 0, 0));
             v = bm * v;
             changeLightDirection(v.x(), v.y(), v.z());
@@ -811,8 +685,8 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
             tmp1 = r1 / (float) m_render->getWidth();
             tmp2 = - r2 / (float) m_render->getHeight();
             tmp3 = 20.0f;
-            tmp1 = (float) (tmp1 * (tmp3 - opt[CONF_VIEWPOINT_CAMERA_Z].f) / opt[CONF_VIEWPOINT_FRUSTUM_NEAR].f);
-            tmp2 = (float) (tmp2 * (tmp3 - opt[CONF_VIEWPOINT_CAMERA_Z].f) / opt[CONF_VIEWPOINT_FRUSTUM_NEAR].f);
+            tmp1 = (float) (tmp1 * (tmp3 - RENDER_VIEWPOINT_CAMERA_Z) / RENDER_VIEWPOINT_FRUSTUM_NEAR);
+            tmp2 = (float) (tmp2 * (tmp3 - RENDER_VIEWPOINT_CAMERA_Z) / RENDER_VIEWPOINT_FRUSTUM_NEAR);
             tmp1 /= m_render->getScale();
             tmp2 /= m_render->getScale();
             tmp3 = 0.0f;
@@ -856,26 +730,35 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
       wmEvent = HIWORD(wParam);
       switch (wmId) {
       case IDM_TOGGLE_FULLSCREEN:
-         if (opt[CONF_FULLSCREEN_ENABLED].b) {
+         if (m_option.getFullScreen()) {
             m_screen->exitFullScreen(hWnd);
-            opt[CONF_FULLSCREEN_ENABLED].b = false;
+            m_option.setFullScreen(false);
          } else {
             m_screen->setFullScreen(hWnd);
-            opt[CONF_FULLSCREEN_ENABLED].b = true;
+            m_option.setFullScreen(true);
          }
          updateWindowSize(hWnd);
          break;
       case IDM_TOGGLE_INFOSTRING:
-         opt[CONF_FPS_ENABLED].b = !opt[CONF_FPS_ENABLED].b;
+         m_option.setShowFps(!m_option.getShowFps());
          break;
       case IDM_TOGGLE_VSYNC:
          m_screen->toggleVSync();
          break;
       case IDM_TOGGLE_SHADOWMAP:
-         m_render->setShadowMapping(!m_render->getShadowMapping());
+         if(m_option.getUseShadowMapping() == true) {
+            m_option.setUseShadowMapping(false);
+            m_render->setShadowMapping(false, m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst());
+         } else {
+            m_option.setUseShadowMapping(true);
+            m_render->setShadowMapping(true, m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst());
+         }
          break;
       case IDM_TOGGLE_SHADOWMAP_ORDER:
-         m_render->setShadowMapOrder(!m_render->getShadowMapOrder());
+         if(m_option.getShadowMappingLightFirst() == true)
+            m_option.setShadowMappingLightFirst(false);
+         else
+            m_option.setShadowMappingLightFirst(true);
          break;
       case IDM_TOGGLE_DISP_RIGIDBODY:
          m_dispBulletBodyFlag = !m_dispBulletBodyFlag;
@@ -891,60 +774,60 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
          m_dispModelDebug = !m_dispModelDebug;
          break;
       case IDM_CARTOON_EDGE_PLUS:
-         opt[CONF_CARTOON_EDGE_WIDTH].f *= opt[CONF_UI_CARTOON_EDGE_STEP].f;
+         m_option.setCartoonEdgeWidth(m_option.getCartoonEdgeWidth() * m_option.getCartoonEdgeStep());
          for (i = 0; i < m_numModel; i++)
-            m_model[i].getPMDModel()->setEdgeThin(opt[CONF_CARTOON_EDGE_WIDTH].f);
+            m_model[i].getPMDModel()->setEdgeThin(m_option.getCartoonEdgeWidth());
          break;
       case IDM_CARTOON_EDGE_MINUS:
-         opt[CONF_CARTOON_EDGE_WIDTH].f /= opt[CONF_UI_CARTOON_EDGE_STEP].f;
+         m_option.setCartoonEdgeWidth(m_option.getCartoonEdgeWidth() / m_option.getCartoonEdgeStep());
          for (i = 0; i < m_numModel; i++)
-            m_model[i].getPMDModel()->setEdgeThin(opt[CONF_CARTOON_EDGE_WIDTH].f);
+            m_model[i].getPMDModel()->setEdgeThin(m_option.getCartoonEdgeWidth());
          break;
       case IDM_TIME_PLUS:
-         opt[CONF_MOTION_ADJUST].i += 10;
-         m_timer.adjustSetTarget((double) opt[CONF_MOTION_ADJUST].i * 0.03);
+         m_option.setMotionAdjustFrame(m_option.getMotionAdjustFrame() + 10);
+         m_timer.adjustSetTarget((double) m_option.getMotionAdjustFrame() * 0.03);
          m_dispFrameAdjust = 90.0;
          break;
       case IDM_TIME_MINUS:
-         opt[CONF_MOTION_ADJUST].i -= 10;
-         m_timer.adjustSetTarget((double) opt[CONF_MOTION_ADJUST].i * 0.03);
+         m_option.setMotionAdjustFrame(m_option.getMotionAdjustFrame() + 10);
+         m_timer.adjustSetTarget((double) m_option.getMotionAdjustFrame() * 0.03);
          m_dispFrameAdjust = 90.0;
          break;
       case IDM_ZOOM_IN:
          s = m_render->getScale();
-         s *= opt[CONF_UI_SCALE_STEP].f;
+         s *= m_option.getScaleStep();
          m_render->setScale(s);
          InvalidateRect(hWnd, NULL, false);
          break;
       case IDM_ZOOM_OUT:
          s = m_render->getScale();
-         s /= opt[CONF_UI_SCALE_STEP].f;
+         s /= m_option.getScaleStep();
          m_render->setScale(s);
          InvalidateRect(hWnd, NULL, false);
          break;
       case IDM_ROTATE_LEFT:
-         m_render->rotate(-opt[CONF_UI_ROTATE_STEP].f, 0.0f, 0.0f);
+         m_render->rotate(-m_option.getRotateStep(), 0.0f, 0.0f);
          break;
       case IDM_ROTATE_RIGHT:
-         m_render->rotate(opt[CONF_UI_ROTATE_STEP].f, 0.0f, 0.0f);
+         m_render->rotate(m_option.getRotateStep(), 0.0f, 0.0f);
          break;
       case IDM_ROTATE_UP:
-         m_render->rotate(0.0f, -opt[CONF_UI_ROTATE_STEP].f, 0.0f);
+         m_render->rotate(0.0f, -m_option.getRotateStep(), 0.0f);
          break;
       case IDM_ROTATE_DOWN:
-         m_render->rotate(0.0f, opt[CONF_UI_ROTATE_STEP].f, 0.0f);
+         m_render->rotate(0.0f, m_option.getRotateStep(), 0.0f);
          break;
       case IDM_MOVE_LEFT:
-         m_render->translate(-opt[CONF_UI_TRANSLATE_STEP].f, 0.0f, 0.0f); /* move left */
+         m_render->translate(-m_option.getTranslateStep(), 0.0f, 0.0f); /* move left */
          break;
       case IDM_MOVE_RIGHT:
-         m_render->translate(opt[CONF_UI_TRANSLATE_STEP].f, 0.0f, 0.0f); /* move right */
+         m_render->translate(m_option.getTranslateStep(), 0.0f, 0.0f); /* move right */
          break;
       case IDM_MOVE_UP:
-         m_render->translate(0.0f, opt[CONF_UI_TRANSLATE_STEP].f, 0.0f);
+         m_render->translate(0.0f, m_option.getTranslateStep(), 0.0f);
          break;
       case IDM_MOVE_DOWN:
-         m_render->translate(0.0f, -opt[CONF_UI_TRANSLATE_STEP].f, 0.0f);
+         m_render->translate(0.0f, -m_option.getTranslateStep(), 0.0f);
          break;
       case IDM_DELETE_MODEL:
          if (m_doubleClicked) {
@@ -1042,6 +925,11 @@ PMDObject *MMDAgent::getModelList()
 short MMDAgent::getNumModel()
 {
    return m_numModel;
+}
+
+Option *MMDAgent::getOption()
+{
+   return &m_option;
 }
 
 /* MMDAgent::getRender: get render */

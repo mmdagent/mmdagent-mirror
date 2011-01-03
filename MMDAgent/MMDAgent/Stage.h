@@ -133,7 +133,7 @@ public:
    ~Stage();
 
    /* setSize: set size of floor and background */
-   void setSize(float w, float d, float h, float numx, float numy);
+   void setSize(float *size, float numx, float numy);
 
    /* loadFloor: load floor image */
    bool loadFloor(wchar_t *fileName, BulletPhysics *bullet);

@@ -42,7 +42,6 @@
 /* headers */
 
 #include "Stage.h"
-#include "UserOption.h"
 #include "GLee.h"
 #include "utils.h"
 
@@ -318,19 +317,19 @@ Stage::~Stage()
 }
 
 /* Stage::setSize: set size of floor and background */
-void Stage::setSize(float w, float d, float h, float numx, float numy)
+void Stage::setSize(float *size, float numx, float numy)
 {
-   m_floor.setSize(-w, 0.0f, d,
-                   w, 0.0f, d,
-                   w, 0.0f, -d,
-                   -w, 0.0f, -d,
+   m_floor.setSize(-size[0], 0.0f, size[1],
+                   size[0], 0.0f, size[1],
+                   size[0], 0.0f, -size[1],
+                   -size[0], 0.0f, -size[1],
                    numx, numy);
-   m_background.setSize(-w, 0.0f, -d,
-                        w, 0.0f, -d,
-                        w, h, -d,
-                        -w, h, -d,
+   m_background.setSize(-size[0], 0.0f, -size[1],
+                        size[0], 0.0f, -size[1],
+                        size[0], size[2], -size[1],
+                        -size[0], size[2], -size[1],
                         numx, numy);
-   makeFloorBody(w, d);
+   makeFloorBody(size[0], size[1]);
 }
 
 /* Stage::loadFloor: load floor image */

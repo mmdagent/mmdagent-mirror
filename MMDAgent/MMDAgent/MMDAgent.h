@@ -59,6 +59,9 @@
 #define MODEL_ALL 65535 /* alias for all model */
 #define MMDAGENT_MAXDISPSTRLEN 1024
 
+#define MMDAGENT_SYSDATADIR L"AppData"
+#define MMDAGENT_PLUGINDIR  L"Plugins"
+
 #define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
 #define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
 
@@ -74,6 +77,7 @@ private:
    HWND m_hWnd;       /* window handle */
    HINSTANCE m_hInst; /* application instance */
 
+   Option m_option;         /* user options */
    BulletPhysics m_bullet;  /* Bullet Physics */
    Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
@@ -219,6 +223,8 @@ public:
 
    /* getNumModel: get number of models */
    short getNumModel();
+
+   Option *getOption();
 
    /* getRender: get render */
    Render *getRender();

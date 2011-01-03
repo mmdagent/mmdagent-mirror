@@ -102,19 +102,19 @@ LogText::~LogText()
 }
 
 /* LogText::setup: initialize and setup logger with args */
-void LogText::setup(int w, int h, float x, float y, float z, float scale)
+void LogText::setup(int *size, float *position, float scale)
 {
    int i;
 
-   if (w <= 0 || h <= 0 || scale <= 0.0) return;
+   if (size[0] <= 0 || size[1] <= 0 || scale <= 0.0) return;
 
    clear();
 
-   m_textWidth = w;
-   m_textHeight = h;
-   m_textX = x;
-   m_textY = y;
-   m_textZ = z;
+   m_textWidth = size[0];
+   m_textHeight = size[1];
+   m_textX = position[0];
+   m_textY = position[1];
+   m_textZ = position[2];
    m_textScale = scale;
 
    m_textBufArray = (wchar_t **) malloc(sizeof(wchar_t *) * m_textHeight);

@@ -44,9 +44,9 @@
 #include <windows.h>
 #include <shellapi.h>
 
+#include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
-#include "UserOption.h"
 
 /* MMDAgent::dropFile: handle file drops */
 void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)

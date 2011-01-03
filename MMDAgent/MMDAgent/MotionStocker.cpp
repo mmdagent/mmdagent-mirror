@@ -94,22 +94,6 @@ VMD * MotionStocker::loadFromFile(wchar_t *fileName)
 
    wcstombs_s(&len, fileNameA, VMDGRID_MAXBUFLEN, fileName, _TRUNCATE);
 
-#if 0
-   /* debug */
-   int x = 0;
-   for(vl = m_head; vl; vl = tmp) {
-      tmp = vl->next;
-      if(vl->name) {
-         wchar_t buff[1024];
-         size_t len;
-         mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
-         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
-      } else {
-         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, NULL);
-      }
-   }
-#endif
-
    /* search cache from tail to head */
    for(vl = m_tail; vl; vl = tmp) {
       tmp = vl->prev;
@@ -128,16 +112,10 @@ VMD * MotionStocker::loadFromFile(wchar_t *fileName)
             m_tail = vl;
          }
          vl->use++;
-#if 0
-         g_logger.log(L"use cache");
-#endif
          return &vl->vmd;
       }
    }
 
-#if 0
-   g_logger.log(L"load from file");
-#endif
    /* load VMD */
    vl = new VMDList;
    if(vl->vmd.load(fileNameA) == false) {
@@ -169,9 +147,6 @@ VMD * MotionStocker::loadFromData(unsigned char *rawData, unsigned long rawSize)
 {
    VMDList *vl;
 
-#if 0
-   g_logger.log(L"load from data");
-#endif
    /* load VMD  */
    vl = new VMDList;
    if(vl->vmd.parse(rawData, rawSize) == false) {
@@ -238,37 +213,9 @@ void MotionStocker::unload(VMD *vmd)
             vl->prev->next = vl->next;
             vl->next->prev = vl->prev;
          }
-#if 0
-         if(vl->name) {
-            wchar_t buf[1024];
-            size_t len;
-            mbstowcs_s(&len, buf, 1024, vl->name, _TRUNCATE);
-            g_logger.log(L"remove %s", buf);
-         } else {
-            g_logger.log(L"remove lip");
-         }
-#endif
          if(vl->name) free(vl->name);
          delete vl;
          count--;
       }
    }
-
-
-#if 0
-   /* debug */
-   int x = 0;
-   for(vl = m_head; vl; vl = tmp) {
-      tmp = vl->next;
-      if(vl->name) {
-         wchar_t buff[1024];
-         size_t len;
-         mbstowcs_s(&len, buff, 1024, vl->name, _TRUNCATE);
-         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, buff);
-      } else {
-         g_logger.log(L"in cache index=%d use=%d %s", x++, vl->use, NULL);
-      }
-   }
-#endif
-
 }

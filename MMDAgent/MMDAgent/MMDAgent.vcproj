@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Option.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Plugin.cpp"
 				>
 			</File>
@@ -250,10 +254,6 @@
 			</File>
 			<File
 				RelativePath=".\Timer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\UserOption.cpp"
 				>
 			</File>
 			<File
@@ -287,6 +287,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Option.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Plugin.h"
 				>
 			</File>
@@ -316,10 +320,6 @@
 			</File>
 			<File
 				RelativePath=".\Timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\UserOption.h"
 				>
 			</File>
 			<File

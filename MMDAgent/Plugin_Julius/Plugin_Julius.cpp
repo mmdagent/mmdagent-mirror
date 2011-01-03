@@ -68,6 +68,7 @@
 
 #include "Julius_Thread.h"
 
+#include "Option.h"
 #include "MMDAgent.h"
 
 #define PLUGINJULIUS_NAME L"Julius"

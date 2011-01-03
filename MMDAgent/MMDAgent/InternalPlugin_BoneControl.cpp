@@ -43,6 +43,7 @@
 
 #include <windows.h>
 
+#include "Option.h"
 #include "MMDAgent.h"
 #include "Plugin.h"
 #include "MMDAgent_command.h"

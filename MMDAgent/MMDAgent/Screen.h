@@ -61,10 +61,6 @@ private:
 
    DeviceContextInfo m_dcinfo; /* device context information */
 
-   int m_requiredSampleNum;    /* required number of samples */
-   int m_requiredSampleColNum; /* required coverage */
-   bool m_enableTopMost;       /* true if foreside */
-
    bool m_vsync;                  /* true if vertical sync. */
    bool m_fullscreen;             /* true if full screen mode */
    RECT m_originalWindowSize;     /* window size before full screen mode */
@@ -81,7 +77,7 @@ private:
    void setUpPixelFormat(DeviceContextInfo *info);
 
    /* getPixelFormatARB: get pixel format */
-   void getPixelFormatARB(DeviceContextInfo *info);
+   void getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int max_sample_col_num);
 
    /* initDC: get device context */
    void initDC(HWND hWnd, int pixelFormat);
@@ -104,7 +100,7 @@ public:
    ~Screen();
 
    /* createWindow: create window */
-   HWND createWindow(int width, int height, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass);
+   HWND createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int max_sample_num, int max_sample_col_num, bool topMost);
 
    /* swapBuffers: swap buffers */
    void swapBuffers();

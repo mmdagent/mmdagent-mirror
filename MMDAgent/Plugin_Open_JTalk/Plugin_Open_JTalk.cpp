@@ -82,6 +82,7 @@
 #include "Open_JTalk.h"
 #include "Open_JTalk_Thread.h"
 
+#include "Option.h"
 #include "MMDAgent.h"
 
 /* global variables */

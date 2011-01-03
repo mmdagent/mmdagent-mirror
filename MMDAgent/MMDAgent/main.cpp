@@ -47,9 +47,9 @@
 
 #include "TextRenderer.h"
 #include "resource.h"
-#define GLOBAL_VARIABLE_DEFINE
+#include "Option.h"
 #include "MMDAgent.h"
-#include "UserOption.h"
+#define GLOBAL_VARIABLE_DEFINE
 #include "utils.h"
 
 #define MAIN_MAXBUFLEN 1024

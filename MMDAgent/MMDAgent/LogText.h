@@ -76,7 +76,7 @@ public:
    ~LogText();
 
    /* setup: initialize and setup logger with args */
-   void setup(int w, int h, float x, float y, float z, float scale);
+   void setup(int *size, float *position, float scale);
 
    /* log: store log text */
    void log(const wchar_t *format, ...);

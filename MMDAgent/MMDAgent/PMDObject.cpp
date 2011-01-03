@@ -41,7 +41,6 @@
 
 #include "PMDObject.h"
 #include "utils.h"
-#include "UserOption.h"
 #include <mmsystem.h>
 
 /* PMDObject::initialize: initialize PMDObject */
@@ -96,11 +95,10 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, wchar_t *boneName, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex)
+bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, wchar_t *boneName, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
 {
 
    int i;
-   btVector3 light;
 
    if (fileName == NULL) return false;
 
@@ -111,11 +109,6 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    m_assignTo = assignObject;
    m_baseBone = assignBone;
 
-#if 0
-   if (m_assignTo && m_baseBone)
-      g_logger.log(L"Assign to bone \"%S\" on %s", m_baseBone->getName(), m_assignTo->m_alias);
-#endif
-
    if (forcedPosition) {
       /* set offset by given parameters */
       if (offsetPos)
@@ -124,9 +117,6 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
          m_offsetRot = (*offsetRot);
       m_pmd.getRootBone()->setOffset(&m_offsetPos);
       m_pmd.getRootBone()->update();
-#if 0
-      g_logger.log(L"Initial position: (%f, %f, %f)", m_offsetPos.x(), m_offsetPos.y(), m_offsetPos.z());
-#endif
    } else {
       /* set offset by root bone */
       m_offsetPos = (*(m_pmd.getRootBone()->getOffset()));
@@ -148,13 +138,13 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* save position when position is fixed */
    if (m_baseBone) m_origBasePos = m_baseBone->getTransform()->getOrigin();
    /* set toon rendering flag */
-   if (opt[CONF_CARTOON_ENABLED].b == true && m_allowToonShading == true)
+   if (useCartoonRendering == true && m_allowToonShading == true)
       m_pmd.setToonFlag(true);
    else
       m_pmd.setToonFlag(false);
 
    /* set edge width */
-   m_pmd.setEdgeThin(opt[CONF_CARTOON_EDGE_WIDTH].f);
+   m_pmd.setEdgeThin(cartoonEdgeWidth);
 
    /* set alpha frame */
    m_alphaAppearFrame = PMDOBJECT_ALPHAFRAME;
@@ -176,16 +166,9 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    m_lipSync.setup(&m_pmd);
    /* set initial alias name as the same as model name */
    setAlias(m_pmd.getModelNameW());
-   /* show model information */
-#if 0
-   g_logger.log(L"---- %s ----------\n%s\n------------------------\n- %d vertices, %d surfaces, %d matrials\n- %d bones, %d IKs, %d faces\n- %d rigid bodies, %d constraints",
-                m_pmd.getModelNameW(), m_pmd.getComment(), m_pmd.getNumVertex(), m_pmd.getNumSurface(), m_pmd.getNumMaterial(),
-                m_pmd.getNumBone(), m_pmd.getNumIK(), m_pmd.getNumFace(), m_pmd.getNumRigidBody(), m_pmd.getNumConstraint());
-#endif
 
    /* reset */
-   light = btVector3(opt[CONF_LIGHT_DIRECTION_FROM].fv[0], opt[CONF_LIGHT_DIRECTION_FROM].fv[1], opt[CONF_LIGHT_DIRECTION_FROM].fv[2]);
-   setLightForToon(&light);
+   setLightForToon(light);
    m_moveSpeed = -1.0f;
    m_spinSpeed = -1.0f;
 

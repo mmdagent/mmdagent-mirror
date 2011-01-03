@@ -112,7 +112,7 @@ public:
    void release();
 
    /* PMDObject::load: load model */
-   bool load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, wchar_t *boneName, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex);
+   bool load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, wchar_t *boneName, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light);
 
    /* PMDObject::setMotion: start a motion */
    bool startMotion(VMD *vmd, wchar_t *name, bool full, bool once, bool enableSmooth, bool enableRepos);

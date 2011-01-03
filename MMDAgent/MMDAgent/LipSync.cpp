@@ -112,8 +112,6 @@ bool LipSync::setup(PMDModel *pmd)
    wchar_t *p, *psave, *q, *pp;
    int n;
    bool ret = true;
-   wchar_t tmp1[256], tmp2[256];
-   bool first;
 
    clear();
 
@@ -315,27 +313,6 @@ bool LipSync::setup(PMDModel *pmd)
          }
       }
    }
-#if 0
-   /* output final setting to log */
-   g_logger.log(L"LipSync: use %d faces", m_numFaces);
-   for (i = 0; i < 6; i++) {
-      first = true;
-      wcscpy(tmp1, faceNames[i]);
-      wcsncat_s(tmp1, 256, L":", _TRUNCATE);
-      for (j = 0; j < m_numFaces; j++) {
-         if (m_table[i][j] != 0.0f) {
-            if (first) {
-               _snwprintf(tmp2, 256, L" %s*%.1f", m_faceName[j], m_table[i][j]);
-               first = false;
-            } else {
-               _snwprintf(tmp2, 256, L"+%s*%.1f", m_faceName[j], m_table[i][j]);
-            }
-            wcsncat_s(tmp1, 256, tmp2, _TRUNCATE);
-         }
-      }
-      g_logger.log(L"%s", tmp1);
-   }
-#endif
 
    return true;
 }
@@ -509,7 +486,6 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    int seqlen;
    char *p, *p_save, *q;
    size_t len;
-   char tbuf[MAXPNUM*2];
    int vid;
    KeyFrame *kf;
    float rate;
@@ -597,16 +573,6 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
       return false;
    }
 
-#if 0
-   /* print log */
-   tbuf[0] = '\0';
-   for (i = 0; i < seqlen; i++) {
-      strncat(tbuf, p2l[pseq[i]].pname, MAXPNUM * 2);
-      strncat(tbuf, " ", MAXPNUM * 2);
-   }
-   g_logger.log(L"LipSync: %S", tbuf);
-#endif
-
    /* create key frame */
    keyframe = (KeyFrame **) malloc(sizeof(KeyFrame *) * m_numFaces);
    for (i = 0; i < m_numFaces; i++)
@@ -632,10 +598,6 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
       kf->next = keyframe[i];
       keyframe[i] = kf;
    }
-
-#if 0
-   g_logger.log(L"LipSync: total %.1f sec", currentFrame / 30.0f);
-#endif
 
    /* insert frame of opened and closed lip */
    for (i = 0; i < m_numFaces; i++) {
