@@ -564,7 +564,6 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    btVector3 offsetPos = btVector3(0.0f, 0.0f, 0.0f);
    btQuaternion offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
    bool forcedPosition = false;
-   wchar_t *boneName = NULL;
    PMDBone *assignBone = NULL;
    PMDObject *assignObject = NULL;
    float *l = m_option.getLightDirection();
@@ -584,10 +583,8 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
          return false;
       }
       if (baseBoneName) {
-         boneName = _wcsdup(baseBoneName);
-         assignBone = m_model[baseID].getPMDModel()->getBone(boneName);
+         assignBone = m_model[baseID].getPMDModel()->getBone(baseBoneName);
       } else {
-         offsetPos += m_model[baseID].getPMDModel()->getCenterBone()->getTransform()->getOrigin();
          assignBone = m_model[baseID].getPMDModel()->getCenterBone();
       }
       if (assignBone == NULL) {
@@ -614,7 +611,6 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
       if (findModelAlias(name) >= 0) {
          g_logger.log(L"! Error: addModel: model alias \"%s\" is already used.", name);
          free(name);
-         if (boneName) free(boneName);
          return false;
       }
    } else {
@@ -630,11 +626,10 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, boneName, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
+   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
       g_logger.log(L"! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
-      if (boneName) free(boneName);
       return false;
    }
 
@@ -645,7 +640,6 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    /* send event message */
    sendEventMessage(MMDAGENT_EVENT_MODEL_ADD, L"%s", name);
    free(name);
-   if (boneName) free(boneName);
    return true;
 }
 
@@ -667,7 +661,7 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
+   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
       g_logger.log(L"! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }

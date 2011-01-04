@@ -95,9 +95,8 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, wchar_t *boneName, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
+bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
 {
-
    int i;
 
    if (fileName == NULL) return false;
@@ -130,7 +129,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    m_allowToonShading = true;
 
    /* copy flag for motion file drop or all motion */
-   if(boneName || assignBone || assignObject)
+   if(assignBone || assignObject)
       m_allowMotionFileDrop = false;
    else
       m_allowMotionFileDrop = true;
