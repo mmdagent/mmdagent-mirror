@@ -107,7 +107,7 @@
 
 0   1   <eps> MODEL_ADD|メイ|Model\mei\mei.pmd|0.0,0.0,-14.0
 1   3   <eps> MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
-3   4   <eps> MOTION_ADD|メニュー|表情|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+3   4   <eps> MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
 4   5   <eps> STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
 5   2   <eps> MOTION_ADD|メイ|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
 
