@@ -168,17 +168,11 @@ public:
    /* load: load from file name (wide char) */
    bool load(const wchar_t *filePath, SystemTexture *systex);
 
-   /* getBone: find bone data by name (multi-byte char) */
+   /* getBone: find bone data by name */
    PMDBone *getBone(char *name);
 
-   /* getBone: find bone data by name (wide char) */
-   PMDBone *getBone(wchar_t *name);
-
-   /* getFace: find face data by name (multi-byte char) */
+   /* getFace: find face data by name */
    PMDFace *getFace(char *name);
-
-   /* getFace: find face data by name (wide char) */
-   PMDFace *getFace(wchar_t *name);
 
    /* getChildBoneList: return list of child bones, in decent order */
    int getChildBoneList(PMDBone **bone, unsigned short boneNum, PMDBone **childBoneList, unsigned short childBoneNumMax);

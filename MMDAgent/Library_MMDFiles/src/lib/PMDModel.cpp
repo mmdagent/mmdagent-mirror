@@ -316,7 +316,7 @@ bool PMDModel::load(const wchar_t *filePath, SystemTexture *systex)
    return ret;
 }
 
-/* PMDModel::getBone: find bone data by name (multi-byte char) */
+/* PMDModel::getBone: find bone data by name */
 PMDBone *PMDModel::getBone(char *name)
 {
    PMDBone *match = (PMDBone *) m_name2bone.findNearest(name);
@@ -327,42 +327,12 @@ PMDBone *PMDModel::getBone(char *name)
       return NULL;
 }
 
-/* PMDModel::getBone: find bone data by name (wide char) */
-PMDBone *PMDModel::getBone(wchar_t *name)
-{
-   size_t converted;
-   char buf[PMD_FILE_NAME_LEN+2];
-   PMDBone *match;
-
-   wcstombs_s(&converted, buf, PMD_FILE_NAME_LEN + 1, name, _TRUNCATE);
-   match = (PMDBone *) m_name2bone.findNearest(buf);
-   if (match && strcmp(match->getName(), buf) == 0)
-      return match;
-   else
-      return NULL;
-}
-
-/* PMDModel::getFace: find face data by name (multi-byte char) */
+/* PMDModel::getFace: find face data by name */
 PMDFace *PMDModel::getFace(char *name)
 {
    PMDFace *match = (PMDFace *) m_name2face.findNearest(name);
 
    if (match && strcmp(match->getName(), name) == 0)
-      return match;
-   else
-      return NULL;
-}
-
-/* PMDModel::getFace: find face data by name (wide char) */
-PMDFace *PMDModel::getFace(wchar_t *name)
-{
-   size_t converted;
-   char buf[PMD_FILE_NAME_LEN+2];
-   PMDFace *match;
-
-   wcstombs_s(&converted, buf, PMD_FILE_NAME_LEN + 1, name, _TRUNCATE);
-   match = (PMDFace *) m_name2face.findNearest(buf);
-   if (match && strcmp(match->getName(), buf) == 0)
       return match;
    else
       return NULL;

@@ -45,14 +45,15 @@
 #include "PMDModel.h"
 #include "VMD.h"
 
+#define LIPSYNC_MAXBUFLEN  1024
 #define LIPSYNC_MOTIONNAME "LipSync" /* motion name of lip sync */
 
 #define LIPSYNC_SEPARATOR ","
 
 /* LibDef: lip definition */
 typedef struct _LipDef {
-   wchar_t name[PMD_FILE_NAME_LEN+1]; /* expression name */
-   float rate;                        /* blend rate */
+   char *name; /* expression name */
+   float rate; /* blend rate */
    struct _LipDef *next;
 } LipDef;
 
@@ -61,10 +62,10 @@ class LipSync
 {
 private:
 
-   LipDef *m_lipDef[6];  /* list of blend rate */
-   int m_numFaces;       /* number of expression */
-   wchar_t **m_faceName; /* name list of expression */
-   float *m_table[6];    /* table of phoneme ID and blend rate*/
+   LipDef *m_lipDef[6]; /* list of blend rate */
+   int m_numFaces;      /* number of expression */
+   char **m_faceName;   /* name list of expression */
+   float *m_table[6];   /* table of phoneme ID and blend rate*/
 
    /* initialize: initialize LipSync */
    void initialize();

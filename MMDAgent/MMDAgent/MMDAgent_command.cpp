@@ -598,7 +598,10 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
          return false;
       }
       if (baseBoneName) {
-         assignBone = m_model[baseID].getPMDModel()->getBone(baseBoneName);
+         char mbsbuf[MMDAGENT_MAXBUFLEN];
+         size_t len;
+         wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, baseBoneName, _TRUNCATE);
+         assignBone = m_model[baseID].getPMDModel()->getBone(mbsbuf);
       } else {
          assignBone = m_model[baseID].getPMDModel()->getCenterBone();
       }

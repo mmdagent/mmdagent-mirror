@@ -71,6 +71,7 @@ void LipSync::clear()
       l = m_lipDef[i];
       while (l) {
          tmp = l->next;
+         free(l->name);
          delete l ;
          l = tmp;
       }
@@ -104,12 +105,12 @@ bool LipSync::setup(PMDModel *pmd)
    int i, j, k, count;
    LipDef *lf;
    bool exist[6];
-   static wchar_t faceNames[6][20] = { L"発音「あ」", L"発音「い」", L"発音「う」", L"発音「え」", L"発音「お」", L"発音「ん」" };
+   char faceNames[6][20] = {"発音「あ」", "発音「い」", "発音「う」", "発音「え」", "発音「お」", "発音「ん」" };
    wchar_t *buf;
    FILE *fp;
-   wchar_t linebuf[256];
+   char linebuf[256];
    float rate;
-   wchar_t *p, *psave, *q, *pp;
+   char *p, *psave, *q, *pp;
    int n;
    bool ret = true;
 
@@ -123,7 +124,7 @@ bool LipSync::setup(PMDModel *pmd)
    for (i = 0; i < 6; i++) {
       if (pmd->getFace(faceNames[i])) {
          lf = new LipDef;
-         wcscpy(lf->name, faceNames[i]);
+         lf->name = strdup(faceNames[i]);
          lf->rate = 1.0f;
          lf->next = NULL;
          m_lipDef[i] = lf;
@@ -133,7 +134,7 @@ bool LipSync::setup(PMDModel *pmd)
    }
    if (count >= 1 && count <= 5)
       for (i = 0; i < 6; i++)
-         if (! exist[i])
+         if (!exist[i])
             g_logger.log(L"! Warning: face \"%s\" not in model", faceNames[i]);
 
    /* read lip.txt if any */
@@ -143,19 +144,19 @@ bool LipSync::setup(PMDModel *pmd)
    fp = _wfopen(buf, L"r");
    free(buf);
    if (fp) {
-      while (fgetws(linebuf, 256, fp)) {
-         if (linebuf[0] == L'\n' || linebuf[0] == L'\r' || linebuf[0] == L'#') continue;
-         q = wcschr(linebuf, L'=');
+      while (fgets(linebuf, 256, fp)) {
+         if (linebuf[0] == '\n' || linebuf[0] == '\r' || linebuf[0] == '#') continue;
+         q = strchr(linebuf, '=');
          if (!q) {
             g_logger.log(L"! Error: LipSync: wrong format in lip.txt: %s", linebuf);
             continue;
          }
-         *q = L'\0';
+         *q = '\0';
          for (n = 0; n < 6; n++)
-            if (wcscmp(faceNames[n], linebuf) == 0)
+            if (strcmp(faceNames[n], linebuf) == 0)
                break;
          if (n >= 6) {
-            *q = L'=';
+            *q = '=';
             g_logger.log(L"! Error: LipSync: wrong format in \"Lip.txt\": %s", linebuf);
             continue;
          }
@@ -164,15 +165,15 @@ bool LipSync::setup(PMDModel *pmd)
             g_logger.log(L"! Warning: LipSync: \"%s\" already defined", faceNames[n]);
             continue;
          }
-         for (p = wcstok_s(q + 1, L"+\r\n", &psave); p; p = wcstok_s(NULL, L"+\r\n", &psave)) {
-            pp = wcschr(p, L'*');
+         for (p = strtok_s(q + 1, "+\r\n", &psave); p; p = strtok_s(NULL, "+\r\n", &psave)) {
+            pp = strchr(p, '*');
             if (pp) {
-               *pp = L'\0';
+               *pp = '\0';
                if (!pmd->getFace(p)) {
                   g_logger.log(L"! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
                   continue;
                }
-               rate = (float) _wtof(pp + 1);
+               rate = (float) atof(pp + 1);
             } else {
                if (!pmd->getFace(p)) {
                   g_logger.log(L"! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
@@ -181,12 +182,12 @@ bool LipSync::setup(PMDModel *pmd)
                rate = 1.0f;
             }
             lf = new LipDef;
-            wcscpy(lf->name, p);
+            lf->name = strdup(p);
             lf->rate = rate;
             lf->next = m_lipDef[n];
             m_lipDef[n] = lf;
             if (pp)
-               *pp = L'*';
+               *pp = '*';
          }
          exist[n] = true;
       }
@@ -198,9 +199,9 @@ bool LipSync::setup(PMDModel *pmd)
          g_logger.log(L"! Warning: LipSync: \"%s\" not in model and Lip.txt, apply default", faceNames[i]);
          switch (i) {
          case 0:
-            if (pmd->getFace(L"あ")) {
+            if (pmd->getFace("あ")) {
                lf = new LipDef;
-               wcscpy(lf->name, L"あ");
+               lf->name = strdup("あ");
                lf->rate = 0.5f;
                lf->next = m_lipDef[i];
                m_lipDef[i] = lf;
@@ -208,9 +209,9 @@ bool LipSync::setup(PMDModel *pmd)
             }
             break;
          case 1:
-            if (pmd->getFace(L"い")) {
+            if (pmd->getFace("い")) {
                lf = new LipDef;
-               wcscpy(lf->name, L"い");
+               lf->name = strdup("い");
                lf->rate = 0.4f;
                lf->next = m_lipDef[i];
                m_lipDef[i] = lf;
@@ -218,9 +219,9 @@ bool LipSync::setup(PMDModel *pmd)
             }
             break;
          case 2:
-            if (pmd->getFace(L"う")) {
+            if (pmd->getFace("う")) {
                lf = new LipDef;
-               wcscpy(lf->name, L"う");
+               lf->name = strdup("う");
                lf->rate = 1.0f;
                lf->next = m_lipDef[i];
                m_lipDef[i] = lf;
@@ -228,21 +229,21 @@ bool LipSync::setup(PMDModel *pmd)
             }
             break;
          case 3:
-            if (pmd->getFace(L"あ")) {
+            if (pmd->getFace("あ")) {
                lf = new LipDef;
-               wcscpy(lf->name, L"あ");
+               lf->name = strdup("あ");
                lf->rate = 0.1f;
                lf->next = m_lipDef[i];
                m_lipDef[i] = lf;
-               if (pmd->getFace(L"い")) {
+               if (pmd->getFace("い")) {
                   lf = new LipDef;
-                  wcscpy(lf->name, L"い");
+                  lf->name = strdup("い");
                   lf->rate = 0.6f;
                   lf->next = m_lipDef[i];
                   m_lipDef[i] = lf;
-                  if (pmd->getFace(L"う")) {
+                  if (pmd->getFace("う")) {
                      lf = new LipDef;
-                     wcscpy(lf->name, L"う");
+                     lf->name = strdup("う");
                      lf->rate = 0.2f;
                      lf->next = m_lipDef[i];
                      m_lipDef[i] = lf;
@@ -252,9 +253,9 @@ bool LipSync::setup(PMDModel *pmd)
             }
             break;
          case 4:
-            if (pmd->getFace(L"お")) {
+            if (pmd->getFace("お")) {
                lf = new LipDef;
-               wcscpy(lf->name, L"お");
+               lf->name = strdup("お");
                lf->rate = 1.0f;
                lf->next = m_lipDef[i];
                m_lipDef[i] = lf;
@@ -282,16 +283,15 @@ bool LipSync::setup(PMDModel *pmd)
    for (i = 0; i < 6; i++)
       for (lf = m_lipDef[i]; lf; lf = lf->next)
          m_numFaces++;
-   m_faceName = (wchar_t **) malloc(sizeof(wchar_t *) * m_numFaces);
+   m_faceName = (char **) malloc(sizeof(char *) * m_numFaces);
    m_numFaces = 0;
    for (i = 0; i < 6; i++) {
       for (lf = m_lipDef[i]; lf; lf = lf->next) {
          for (k = 0; k < m_numFaces; k++)
-            if (wcscmp(m_faceName[k], lf->name) == 0)
+            if (strcmp(m_faceName[k], lf->name) == 0)
                break;
          if (k >= m_numFaces) {
-            m_faceName[m_numFaces] = (wchar_t *) malloc(sizeof(wchar_t) * (PMD_FILE_NAME_LEN + 1));
-            wcscpy(m_faceName[m_numFaces], lf->name);
+            m_faceName[m_numFaces] = strdup(lf->name);
             m_numFaces++;
          }
       }
@@ -306,7 +306,7 @@ bool LipSync::setup(PMDModel *pmd)
    for (i = 0; i < 6; i++) {
       for (lf = m_lipDef[i]; lf; lf = lf->next) {
          for (j = 0; j < m_numFaces; j++) {
-            if (wcscmp(m_faceName[j], lf->name) == 0) {
+            if (strcmp(m_faceName[j], lf->name) == 0) {
                m_table[i][j] = lf->rate;
                break;
             }
@@ -498,8 +498,6 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    VMDFile_Header *header;
    unsigned long *numBoneKeyFrames;
    unsigned long *numFaceKeyFrames;
-   char mbuf[VMD_BONE_FACE_NAME_LEN+2];
-   size_t converted;
    VMDFile_FaceFrame *face;
 
    /* initialize */
@@ -647,10 +645,9 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    data += sizeof(unsigned long);
    /* set key frame */
    for (i = 0; i < m_numFaces; i++) {
-      wcstombs_s(&converted, mbuf, VMD_BONE_FACE_NAME_LEN + 1, m_faceName[i], _TRUNCATE);
       for (kf = keyframe[i]; kf; kf = kf->next) {
          face = (VMDFile_FaceFrame *) data;
-         strncpy(face->faceName, mbuf, VMD_BONE_FACE_NAME_LEN);
+         strncpy(face->faceName, m_faceName[i], VMD_BONE_FACE_NAME_LEN);
          face->keyFrame = (unsigned long) (kf->frame + 0.5f);
          face->weight = kf->rate;
          data += sizeof(VMDFile_FaceFrame);
