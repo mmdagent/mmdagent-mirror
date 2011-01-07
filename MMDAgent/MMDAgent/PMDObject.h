@@ -115,10 +115,10 @@ public:
    bool load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light);
 
    /* PMDObject::setMotion: start a motion */
-   bool startMotion(VMD *vmd, wchar_t *name, bool full, bool once, bool enableSmooth, bool enableRepos);
+   bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos);
 
    /* PMDObject::swapMotion: swap a motion */
-   bool swapMotion(VMD *vmd, wchar_t *targetName);
+   bool swapMotion(VMD *vmd, char *name);
 
    /* PMDObject::updateRootBone: update root bone if assigned to a base bone */
    void updateRootBone();

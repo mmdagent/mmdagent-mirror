@@ -59,6 +59,8 @@
 #define MODEL_ALL 65535 /* alias for all model */
 #define MMDAGENT_MAXDISPSTRLEN 1024
 
+#define MMDAGENT_MAXBUFLEN 1024
+
 #define MMDAGENT_SYSDATADIR L"AppData"
 #define MMDAGENT_PLUGINDIR  L"Plugins"
 
@@ -121,13 +123,13 @@ private:
    void updateLight();
 
    /* addMotion: add motion */
-   bool addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos);
+   bool addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos);
 
    /* changeMotion: change motion */
-   bool changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName);
+   bool changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName);
 
    /* deleteMotion: delete motion */
-   bool deleteMotion(wchar_t *modelAlias, wchar_t *motionAlias);
+   bool deleteMotion(wchar_t *modelAlias, char *motionAlias);
 
    /* addModel: add model */
    bool addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, btQuaternion *rot, wchar_t *baseModelAlias, wchar_t *baseBoneName);

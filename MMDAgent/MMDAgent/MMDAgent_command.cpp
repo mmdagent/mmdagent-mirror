@@ -230,21 +230,30 @@ bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
             return false;
          }
       }
-      return addMotion(warg[0], warg[1] , warg[2], tmpBool1, tmpBool2, tmpBool3, tmpBool4);
+      char mbsbuf[MMDAGENT_MAXBUFLEN];
+      size_t len;
+      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
+      return addMotion(warg[0], mbsbuf , warg[2], tmpBool1, tmpBool2, tmpBool3, tmpBool4);
    } else if (wcscmp(command, MMDAGENT_COMMAND_MOTION_CHANGE) == 0) {
       /* change motion */
       if (num != 3) {
          g_logger.log(L"! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return changeMotion(warg[0], warg[1], warg[2]);
+      char mbsbuf[MMDAGENT_MAXBUFLEN];
+      size_t len;
+      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
+      return changeMotion(warg[0], mbsbuf, warg[2]);
    } else if (wcscmp(command, MMDAGENT_COMMAND_MOTION_DELETE) == 0) {
       /* delete motion */
       if (num != 2) {
          g_logger.log(L"! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return deleteMotion(warg[0], warg[1]);
+      char mbsbuf[MMDAGENT_MAXBUFLEN];
+      size_t len;
+      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
+      return deleteMotion(warg[0], mbsbuf);
    } else if (wcscmp(command, MMDAGENT_COMMAND_MOVE_START) == 0) {
       /* start moving */
       tmpBool1 = false;
@@ -414,14 +423,14 @@ bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
 }
 
 /* MMDAgent::addMotion: add motion */
-bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
+bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
 {
    int i;
    bool find;
    int id;
    VMD *vmd;
    MotionPlayer *motionPlayer;
-   wchar_t *name;
+   char *name;
 
    /* motion file */
    vmd = m_motion.loadFromFile(fileName);
@@ -438,11 +447,11 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
    }
 
    /* alias */
-   if (motionAlias && wcslen(motionAlias) > 0) {
+   if (motionAlias && strlen(motionAlias) > 0) {
       /* check the same alias */
-      name = _wcsdup(motionAlias);
+      name = strdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-         if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
+         if (motionPlayer->active && strcmp(motionPlayer->name, name) == 0) {
             g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", name);
             free(name);
             return false;
@@ -452,10 +461,10 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
       /* if motion alias is not specified, unused digit is used */
       for(i = 0;; i++) {
          find = false;
-         name = (wchar_t *) malloc(sizeof(wchar_t) * (getNumDigit(i) + 1));
-         wsprintf(name, L"%d", i);
+         name = (char *) malloc(sizeof(char) * (getNumDigit(i) + 1));
+         sprintf(name, "%d", i);
          for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-            if (motionPlayer->active && wcscmp(motionPlayer->name, name) == 0) {
+            if (motionPlayer->active && strcmp(motionPlayer->name, name) == 0) {
                find = true;
                break;
             }
@@ -472,13 +481,16 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fil
       return false;
    }
 
-   sendEventMessage(MMDAGENT_EVENT_MOTION_ADD, L"%s|%s", modelAlias, name);
+   wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, name, _TRUNCATE); /* should be removed */
+   sendEventMessage(MMDAGENT_EVENT_MOTION_ADD, L"%s|%s", modelAlias, wcsbuf);
    free(name);
    return true;
 }
 
 /* MMDAgent::changeMotion: change motion */
-bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *fileName)
+bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName)
 {
    int id;
    VMD *vmd, *old = NULL;
@@ -506,7 +518,7 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *
 
    /* get motion before change */
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-      if (motionPlayer->active && wcscmp(motionPlayer->name, motionAlias) == 0) {
+      if (motionPlayer->active && strcmp(motionPlayer->name, motionAlias) == 0) {
          old = motionPlayer->vmd;
          break;
       }
@@ -528,12 +540,15 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, wchar_t *motionAlias, wchar_t *
    m_motion.unload(old);
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_MOTION_CHANGE, L"%s|%s", modelAlias, motionAlias);
+   wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, motionAlias, _TRUNCATE); /* should be removed */
+   sendEventMessage(MMDAGENT_EVENT_MOTION_CHANGE, L"%s|%s", modelAlias, wcsbuf);
    return true;
 }
 
 /* MMDAgent::deleteMotion: delete motion */
-bool MMDAgent::deleteMotion(wchar_t *modelAlias, wchar_t *motionAlias)
+bool MMDAgent::deleteMotion(wchar_t *modelAlias, char *motionAlias)
 {
    int id;
 
@@ -1064,7 +1079,7 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
 
    /* search running lip motion */
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-      if (motionPlayer->active && wcscmp(motionPlayer->name, LIPSYNC_MOTION_NAME) == 0) {
+      if (motionPlayer->active && strcmp(motionPlayer->name, LIPSYNC_MOTIONNAME) == 0) {
          find = true;
          break;
       }
@@ -1072,14 +1087,14 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
 
    /* start lip sync */
    if(find == true) {
-      if (m_model[id].swapMotion(vmd, LIPSYNC_MOTION_NAME) == false) {
+      if (m_model[id].swapMotion(vmd, LIPSYNC_MOTIONNAME) == false) {
          g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
          m_motion.unload(vmd);
          return false;
       }
       sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", modelAlias);
    } else {
-      if (m_model[id].startMotion(vmd, LIPSYNC_MOTION_NAME, false, true, true, true) == false) {
+      if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true) == false) {
          g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
          m_motion.unload(vmd);
          return false;
@@ -1104,7 +1119,7 @@ bool MMDAgent::stopLipSync(wchar_t *modelAlias)
    }
 
    /* stop lip sync */
-   if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTION_NAME) == false) {
+   if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTIONNAME) == false) {
       g_logger.log(L"! Error: stopLipSync: lipsync motion not found");
       return false;
    }

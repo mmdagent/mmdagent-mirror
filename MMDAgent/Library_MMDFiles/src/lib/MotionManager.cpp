@@ -54,7 +54,7 @@
 /* MotionPlayer_initialize: initialize MotionPlayer */
 void MotionPlayer_initialize(MotionPlayer *m)
 {
-   m->name[0] = L'\0';
+   m->name = NULL;
 
    m->vmd = NULL;
 
@@ -90,6 +90,7 @@ void MotionManager::purgeMotion()
          else
             m_playerList = m->next;
          tmp2 = m->next;
+         if(m->name) free(m->name);
          delete m;
          m = tmp2;
       } else {
@@ -122,6 +123,7 @@ void MotionManager::clear()
 
    while (player) {
       tmp = player->next;
+      if(player->name) free(player->name);
       delete player;
       player = tmp;
    }
@@ -142,9 +144,11 @@ MotionManager::~MotionManager()
 }
 
 /* MotionManager::startMotion start a motion */
-bool MotionManager::startMotion(VMD * vmd, wchar_t *name, bool full, bool once, bool enableSmooth, bool enableRePos)
+bool MotionManager::startMotion(VMD * vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRePos)
 {
    MotionPlayer *m, *tmp1, *tmp2;
+
+   if(vmd == NULL || name == NULL) return false;
 
    /* purge inactive motion managers */
    purgeMotion();
@@ -153,7 +157,7 @@ bool MotionManager::startMotion(VMD * vmd, wchar_t *name, bool full, bool once, 
    m = new MotionPlayer;
    MotionPlayer_initialize(m);
 
-   wcsncpy(m->name, name, MOTIONMANAGER_NAMELEN);
+   m->name = strdup(name);
    m->onEnd = once ? 2 : 1; /* if loop is not specified, this motion will be deleted */
    m->ignoreStatic = full ? false : true;
    m->enableSmooth = enableSmooth;
@@ -246,16 +250,18 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
 }
 
 /* MotionManager::swapMotion: swap a motion, keeping parameters */
-bool MotionManager::swapMotion(VMD * vmd, wchar_t * targetName)
+bool MotionManager::swapMotion(VMD * vmd, char * name)
 {
    MotionPlayer *m;
+
+   if(vmd == NULL || name == NULL) return false;
 
    /* purge inactive motion managers */
    purgeMotion();
 
    /* find the motion player to change */
    for (m = m_playerList; m; m = m->next)
-      if (wcscmp(m->name, targetName) == 0)
+      if (strcmp(m->name, name) == 0)
          break;
    if (!m)
       return false; /* not found */
@@ -270,12 +276,14 @@ bool MotionManager::swapMotion(VMD * vmd, wchar_t * targetName)
 }
 
 /* MotionManager::deleteMotion: delete a motion */
-bool MotionManager::deleteMotion(wchar_t * targetName)
+bool MotionManager::deleteMotion(char *name)
 {
    MotionPlayer *m;
 
+   if(name == NULL) return false;
+
    for (m = m_playerList; m; m = m->next) {
-      if (m->active && wcscmp(m->name, targetName) == 0) {
+      if (m->active && strcmp(m->name, name) == 0) {
          /* enter the ending status, gradually decreasing the blend rate */
          m->endingBoneBlend = m->endingBoneBlendFrames;
          m->endingFaceBlend = m->endingFaceBlendFrames;

@@ -180,7 +180,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
 }
 
 /* PMDObject::setMotion: start a motion */
-bool PMDObject::startMotion(VMD * vmd, wchar_t * name, bool full, bool once, bool enableSmooth, bool enableRepos)
+bool PMDObject::startMotion(VMD * vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos)
 {
    if (m_motionManager == NULL || m_motionManager->startMotion(vmd, name, full, once, enableSmooth, enableRepos) == false)
       return false;
@@ -190,9 +190,9 @@ bool PMDObject::startMotion(VMD * vmd, wchar_t * name, bool full, bool once, boo
 }
 
 /* PMDObject::swapMotion: swap a motion */
-bool PMDObject::swapMotion(VMD * vmd, wchar_t * targetName)
+bool PMDObject::swapMotion(VMD * vmd, char *name)
 {
-   if (m_motionManager == NULL || m_motionManager->swapMotion(vmd, targetName) == false)
+   if (m_motionManager == NULL || m_motionManager->swapMotion(vmd, name) == false)
       return false;
    /* update offset because motion may change center */
    m_offsetPos = (*(m_pmd.getRootBone()->getOffset()));

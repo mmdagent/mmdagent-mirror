@@ -45,7 +45,7 @@
 #include "PMDModel.h"
 #include "VMD.h"
 
-#define LIPSYNC_MOTION_NAME L"LipSync" /* motion name of lip sync */
+#define LIPSYNC_MOTIONNAME "LipSync" /* motion name of lip sync */
 
 #define LIPSYNC_SEPARATOR ","
 

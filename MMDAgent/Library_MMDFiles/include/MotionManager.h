@@ -46,8 +46,6 @@
 #include "VMD.h"
 #include "MotionController.h"
 
-#define MOTIONMANAGER_NAMELEN 50
-
 #define MOTIONMANAGER_DEFAULTPRIORITY    0    /* motion priority */
 #define MOTIONMANAGER_DEFAULTLOOPATFRAME 0.0f /* when specified with loop, motion will rewind at this frame when reached end */
 
@@ -60,7 +58,7 @@ enum {
 
 /* Motion player: hold a bag of data to perform a motion, holding status, manage loop and end of motion */
 typedef struct _MotionPlayer {
-   wchar_t name[MOTIONMANAGER_NAMELEN]; /* name */
+   char *name; /* name */
 
    MotionController mc; /* motion controller */
    VMD *vmd;            /* source motion data */
@@ -118,16 +116,16 @@ public:
    ~MotionManager();
 
    /* startMotion: start a motion */
-   bool startMotion(VMD *vmd, wchar_t *name, bool full, bool once, bool enableSmooth, bool enableRePos);
+   bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRePos);
 
    /* startMotionSub: initialize a motion */
    void startMotionSub(VMD *vmd, MotionPlayer *m);
 
    /* swapMotion: swap a motion, keeping parameters */
-   bool swapMotion(VMD *vmd, wchar_t *targetName);
+   bool swapMotion(VMD *vmd, char *name);
 
    /* deleteMotion: delete a motion */
-   bool deleteMotion(wchar_t *targetName);
+   bool deleteMotion(char *name);
 
    /* update: apply all motion players */
    bool update(double frame);

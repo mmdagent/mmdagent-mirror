@@ -119,25 +119,25 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                   for (j = 0; j < m_numModel; j++) {
                      if (m_model[j].isEnable() && m_model[j].allowMotionFileDrop()) {
                         for (motionPlayer = m_model[j].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-                           if (motionPlayer->active && wcscmp(motionPlayer->name, L"base") == 0) {
-                              changeMotion(m_model[j].getAlias(), L"base", droppedFileName); /* if 'base' motion is already used, change motion */
+                           if (motionPlayer->active && strcmp(motionPlayer->name, "base") == 0) {
+                              changeMotion(m_model[j].getAlias(), "base", droppedFileName); /* if 'base' motion is already used, change motion */
                               break;
                            }
                         }
                         if (!motionPlayer)
-                           addMotion(m_model[j].getAlias(), L"base", droppedFileName, true, false, true, true);
+                           addMotion(m_model[j].getAlias(), "base", droppedFileName, true, false, true, true);
                      }
                   }
                } else {
                   /* target model */
                   for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-                     if (motionPlayer->active && wcscmp(motionPlayer->name, L"base") == 0) {
-                        changeMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName); /* if 'base' motion is already used, change motion */
+                     if (motionPlayer->active && strcmp(motionPlayer->name, "base") == 0) {
+                        changeMotion(m_model[targetModelID].getAlias(), "base", droppedFileName); /* if 'base' motion is already used, change motion */
                         break;
                      }
                   }
                   if (!motionPlayer)
-                     addMotion(m_model[targetModelID].getAlias(), L"base", droppedFileName, true, false, true, true);
+                     addMotion(m_model[targetModelID].getAlias(), "base", droppedFileName, true, false, true, true);
                }
             }
             /* check mp3 */

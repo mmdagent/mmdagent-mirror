@@ -205,10 +205,14 @@ void MMDAgent::updateScene()
             for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
                if (motionPlayer->statusFlag == MOTION_STATUS_DELETED) {
                   /* send event message */
-                  if (wcscmp(motionPlayer->name, LIPSYNC_MOTION_NAME) == 0)
+                  if (strcmp(motionPlayer->name, LIPSYNC_MOTIONNAME) == 0)
                      sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", m_model[i].getAlias());
-                  else
-                     sendEventMessage(MMDAGENT_EVENT_MOTION_DELETE, L"%s|%s", m_model[i].getAlias(), motionPlayer->name);
+                  else {
+                     wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
+                     size_t len;
+                     mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, motionPlayer->name, _TRUNCATE); /* should be removed */
+                     sendEventMessage(MMDAGENT_EVENT_MOTION_DELETE, L"%s|%s", m_model[i].getAlias(), wcsbuf);
+                  }
                   /* unload from motion stocker */
                   m_motion.unload(motionPlayer->vmd);
                }
