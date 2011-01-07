@@ -71,8 +71,7 @@ class PMDModel
 private:
 
    /* model definition */
-   char m_nameA[PMD_FILE_NAME_LEN + 1];    /* model name (multi-byte char) */
-   wchar_t m_nameW[PMD_FILE_NAME_LEN + 1]; /* model name (wide char) */
+   char *m_name;                           /* model name */
    wchar_t m_modelDir[MAX_PATH];           /* where this model is located */
    char *m_comment;                        /* comment string */
 
@@ -214,11 +213,8 @@ public:
    /* getCenterBone: get center bone */
    PMDBone *getCenterBone();
 
-   /* getModelNameA: get model name (multi-byte char) */
-   char * getModelNameA();
-
-   /* getModelnameW: get model name (wide char) */
-   wchar_t *getModelNameW();
+   /* getName: get model name */
+   char * getName();
 
    /* getNumVertex: get number of vertics */
    unsigned long getNumVertex();

@@ -86,6 +86,7 @@ static bool getDir(const wchar_t *filePath, wchar_t *dirName, wchar_t *baseName,
 /* PMDModel::initialize: initialize PMDModel */
 void PMDModel::initialize()
 {
+   m_name = NULL;
    m_comment = NULL;
    m_bulletPhysics = NULL;
 
@@ -230,6 +231,10 @@ void PMDModel::clear()
    if(m_comment) {
       free(m_comment);
       m_comment = NULL;
+   }
+   if(m_name) {
+      free(m_name);
+      m_name = NULL;
    }
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
@@ -482,16 +487,10 @@ PMDBone *PMDModel::getCenterBone()
    return m_centerBone;
 }
 
-/* PMDModel::getModelNameA: get model name (multi-byte char) */
-char *PMDModel::getModelNameA()
+/* PMDModel::getName: get name */
+char *PMDModel::getName()
 {
-   return m_nameA;
-}
-
-/* PMDModel::getModelnameW: get model name (wide char) */
-wchar_t *PMDModel::getModelNameW()
-{
-   return m_nameW;
+   return m_name;
 }
 
 /* PMDModel::getNumVertex: get number of vertics */

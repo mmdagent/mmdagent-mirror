@@ -164,7 +164,10 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* set up lip sync */
    m_lipSync.setup(&m_pmd);
    /* set initial alias name as the same as model name */
-   setAlias(m_pmd.getModelNameW());
+   wchar_t wcsbuf[PMDOBJECT_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, PMDOBJECT_MAXBUFLEN, m_pmd.getName(), _TRUNCATE); /* should be removed */
+   setAlias(wcsbuf);
 
    /* reset */
    setLightForToon(light);
@@ -612,7 +615,10 @@ void PMDObject::renderDebug(TextRenderer * text)
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    pos.setY(m_pmd.getMaxHeight() + 1.0f);
    glTranslatef(pos.x(), pos.y(), pos.z());
-   text->drawString(m_pmd.getModelNameW());
+   wchar_t wcsbuf [PMDOBJECT_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, PMDOBJECT_MAXBUFLEN, m_pmd.getName(), _TRUNCATE); /* should be removed */
+   text->drawString(wcsbuf);
    glEnable(GL_LIGHTING);
    glPopMatrix();
 }

@@ -109,10 +109,9 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    if (fileHeader->version != 1.0f)
       return false;
    /* name */
-   strncpy(m_nameA, fileHeader->name, PMD_FILE_NAME_LEN);
-   m_nameA[PMD_FILE_NAME_LEN] = '\0';
-   size_t len = 0;
-   mbstowcs_s(&len, m_nameW, PMD_FILE_NAME_LEN + 1, m_nameA, _TRUNCATE);
+   m_name = (char *) malloc(sizeof(char) * (PMD_FILE_NAME_LEN + 1));
+   strncpy(m_name, fileHeader->name, PMD_FILE_NAME_LEN);
+   m_name[PMD_FILE_NAME_LEN] = '\0';
    /* comment */
    m_comment = (char *) malloc(sizeof(char) * (PMD_COMMENT_LEN + 1));
    strncpy(m_comment, fileHeader->comment, PMD_COMMENT_LEN);
