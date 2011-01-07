@@ -135,7 +135,7 @@ bool LipSync::setup(PMDModel *pmd)
    if (count >= 1 && count <= 5)
       for (i = 0; i < 6; i++)
          if (!exist[i])
-            g_logger.log(L"! Warning: face \"%s\" not in model", faceNames[i]);
+            g_logger.mbslog("! Warning: face \"%s\" not in model", faceNames[i]);
 
    /* read lip.txt if any */
    buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(pmd->getModelDir()) + 9));
@@ -148,7 +148,7 @@ bool LipSync::setup(PMDModel *pmd)
          if (linebuf[0] == '\n' || linebuf[0] == '\r' || linebuf[0] == '#') continue;
          q = strchr(linebuf, '=');
          if (!q) {
-            g_logger.log(L"! Error: LipSync: wrong format in lip.txt: %s", linebuf);
+            g_logger.mbslog("! Error: LipSync: wrong format in lip.txt: %s", linebuf);
             continue;
          }
          *q = '\0';
@@ -157,12 +157,12 @@ bool LipSync::setup(PMDModel *pmd)
                break;
          if (n >= 6) {
             *q = '=';
-            g_logger.log(L"! Error: LipSync: wrong format in \"Lip.txt\": %s", linebuf);
+            g_logger.mbslog("! Error: LipSync: wrong format in \"Lip.txt\": %s", linebuf);
             continue;
          }
          if (exist[n]) {
             /* primary face definitioin already exist! */
-            g_logger.log(L"! Warning: LipSync: \"%s\" already defined", faceNames[n]);
+            g_logger.mbslog("! Warning: LipSync: \"%s\" already defined", faceNames[n]);
             continue;
          }
          for (p = strtok_s(q + 1, "+\r\n", &psave); p; p = strtok_s(NULL, "+\r\n", &psave)) {
@@ -170,13 +170,13 @@ bool LipSync::setup(PMDModel *pmd)
             if (pp) {
                *pp = '\0';
                if (!pmd->getFace(p)) {
-                  g_logger.log(L"! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
+                  g_logger.mbslog("! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
                   continue;
                }
                rate = (float) atof(pp + 1);
             } else {
                if (!pmd->getFace(p)) {
-                  g_logger.log(L"! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
+                  g_logger.mbslog("! Error: LipSync: face \"%s\" not exist for \"%s\"", p, faceNames[n]);
                   continue;
                }
                rate = 1.0f;
@@ -196,7 +196,7 @@ bool LipSync::setup(PMDModel *pmd)
 
    for (i = 0; i < 6; i++) {
       if (!exist[i]) {
-         g_logger.log(L"! Warning: LipSync: \"%s\" not in model and Lip.txt, apply default", faceNames[i]);
+         g_logger.mbslog("! Warning: LipSync: \"%s\" not in model and Lip.txt, apply default", faceNames[i]);
          switch (i) {
          case 0:
             if (pmd->getFace("‚ ")) {
@@ -271,7 +271,7 @@ bool LipSync::setup(PMDModel *pmd)
 
    for (i = 0; i < 6; i++) {
       if (!exist[i]) {
-         g_logger.log(L"! Error: LipSync: failed to initialize \"%s\"", faceNames[i]);
+         g_logger.mbslog("! Error: LipSync: failed to initialize \"%s\"", faceNames[i]);
          ret = false;
       }
    }
@@ -516,7 +516,7 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    seqlen = 0;
    for (p = strtok_s(buf1, LIPSYNC_SEPARATOR, &p_save); p; p = strtok_s(NULL, LIPSYNC_SEPARATOR, &p_save)) {
       if (seqlen >= MAXPNUM) {
-         g_logger.log(L"! Error: LipSync: too long phone sequence (>%d)", MAXPNUM);
+         g_logger.mbslog("! Error: LipSync: too long phone sequence (>%d)", MAXPNUM);
          ret = false;
          break;
       }
@@ -537,7 +537,7 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
          j++;
       }
       if (pseq[seqlen] == -1) {
-         g_logger.log(L"! Error: LipSync: unknown phone \"%S\"", p);
+         g_logger.mbslog("! Error: LipSync: unknown phone \"%S\"", p);
          ret = false;
          continue;
       }
@@ -561,7 +561,7 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
          }
       }
       if (dur[seqlen] < 1.0f) {
-         g_logger.log(L"!Warning: LipSync: \"%S\" shorter than a frame (33.3msec), padded to 1 frame", p);
+         g_logger.mbslog("!Warning: LipSync: \"%S\" shorter than a frame (33.3msec), padded to 1 frame", p);
          dur[seqlen] = 1.0f;
       }
       seqlen++;

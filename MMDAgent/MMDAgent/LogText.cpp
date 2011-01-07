@@ -162,6 +162,23 @@ void LogText::log(const wchar_t *format, ...)
    va_end(args);
 }
 
+/* LogText::mbslog: store log text (multi-byte char) */
+void LogText::mbslog(const char *format, ...)
+{
+   char buff[LOGTEXT_MAXBUFLEN];
+   va_list args;
+
+   va_start(args, format);
+   vsnprintf(buff, LOGTEXT_MAXBUFLEN - 1, format, args);
+   buff[LOGTEXT_MAXBUFLEN - 1] = '\0';
+   va_end(args);
+
+   wchar_t wcsbuf[LOGTEXT_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, LOGTEXT_MAXBUFLEN, buff, _TRUNCATE);
+   log(wcsbuf);
+}
+
 /* LogText::render: render log text */
 void LogText::render(TextRenderer *text)
 {

@@ -81,6 +81,9 @@ public:
    /* log: store log text */
    void log(const wchar_t *format, ...);
 
+   /* mbslog: store log text (multi-byte char) */
+   void mbslog(const char *format, ...);
+
    /* render: render text area */
    void render(TextRenderer *text);
 };
