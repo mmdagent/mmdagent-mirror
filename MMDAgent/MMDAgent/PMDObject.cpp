@@ -156,7 +156,10 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    m_isEnable = true;
 
    /* load model */
-   if (m_pmd.load(fileName, systex) == false) {
+   char mbsbuf[PMDOBJECT_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, PMDOBJECT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   if (m_pmd.load(mbsbuf, systex) == false) {
       clear();
       return false;
    }
@@ -165,7 +168,6 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    m_lipSync.setup(&m_pmd);
    /* set initial alias name as the same as model name */
    wchar_t wcsbuf[PMDOBJECT_MAXBUFLEN];
-   size_t len;
    mbstowcs_s(&len, wcsbuf, PMDOBJECT_MAXBUFLEN, m_pmd.getName(), _TRUNCATE); /* should be removed */
    setAlias(wcsbuf);
 

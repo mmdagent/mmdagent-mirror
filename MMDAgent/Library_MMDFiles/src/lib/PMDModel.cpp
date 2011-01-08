@@ -50,43 +50,41 @@
 #include "Define.h"
 #include "PMDModel.h"
 
-/* getDir: get directory from file path */
-static bool getDir(const wchar_t *filePath, wchar_t *dirName, wchar_t *baseName, int bufLen)
+/* getDirectory: get directory from file path */
+static bool getDirectory(const char *file, char *dir)
 {
+
    int i, len;
    bool found = false;
-   wchar_t ch;
+   char ch;
 
-   dirName[0] = L'\0';
-   baseName[0] = L'\0';
-
-   if (filePath == NULL)
+   if (file == NULL)
       return false;
-   len = wcslen(filePath);
-   if (len <= 0 || bufLen < len)
+   len = strlen(file);
+   if (len <= 0)
       return false;
 
    for (i = len; i >= 0; i--) {
-      ch = filePath[i];
-      if (found == false && (ch == L'\\' || ch == L'/' || ch == L':')) {
-         found = true;
-         wcsncpy(baseName, &(filePath[i+1]), len - i);
-         dirName[i+1] = L'\0';
+      ch = file[i];
+      if (found == true) {
+         dir[i] = ch;
+      } else {
+         if (ch == PMDMODEL_DIRSEPARATOR)
+            found = true;
+         dir[i] = '\0';
       }
-      if (found)
-         dirName[i] = filePath[i];
    }
 
-   if (dirName[0] == L'\0')
-      return false;
-   else
-      return true;
+   if (dir[0] == '\0')
+      strcpy(dir, ".");
+   return true;
 }
 
 /* PMDModel::initialize: initialize PMDModel */
 void PMDModel::initialize()
 {
    m_name = NULL;
+   m_modelDir = NULL;
    m_comment = NULL;
    m_bulletPhysics = NULL;
 
@@ -236,6 +234,10 @@ void PMDModel::clear()
       free(m_name);
       m_name = NULL;
    }
+   if(m_modelDir) {
+      free(m_modelDir);
+      m_modelDir = NULL;
+   }
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
       m_localToonTexture[i].release();
@@ -261,30 +263,28 @@ void PMDModel::setPhysicsEngine(BulletPhysics *engine)
    m_bulletPhysics = engine;
 }
 
-/* PMDModel::load: load from file name (wide char) */
-bool PMDModel::load(const wchar_t *filePath, SystemTexture *systex)
+/* PMDModel::load: load from file name */
+bool PMDModel::load(const char *file, SystemTexture *systex)
 {
+   int len;
    FILE *fp;
    fpos_t size;
    unsigned char *data;
-   wchar_t dirName[MAX_PATH], baseName[MAX_PATH], currentDir[MAX_PATH];
+   char *dir;
    bool ret;
 
-   /* get model dir and open file */
-   if (getDir(filePath, dirName, baseName, MAX_PATH)) {
-      GetCurrentDirectory(MAX_PATH, currentDir);
-      SetCurrentDirectory(dirName);
-      fp = _wfopen(baseName, L"rb");
-   } else {
-      /* path contains no directory, just open it */
-      fp = _wfopen(filePath, L"rb");
-   }
+   if(file == NULL || systex == NULL) return false;
+   len = strlen(file);
+   if(len <= 0) return false;
 
-   if (!fp) {
-      if (dirName[0] != L'\0')
-         SetCurrentDirectory(currentDir);
+   /* get model directory */
+   dir = (char *) malloc(sizeof(char) * (len + 1));
+   getDirectory(file, dir);
+
+   /* open file */
+   fp = fopen(file, "rb");
+   if (!fp)
       return false;
-   }
 
    /* get file size */
    fseek(fp, 0, SEEK_END);
@@ -301,18 +301,12 @@ bool PMDModel::load(const wchar_t *filePath, SystemTexture *systex)
    fclose(fp);
 
    /* initialize and load from the data memories */
-   ret = parse(data, (unsigned long) size, systex);
+   ret = parse(data, (unsigned long) size, systex, dir);
 
    /* release memory for reading */
    free(data);
 
-   /* memorize the model directory (= current) */
-   GetCurrentDirectory(MAX_PATH, m_modelDir);
-
-   /* restore the current dir */
-   if (dirName[0] != L'\0')
-      SetCurrentDirectory(currentDir);
-
+   free(dir);
    return ret;
 }
 
@@ -530,7 +524,7 @@ char *PMDModel::getComment()
 }
 
 /* PMDModel::getModelDir: get model directory */
-wchar_t *PMDModel::getModelDir()
+char *PMDModel::getModelDir()
 {
    return m_modelDir;
 }

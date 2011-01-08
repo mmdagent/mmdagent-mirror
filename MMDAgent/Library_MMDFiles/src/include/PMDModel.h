@@ -54,6 +54,9 @@
 #include "PTree.h"
 #include "SystemTexture.h"
 
+#define PMDMODEL_MAXBUFLEN    1024
+#define PMDMODEL_DIRSEPARATOR '\\'
+
 #define PMDMODEL_CENTERBONENAME "ÉZÉìÉ^Å["
 
 #define PMDMODEL_MINBONEWEIGHT 0.0001f
@@ -71,9 +74,9 @@ class PMDModel
 private:
 
    /* model definition */
-   char *m_name;                           /* model name */
-   wchar_t m_modelDir[MAX_PATH];           /* where this model is located */
-   char *m_comment;                        /* comment string */
+   char *m_name;     /* model name */
+   char *m_modelDir; /* where this model is located */
+   char *m_comment;  /* comment string */
 
    unsigned long m_numVertex; /* number of vertices */
    btVector3 *m_vertexList;   /* vertex list */
@@ -146,7 +149,7 @@ private:
    PTree m_name2face;              /* name-to-face index for fast lookup */
 
    /* parse: initialize and load from data memories */
-   bool parse(unsigned char *data, unsigned long size, SystemTexture *systex);
+   bool parse(unsigned char *data, unsigned long size, SystemTexture *systex, char *dir);
 
    /* initialize: initialize PMDModel */
    void initialize();
@@ -165,8 +168,8 @@ public:
    /* setPhysicsEngine: set Bullet Physics */
    void setPhysicsEngine(BulletPhysics *engine);
 
-   /* load: load from file name (wide char) */
-   bool load(const wchar_t *filePath, SystemTexture *systex);
+   /* load: load from file name */
+   bool load(const char *file, SystemTexture *systex);
 
    /* getBone: find bone data by name */
    PMDBone *getBone(char *name);
@@ -244,7 +247,7 @@ public:
    char *getComment();
 
    /* getModelDir: get model directory */
-   wchar_t *getModelDir();
+   char *getModelDir();
 
    /* updateBone: update bones */
    void updateBone();

@@ -45,7 +45,8 @@
 #include "PMDFile.h"
 #include "PMDTextureLoader.h"
 
-#define PMDMATERIAL_TEXTURENAMELEN 20
+#define PMDMATERIAL_MAXBUFLEN    1024
+#define PMDMATERIAL_DIRSEPARATOR '\\'
 
 /* PMDMaterial: material of PMD */
 class PMDMaterial
@@ -82,7 +83,7 @@ public:
    ~PMDMaterial();
 
    /* setup: initialize and setup material */
-   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader);
+   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, char *dir);
 
    /* hasSingleSphereMap: return if it has single sphere maps */
    bool hasSingleSphereMap();

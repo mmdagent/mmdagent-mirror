@@ -45,6 +45,8 @@
 #include "PMDObject.h"
 #include "PMDTexture.h"
 
+#define STAGE_MAXBUFLEN 1024
+
 /* TileTexture: texture for background and floor */
 class TileTexture
 {

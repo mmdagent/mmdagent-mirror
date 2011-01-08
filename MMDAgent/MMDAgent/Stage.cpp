@@ -382,7 +382,10 @@ bool Stage::loadStagePMD(wchar_t *fileName, BulletPhysics *bullet, SystemTexture
       m_bullet = bullet;
    m_pmd.setPhysicsEngine(m_bullet);
 
-   ret = m_pmd.load(fileName, systex);
+   char mbsbuf[STAGE_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, STAGE_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   ret = m_pmd.load(mbsbuf, systex);
    if (ret) {
       m_pmd.setToonFlag(false);
       m_pmd.updateSkin();

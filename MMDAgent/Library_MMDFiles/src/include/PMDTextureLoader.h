@@ -47,8 +47,8 @@
 
 /* TextureLink: list of textures */
 typedef struct _TextureLink {
-   char fileName[PMD_FILE_NAME_LEN + 1]; /* source file name */
-   PMDTexture *texture;                  /* texture data and information */
+   char *name;                /* source file name */
+   PMDTexture *texture;       /* texture data and information */
    struct _TextureLink *next;
 } TextureLink;
 

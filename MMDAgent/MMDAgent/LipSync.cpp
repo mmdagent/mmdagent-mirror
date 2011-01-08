@@ -106,7 +106,7 @@ bool LipSync::setup(PMDModel *pmd)
    LipDef *lf;
    bool exist[6];
    char faceNames[6][20] = {"発音「あ」", "発音「い」", "発音「う」", "発音「え」", "発音「お」", "発音「ん」" };
-   wchar_t *buf;
+   char buf[LIPSYNC_MAXBUFLEN];
    FILE *fp;
    char linebuf[256];
    float rate;
@@ -138,11 +138,8 @@ bool LipSync::setup(PMDModel *pmd)
             g_logger.mbslog("! Warning: face \"%s\" not in model", faceNames[i]);
 
    /* read lip.txt if any */
-   buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(pmd->getModelDir()) + 9));
-   wcscpy(buf, pmd->getModelDir());
-   wcscat(buf, L"\\Lip.txt");
-   fp = _wfopen(buf, L"r");
-   free(buf);
+   sprintf(buf, "%s\\Lip.txt", pmd->getModelDir());
+   fp = fopen(buf, "r");
    if (fp) {
       while (fgets(linebuf, 256, fp)) {
          if (linebuf[0] == '\n' || linebuf[0] == '\r' || linebuf[0] == '#') continue;

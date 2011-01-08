@@ -51,7 +51,7 @@
 #include "BulletPhysics.h"
 
 /* PMDModel::parse: initialize and load from data memories */
-bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *systex)
+bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *systex, char *dir)
 {
    unsigned char *start = data;
    FILE *fp;
@@ -70,7 +70,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    unsigned char numBoneFrameDisp;
    unsigned long numBoneDisp;
 
-   char buf[21]; /* for toon texture */
+   char buf[PMDMODEL_MAXBUFLEN]; /* for toon texture */
 
    unsigned char englishNameExist;
    char *exToonBMPName;
@@ -112,6 +112,8 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    m_name = (char *) malloc(sizeof(char) * (PMD_FILE_NAME_LEN + 1));
    strncpy(m_name, fileHeader->name, PMD_FILE_NAME_LEN);
    m_name[PMD_FILE_NAME_LEN] = '\0';
+   /* directory */
+   m_modelDir = strdup(dir);
    /* comment */
    m_comment = (char *) malloc(sizeof(char) * (PMD_COMMENT_LEN + 1));
    strncpy(m_comment, fileHeader->comment, PMD_COMMENT_LEN);
@@ -155,7 +157,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    m_material = new PMDMaterial[m_numMaterial];
    fileMaterial = (PMDFile_Material *) data;
    for (i = 0; i < m_numMaterial; i++) {
-      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader)) {
+      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader, dir)) {
          /* ret = false; */
       }
    }
@@ -236,9 +238,9 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
       /* assign default toon textures for toon shading */
       for (i = 0; i <= 10; i++) {
          if (i == 0)
-            strcpy(buf, "toon0.bmp");
+            sprintf(buf, "%s%ctoon0.bmp", dir, PMDMODEL_DIRSEPARATOR);
          else
-            sprintf(buf, "toon%02d.bmp", i);
+            sprintf(buf, "%s%ctoon%02d.bmp", dir, PMDMODEL_DIRSEPARATOR, i);
          /* if "toon??.bmp" exist at the same directory as PMD file, use it */
          /* if not exist or failed to read, use system default toon textures */
          fp = fopen(buf, "rb");
@@ -265,18 +267,20 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
 
       /* toon texture file list (replace toon01.bmp - toon10.bmp) */
       /* the "toon0.bmp" should be loaded separatedly */
-      fp = fopen("toon0.bmp", "rb");
+      sprintf(buf, "%s%ctoon0.bmp", dir, PMDMODEL_DIRSEPARATOR);
+      fp = fopen(buf, "rb");
       if (fp != NULL) {
          fclose(fp);
-         if (m_localToonTexture[0].load("toon0.bmp") == true)
+         if (m_localToonTexture[0].load(buf) == true)
             m_toonTextureID[0] = m_localToonTexture[0].getID();
       }
       for (i = 1; i <= 10; i++) {
          exToonBMPName = (char *) data;
-         fp = fopen(exToonBMPName, "rb");
+         sprintf(buf, "%s%c%s", dir, PMDMODEL_DIRSEPARATOR, exToonBMPName);
+         fp = fopen(buf, "rb");
          if (fp != NULL) {
             fclose(fp);
-            if (m_localToonTexture[i].load(exToonBMPName) == true)
+            if (m_localToonTexture[i].load(buf) == true)
                m_toonTextureID[i] = m_localToonTexture[i].getID();
          }
          data += 100;
