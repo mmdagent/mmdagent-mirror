@@ -101,9 +101,6 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
 
    if (fileName == NULL) return false;
 
-   /* set physics engine before */
-   m_pmd.setPhysicsEngine(bullet);
-
    /* apply given parameters */
    m_assignTo = assignObject;
    m_baseBone = assignBone;
@@ -159,7 +156,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    char mbsbuf[PMDOBJECT_MAXBUFLEN];
    size_t len;
    wcstombs_s(&len, mbsbuf, PMDOBJECT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   if (m_pmd.load(mbsbuf, systex) == false) {
+   if (m_pmd.load(mbsbuf, bullet, systex) == false) {
       clear();
       return false;
    }

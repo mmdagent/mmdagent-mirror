@@ -51,7 +51,7 @@
 #include "BulletPhysics.h"
 
 /* PMDModel::parse: initialize and load from data memories */
-bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *systex, char *dir)
+bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, char *dir)
 {
    unsigned char *start = data;
    FILE *fp;
@@ -97,6 +97,9 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, SystemTexture *sys
    defaultRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
    m_rootBone.setCurrentRotation(&defaultRot);
    m_rootBone.update();
+
+   /* set Bullet Physics */
+   m_bulletPhysics = bullet;
 
    /* reset toon texture IDs by system default textures */
    for (j = 0; j < SYSTEMTEXTURE_NUMFILES; j++)

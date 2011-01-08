@@ -257,14 +257,8 @@ PMDModel::~PMDModel()
    clear();
 }
 
-/* PMDModel::setPhysicsEngine: set Bullet Physics */
-void PMDModel::setPhysicsEngine(BulletPhysics *engine)
-{
-   m_bulletPhysics = engine;
-}
-
 /* PMDModel::load: load from file name */
-bool PMDModel::load(const char *file, SystemTexture *systex)
+bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *systex)
 {
    int len;
    FILE *fp;
@@ -273,7 +267,7 @@ bool PMDModel::load(const char *file, SystemTexture *systex)
    char *dir;
    bool ret;
 
-   if(file == NULL || systex == NULL) return false;
+   if(file == NULL || bullet == NULL || systex == NULL) return false;
    len = strlen(file);
    if(len <= 0) return false;
 
@@ -301,7 +295,7 @@ bool PMDModel::load(const char *file, SystemTexture *systex)
    fclose(fp);
 
    /* initialize and load from the data memories */
-   ret = parse(data, (unsigned long) size, systex, dir);
+   ret = parse(data, (unsigned long) size, bullet, systex, dir);
 
    /* release memory for reading */
    free(data);

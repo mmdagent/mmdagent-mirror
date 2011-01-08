@@ -149,7 +149,7 @@ private:
    PTree m_name2face;              /* name-to-face index for fast lookup */
 
    /* parse: initialize and load from data memories */
-   bool parse(unsigned char *data, unsigned long size, SystemTexture *systex, char *dir);
+   bool parse(unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, char *dir);
 
    /* initialize: initialize PMDModel */
    void initialize();
@@ -165,11 +165,8 @@ public:
    /* ~PMDModel: destructor */
    ~PMDModel();
 
-   /* setPhysicsEngine: set Bullet Physics */
-   void setPhysicsEngine(BulletPhysics *engine);
-
    /* load: load from file name */
-   bool load(const char *file, SystemTexture *systex);
+   bool load(const char *file, BulletPhysics *bullet, SystemTexture *systex);
 
    /* getBone: find bone data by name */
    PMDBone *getBone(char *name);
