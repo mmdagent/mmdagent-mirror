@@ -54,7 +54,6 @@
 /* PMDConstraint::initialize: initialize constraint */
 void PMDConstraint::initialize()
 {
-   m_name[0] = '\0';
    m_constraint = NULL;
    m_world = NULL;
 }
@@ -65,8 +64,8 @@ void PMDConstraint::clear()
    if (m_constraint) {
       m_world->removeConstraint(m_constraint);
       delete m_constraint;
-      m_constraint = NULL;
    }
+
    initialize();
 }
 
@@ -95,10 +94,6 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    btTransform trB;
 
    clear();
-
-   /* name */
-   strncpy(m_name, c->name, PMD_FILE_NAME_LEN);
-   m_name[PMD_FILE_NAME_LEN] = '\0';
 
    /* get pointer to bodies at both end of this constraint */
    rbA = bodyList[c->bodyIDA].getBody();

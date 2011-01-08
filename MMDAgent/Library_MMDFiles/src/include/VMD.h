@@ -57,9 +57,9 @@ typedef struct _BoneKeyFrame {
 
 /* BoneMotion: bone motion unit (list of key frames for a bone defined in a VMD file) */
 typedef struct _BoneMotion {
-   char name[VMD_BONE_FACE_NAME_LEN+1]; /* bone name */
-   unsigned long numKeyFrame;           /* number of defined key frames */
-   BoneKeyFrame *keyFrameList;          /* list of key frame data */
+   char *name;                 /* bone name */
+   unsigned long numKeyFrame;  /* number of defined key frames */
+   BoneKeyFrame *keyFrameList; /* list of key frame data */
 } BoneMotion;
 
 /* BoneMotionLink: linked list of defined bone motions in a VMD data */
@@ -76,9 +76,9 @@ typedef struct _FaceKeyFrame {
 
 /* FaceMotion: face motion unit (list of key frames for a face defined in a VMD file) */
 typedef struct _FaceMotion {
-   char name[VMD_BONE_FACE_NAME_LEN+1]; /* face name */
-   unsigned long numKeyFrame;           /* number of defined key frames */
-   FaceKeyFrame *keyFrameList;          /* list of key frame data */
+   char *name;                 /* face name */
+   unsigned long numKeyFrame;  /* number of defined key frames */
+   FaceKeyFrame *keyFrameList; /* list of key frame data */
 } FaceMotion;
 
 /* FaceMotionLink: linked list of defined face motions in a VMD data */

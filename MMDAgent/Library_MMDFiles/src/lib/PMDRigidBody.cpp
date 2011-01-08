@@ -55,8 +55,6 @@
 /* PMDRigidBody::initialize: initialize PMDRigidBody */
 void PMDRigidBody::initialize()
 {
-   m_name[0] = '\0';
-
    m_shape = NULL;
    m_body = NULL;
    m_motionState = NULL;
@@ -110,10 +108,6 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    btTransform startTrans;
 
    clear();
-
-   /* name */
-   strncpy(m_name, rb->name, PMD_FILE_NAME_LEN);
-   m_name[PMD_FILE_NAME_LEN] = '\0';
 
    /* store bone */
    m_bone = bone;

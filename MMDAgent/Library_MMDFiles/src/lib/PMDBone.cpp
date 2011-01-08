@@ -53,7 +53,7 @@
 /* PMDBone::initialize: initialize bone */
 void PMDBone::initialize()
 {
-   m_name[0] = '\0';
+   m_name = NULL;
    m_parentBone = NULL;
    m_childBone = NULL;
    m_type = UNKNOWN;
@@ -79,6 +79,9 @@ void PMDBone::initialize()
 /* PMDBone::clear: free bone */
 void PMDBone::clear()
 {
+   if(m_name)
+      free(m_name);
+
    initialize();
 }
 
@@ -102,8 +105,7 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
    clear();
 
    /* name */
-   strncpy(m_name, b->name, PMD_FILE_NAME_LEN);
-   m_name[PMD_FILE_NAME_LEN] = '\0';
+   m_name = strdup(b->name);
 
    /* mark if this bone should be treated as angle-constrained bone in IK process */
    if (strstr(m_name, PMDBONE_KNEENAME))
@@ -206,7 +208,7 @@ void PMDBone::setMotionIndependency()
 
    /* some models has additional model root bone or offset bones, they should be treated specially */
    for (i = 0; i < PMDBONE_NADDITIONALROOTNAME; i++) {
-      if (strncmp(m_parentBone->m_name, names[i], PMD_FILE_NAME_LEN) == 0) {
+      if (strcmp(m_parentBone->m_name, names[i]) == 0) {
          m_motionIndependent = true;
          return;
       }
@@ -256,7 +258,7 @@ void PMDBone::calcSkinningTrans(btTransform *b)
 /* PMDBone;:getName: get bone name */
 char *PMDBone::getName()
 {
-   return &(m_name[0]);
+   return m_name;
 }
 
 /* PMDBone::getType: get bone type */

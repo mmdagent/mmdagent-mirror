@@ -47,7 +47,7 @@
 /* PMDFace::initialize: initialize face */
 void PMDFace::initialize()
 {
-   m_name[0] = '\0';
+   m_name = NULL;
    m_type = PMD_FACE_OTHER;
    m_numVertex = 0;
    m_vertex = NULL;
@@ -57,8 +57,11 @@ void PMDFace::initialize()
 /* PMDFace::clear: free face */
 void PMDFace::clear()
 {
+   if(m_name)
+      free(m_name);
    if (m_vertex)
       free(m_vertex);
+
    initialize();
 }
 
@@ -82,8 +85,7 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
    clear();
 
    /* name */
-   strncpy(m_name, face->name, PMD_FILE_NAME_LEN);
-   m_name[PMD_FILE_NAME_LEN] = '\0';
+   m_name = strdup(face->name);
 
    /* type */
    m_type = face->type;
@@ -161,7 +163,7 @@ void PMDFace::add(btVector3 *vertexList, float rate)
 /* PMDFace::getName: get name */
 char *PMDFace::getName()
 {
-   return &(m_name[0]);
+   return m_name;
 }
 
 /* PMDFace::getWeight: get weight */

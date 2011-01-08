@@ -56,13 +56,13 @@ class PMDBone
 private:
 
    /* defined data */
-   char m_name[PMD_FILE_NAME_LEN + 1]; /* bone name */
-   PMDBone *m_parentBone;              /* parent bone (NULL = none) */
-   PMDBone *m_childBone;               /* child bone (NULL = none) or co-rotate bone if type == 9 */
-   unsigned char m_type;               /* bone type (PMD_BONE_TYPE) */
-   PMDBone *m_targetBone;              /* bone ID by which this bone if affected: IK bone (type 4), under_rotate bone (type 5) */
-   btVector3 m_originPosition;         /* position from origin, defined in model (absolute) */
-   float m_rotateCoef;                 /* Effect coef. if type == corotate */
+   char *m_name;               /* bone name */
+   PMDBone *m_parentBone;      /* parent bone (NULL = none) */
+   PMDBone *m_childBone;       /* child bone (NULL = none) or co-rotate bone if type == 9 */
+   unsigned char m_type;       /* bone type (PMD_BONE_TYPE) */
+   PMDBone *m_targetBone;      /* bone ID by which this bone if affected: IK bone (type 4), under_rotate bone (type 5) */
+   btVector3 m_originPosition; /* position from origin, defined in model (absolute) */
+   float m_rotateCoef;         /* Effect coef. if type == corotate */
 
    /* definitions extracted at startup */
    btVector3 m_offset;       /* Offset position from parent bone */

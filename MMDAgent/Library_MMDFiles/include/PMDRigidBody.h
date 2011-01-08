@@ -51,8 +51,6 @@ class PMDRigidBody
 {
 private:
 
-   char m_name[PMD_FILE_NAME_LEN+1]; /* name */
-
    btCollisionShape *m_shape;    /* collision shape */
    btRigidBody *m_body;          /* rigid body */
    btMotionState *m_motionState; /* motion state */

@@ -55,11 +55,11 @@ class PMDFace
 {
 private:
 
-   char m_name[PMD_FILE_NAME_LEN+1]; /* name of this face */
-   unsigned char m_type;             /* face type (PMD_FACE_TYPE) */
-   unsigned long m_numVertex;        /* number of vertices controlled by this face */
-   PMDFaceVertex *m_vertex;          /* vertices controlled by this face */
-   float m_weight;                   /* current weight of this face */
+   char *m_name;              /* name of this face */
+   unsigned char m_type;      /* face type (PMD_FACE_TYPE) */
+   unsigned long m_numVertex; /* number of vertices controlled by this face */
+   PMDFaceVertex *m_vertex;   /* vertices controlled by this face */
+   float m_weight;            /* current weight of this face */
 
    /* initialize: initialize face */
    void initialize();

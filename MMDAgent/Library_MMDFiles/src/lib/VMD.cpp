@@ -74,10 +74,11 @@ void VMD::addBoneMotion(char *name)
    BoneMotion *bmNew;
    BoneMotion *bmMatch;
 
+   if(name == NULL) return;
+
    link = (BoneMotionLink *) malloc(sizeof(BoneMotionLink));
    bmNew = &(link->boneMotion);
-   strncpy(bmNew->name, name, VMD_BONE_FACE_NAME_LEN);
-   bmNew->name[VMD_BONE_FACE_NAME_LEN] = '\0';
+   bmNew->name = strdup(name);
    bmNew->numKeyFrame = 1;
    bmNew->keyFrameList = NULL;
 
@@ -96,10 +97,11 @@ void VMD::addFaceMotion(char *name)
    FaceMotion *fmNew;
    FaceMotion *fmMatch;
 
+   if(name == NULL) return;
+
    link = (FaceMotionLink *) malloc(sizeof(FaceMotionLink));
    fmNew = &(link->faceMotion);
-   strncpy(fmNew->name, name, VMD_BONE_FACE_NAME_LEN);
-   fmNew->name[VMD_BONE_FACE_NAME_LEN] = '\0';
+   fmNew->name = strdup(name);
    fmNew->numKeyFrame = 1;
    fmNew->keyFrameList = NULL;
 
@@ -114,27 +116,30 @@ void VMD::addFaceMotion(char *name)
 /* VMD::getBoneMotion: find bone motion by name */
 BoneMotion* VMD::getBoneMotion(char *name)
 {
-   char buf[VMD_BONE_FACE_NAME_LEN+1];
-   BoneMotion *bmMatch;
+   BoneMotion *bm;
 
    if (name == NULL)
-      NULL;
-   strncpy(buf, name, VMD_BONE_FACE_NAME_LEN);
-   buf[VMD_BONE_FACE_NAME_LEN] = '\0';
-   bmMatch = (BoneMotion *) m_name2bone.findNearest(buf);
+      return NULL;
 
-   if (bmMatch && strcmp(bmMatch->name, buf) == 0)
-      return bmMatch; /* exist */
+   bm = (BoneMotion *) m_name2bone.findNearest(name);
+   if (bm && strcmp(bm->name, name) == 0)
+      return bm;
+
    return NULL;
 }
 
 /* VMD::getFaceMotion: find face motion by name */
 FaceMotion* VMD::getFaceMotion(char *name)
 {
-   FaceMotion *fmMatch = (FaceMotion *) m_name2face.findNearest(name);
+   FaceMotion *fm;
 
-   if (fmMatch && strcmp(fmMatch->name, name) == 0)
-      return fmMatch; /* exist */
+   if(name == NULL)
+      return NULL;
+
+   fm = (FaceMotion *) m_name2face.findNearest(name);
+   if (fm && strcmp(fm->name, name) == 0)
+      return fm;
+
    return NULL;
 }
 
@@ -215,6 +220,8 @@ void VMD::clear()
                   free(bl->boneMotion.keyFrameList[i].interpolationTable[j]);
          free(bl->boneMotion.keyFrameList);
       }
+      if(bl->boneMotion.name)
+         free(bl->boneMotion.name);
       bl_tmp = bl->next;
       free(bl);
       bl = bl_tmp;
@@ -224,6 +231,8 @@ void VMD::clear()
    while (fl) {
       if (fl->faceMotion.keyFrameList)
          free(fl->faceMotion.keyFrameList);
+      if(fl->faceMotion.name)
+         free(fl->faceMotion.name);
       fl_tmp = fl->next;
       free(fl);
       fl = fl_tmp;

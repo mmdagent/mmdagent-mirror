@@ -44,7 +44,6 @@ class PMDConstraint
 {
 private:
 
-   char m_name[PMD_FILE_NAME_LEN+1];            /* name */
    btGeneric6DofSpringConstraint *m_constraint; /* generic 6-DOF constraint with spring */
    btDiscreteDynamicsWorld *m_world;            /* pointer to the simulation world where this rigid body exists */
 
