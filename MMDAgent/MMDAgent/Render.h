@@ -42,14 +42,7 @@
 #ifndef __mmdagent_render_h__
 #define __mmdagent_render_h__
 
-#include "GLee.h"
-#include <GL/glu.h>
-#include <btBulletDynamicsCommon.h>
-#include "PMDModel.h"
-#include "VMD.h"
-#include "MotionManager.h"
 #include "PMDObject.h"
-#include "SystemTexture.h"
 
 #define SHADOW_PCF                   /* use hardware PCF for shadow mapping */
 #define SHADOW_AUTO_VIEW             /* automatically define depth frustum */

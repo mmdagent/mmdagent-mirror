@@ -41,10 +41,13 @@
 
 /* headers */
 
+#include "MMDFiles.h"
+
+#include <GL/glu.h>
+
 #include "Render.h"
 #include "Option.h"
 #include "MMDAgent.h"
-#include "SystemTexture.h"
 #include "utils.h"
 
 /* Render::initialize: initialzie Render */

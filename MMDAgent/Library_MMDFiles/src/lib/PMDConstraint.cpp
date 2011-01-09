@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "btBulletDynamicsCommon.h"
-#include "PMDFile.h"
-#include "PMDRigidBody.h"
-#include "PMDConstraint.h"
+#include "MMDFiles.h"
 
 /* PMDConstraint::initialize: initialize constraint */
 void PMDConstraint::initialize()
@@ -103,13 +95,13 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
 
    /* make global transform of this constraint */
    tr.setIdentity();
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    bm.setEulerZYX(-c->rot[0], -c->rot[1], c->rot[2]);
 #else
    bm.setEulerZYX(c->rot[0], c->rot[1], c->rot[2]);
 #endif
    tr.setBasis(bm);
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    tr.setOrigin(btVector3(c->pos[0], c->pos[1], -c->pos[2]) + *offset);
 #else
    tr.setOrigin(btVector3(c->pos[0], c->pos[1], c->pos[2]) + *offset);
@@ -121,7 +113,7 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    /* create constraint */
    m_constraint = new btGeneric6DofSpringConstraint(*rbA, *rbB, trA, trB, true);
 
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    /* set linear translation limits */
    m_constraint->setLinearLowerLimit(btVector3(c->limitPosFrom[0], c->limitPosFrom[1], -c->limitPosTo[2]));
    m_constraint->setLinearUpperLimit(btVector3(c->limitPosTo[0], c->limitPosTo[1], -c->limitPosFrom[2]));

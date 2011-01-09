@@ -43,6 +43,8 @@
 
 #include <windows.h>
 
+#include "MMDFiles.h"
+
 #include "Option.h"
 #include "MMDAgent.h"
 #include "Plugin.h"
@@ -227,8 +229,8 @@ static void createDefaultControlDefinitions()
    def->baseVector = btVector3(0.0, 0.0, 1.0);
    def->rateOn = 0.150f;
    def->rateOff = 0.008f;
-   def->LowerAngularLimit = btVector3(RAD(-45.0f), RAD(-60.0f), RAD(0.0f));
-   def->UpperAngularLimit = btVector3(RAD(20.0f), RAD(60.0f), RAD(0.0f));
+   def->LowerAngularLimit = btVector3(MMDFILES_RAD(-45.0f), MMDFILES_RAD(-60.0f), MMDFILES_RAD(0.0f));
+   def->UpperAngularLimit = btVector3(MMDFILES_RAD(20.0f), MMDFILES_RAD(60.0f), MMDFILES_RAD(0.0f));
    def->adjustPosition = btVector3(0.0f, -1.0f, 0.0f);
    /* eye */
    def = &g_controlDef[1];
@@ -239,8 +241,8 @@ static void createDefaultControlDefinitions()
    def->baseVector = btVector3(0.0, 0.0, 1.0);
    def->rateOn = 0.180f;
    def->rateOff = 0.008f;
-   def->LowerAngularLimit = btVector3(RAD(-5.0f), RAD(-5.0f), RAD(0.0f));
-   def->UpperAngularLimit = btVector3(RAD(5.0f), RAD(5.0f), RAD(0.0f));
+   def->LowerAngularLimit = btVector3(MMDFILES_RAD(-5.0f), MMDFILES_RAD(-5.0f), MMDFILES_RAD(0.0f));
+   def->UpperAngularLimit = btVector3(MMDFILES_RAD(5.0f), MMDFILES_RAD(5.0f), MMDFILES_RAD(0.0f));
    def->adjustPosition = btVector3(0.0f, 0.0f, 0.0f);
 
    g_defNum = 2;

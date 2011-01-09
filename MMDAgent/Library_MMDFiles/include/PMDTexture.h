@@ -39,11 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdtexture_h__
-#define __libmmdfile_pmdtexture_h__
-
-#include "Glee.h"
-
 #define PMDTEXTURE_UNINITIALIZEDID 0xFFFFFFFF
 
 /* PMDTexture: texture of PMD */
@@ -102,5 +97,3 @@ public:
    /* release: free texture */
    void release();
 };
-
-#endif /* __libmmdfile_pmdtexture_h__ */

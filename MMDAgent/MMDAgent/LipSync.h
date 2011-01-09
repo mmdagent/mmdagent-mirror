@@ -42,9 +42,6 @@
 #ifndef __mmdagent_lipsync_h__
 #define __mmdagent_lipsync_h__
 
-#include "PMDModel.h"
-#include "VMD.h"
-
 #define LIPSYNC_MAXBUFLEN  1024
 #define LIPSYNC_MOTIONNAME "LipSync" /* motion name of lip sync */
 

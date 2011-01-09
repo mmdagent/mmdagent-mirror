@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "GLee.h"
-#include "Define.h"
-#include "PMDModel.h"
+#include "MMDFiles.h"
 
 /* getDirectory: get directory from file path */
 static bool getDirectory(const char *file, char *dir)
@@ -69,7 +62,7 @@ static bool getDirectory(const char *file, char *dir)
       if (found == true) {
          dir[i] = ch;
       } else {
-         if (ch == PMDMODEL_DIRSEPARATOR)
+         if (ch == MMDFILES_DIRSEPARATOR)
             found = true;
          dir[i] = '\0';
       }

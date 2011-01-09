@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "btBulletDynamicsCommon.h"
-#include "PMDBone.h"
+#include "MMDFiles.h"
 
 /* PMDBone::initialize: initialize bone */
 void PMDBone::initialize()
@@ -160,7 +153,7 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
 
    /* store absolute bone positions */
    /* reverse Z value on bone position */
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    m_originPosition = btVector3(b->pos[0], b->pos[1], -b->pos[2]);
 #else
    m_originPosition = btVector3(b->pos[0], b->pos[1], b->pos[2]);

@@ -39,14 +39,42 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_define_h__
-#define __libmmdfile_define_h__
+#ifndef __mmdfiles_h__
+#define __mmdfiles_h__
 
 /* convert model coordinates from left-handed to right-handed */
-#define CONVERT_COORDINATE_SYSTEM
+#define MMDFILES_CONVERTCOORDINATESYSTEM
 
 /* convert from/to radian */
-#define	RAD(a)	(a * (3.1415926f / 180.0f))
-#define	DEG(a)	(a * (180.0f / 3.1415926f))
+#define MMDFILES_RAD(a) (a * (3.1415926f / 180.0f))
+#define MMDFILES_DEG(a) (a * (180.0f / 3.1415926f))
 
-#endif /* __libmmdfile_define_h__ */
+#define MMDFILES_MAXBUFLEN    1024
+#define MMDFILES_DIRSEPARATOR '\\'
+
+#include "btBulletDynamicsCommon.h"
+
+#include "GLee.h"
+
+#include "BulletPhysics.h"
+
+#include "PMDFile.h"
+#include "VMDFile.h"
+
+#include "PTree.h"
+#include "VMD.h"
+#include "PMDBone.h"
+#include "PMDFace.h"
+#include "PMDTexture.h"
+#include "PMDTextureLoader.h"
+#include "PMDMaterial.h"
+#include "PMDIK.h"
+#include "PMDRigidBody.h"
+#include "PMDConstraint.h"
+#include "SystemTexture.h"
+#include "PMDModel.h"
+
+#include "MotionController.h"
+#include "MotionManager.h"
+
+#endif /* __mmdfiles_h__ */

@@ -39,37 +39,30 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_vmdfile_h__
-#define __libmmdfile_vmdfile_h__
-
-#define VMD_BONE_FACE_NAME_LEN 15
-
 /* disable alignment in this header */
 #pragma pack(push, 1)
 
 /* VMDFile_Header: header structure for VMD file reading */
 typedef struct _VMDFile_Header {
-   char header[30];              /* "Vocaloid Motion Data 0002" */
-   char name[PMD_FILE_NAME_LEN]; /* model name */
+   char header[30]; /* "Vocaloid Motion Data 0002" */
+   char name[20];   /* model name */
 } VMDFile_Header;
 
 /* VMDFile_BoneFrame: bone motion element structure for VMD file reading */
 typedef struct _VMDFile_BoneFrame {
-   char boneName[VMD_BONE_FACE_NAME_LEN]; /* bone name */
-   unsigned long keyFrame;                /* key frame */
-   float pos[3];                          /* position (x, y, z) */
-   float rot[4];                          /* rotation (x, y, z, w) */
-   char interpolation[64];                /* interpolation parameters */
+   char boneName[15];      /* bone name */
+   unsigned long keyFrame; /* key frame */
+   float pos[3];           /* position (x, y, z) */
+   float rot[4];           /* rotation (x, y, z, w) */
+   char interpolation[64]; /* interpolation parameters */
 } VMDFile_BoneFrame;
 
 /* VMDFile_FaceFrame: face motion element structure for VMD file reading */
 typedef struct _VMDFile_FaceFrame {
-   char faceName[VMD_BONE_FACE_NAME_LEN]; /* face name */
-   unsigned long keyFrame;                /* key frame */
-   float weight;                          /* weight (0.0 - 1.0) */
+   char faceName[15];      /* face name */
+   unsigned long keyFrame; /* key frame */
+   float weight;           /* weight (0.0 - 1.0) */
 } VMDFile_FaceFrame;
 
 /* restore alignment */
 #pragma pack(pop)
-
-#endif /* __libmmdfile_vmdfile_h__ */

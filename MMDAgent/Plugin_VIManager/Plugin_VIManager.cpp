@@ -67,6 +67,7 @@
 #include "VIManager.h"
 #include "VIManager_Thread.h"
 
+#include "MMDFiles.h"
 #include "Option.h"
 #include "MMDAgent.h"
 

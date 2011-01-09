@@ -39,11 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_vmd_h__
-#define __libmmdfile_vmd_h__
-
-#include "VMDFile.h"
-
 #define VMD_INTERPOLATIONTABLESIZE 64 /* motion interpolation table size */
 
 /* BoneKeyFrame: bone key frame */
@@ -159,5 +154,3 @@ public:
    /* getMaxFrame: get max frame */
    float getMaxFrame();
 };
-
-#endif /* __libmmdfile_vmd_h__ */

@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDModel.h"
-#include "BulletPhysics.h"
+#include "MMDFiles.h"
 
 /* PMDModel::parse: initialize and load from data memories */
 bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, char *dir)
@@ -70,7 +63,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    unsigned char numBoneFrameDisp;
    unsigned long numBoneDisp;
 
-   char buf[PMDMODEL_MAXBUFLEN]; /* for toon texture */
+   char buf[MMDFILES_MAXBUFLEN]; /* for toon texture */
 
    unsigned char englishNameExist;
    char *exToonBMPName;
@@ -112,15 +105,15 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    if (fileHeader->version != 1.0f)
       return false;
    /* name */
-   m_name = (char *) malloc(sizeof(char) * (PMD_FILE_NAME_LEN + 1));
-   strncpy(m_name, fileHeader->name, PMD_FILE_NAME_LEN);
-   m_name[PMD_FILE_NAME_LEN] = '\0';
+   m_name = (char *) malloc(sizeof(char) * (20 + 1));
+   strncpy(m_name, fileHeader->name, 20);
+   m_name[20] = '\0';
    /* directory */
    m_modelDir = strdup(dir);
    /* comment */
-   m_comment = (char *) malloc(sizeof(char) * (PMD_COMMENT_LEN + 1));
-   strncpy(m_comment, fileHeader->comment, PMD_COMMENT_LEN);
-   m_comment[PMD_COMMENT_LEN] = '\0';
+   m_comment = (char *) malloc(sizeof(char) * (256 + 1));
+   strncpy(m_comment, fileHeader->comment, 256);
+   m_comment[256] = '\0';
    data += sizeof(PMDFile_Header);
 
    /* vertex data and bone weights */
@@ -174,7 +167,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    for (i = 0; i < m_numBone; i++) {
       if (!m_boneList[i].setup(&(fileBone[i]), m_boneList, m_numBone, &m_rootBone))
          ret = false;
-      if (strncmp(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME, PMD_FILE_NAME_LEN) == 0)
+      if (strcmp(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME) == 0)
          m_centerBone = &(m_boneList[i]);
    }
    if (!m_centerBone && m_numBone >= 1) {
@@ -241,9 +234,9 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
       /* assign default toon textures for toon shading */
       for (i = 0; i <= 10; i++) {
          if (i == 0)
-            sprintf(buf, "%s%ctoon0.bmp", dir, PMDMODEL_DIRSEPARATOR);
+            sprintf(buf, "%s%ctoon0.bmp", dir, MMDFILES_DIRSEPARATOR);
          else
-            sprintf(buf, "%s%ctoon%02d.bmp", dir, PMDMODEL_DIRSEPARATOR, i);
+            sprintf(buf, "%s%ctoon%02d.bmp", dir, MMDFILES_DIRSEPARATOR, i);
          /* if "toon??.bmp" exist at the same directory as PMD file, use it */
          /* if not exist or failed to read, use system default toon textures */
          fp = fopen(buf, "rb");
@@ -270,7 +263,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
 
       /* toon texture file list (replace toon01.bmp - toon10.bmp) */
       /* the "toon0.bmp" should be loaded separatedly */
-      sprintf(buf, "%s%ctoon0.bmp", dir, PMDMODEL_DIRSEPARATOR);
+      sprintf(buf, "%s%ctoon0.bmp", dir, MMDFILES_DIRSEPARATOR);
       fp = fopen(buf, "rb");
       if (fp != NULL) {
          fclose(fp);
@@ -279,7 +272,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
       }
       for (i = 1; i <= 10; i++) {
          exToonBMPName = (char *) data;
-         sprintf(buf, "%s%c%s", dir, PMDMODEL_DIRSEPARATOR, exToonBMPName);
+         sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, exToonBMPName);
          fp = fopen(buf, "rb");
          if (fp != NULL) {
             fclose(fp);
@@ -335,7 +328,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
 
    if (ret == false) return false;
 
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    /* left-handed system: PMD, DirectX */
    /* right-handed system: OpenGL, bulletphysics */
    /* convert the left-handed vertices to right-handed system */

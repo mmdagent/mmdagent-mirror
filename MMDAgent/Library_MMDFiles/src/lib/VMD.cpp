@@ -41,13 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "PTree.h"
-#include "btBulletDynamicsCommon.h"
-#include "VMD.h"
+#include "MMDFiles.h"
 
 /* compareKeyFrameBone: qsort function for bone key frames */
 static int compareKeyFrameBone(const void *x, const void *y)
@@ -65,6 +59,18 @@ static int compareKeyFrameFace(const void *x, const void *y)
    FaceKeyFrame *b = (FaceKeyFrame *) y;
 
    return (int) (a->keyFrame - b->keyFrame);
+}
+
+/* ipfunc: t->value for 4-point (3-dim.) bezier curve */
+static float ipfunc(float t, float p1, float p2)
+{
+   return ((1 + 3 * p1 - 3 * p2) * t * t * t + (3 * p2 - 6 * p1) * t * t + 3 * p1 * t);
+}
+
+/* ipfuncd: derivation of ipfunc */
+static float ipfuncd(float t, float p1, float p2)
+{
+   return ((3 + 9 * p1 - 9 * p2) * t * t + (6 * p2 - 12 * p1) * t + 3 * p1);
 }
 
 /* VMD::addBoneMotion: add new bone motion to list */
@@ -143,12 +149,6 @@ FaceMotion* VMD::getFaceMotion(char *name)
    return NULL;
 }
 
-/* t->value for 4-point (3-dim.) bezier curve */
-#define IPFUNC(T, P1, P2) ((1 + 3 * P1 - 3 * P2) * T * T * T + (3 * P2 - 6 * P1) * T * T + 3 * P1 * T)
-
-/* derivation of IPFUNC */
-#define IPFUNCD(T, P1, P2) ((3 + 9 * P1 - 9 * P2) * T * T + (6 * P2 - 12 * P1) * T + 3 * P1)
-
 /* VMD::setInterpolationTable: set up motion interpolation parameter */
 void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
 {
@@ -177,13 +177,13 @@ void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
          /* get Y value for given inval */
          t = inval;
          while (1) {
-            v = IPFUNC(t, x1, x2) - inval;
+            v = ipfunc(t, x1, x2) - inval;
             if (fabsf(v) < 0.0001f) break;
-            tt = IPFUNCD(t, x1, x2);
+            tt = ipfuncd(t, x1, x2);
             if (tt == 0.0f) break;
             t -= v / tt;
          }
-         bf->interpolationTable[i][d] = IPFUNC(t, y1, y2);
+         bf->interpolationTable[i][d] = ipfunc(t, y1, y2);
       }
    }
 }
@@ -335,7 +335,7 @@ bool VMD::parse(unsigned char *data, unsigned long size)
       if (m_maxFrame < bm->keyFrameList[bm->numKeyFrame].keyFrame)
          m_maxFrame = bm->keyFrameList[bm->numKeyFrame].keyFrame;
       /* convert from left-hand coordinates to right-hand coordinates */
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
       bm->keyFrameList[bm->numKeyFrame].pos = btVector3(boneFrame[i].pos[0], boneFrame[i].pos[1], -boneFrame[i].pos[2]);
       bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(-boneFrame[i].rot[0], -boneFrame[i].rot[1], boneFrame[i].rot[2], boneFrame[i].rot[3]);
 #else

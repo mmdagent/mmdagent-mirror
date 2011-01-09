@@ -42,9 +42,6 @@
 #ifndef __mmdagent_pmdobject_h__
 #define __mmdagent_pmdobject_h__
 
-#include "PMDModel.h"
-#include "VMD.h"
-#include "MotionManager.h"
 #include "TextRenderer.h"
 #include "LipSync.h"
 

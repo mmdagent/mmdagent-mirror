@@ -45,6 +45,8 @@
 #include <locale.h>
 #include <tchar.h>
 
+#include "MMDFiles.h"
+
 #include "TextRenderer.h"
 #include "resource.h"
 #include "Option.h"

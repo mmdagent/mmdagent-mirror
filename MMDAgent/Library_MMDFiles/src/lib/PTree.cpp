@@ -41,11 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "Ptree.h"
+#include "MMDFiles.h"
 
 /* testBit: test a bit */
 static int testBit(char *str, int slen, int bitplace)

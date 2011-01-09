@@ -221,10 +221,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\MotionStocker.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Option.cpp"
 				>
 			</File>
@@ -284,6 +280,10 @@
 			</File>
 			<File
 				RelativePath=".\MMDAgent_command.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MotionStocker.h"
 				>
 			</File>
 			<File

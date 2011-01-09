@@ -41,8 +41,9 @@
 
 /* headers */
 
+#include "MMDFiles.h"
+
 #include "Stage.h"
-#include "GLee.h"
 #include "utils.h"
 
 /* findPlane: calculate plane */

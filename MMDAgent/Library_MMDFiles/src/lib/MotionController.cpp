@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDModel.h"
-#include "VMD.h"
-#include "MotionController.h"
+#include "MMDFiles.h"
 
 /* MotionController::calcBoneAt: calculate bone pos/rot at the given frame */
 void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNow)

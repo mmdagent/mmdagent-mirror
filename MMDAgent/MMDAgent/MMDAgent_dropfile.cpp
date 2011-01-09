@@ -44,6 +44,8 @@
 #include <windows.h>
 #include <shellapi.h>
 
+#include "MMDFiles.h"
+
 #include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"

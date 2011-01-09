@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "GLee.h"
-#include "Define.h"
-#include "PMDModel.h"
+#include "MMDFiles.h"
 
 /* PMDModel::renderModel: render the model */
 /* needs multi-texture function on OpenGL: */
@@ -65,7 +58,7 @@ void PMDModel::renderModel()
 
    if (!m_vertexList) return;
 
-#ifndef CONVERT_COORDINATE_SYSTEM
+#ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glPushMatrix();
    glScalef(1.0f, 1.0f, -1.0f); /* from left-hand to right-hand */
    glCullFace(GL_FRONT);
@@ -266,7 +259,7 @@ void PMDModel::renderModel()
 
    glDisable(GL_TEXTURE_2D);
    glEnable(GL_CULL_FACE);
-#ifndef CONVERT_COORDINATE_SYSTEM
+#ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glCullFace(GL_BACK);
    glPopMatrix();
 #endif
@@ -283,7 +276,7 @@ void PMDModel::renderEdge()
 
    if (m_numSurfaceForEdge == 0) return;
 
-#ifndef CONVERT_COORDINATE_SYSTEM
+#ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glPushMatrix();
    glScalef(1.0f, 1.0f, -1.0f);
    glCullFace(GL_BACK);
@@ -304,7 +297,7 @@ void PMDModel::renderEdge()
    glEnable(GL_LIGHTING);
 
    /* draw front again */
-#ifndef CONVERT_COORDINATE_SYSTEM
+#ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glPopMatrix();
    glCullFace(GL_FRONT);
 #else

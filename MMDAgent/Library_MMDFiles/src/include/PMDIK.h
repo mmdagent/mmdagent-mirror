@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdik_h__
-#define __libmmdfile_pmdik_h__
-
 #define PMDIK_PI          3.1415926f
 #define PMDIK_MINDISTANCE 0.0001f
 #define PMDIK_MINANGLE    0.00000001f
@@ -84,5 +81,3 @@ public:
    /* solve: try to move targetBone toward destBone, solving constraint among bones in boneList[] and the targetBone */
    void solve();
 };
-
-#endif /* __libmmdfile_pmdik_h__ */

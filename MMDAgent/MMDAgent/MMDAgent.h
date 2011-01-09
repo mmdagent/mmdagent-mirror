@@ -46,7 +46,6 @@
 
 #include "Screen.h"
 #include "Render.h"
-#include "BulletPhysics.h"
 #include "Timer.h"
 #include "PMDObject.h"
 #include "MotionStocker.h"

@@ -39,13 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_motionmanager_h__
-#define __libmmdfile_motionmanager_h__
-
-#include "PMDModel.h"
-#include "VMD.h"
-#include "MotionController.h"
-
 #define MOTIONMANAGER_DEFAULTPRIORITY    0    /* motion priority */
 #define MOTIONMANAGER_DEFAULTLOOPATFRAME 0.0f /* when specified with loop, motion will rewind at this frame when reached end */
 
@@ -133,5 +126,3 @@ public:
    /* getMotionPlayerList: get list of motion players */
    MotionPlayer *getMotionPlayerList();
 };
-
-#endif /* __libmmdfile_motionmanager_h__ */

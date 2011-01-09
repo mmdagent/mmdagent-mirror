@@ -43,6 +43,8 @@
 
 #include <windows.h>
 
+#include "MMDFiles.h"
+
 #include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
@@ -96,7 +98,7 @@ static bool arg2rot(btQuaternion *dst, wchar_t *arg)
    if (arg2floatArray(angle, 3, arg) == false)
       return false;
 
-   dst->setEulerZYX(RAD(angle[2]), RAD(angle[1]), RAD(angle[0]));
+   dst->setEulerZYX(MMDFILES_RAD(angle[2]), MMDFILES_RAD(angle[1]), MMDFILES_RAD(angle[0]));
 
    return true;
 }

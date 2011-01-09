@@ -41,15 +41,8 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "Glee.h"
-#include "PMDTexture.h"
 #include "png.h"
+#include "MMDFiles.h"
 
 static bool checkExtension(const char *fn, const char *ext)
 {

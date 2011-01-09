@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_motioncontroller_h__
-#define __libmmdfile_motioncontroller_h__
-
 #define MOTIONCONTROLLER_BONESTARTMARGINFRAME 20.0f /* frame lengths for bone motion smoothing at loop head */
 #define MOTIONCONTROLLER_FACESTARTMARGINFRAME 6.0f  /* frame lengths for face motion smoothing at loop head */
 
@@ -159,5 +156,3 @@ public:
    /* setCurrentFrame: set current frame */
    void setCurrentFrame(double frame);
 };
-
-#endif /* __libmmdfile_motioncontroller_h__ */

@@ -39,12 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdbone_h__
-#define __libmmdfile_pmdbone_h__
-
-#include "PMDFile.h"
-#include "btBulletDynamicsCommon.h"
-
 #define PMDBONE_KNEENAME "ひざ"
 
 #define PMDBONE_ADDITIONALROOTNAME  "全ての親", "両足オフセ", "右足オフセ", "左足オフセ"
@@ -164,5 +158,3 @@ public:
 
    void renderDebug();
 };
-
-#endif /* __libmmdfile_pmdbone_h__ */

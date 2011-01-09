@@ -41,13 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "PMDTexture.h"
-#include "SystemTexture.h"
+#include "MMDFiles.h"
 
 /* SystemTexture::initialize: initialize SystemTexture */
 void SystemTexture::initialize()
@@ -86,11 +80,11 @@ bool SystemTexture::load(char *dir)
    int i;
    bool ret = true;
    char *files[] = {SYSTEMTEXTURE_FILENAMES};
-   char buff[SYSTEMTEXTURE_MAXBUFLEN];
+   char buff[MMDFILES_MAXBUFLEN];
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++) {
       if (dir != NULL && strlen(dir) > 0)
-         sprintf(buff, "%s\\%s", dir, files[i]);
+         sprintf(buff, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, files[i]);
       else
          strcpy(buff, files[i]);
       if (m_toonTexture[i].load(buff) == false)

@@ -39,24 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdmodel_h__
-#define __libmmdfile_pmdmodel_h__
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "PMDMaterial.h"
-#include "PMDBone.h"
-#include "PMDIK.h"
-#include "PMDFace.h"
-#include "PMDRigidBody.h"
-#include "PMDConstraint.h"
-#include "BulletPhysics.h"
-#include "PTree.h"
-#include "SystemTexture.h"
-
-#define PMDMODEL_MAXBUFLEN    1024
-#define PMDMODEL_DIRSEPARATOR '\\'
-
 #define PMDMODEL_CENTERBONENAME "ÉZÉìÉ^Å["
 
 #define PMDMODEL_MINBONEWEIGHT 0.0001f
@@ -282,5 +264,3 @@ public:
    /* renderDebug: render for debug view */
    void renderDebug();
 };
-
-#endif /* __libmmdfile_pmdmodel_h__ */

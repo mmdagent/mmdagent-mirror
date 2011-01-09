@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDModel.h"
-#include "VMD.h"
-#include "MotionController.h"
-#include "MotionManager.h"
+#include "MMDFiles.h"
 
 /* MotionPlayer_initialize: initialize MotionPlayer */
 void MotionPlayer_initialize(MotionPlayer *m)

@@ -43,6 +43,8 @@
 
 #include <windows.h>
 
+#include "MMDFiles.h"
+
 #include "TextRenderer.h"
 #include "LipSync.h"
 #include "utils.h"
@@ -644,7 +646,7 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    for (i = 0; i < m_numFaces; i++) {
       for (kf = keyframe[i]; kf; kf = kf->next) {
          face = (VMDFile_FaceFrame *) data;
-         strncpy(face->faceName, m_faceName[i], VMD_BONE_FACE_NAME_LEN);
+         strncpy(face->faceName, m_faceName[i], 15);
          face->keyFrame = (unsigned long) (kf->frame + 0.5f);
          face->weight = kf->rate;
          data += sizeof(VMDFile_FaceFrame);

@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+#include "MMDFiles.h"
+
 #include "PMDObject.h"
 #include "utils.h"
 #include <mmsystem.h>
@@ -391,7 +393,7 @@ bool PMDObject::updateModelRootRotation(float fps)
       if (diff > PMDOBJECT_MINSPINDIFF) {
          if (m_spinSpeed >= 0.0f && fps != 0.0f) {
             /* max turn speed */
-            maxStep = RAD(m_spinSpeed) / fps;
+            maxStep = MMDFILES_RAD(m_spinSpeed) / fps;
             if (diff > maxStep) {
                tmpRot = (*(b->getCurrentRotation()));
                tmpRot = tmpRot.slerp(m_offsetRot, maxStep / diff);
@@ -553,7 +555,7 @@ PMDObject *PMDObject::getAssignedModel()
 /* PMDObject::renderCommand: render model comment */
 void PMDObject::renderComment(TextRenderer * text)
 {
-   wchar_t buf[PMD_COMMENT_LEN];
+   wchar_t buf[PMDOBJECT_MAXBUFLEN];
    size_t len;
    btVector3 pos;
    float w, h;
@@ -566,7 +568,7 @@ void PMDObject::renderComment(TextRenderer * text)
    if(m_pmd.getComment() == NULL)
       return;
 
-   mbstowcs_s(&len, buf, PMD_COMMENT_LEN, m_pmd.getComment(), _TRUNCATE);
+   mbstowcs_s(&len, buf, PMDOBJECT_MAXBUFLEN, m_pmd.getComment(), _TRUNCATE);
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    w = 13.0f;

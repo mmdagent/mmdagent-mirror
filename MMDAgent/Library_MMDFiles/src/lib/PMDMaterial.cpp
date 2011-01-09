@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "PMDTextureLoader.h"
-#include "PMDMaterial.h"
+#include "MMDFiles.h"
 
 /* PMDMaterial::initialize: initialize material */
 void PMDMaterial::initialize()
@@ -95,7 +87,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
 {
    int i, len;
    char *p;
-   char buf[PMDMATERIAL_MAXBUFLEN];
+   char buf[MMDFILES_MAXBUFLEN];
    bool ret = true;
 
    clear();
@@ -128,17 +120,17 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
       if (p) {
          /* has extra sphere map */
          len = p - &(m->textureFile[0]);
-         sprintf(buf, "%s%c", dir, PMDMATERIAL_DIRSEPARATOR);
+         sprintf(buf, "%s%c", dir, MMDFILES_DIRSEPARATOR);
          strncat(buf, m->textureFile, len);
          m_texture = textureLoader->load(buf);
          if (!m_texture)
             ret = false;
-         sprintf(buf, "%s%c%s", dir, PMDMATERIAL_DIRSEPARATOR, p + 1);
+         sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, p + 1);
          m_additionalTexture = textureLoader->load(buf);
          if (!m_additionalTexture)
             ret = false;
       } else {
-         sprintf(buf, "%s%c%s", dir, PMDMATERIAL_DIRSEPARATOR, m->textureFile);
+         sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, m->textureFile);
          m_texture = textureLoader->load(buf);
          if (!m_texture)
             ret = false;

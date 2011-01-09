@@ -39,10 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#include "Define.h"
-#include "PMDFile.h"
-#include "btBulletDynamicsCommon.h"
-#include "PMDFace.h"
+/* headers */
+
+#include "MMDFiles.h"
 
 /* PMDFace::initialize: initialize face */
 void PMDFace::initialize()
@@ -102,7 +101,7 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
       }
    }
 
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    /* left-handed system: PMD, DirectX */
    /* right-handed system: OpenGL, bulletphysics */
    /* reverse Z value on vertices */

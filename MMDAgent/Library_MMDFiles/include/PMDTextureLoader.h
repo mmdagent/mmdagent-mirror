@@ -39,12 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdtextureloader_h__
-#define __libmmdfile_pmdtextureloader_h__
-
-#include "PMDFile.h"
-#include "PMDTexture.h"
-
 /* TextureLink: list of textures */
 typedef struct _TextureLink {
    char *name;                /* source file name */
@@ -89,5 +83,3 @@ public:
    /* release: free texture loader */
    void release();
 };
-
-#endif /* __libmmdfile_pmdtextureloader_h__ */

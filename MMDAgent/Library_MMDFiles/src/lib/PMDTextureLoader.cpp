@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "PMDTexture.h"
-#include "PMDTextureLoader.h"
+#include "MMDFiles.h"
 
 /* PMDTextureLoader:lookup: lookup texture in cache */
 PMDTexture *PMDTextureLoader::lookup(char *fileName, bool *alreadyFailRet)
@@ -146,7 +138,7 @@ void PMDTextureLoader::getErrorTextureString(char *buf, int maxlen)
 {
    TextureLink *tmp = m_root;
 
-   buf[0] = '\0';
+   strcpy(buf, "");
    if (!m_hasError) return;
    for (tmp = m_root; tmp; tmp = tmp->next) {
       if (tmp->texture == NULL) {

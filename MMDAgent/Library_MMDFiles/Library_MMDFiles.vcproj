@@ -254,11 +254,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\include\Define.h"
+				RelativePath=".\src\lib\KinematicMotionState.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\KinematicMotionState.h"
+				RelativePath=".\src\include\MMDFiles.h"
 				>
 			</File>
 			<File

@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_face_h__
-#define __libmmdfile_face_h__
-
 #define PMDFACE_MAXVERTEXID 65536
 
 /* PMDFaceVertex: vertex of this model */
@@ -96,5 +93,3 @@ public:
    /* setWeight: set weight */
    void setWeight(float f);
 };
-
-#endif /* __libmmdfile_face_h__ */

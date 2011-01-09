@@ -41,13 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "Define.h"
-#include "PMDFile.h"
-#include "PMDBone.h"
-#include "PMDIK.h"
-#include "btBulletDynamicsCommon.h"
+#include "MMDFiles.h"
 
 /* PMDIK::initialize: initialize IK */
 void PMDIK::initialize()

@@ -39,12 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __systemtexture_h__
-#define __systemtexture_h__
-
 #define SYSTEMTEXTURE_FILENAMES "toon0.bmp","toon01.bmp","toon02.bmp","toon03.bmp","toon04.bmp","toon05.bmp","toon06.bmp","toon07.bmp","toon08.bmp","toon09.bmp","toon10.bmp"
 #define SYSTEMTEXTURE_NUMFILES  11
-#define SYSTEMTEXTURE_MAXBUFLEN 1024
 
 /* SystemTexture: system default texture */
 class SystemTexture
@@ -77,5 +73,3 @@ public:
    /* release: free SystemTexture */
    void release();
 };
-
-#endif

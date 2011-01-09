@@ -41,7 +41,7 @@
 
 /* headers */
 
-#include "BulletPhysics.h"
+#include "MMDFiles.h"
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
 
 /* BulletPhysics::initialize: initialize BulletPhysics */
@@ -213,10 +213,6 @@ static void drawCube()
    glEnd();
 }
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif
-
 /* drawSphere: draw a sphere */
 static void drawSphere(int lats, int longs)
 {
@@ -232,16 +228,16 @@ static void drawSphere(int lats, int longs)
    double y;
 
    for (i = 0; i <= lats; i++) {
-      lat0 = M_PI * (-0.5 + (double) (i - 1) / lats);
+      lat0 = BULLETPHYSICS_PI * (-0.5 + (double) (i - 1) / lats);
       z0 = sin(lat0);
       zr0 = cos(lat0);
-      lat1 = M_PI * (-0.5 + (double) i / lats);
+      lat1 = BULLETPHYSICS_PI * (-0.5 + (double) i / lats);
       z1 = sin(lat1);
       zr1 = cos(lat1);
 
       glBegin(GL_QUAD_STRIP);
       for (j = 0; j <= longs; j++) {
-         lng = 2 * M_PI * (double) (j - 1) / longs;
+         lng = 2 * BULLETPHYSICS_PI * (double) (j - 1) / longs;
          x = cos(lng);
          y = sin(lng);
 

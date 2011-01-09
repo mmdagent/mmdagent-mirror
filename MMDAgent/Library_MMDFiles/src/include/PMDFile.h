@@ -39,14 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdfile_h__
-#define __libmmdfile_pmdfile_h__
-
 /* disable alignment in this header */
 #pragma pack(push, 1)
-
-#define PMD_FILE_NAME_LEN 20 /* maximum length of a file name (model, texture, etc) */
-#define PMD_COMMENT_LEN 256  /* maximum length of model comment */
 
 /* PMD_BONE_TYPE: bone type */
 enum PMD_BONE_TYPE {
@@ -73,10 +67,10 @@ enum PMD_FACE_TYPE {
 
 /* PMDFile_Header: header */
 typedef struct {
-   char magic[3];                 /* magic string, should be "Pmd" */
-   float version;                 /* version number */
-   char name[PMD_FILE_NAME_LEN];  /* model name */
-   char comment[PMD_COMMENT_LEN]; /* model comment string */
+   char magic[3];     /* magic string, should be "Pmd" */
+   float version;     /* version number */
+   char name[20];     /* model name */
+   char comment[256]; /* model comment string */
 } PMDFile_Header;
 
 /* PMDFile_Vertex: vertex element */
@@ -91,25 +85,25 @@ typedef struct {
 
 /* PMDFile_Material: material element */
 typedef struct {
-   float diffuse[3];                    /* diffuse color */
-   float alpha;                         /* alpha color */
-   float shiness;                       /* shiness intensity */
-   float specular[3];                   /* specular color */
-   float ambient[3];                    /* ambient color */
-   unsigned char toonID;                /* toon index: 0xff -> toon0.bmp, other -> toon(val+1).bmp */
-   unsigned char edgeFlag;              /* 1 if edge should be drawn */
-   unsigned long numSurfaceIndex;       /* number of surface indices for this material */
-   char textureFile[PMD_FILE_NAME_LEN]; /* texture file name */
+   float diffuse[3];              /* diffuse color */
+   float alpha;                   /* alpha color */
+   float shiness;                 /* shiness intensity */
+   float specular[3];             /* specular color */
+   float ambient[3];              /* ambient color */
+   unsigned char toonID;          /* toon index: 0xff -> toon0.bmp, other -> toon(val+1).bmp */
+   unsigned char edgeFlag;        /* 1 if edge should be drawn */
+   unsigned long numSurfaceIndex; /* number of surface indices for this material */
+   char textureFile[20];          /* texture file name */
 } PMDFile_Material;
 
 /* PMDFile_Bone: bone element */
 typedef struct {
-   char name[PMD_FILE_NAME_LEN]; /* bone name */
-   short parentBoneID;           /* parent bone ID (-1 = none) */
-   short childBoneID;            /* child bone ID (-1 = none) */
-   unsigned char type;           /* bone type (PMD_BONE_TYPE) */
-   short targetBoneID;           /* bone ID by which this bone if affected: IK bone (type 4), under_rotate bone (type 5) or co-rotate coef value (type 9) */
-   float pos[3];                 /* position from origin */
+   char name[20];      /* bone name */
+   short parentBoneID; /* parent bone ID (-1 = none) */
+   short childBoneID;  /* child bone ID (-1 = none) */
+   unsigned char type; /* bone type (PMD_BONE_TYPE) */
+   short targetBoneID; /* bone ID by which this bone if affected: IK bone (type 4), under_rotate bone (type 5) or co-rotate coef value (type 9) */
+   float pos[3];       /* position from origin */
 } PMDFile_Bone;
 
 /* PMDFile_IK: IK element */
@@ -131,14 +125,14 @@ typedef struct {
 
 /* PMDFile_Face: face element */
 typedef struct {
-   char name[PMD_FILE_NAME_LEN]; /* name of this face */
-   unsigned long numVertex;      /* number of vertices controlled by this face */
-   unsigned char type;           /* face type (PMD_FACE_TYPE) */
+   char name[20];           /* name of this face */
+   unsigned long numVertex; /* number of vertices controlled by this face */
+   unsigned char type;      /* face type (PMD_FACE_TYPE) */
 } PMDFile_Face;
 
 /* PMDFile_RigidBody: Bullet Physics RigidBody element */
 typedef struct {
-   char name[PMD_FILE_NAME_LEN];   /* name of this rigid body */
+   char name[20];                  /* name of this rigid body */
    unsigned short boneID;          /* related bone */
    unsigned char collisionGroupID; /* collision group in which this body belongs to */
    unsigned short collisionMask;   /* collision group mask */
@@ -158,19 +152,17 @@ typedef struct {
 
 /* Bulletphysics Constraint element */
 typedef struct {
-   char name[PMD_FILE_NAME_LEN]; /* name of this constraint */
-   unsigned long bodyIDA;        /* ID of body A */
-   unsigned long bodyIDB;        /* ID of body B */
-   float pos[3];                 /* position (x, y, z), relative to related bone */
-   float rot[3];                 /* rotation (x, y, z), in radian */
-   float limitPosFrom[3];        /* position move limit from (x, y, z) */
-   float limitPosTo[3];          /* position move limit to (x, y, z) */
-   float limitRotFrom[3];        /* rotation angular limit from (x, y, z) (rad) */
-   float limitRotTo[3];          /* rotation angular limit to (x, y, z) (rad) */
-   float stiffness[6];           /* spring stiffness (x,y,z,rx,ry,rz) */
+   char name[20];         /* name of this constraint */
+   unsigned long bodyIDA; /* ID of body A */
+   unsigned long bodyIDB; /* ID of body B */
+   float pos[3];          /* position (x, y, z), relative to related bone */
+   float rot[3];          /* rotation (x, y, z), in radian */
+   float limitPosFrom[3]; /* position move limit from (x, y, z) */
+   float limitPosTo[3];   /* position move limit to (x, y, z) */
+   float limitRotFrom[3]; /* rotation angular limit from (x, y, z) (rad) */
+   float limitRotTo[3];   /* rotation angular limit to (x, y, z) (rad) */
+   float stiffness[6];    /* spring stiffness (x,y,z,rx,ry,rz) */
 } PMDFile_Constraint;
 
 /* restore alignment */
 #pragma pack(pop)
-
-#endif /* __libmmdfile_pmdfile_h__ */

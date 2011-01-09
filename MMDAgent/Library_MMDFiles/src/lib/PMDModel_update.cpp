@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <malloc.h>
-
-#include "GLee.h"
-#include "Define.h"
-#include "PMDModel.h"
+#include "MMDFiles.h"
 
 /* PMDModel::updateBone: update bones */
 void PMDModel::updateBone()

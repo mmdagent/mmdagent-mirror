@@ -68,6 +68,7 @@
 
 #include "Julius_Thread.h"
 
+#include "MMDFiles.h"
 #include "Option.h"
 #include "MMDAgent.h"
 

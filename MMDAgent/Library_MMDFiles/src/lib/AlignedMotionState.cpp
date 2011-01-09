@@ -41,8 +41,7 @@
 
 /* headers */
 
-#include "btBulletDynamicsCommon.h"
-#include "PMDBone.h"
+#include "MMDFiles.h"
 #include "AlignedMotionState.h"
 
 /* AlignedMotionState::AlignedMotionState: constructor */

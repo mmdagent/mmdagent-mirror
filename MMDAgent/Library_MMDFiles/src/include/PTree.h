@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_ptree_h__
-#define __libmmdfile_ptree_h__
-
 /* PTreeNode: data pointer tree */
 typedef struct _PTreeNode {
    union {
@@ -94,5 +91,3 @@ public:
    /* findNearest: return the nearest entry */
    void *findNearest(char *str);
 };
-
-#endif /* __libmmdfile_ptree_h__ */

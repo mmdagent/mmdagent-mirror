@@ -44,6 +44,8 @@
 #include <windows.h>
 #include <locale.h>
 
+#include "MMDFiles.h"
+
 #include "resource.h"
 #include "Option.h"
 #include "MMDAgent.h"

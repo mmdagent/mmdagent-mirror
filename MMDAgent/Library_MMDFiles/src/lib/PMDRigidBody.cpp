@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <string.h>
-#include <stdlib.h>
-#include <malloc.h>
-
-#include "Define.h"
-#include "PMDRigidBody.h"
-#include "btBulletDynamicsCommon.h"
-#include "PMDBone.h"
+#include "MMDFiles.h"
 #include "KinematicMotionState.h"
 #include "AlignedMotionState.h"
 
@@ -141,13 +134,13 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
 
    /* set position and rotation of the rigid body, local to the associated bone */
    m_trans.setIdentity();
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    bm.setEulerZYX(- rb->rot[0], - rb->rot[1], rb->rot[2]);
 #else
    bm.setEulerZYX(rb->rot[0], rb->rot[1], rb->rot[2]);
 #endif
    m_trans.setBasis(bm);
-#ifdef CONVERT_COORDINATE_SYSTEM
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], -rb->pos[2]));
 #else
    m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], rb->pos[2]));

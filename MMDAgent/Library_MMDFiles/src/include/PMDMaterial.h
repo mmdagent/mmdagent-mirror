@@ -39,15 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdmaterial_h__
-#define __libmmdfile_pmdmaterial_h__
-
-#include "PMDFile.h"
-#include "PMDTextureLoader.h"
-
-#define PMDMATERIAL_MAXBUFLEN    1024
-#define PMDMATERIAL_DIRSEPARATOR '\\'
-
 /* PMDMaterial: material of PMD */
 class PMDMaterial
 {
@@ -124,5 +115,3 @@ public:
    /* getAdditionalTexture: get additional sphere map */
    PMDTexture *getAdditionalTexture();
 };
-
-#endif /* __libmmdfile_pmdmaterial_h__ */

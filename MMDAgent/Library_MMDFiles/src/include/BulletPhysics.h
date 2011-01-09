@@ -39,12 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_bulletphysics_h__
-#define __libmmdfile_bulletphysics_h__
-
-#include "btBulletDynamicsCommon.h"
-#include "BulletCollision/CollisionShapes/btShapeHull.h"
-#include "GLee.h"
+#define BULLETPHYSICS_PI 3.1415926535897932384626433832795
 
 /* BulletPhysics: Bullet Physics engine */
 class BulletPhysics
@@ -90,5 +85,3 @@ public:
 
    void debugDisplay();
 };
-
-#endif /* __libmmdfile_bulletphysics_h__ */

@@ -39,8 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#include "btBulletDynamicsCommon.h"
-#include "PMDBone.h"
+/* headers */
+
+#include "MMDFiles.h"
 #include "KinematicMotionState.h"
 
 /* KinematicMotionState::KinematicMotionState: constructor */

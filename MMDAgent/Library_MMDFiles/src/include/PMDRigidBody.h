@@ -39,13 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __libmmdfile_pmdrigidbody_h__
-#define __libmmdfile_pmdrigidbody_h__
-
-#include "btBulletDynamicsCommon.h"
-#include "PMDFile.h"
-#include "PMDBone.h"
-
 /* PMDRigidBody: rigid body */
 class PMDRigidBody
 {
@@ -95,5 +88,3 @@ public:
    /* getBody: get rigid body */
    btRigidBody *getBody();
 };
-
-#endif /* __libmmdfile_pmdrigidbody_h__ */
