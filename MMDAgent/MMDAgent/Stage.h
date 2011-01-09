@@ -77,8 +77,8 @@ public:
    /* TileTexture: destructor */
    ~TileTexture();
 
-   /* load: load a texture from file name (wide char) */
-   bool load(wchar_t *fileName);
+   /* load: load a texture from file name */
+   bool load(char *file);
 
    /* render: render the textures */
    void render(bool cullFace, const float normal[3]);
@@ -137,13 +137,13 @@ public:
    void setSize(float *size, float numx, float numy);
 
    /* loadFloor: load floor image */
-   bool loadFloor(wchar_t *fileName, BulletPhysics *bullet);
+   bool loadFloor(char *file, BulletPhysics *bullet);
 
    /* loadBackground: load background image */
-   bool loadBackground(wchar_t *fileName, BulletPhysics *bullet);
+   bool loadBackground(char *file, BulletPhysics *bullet);
 
    /* loadStagePMD: load stage pmd */
-   bool loadStagePMD(wchar_t *fileName, BulletPhysics *bullet, SystemTexture *systex);
+   bool loadStagePMD(char *file, BulletPhysics *bullet, SystemTexture *systex);
 
    /* renderFloor: render the floor */
    void renderFloor();

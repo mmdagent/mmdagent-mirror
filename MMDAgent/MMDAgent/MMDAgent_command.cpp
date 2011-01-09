@@ -435,7 +435,10 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileNa
    char *name;
 
    /* motion file */
-   vmd = m_motion.loadFromFile(fileName);
+   char mbsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   vmd = m_motion.loadFromFile(mbsbuf);
    if (vmd == NULL) {
       g_logger.log(L"! Error: addMotion: failed to load %s.", fileName);
       return false;
@@ -484,7 +487,6 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileNa
    }
 
    wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
    mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, name, _TRUNCATE); /* should be removed */
    sendEventMessage(MMDAGENT_EVENT_MOTION_ADD, L"%s|%s", modelAlias, wcsbuf);
    free(name);
@@ -512,7 +514,10 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fil
    }
 
    /* motion file */
-   vmd = m_motion.loadFromFile(fileName);
+   char mbsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   vmd = m_motion.loadFromFile(mbsbuf);
    if (vmd == NULL) {
       g_logger.log(L"! Error: changeMotion: failed to load %s.", fileName);
       return false;
@@ -543,7 +548,6 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fil
 
    /* send event message */
    wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
    mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, motionAlias, _TRUNCATE); /* should be removed */
    sendEventMessage(MMDAGENT_EVENT_MOTION_CHANGE, L"%s|%s", modelAlias, wcsbuf);
    return true;
@@ -741,7 +745,10 @@ bool MMDAgent::deleteModel(wchar_t *modelAlias)
 bool MMDAgent::setFloor(wchar_t *fileName)
 {
    /* load floor */
-   if (m_stage->loadFloor(fileName, &m_bullet) == false) {
+   char mbsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   if (m_stage->loadFloor(mbsbuf, &m_bullet) == false) {
       g_logger.log(L"Error: setFloor: cannot set floor %s.", fileName);
       return false;
    }
@@ -755,7 +762,10 @@ bool MMDAgent::setFloor(wchar_t *fileName)
 bool MMDAgent::setBackground(wchar_t *fileName)
 {
    /* load background */
-   if (m_stage->loadBackground(fileName, &m_bullet) == false) {
+   char mbsbuf[MMDAGENT_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE);
+   if (m_stage->loadBackground(mbsbuf, &m_bullet) == false) {
       g_logger.log(L"Error: setBackground: cannot set background %s.", fileName);
       return false;
    }
@@ -768,7 +778,10 @@ bool MMDAgent::setBackground(wchar_t *fileName)
 /* MMDAgent::setStage: set stage */
 bool MMDAgent::setStage(wchar_t *fileName)
 {
-   if (m_stage->loadStagePMD(fileName, &m_bullet, m_systex) == false) {
+   char mbsbuf[STAGE_MAXBUFLEN];
+   size_t len;
+   wcstombs_s(&len, mbsbuf, STAGE_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
+   if (m_stage->loadStagePMD(mbsbuf, &m_bullet, m_systex) == false) {
       g_logger.log(L"Error: setStage: cannot set stage %s.", fileName);
       return false;
    }

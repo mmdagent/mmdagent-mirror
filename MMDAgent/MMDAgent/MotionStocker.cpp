@@ -86,18 +86,14 @@ MotionStocker::~MotionStocker()
 }
 
 /* MotionStocker::loadFromFile: load VMD from file or return cached one */
-VMD * MotionStocker::loadFromFile(wchar_t *fileName)
+VMD * MotionStocker::loadFromFile(char *file)
 {
    VMDList *vl, *tmp;
-   char fileNameA[VMDGRID_MAXBUFLEN];
-   size_t len;
-
-   wcstombs_s(&len, fileNameA, VMDGRID_MAXBUFLEN, fileName, _TRUNCATE);
 
    /* search cache from tail to head */
    for(vl = m_tail; vl; vl = tmp) {
       tmp = vl->prev;
-      if(vl->name && strcmp(vl->name, fileNameA) == 0) {
+      if(vl->name && strcmp(vl->name, file) == 0) {
          if(vl != m_tail) {
             if(vl == m_head) {
                m_head = vl->next;
@@ -118,14 +114,14 @@ VMD * MotionStocker::loadFromFile(wchar_t *fileName)
 
    /* load VMD */
    vl = new VMDList;
-   if(vl->vmd.load(fileNameA) == false) {
+   if(vl->vmd.load(file) == false) {
       delete vl;
-      g_logger.log(L"! Error: failed to load vmd from file: %s", fileName);
+      g_logger.mbslog("! Error: failed to load vmd from file: %s", file);
       return NULL;
    }
 
    /* save name */
-   vl->name = _strdup(fileNameA);
+   vl->name = _strdup(file);
    vl->use = 1;
    vl->next = NULL;
 
@@ -151,7 +147,7 @@ VMD * MotionStocker::loadFromData(unsigned char *rawData, unsigned long rawSize)
    vl = new VMDList;
    if(vl->vmd.parse(rawData, rawSize) == false) {
       delete vl;
-      g_logger.log(L"! Error: failed to load vmd from memories");
+      g_logger.mbslog("! Error: failed to load vmd from memories");
       return NULL;
    }
 

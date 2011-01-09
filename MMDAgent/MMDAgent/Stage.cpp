@@ -145,22 +145,20 @@ TileTexture::~TileTexture()
 }
 
 /* TileTexture::load: load a texture from file name (wide char) */
-bool TileTexture::load(wchar_t *fileName)
+bool TileTexture::load(char *file)
 {
-   bool ret = true;
-   char buf[MAX_PATH];
-   size_t len;
+   if (file == NULL)
+      return false;
+   if (strlen(file) <= 0)
+      return false;
 
-   if (fileName == NULL) return false;
-   if (wcslen(fileName) <= 0) return false;
-
-   wcstombs_s(&len, buf, MAX_PATH, fileName, _TRUNCATE);
-   if (m_texture.load(buf) == false)
-      ret = false;
+   if(m_texture.load(file) == false)
+      return false;
 
    m_isLoaded = true;
    resetDisplayList();
-   return ret;
+
+   return true;
 }
 
 /* TileTexture::render: render the textures */
@@ -334,71 +332,60 @@ void Stage::setSize(float *size, float numx, float numy)
 }
 
 /* Stage::loadFloor: load floor image */
-bool Stage::loadFloor(wchar_t *fileName, BulletPhysics *bullet)
+bool Stage::loadFloor(char *file, BulletPhysics *bullet)
 {
-   bool ret;
-
    if (m_bullet == NULL)
       m_bullet = bullet;
 
-   ret = m_floor.load(fileName);
-   if (ret) {
-      if (m_hasPMD) {
-         m_pmd.release();
-         m_hasPMD = false;
-      }
-   } else {
-      g_logger.log(L"! Error: Stage: unable to load floor \"%s\"", fileName);
+   if(m_floor.load(file) == false) {
+      g_logger.mbslog("! Error: Stage: unable to load floor \"%s\"", file);
+      return false;
+   }
+   if (m_hasPMD) {
+      m_pmd.release();
+      m_hasPMD = false;
    }
 
-   return ret;
+   return true;
 }
 
 /* Stage::loadBackground: load background image */
-bool Stage::loadBackground(wchar_t *fileName, BulletPhysics *bullet)
+bool Stage::loadBackground(char *file, BulletPhysics *bullet)
 {
-   bool ret;
-
    if (m_bullet == NULL)
       m_bullet = bullet;
 
-   ret = m_background.load(fileName);
-   if (ret) {
-      if (m_hasPMD) {
-         m_pmd.release();
-         m_hasPMD = false;
-      }
-   } else {
-      g_logger.log(L"! Error: Stage: unable to load background \"%s\"", fileName);
+   if(m_background.load(file) == false) {
+      g_logger.mbslog("! Error: Stage: unable to load background \"%s\"", file);
+      return false;
    }
-   return ret;
+   if (m_hasPMD) {
+      m_pmd.release();
+      m_hasPMD = false;
+   }
+
+   return true;
 }
 
 /* Stage::loadStagePMD: load stage pmd */
-bool Stage::loadStagePMD(wchar_t *fileName, BulletPhysics *bullet, SystemTexture *systex)
+bool Stage::loadStagePMD(char *file, BulletPhysics *bullet, SystemTexture *systex)
 {
-   bool ret;
-
    if (m_bullet == NULL)
       m_bullet = bullet;
 
-   char mbsbuf[STAGE_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, STAGE_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   ret = m_pmd.load(mbsbuf, m_bullet, systex);
-   if (ret) {
-      m_pmd.setToonFlag(false);
-      m_pmd.updateSkin();
-      m_hasPMD = true;
-      if (m_listIndexPMDValid) {
-         glDeleteLists(m_listIndexPMD, 1);
-         m_listIndexPMDValid = false;
-      }
-   } else {
-      g_logger.log(L"! Error: Stage: unable to load stage PMD \"%s\"", fileName);
+   if(m_pmd.load(file, m_bullet, systex) == false) {
+      g_logger.mbslog("! Error: Stage: unable to load stage PMD \"%s\"", file);
+      return false;
+   }
+   m_pmd.setToonFlag(false);
+   m_pmd.updateSkin();
+   m_hasPMD = true;
+   if (m_listIndexPMDValid) {
+      glDeleteLists(m_listIndexPMD, 1);
+      m_listIndexPMDValid = false;
    }
 
-   return ret;
+   return true;
 }
 
 /* Stage::renderFloor: render the floor */
