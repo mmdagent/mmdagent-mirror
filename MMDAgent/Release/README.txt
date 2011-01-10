@@ -85,6 +85,13 @@ See also "COPYRIGHT.txt" files as follows for details.
 Double click MMDAgent.exe file.
 
 *******************************************************************************
+                                     Note
+*******************************************************************************
+
+Currently MMDAgent does not support JPEG texture in PMD. Please use BMP/TGA/PNG
+format instead.
+
+*******************************************************************************
                             Key and mouse bindings
 *******************************************************************************
 
