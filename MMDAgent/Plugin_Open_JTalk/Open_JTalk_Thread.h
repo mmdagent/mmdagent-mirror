@@ -39,9 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define OPENJTALKTHREAD_EVENTSTART L"SYNTH_EVENT_START"
-#define OPENJTALKTHREAD_EVENTSTOP  L"SYNTH_EVENT_STOP"
-#define OPENJTALKTHREAD_COMMANDLIP L"LIPSYNC_START"
+#define OPENJTALKTHREAD_EVENTSTART "SYNTH_EVENT_START"
+#define OPENJTALKTHREAD_EVENTSTOP  "SYNTH_EVENT_STOP"
+#define OPENJTALKTHREAD_COMMANDLIP "LIPSYNC_START"
 
 /* Open_JTalk_Event: input message buffer */
 typedef struct _Open_JTalk_Event {

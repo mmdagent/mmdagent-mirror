@@ -453,62 +453,43 @@ void Open_JTalk_Thread::stop()
 /* Open_JTalk_Thread::sendStartEventMessage: send start event message to MMDAgent */
 void Open_JTalk_Thread::sendStartEventMessage(char *str)
 {
-   size_t s;
-   size_t len = strlen(str);
-   wchar_t *mes1 = (wchar_t *) calloc(wcslen(OPENJTALKTHREAD_EVENTSTART) + 1, sizeof(wchar_t));
-   wchar_t *mes2 = (wchar_t *) calloc(len + 1, sizeof(wchar_t));
+   char *mes1;
+   char *mes2;
 
-   wcscpy(mes1, OPENJTALKTHREAD_EVENTSTART);
-   mbstowcs_s(&s, mes2, len + 1, str, _TRUNCATE);
-   if(s > 0) {
-      ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
-   } else {
-      free(mes1);
-      free(mes2);
-   }
+   if(str == NULL)
+      return;
+
+   mes1 = strdup(OPENJTALKTHREAD_EVENTSTART);
+   mes2 = strdup(str);
+   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
 }
 
 /* Open_JTalk_Thread::sendStopEventMessage: send stop event message to MMDAgent */
 void Open_JTalk_Thread::sendStopEventMessage(char *str)
 {
-   size_t s;
-   size_t len = strlen(str);
-   wchar_t *mes1 = (wchar_t *) calloc(wcslen(OPENJTALKTHREAD_EVENTSTOP) + 1, sizeof(wchar_t));
-   wchar_t *mes2 = (wchar_t *) calloc(len + 1, sizeof(wchar_t));
+   char *mes1;
+   char *mes2;
 
-   wcscpy(mes1, OPENJTALKTHREAD_EVENTSTOP);
-   mbstowcs_s(&s, mes2, len + 1, str, _TRUNCATE);
-   if(s > 0) {
-      ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
-   } else {
-      free(mes1);
-      free(mes2);
-   }
+   if(str == NULL)
+      return;
+
+   mes1 = strdup(OPENJTALKTHREAD_EVENTSTOP);
+   mes2 = strdup(str);
+
+   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
 }
 
 /* Open_JTalk_Thread::sendLipCommandMessage: send lipsync command message to MMDAgent */
 void Open_JTalk_Thread::sendLipCommandMessage(char *chara, char *lip)
 {
-   size_t s1, s2;
-   size_t len1 = strlen(chara);
-   size_t len2 = strlen(lip);
-   wchar_t *buf1 = (wchar_t *) calloc(len1 + 1, sizeof(wchar_t));
-   wchar_t *buf2 = (wchar_t *) calloc(len2 + 1, sizeof(wchar_t));
-   wchar_t *mes1 = (wchar_t *) calloc(wcslen(OPENJTALKTHREAD_COMMANDLIP) + 1, sizeof(wchar_t));
-   wchar_t *mes2 = (wchar_t *) calloc(len1 + 1 + len2 + 1, sizeof(wchar_t));
+   char *mes1;
+   char *mes2;
 
-   wcscpy(mes1, OPENJTALKTHREAD_COMMANDLIP);
+   if(chara == NULL || lip == NULL) return;
 
-   mbstowcs_s(&s1, buf1, len1 + 1, chara, _TRUNCATE);
-   mbstowcs_s(&s2, buf2, len2 + 1, lip, _TRUNCATE);
-   wsprintf(mes2, L"%s|%s", buf1, buf2);
+   mes1 = strdup(OPENJTALKTHREAD_COMMANDLIP);
+   mes2 = (char *) malloc(sizeof(char) * (strlen(chara) + 1 + strlen(lip) + 1));
+   sprintf(mes2, "%s|%s", chara, lip);
 
-   if(s1 > 0 && s2 > 0) {
-      ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
-   } else {
-      free(mes1);
-      free(mes2);
-   }
-   free(buf1);
-   free(buf2);
+   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
 }

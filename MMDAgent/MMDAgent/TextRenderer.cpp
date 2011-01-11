@@ -63,7 +63,7 @@ void TextRenderer::clear()
    int i;
 
    for (i = 0; i < m_idNum; i++)
-      glDeleteLists(m_codeList[i].id + m_outlineFontID, 1);
+      glDeleteLists(m_idList[i] + m_outlineFontID, 1);
    if (m_bitmapFontID != 0)
       glDeleteLists(m_bitmapFontID, TEXTRENDERER_ASCIISIZE);
    if (m_outlineFontID != 0)
@@ -87,7 +87,7 @@ TextRenderer::~TextRenderer()
 }
 
 /* TextRenderer::setup: initialize and setup text renderer */
-void TextRenderer::setup(HDC hDC, wchar_t *fontName)
+void TextRenderer::setup(HDC hDC)
 {
    HGDIOBJ oldfont;
    GLYPHMETRICSFLOAT gmf[TEXTRENDERER_ASCIISIZE];
@@ -122,9 +122,9 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
       return;
 
    /* get outline font */
-   m_outlineFont = CreateFontW(30, 0, 0, 0, FW_NORMAL, false, false, false,
-                               DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
-                               fontName);
+   m_outlineFont = CreateFontA(25, 0, 0, 0, FW_NORMAL, false, false, false,
+                               SHIFTJIS_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_DONTCARE,
+                               (LPCSTR) TEXTRENDERER_FONT);
    if (!m_outlineFont) {
       glDeleteLists(m_outlineFontID, TEXTRENDERER_ASCIISIZE);
       m_outlineFontID = 0;
@@ -137,7 +137,7 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
       m_outlineFontID = 0;
       return;
    }
-   if (wglUseFontOutlinesW(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_outlineFontID, 0.0f, 0.1f, WGL_FONT_POLYGONS, gmf) == false) {
+   if (wglUseFontOutlinesA(m_hDC, 0, TEXTRENDERER_ASCIISIZE, m_outlineFontID, 0.0f, 0.1f, WGL_FONT_POLYGONS, gmf) == false) {
       glDeleteLists(m_outlineFontID, TEXTRENDERER_ASCIISIZE);
       m_outlineFontID = 0;
       return;
@@ -145,7 +145,7 @@ void TextRenderer::setup(HDC hDC, wchar_t *fontName)
    SelectObject(m_hDC, oldfont);
 }
 
-/* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap, multi-byte char) */
+/* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap) */
 void TextRenderer::drawAsciiStringBitmap(char *str)
 {
    GLsizei size = strlen(str);
@@ -154,75 +154,43 @@ void TextRenderer::drawAsciiStringBitmap(char *str)
    glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) str);
 }
 
-/* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap, wide char) */
-void TextRenderer::drawAsciiStringBitmap(wchar_t *wstr)
-{
-   size_t converted;
-   char buf[TEXTRENDERER_MAXBUFLEN];
-   GLsizei size;
-
-   wcstombs_s(&converted, buf, TEXTRENDERER_MAXBUFLEN, wstr, _TRUNCATE);
-   size = strlen(buf);
-   glListBase(m_bitmapFontID);
-   glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) buf);
-}
-
-/* TextRenderer::drawAsciiStringOutline: draw ascii string (outline, multi-byte char) */
-void TextRenderer::drawAsciiStringOutline(char *str)
-{
-   GLsizei size = strlen(str);
-
-   glListBase(m_outlineFontID);
-   glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) str);
-   glFrontFace(GL_CCW);
-}
-
-/* TextRenderer::drawAsciiStringOutline: draw ascii string (outline, wide char) */
-void TextRenderer::drawAsciiStringOutline(wchar_t *wstr)
-{
-   size_t converted;
-   char buf[TEXTRENDERER_MAXBUFLEN];
-   GLsizei size;
-
-   wcstombs_s(&converted, buf, TEXTRENDERER_MAXBUFLEN, wstr, _TRUNCATE);
-   size = strlen(buf);
-   glListBase(m_outlineFontID);
-   glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) buf);
-   glFrontFace(GL_CCW);
-}
-
-/* TextRenderer::getDisplayListArrayOfString: get array of display list indices Draw any string (outline, wide char, slow) */
-int TextRenderer::getDisplayListArrayOfString(wchar_t *wstr, unsigned int *idList, int maxlen)
+/* TextRenderer::getDisplayListArrayOfString: get array of display list indices Draw any string (outline, slow) */
+int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, int maxlen)
 {
    size_t i;
    int n = 0;
    unsigned int id;
    int j;
-   char buf[10];
-   size_t len = wcslen(wstr);
+   size_t len = strlen(str);
    GLYPHMETRICSFLOAT gmf;
    HGDIOBJ oldfont;
+   unsigned char c1;
+   unsigned char c2;
+   DWORD mbc;
 
-   for (i = 0; i < len; i++) {
+   for (i = 0; i < len;) {
       if (n >= maxlen) return maxlen; /* overflow */
-      if (iswascii(wstr[i])) {
+      if (isascii(str[i])) {
          /* ascii, use display list whose id number equals to ascii code */
-         wctomb(buf, wstr[i]);
-         idList[n] = (unsigned int) buf[0];
+         idList[n] = (unsigned int) str[i];
          n++;
+         i++;
       } else {
+         c1 = (unsigned char) str[i];
+         c2 = (unsigned char) str[i+1];
+         mbc = (c1 << 8) | c2;
          /* non-ascii look for already allocated display lists */
          /* search from latest to oldest */
          for (j = m_current; j >= 0; j--) {
-            if (m_codeList[j].code == wstr[i]) {
-               id = m_codeList[j].id;
+            if (m_charList[j] == mbc) {
+               id = m_idList[j];
                break;
             }
          }
          if (j < 0) {
             for (j = m_idNum - 1; j >= m_current; j--) {
-               if (m_codeList[j].code == wstr[i])
-                  id = m_codeList[j].id;
+               if (m_charList[j] == mbc)
+                  id = m_idList[j];
                break;
             }
             if (j < m_current) {
@@ -234,7 +202,7 @@ int TextRenderer::getDisplayListArrayOfString(wchar_t *wstr, unsigned int *idLis
                oldfont = SelectObject(m_hDC, m_outlineFont);
                if (!oldfont)
                   return -1;
-               if (wglUseFontOutlinesW(m_hDC, wstr[i], 1, id, 0.0f, 0.1f, WGL_FONT_POLYGONS, &gmf) == false)
+               if (wglUseFontOutlinesA(m_hDC, mbc, 1, id, 0.0f, 0.1f, WGL_FONT_POLYGONS, &gmf) == false)
                   continue;
                SelectObject(m_hDC, oldfont);
                /* make id as relative to base id */
@@ -248,12 +216,13 @@ int TextRenderer::getDisplayListArrayOfString(wchar_t *wstr, unsigned int *idLis
                   else
                      m_current = 0;
                }
-               m_codeList[m_current].code = wstr[i];
-               m_codeList[m_current].id = id;
+               m_charList[m_current] = mbc;
+               m_idList[m_current] = id;
             }
          }
          idList[n] = id;
          n++;
+         i += 2;
       }
    }
    return n;
@@ -267,13 +236,13 @@ void TextRenderer::renderDisplayListArrayOfString(unsigned int *idList, int n)
    glFrontFace(GL_CCW);
 }
 
-/* TextRenderer::drawString: draw any string (outline, wide char, slow) */
-void TextRenderer::drawString(wchar_t *wstr)
+/* TextRenderer::drawString: draw any string (outline, slow) */
+void TextRenderer::drawString(char *str)
 {
    unsigned int idList[TEXTRENDERER_MAXBUFLEN];
    int n;
 
-   n = getDisplayListArrayOfString(wstr, idList, TEXTRENDERER_MAXBUFLEN);
+   n = getDisplayListArrayOfString(str, idList, TEXTRENDERER_MAXBUFLEN);
 
    if (n != -1) renderDisplayListArrayOfString(idList, n);
 }

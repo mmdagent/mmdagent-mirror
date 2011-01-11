@@ -97,7 +97,7 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
+bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
 {
    int i;
 
@@ -151,14 +151,8 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* set comment frame */
    m_displayCommentFrame = PMDOBJECT_COMMENTFRAME;
 
-   /* enable */
-   m_isEnable = true;
-
    /* load model */
-   char mbsbuf[PMDOBJECT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, PMDOBJECT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   if (m_pmd.load(mbsbuf, bullet, systex) == false) {
+   if (m_pmd.load(fileName, bullet, systex) == false) {
       clear();
       return false;
    }
@@ -166,9 +160,7 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* set up lip sync */
    m_lipSync.setup(&m_pmd);
    /* set initial alias name as the same as model name */
-   wchar_t wcsbuf[PMDOBJECT_MAXBUFLEN];
-   mbstowcs_s(&len, wcsbuf, PMDOBJECT_MAXBUFLEN, m_pmd.getName(), _TRUNCATE); /* should be removed */
-   setAlias(wcsbuf);
+   setAlias(m_pmd.getName());
 
    /* reset */
    setLightForToon(light);
@@ -179,6 +171,9 @@ bool PMDObject::load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offs
    /* this is fixed at first simulation */
    m_needResetKinematic = true;
    m_pmd.setPhysicsControl(false);
+
+   /* enable */
+   m_isEnable = true;
 
    return true;
 }
@@ -422,9 +417,9 @@ bool PMDObject::updateModelRootRotation(float fps)
 }
 
 /* PMDObject::getAlias: get alias name */
-wchar_t *PMDObject::getAlias()
+char *PMDObject::getAlias()
 {
-   wchar_t *none = L"";
+   char *none = "";
 
    if(m_alias)
       return m_alias;
@@ -433,12 +428,12 @@ wchar_t *PMDObject::getAlias()
 }
 
 /* PMDObject::setAlias: set alias name */
-void PMDObject::setAlias(wchar_t *alias)
+void PMDObject::setAlias(char *alias)
 {
-   if(alias && wcslen(alias) > 0) {
+   if(alias && strlen(alias) > 0) {
       if(m_alias)
          free(m_alias);
-      m_alias = _wcsdup(alias);
+      m_alias = strdup(alias);
    }
 }
 
@@ -555,12 +550,11 @@ PMDObject *PMDObject::getAssignedModel()
 /* PMDObject::renderCommand: render model comment */
 void PMDObject::renderComment(TextRenderer * text)
 {
-   wchar_t buf[PMDOBJECT_MAXBUFLEN];
-   size_t len;
+   char *buf;
    btVector3 pos;
    float w, h;
    float tpos[3];
-   wchar_t *p, *psave;
+   char *p;
 
    if (m_displayCommentFrame == 0.0)
       return;
@@ -568,7 +562,7 @@ void PMDObject::renderComment(TextRenderer * text)
    if(m_pmd.getComment() == NULL)
       return;
 
-   mbstowcs_s(&len, buf, PMDOBJECT_MAXBUFLEN, m_pmd.getComment(), _TRUNCATE);
+   buf = strdup(m_pmd.getComment());
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    w = 13.0f;
@@ -591,7 +585,7 @@ void PMDObject::renderComment(TextRenderer * text)
    tpos[0] = pos.x();
    tpos[1] = pos.y() + 4.5f;
    tpos[2] = pos.z();
-   for (p = wcstok_s(buf, L"\n", &psave); p; p = wcstok_s(NULL, L"\n", &psave)) {
+   for (p = strtok(buf, "\n"); p; p = strtok(NULL, "\n")) {
       tpos[1] -= 0.65f;
       glPushMatrix();
       glTranslatef(tpos[0], tpos[1], tpos[2]);
@@ -600,6 +594,7 @@ void PMDObject::renderComment(TextRenderer * text)
       glPopMatrix();
    }
    glEnable(GL_LIGHTING);
+   free(buf);
 }
 
 /* PMDObject::renderDebug: render model debug */
@@ -616,10 +611,7 @@ void PMDObject::renderDebug(TextRenderer * text)
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    pos.setY(m_pmd.getMaxHeight() + 1.0f);
    glTranslatef(pos.x(), pos.y(), pos.z());
-   wchar_t wcsbuf [PMDOBJECT_MAXBUFLEN];
-   size_t len;
-   mbstowcs_s(&len, wcsbuf, PMDOBJECT_MAXBUFLEN, m_pmd.getName(), _TRUNCATE); /* should be removed */
-   text->drawString(wcsbuf);
+   text->drawString(m_pmd.getName());
    glEnable(GL_LIGHTING);
    glPopMatrix();
 }
@@ -631,7 +623,7 @@ void PMDObject::renderError(TextRenderer * text)
    btVector3 pos;
    float w, h;
    float tpos[3];
-   char *p, *psave;
+   char *p;
 
    m_pmd.getErrorTextureList(buf, 256);
    if (strlen(buf) <= 0)
@@ -660,14 +652,14 @@ void PMDObject::renderError(TextRenderer * text)
    tpos[2] = pos.z();
    glPushMatrix();
    glTranslatef(tpos[0], tpos[1], tpos[2]);
-   text->drawAsciiStringOutline("[Texture Errors]");
+   text->drawString("[Texture Errors]");
    glPopMatrix();
 
-   for (p = strtok_s(buf, "\n", &psave); p; p = strtok_s(NULL, "\n", &psave)) {
+   for (p = strtok(buf, "\n"); p; p = strtok(NULL, "\n")) {
       tpos[1] -= 0.7f;
       glPushMatrix();
       glTranslatef(tpos[0], tpos[1], tpos[2]);
-      text->drawAsciiStringOutline(p);
+      text->drawString(p);
       glPopMatrix();
    }
    glEnable(GL_LIGHTING);

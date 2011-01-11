@@ -92,15 +92,20 @@ void Audio::setup(HWND hWnd)
 }
 
 /* Audio::play: play audio */
-bool Audio::play(wchar_t *fname, wchar_t *alias)
+bool Audio::play(char *file, char *alias)
 {
    int i, j;
    wchar_t buf[AUDIO_MAXBUFLEN];
 
    /* wait */
-   _snwprintf(buf, AUDIO_MAXBUFLEN, L"open \"%s\" alias %s wait", fname, alias);
+   size_t len;
+   wchar_t fileWcs[AUDIO_MAXBUFLEN];
+   wchar_t aliasWcs[AUDIO_MAXBUFLEN];
+   mbstowcs_s(&len, fileWcs, AUDIO_MAXBUFLEN, file, _TRUNCATE);
+   mbstowcs_s(&len, aliasWcs, AUDIO_MAXBUFLEN, alias, _TRUNCATE);
+   _snwprintf(buf, AUDIO_MAXBUFLEN, L"open \"%s\" alias %s wait", fileWcs, aliasWcs);
    if (mciSendString(buf, NULL, 0, NULL) != 0) {
-      g_logger.log(L"! Error: Audio: failed to open \"%s\" as alias \"%s\"", fname, alias);
+      g_logger.log("! Error: Audio: failed to open \"%s\" as alias \"%s\"", file, alias);
       return false;
    }
 
@@ -108,54 +113,55 @@ bool Audio::play(wchar_t *fname, wchar_t *alias)
    for (i = 0, j = -1; i < AUDIO_MAXNSOUND; i++) {
       if (m_fileName[i][0] == L'\0' && j == -1)
          j = i;
-      if (wcsncmp(m_fileName[i], alias, AUDIO_MAXBUFLEN) == 0) {
-         m_id[i] = mciGetDeviceID(alias);
+      if (wcsncmp(m_fileName[i], aliasWcs, AUDIO_MAXBUFLEN) == 0) {
+         m_id[i] = mciGetDeviceID(aliasWcs);
          break;
       }
    }
    if (i >= AUDIO_MAXNSOUND) {
       if (j == -1) {
-         g_logger.log(L"! Error: Audio: too many musics at a time! (%d)", AUDIO_MAXNSOUND);
+         g_logger.log("! Error: Audio: too many musics at a time! (%d)", AUDIO_MAXNSOUND);
          close(alias);
          return false;
       }
-      m_id[j] = mciGetDeviceID(alias);
-      wcsncpy(m_fileName[j], alias, AUDIO_MAXBUFLEN);
+      m_id[j] = mciGetDeviceID(aliasWcs);
+      wcsncpy(m_fileName[j], aliasWcs, AUDIO_MAXBUFLEN);
    }
 
    /* enqueue */
-   _snwprintf(buf, AUDIO_MAXBUFLEN, L"cue %s output wait", alias);
+   _snwprintf(buf, AUDIO_MAXBUFLEN, L"cue %s output wait", aliasWcs);
    if (mciSendString(buf, NULL, 0, NULL) != 0) {
-      g_logger.log(L"! Error: Audio: failed to cue \"%s\" in mci", alias);
+      g_logger.log("! Error: Audio: failed to cue \"%s\" in mci", alias);
       return false;
    }
 
    /* start */
-   _snwprintf(buf, AUDIO_MAXBUFLEN, L"play %s notify", alias);
+   _snwprintf(buf, AUDIO_MAXBUFLEN, L"play %s notify", aliasWcs);
    if (mciSendString(buf, NULL, 0, m_window) != 0) {
-      g_logger.log(L"! Error: Audio: failed to start playing \"%s\" as alias \"%s\"", fname, alias);
+      g_logger.log("! Error: Audio: failed to start playing \"%s\" as alias \"%s\"", file, alias);
       return false;
    }
    m_needToClose = true; /* set flag to close */
-
-   g_logger.log(L"Audio: playing \"%s\" as alias \"%s\"", fname, alias);
 
    return true;
 }
 
 /* Audio::close: close audio */
-void Audio::close(wchar_t *alias)
+void Audio::close(char *alias)
 {
    int i;
    wchar_t buf[AUDIO_MAXBUFLEN];
 
    /* send close command */
-   _snwprintf(buf, AUDIO_MAXBUFLEN, L"close %s", alias);
+   wchar_t wcsbuf[AUDIO_MAXBUFLEN];
+   size_t len;
+   mbstowcs_s(&len, wcsbuf, AUDIO_MAXBUFLEN, alias, _TRUNCATE);
+   _snwprintf(buf, AUDIO_MAXBUFLEN, L"close %s", wcsbuf);
    mciSendString(buf, NULL, 0, NULL);
 
    /* remove file name */
    for (i = 0; i < AUDIO_MAXNSOUND; i++) {
-      if (wcsncmp(m_fileName[i], alias, AUDIO_MAXBUFLEN) == 0) {
+      if (wcsncmp(m_fileName[i], wcsbuf, AUDIO_MAXBUFLEN) == 0) {
          m_fileName[i][0] = L'\0';
          break;
       }
@@ -169,14 +175,10 @@ wchar_t *Audio::getFinishedAlias(WPARAM wParam, LPARAM lParam)
 
    switch (wParam) {
    case MCI_NOTIFY_SUCCESSFUL: /* end of playing */
-      g_logger.log(L"Audio: finished playing");
       for (i = 0; i < AUDIO_MAXNSOUND; i++) {
          if (lParam == m_id[i])
             return m_fileName[i];
       }
-      break;
-   case MCI_NOTIFY_FAILURE:
-      g_logger.log(L"! Error: Audio: an error occured");
       break;
    }
    return NULL;

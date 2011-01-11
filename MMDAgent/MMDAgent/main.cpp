@@ -83,9 +83,7 @@ static INT_PTR CALLBACK copyrightDialogBox(HWND hDlg, UINT message, WPARAM wPara
 static INT_PTR CALLBACK commandDialogBox(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
    char buf[MAIN_MAXBUFLEN];
-   wchar_t wbuf[MAIN_MAXBUFLEN];
-   size_t len;
-   wchar_t *p;
+   char *p;
 
    switch (message) {
    case WM_INITDIALOG:
@@ -101,14 +99,13 @@ static INT_PTR CALLBACK commandDialogBox(HWND hDlg, UINT message, WPARAM wParam,
       case IDOK:
          GetDlgItemTextA(hDlg, IDC_EDIT, buf, MAIN_MAXBUFLEN);
          /* execute */
-         mbstowcs_s(&len, wbuf, MAIN_MAXBUFLEN, buf, _TRUNCATE);
-         if (len > 0) {
-            p = wcschr(wbuf, L'|');
+         if (strlen(buf) > 0) {
+            p = strchr(buf, '|');
             if (p) {
-               *p = L'\0';
-               mmdagent.sendCommandMessage(wbuf, L"%s", p + 1);
+               *p = '\0';
+               mmdagent.sendCommandMessage(buf, "%s", p + 1);
             } else {
-               mmdagent.sendCommandMessage(wbuf, NULL);
+               mmdagent.sendCommandMessage(buf, NULL);
             }
          }
          SetDlgItemTextA(hDlg, IDC_EDIT, "");
@@ -180,8 +177,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
    TCHAR szTitle[MAIN_MAXBUFLEN];
    TCHAR szWindowClass[MAIN_MAXBUFLEN];
 
+   int i;
+   size_t len;
    int argc;
-   wchar_t **argv;
+   wchar_t **wargv;
+   char **argv;
 
    WNDCLASSEX wcex;
    HWND hWnd;
@@ -208,8 +208,17 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
    RegisterClassEx(&wcex);
 
    /* create window */
-   argv = CommandLineToArgvW(GetCommandLine(), &argc);
+   wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+   if(argc < 1) return false;
+   argv = (char **) malloc(sizeof(char *) * argc);
+   for(i = 0; i < argc; i++) {
+      argv[i] = (char *) malloc(sizeof(char) * MAIN_MAXBUFLEN);
+      wcstombs_s(&len, argv[i], MAIN_MAXBUFLEN, wargv[i], _TRUNCATE);
+   }
    hWnd = mmdagent.setup(hInstance, szTitle, szWindowClass, argc, argv);
+   for(i = 0; i < argc; i++)
+      free(argv[i]);
+   free(argv);
    if (!hWnd)
       return false;
    ShowWindow(hWnd, nCmdShow);

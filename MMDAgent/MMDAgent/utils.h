@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+#define UTILS_DIRSEPARATOR '\\'
+
 /* if GLOBAL_VARIABLE_DEFINE is defined, global variables are actually made */
 /* else, these are external definition */
 #ifdef GLOBAL_VARIABLE_DEFINE
@@ -50,17 +52,14 @@
 #include "LogText.h"
 GLOBAL LogText g_logger; /* logger */
 
-/* getDirName: get directory name from file name */
-void getDirName(wchar_t *wszDir, const wchar_t *wszPath);
+/* getDirectory: get directory from file path */
+bool getDirectory(const char *file, char *dir);
 
-/* getFullDirName: get directory name from file name (full path) */
-void getFullDirName(wchar_t *wszDir, const wchar_t *wszPath);
+/* strtokWithDoubleQuotation: strtok with double quotation */
+char *strtokWithDoubleQuotation(char *str, char *delim, char **strsave);
 
-/* wcstokWithDoubleQuotation: wcstok with double quotation */
-wchar_t *wcstokWithDoubleQuotation(wchar_t *str, wchar_t *delim, wchar_t **strsave);
-
-/* hasSuffix: check suffix of a file */
-bool hasSuffix(wchar_t *fileName, wchar_t *suffix);
+/* hasExtension: check extension */
+bool hasExtension(char *file, char *ext);
 
 /* getNumDigit: get number of digit from integer */
 int getNumDigit(int in);

@@ -338,7 +338,7 @@ bool Stage::loadFloor(char *file, BulletPhysics *bullet)
       m_bullet = bullet;
 
    if(m_floor.load(file) == false) {
-      g_logger.mbslog("! Error: Stage: unable to load floor \"%s\"", file);
+      g_logger.log("! Error: Stage: unable to load floor \"%s\"", file);
       return false;
    }
    if (m_hasPMD) {
@@ -356,7 +356,7 @@ bool Stage::loadBackground(char *file, BulletPhysics *bullet)
       m_bullet = bullet;
 
    if(m_background.load(file) == false) {
-      g_logger.mbslog("! Error: Stage: unable to load background \"%s\"", file);
+      g_logger.log("! Error: Stage: unable to load background \"%s\"", file);
       return false;
    }
    if (m_hasPMD) {
@@ -374,7 +374,7 @@ bool Stage::loadStagePMD(char *file, BulletPhysics *bullet, SystemTexture *syste
       m_bullet = bullet;
 
    if(m_pmd.load(file, m_bullet, systex) == false) {
-      g_logger.mbslog("! Error: Stage: unable to load stage PMD \"%s\"", file);
+      g_logger.log("! Error: Stage: unable to load stage PMD \"%s\"", file);
       return false;
    }
    m_pmd.setToonFlag(false);

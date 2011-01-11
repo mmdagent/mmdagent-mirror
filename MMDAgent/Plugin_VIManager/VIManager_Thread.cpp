@@ -283,31 +283,16 @@ void VIManager_Thread::stateTransition()
 /* VIManager_Thread::sendMessage: send message to MMDAgent */
 void VIManager_Thread::sendMessage(char *str1, char *str2)
 {
-   size_t s1, s2 = 0;
-   size_t len1;
-   size_t len2 = 0;
-   wchar_t *mes1;
-   wchar_t *mes2 = NULL;
+   char *mes1, *mes2;
 
-   if (str1 == NULL)
+   if(str1 == NULL)
       return;
 
-   len1 = strlen(str1);
-   mes1 = (wchar_t *) calloc(len1 + 1, sizeof(wchar_t));
-   mbstowcs_s(&s1, mes1, len1 + 1, str1, _TRUNCATE);
-   if (str2 != NULL) {
-      len2 = strlen(str2);
-      if (len2 > 0) {
-         mes2 = (wchar_t *) calloc(len2 + 1, sizeof(wchar_t));
-         mbstowcs_s(&s2, mes2, len2 + 1, str2, _TRUNCATE);
-      }
-   }
+   mes1 = strdup(str1);
+   if(str2 != NULL)
+      mes2 = strdup(str2);
+   else
+      mes2 = strdup("");
 
-   if (s1 > 0) {
-      ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
-   } else {
-      free(mes1);
-      if (len2 > 0)
-         free(mes2);
-   }
+   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
 }

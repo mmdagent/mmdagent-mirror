@@ -409,10 +409,6 @@ void Screen::setVSync(bool flag)
 {
    wglSwapIntervalEXT(flag ? 1 : 0);
    m_vsync = flag;
-   if (m_vsync)
-      g_logger.log(L"VSync on");
-   else
-      g_logger.log(L"VSync off");
 }
 
 /* Screen::toggleVSync: toggle vertical sync. flag */

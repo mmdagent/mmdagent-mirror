@@ -59,9 +59,9 @@ void MMDAgent::initialize()
 {
    int i;
 
-   wcscpy(m_configFileName, L"");
-   wcscpy(m_configDirName, L"");
-   wcscpy(m_appDirName, L"");
+   m_configFileName = NULL;
+   m_configDirName = NULL;
+   m_appDirName = NULL;
 
    m_hWnd = 0;
    m_hInst = 0;
@@ -97,6 +97,12 @@ void MMDAgent::clear()
 {
    int i;
 
+   if(m_configFileName)
+      free(m_configFileName);
+   if(m_configDirName)
+      free(m_configDirName);
+   if(m_appDirName)
+      free(m_appDirName);
    if (m_render)
       delete m_render;
    if (m_systex)
@@ -208,12 +214,9 @@ void MMDAgent::updateScene()
                if (motionPlayer->statusFlag == MOTION_STATUS_DELETED) {
                   /* send event message */
                   if (strcmp(motionPlayer->name, LIPSYNC_MOTIONNAME) == 0)
-                     sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", m_model[i].getAlias());
+                     sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTOP, "%s", m_model[i].getAlias());
                   else {
-                     wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
-                     size_t len;
-                     mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, motionPlayer->name, _TRUNCATE); /* should be removed */
-                     sendEventMessage(MMDAGENT_EVENT_MOTION_DELETE, L"%s|%s", m_model[i].getAlias(), wcsbuf);
+                     sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
                   }
                   /* unload from motion stocker */
                   m_motion.unload(motionPlayer->vmd);
@@ -275,13 +278,13 @@ void MMDAgent::renderScene(HWND hWnd)
    for (i = 0; i < m_numModel; i++) {
       if (m_model[i].isEnable() == true) {
          if (m_model[i].updateModelRootOffset(fps))
-            sendEventMessage(MMDAGENT_EVENT_MOVE_STOP, L"%s", m_model[i].getAlias());
+            sendEventMessage(MMDAGENTCOMMAND_MOVEEVENTSTOP, "%s", m_model[i].getAlias());
          if (m_model[i].updateModelRootRotation(fps)) {
             if (m_model[i].isTurning()) {
-               sendEventMessage(MMDAGENT_EVENT_TURN_STOP, L"%s", m_model[i].getAlias());
+               sendEventMessage(MMDAGENTCOMMAND_TURNEVENTSTOP, "%s", m_model[i].getAlias());
                m_model[i].setTurningFlag(false);
             } else {
-               sendEventMessage(MMDAGENT_EVENT_ROTATE_STOP, L"%s", m_model[i].getAlias());
+               sendEventMessage(MMDAGENTCOMMAND_ROTATEEVENTSTOP, "%s", m_model[i].getAlias());
             }
          }
       }
@@ -412,63 +415,68 @@ void MMDAgent::updateLight()
 }
 
 /* MMDAgent::sendCommandMessage: send command message */
-void MMDAgent::sendCommandMessage(wchar_t *commandType, const wchar_t *argFormat, ...)
+void MMDAgent::sendCommandMessage(char *type, const char *format, ...)
 {
-   int len;
    va_list argv;
-   wchar_t *buf1, *buf2;
+   char *buf1, *buf2;
 
-   buf1 = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(commandType) + 1));
-   wcscpy(buf1, commandType);
+   buf1 = strdup(type);
 
-   if (argFormat == NULL) {
+   if (format == NULL) {
       ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) NULL);
       return;
    }
 
-   va_start(argv, argFormat);
-   len = _vscwprintf(argFormat, argv);
-   buf2 = (wchar_t *) malloc(sizeof(wchar_t) * (len + 1));
-   vswprintf(buf2, len + 1, argFormat, argv);
+   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+
+   va_start(argv, format);
+   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
    va_end(argv);
 
    ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) buf2);
 }
 
 /* MMDAgent::sendEventMessage: send event message */
-void MMDAgent::sendEventMessage(wchar_t *eventType, const wchar_t *argFormat, ...)
+void MMDAgent::sendEventMessage(char *type, const char *format, ...)
 {
-   int len;
    va_list argv;
-   wchar_t *buf1, *buf2;
+   char *buf1, *buf2;
 
-   buf1 = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(eventType) + 1));
-   wcscpy(buf1, eventType);
+   buf1 = strdup(type);
 
-   if (argFormat == NULL) {
+   if (format == NULL) {
       ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) NULL);
       return;
    }
 
-   va_start(argv, argFormat);
-   len = _vscwprintf(argFormat, argv);
-   buf2 = (wchar_t *) malloc(sizeof(wchar_t) * (len + 1));
-   vswprintf(buf2, len + 1, argFormat, argv);
+   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+
+   va_start(argv, format);
+   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
    va_end(argv);
 
    ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) buf2);
 }
 
 /* MMDAgent::setup: initialize and setup MMDAgent */
-HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, wchar_t **argv)
+HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv)
 {
    int i;
    size_t len;
-   wchar_t buf[MAX_PATH];
-   char mbsbuf[MAX_PATH];
+   char buff[MMDAGENT_MAXBUFLEN];
 
-   wchar_t binaryDirName[MAX_PATH]; /* path of MMDAgent.exe */
-   wchar_t startDirName[MAX_PATH];
+   char *binaryFileName;
+   char *binaryDirName;
+
+   if(argc < 1 || strlen(argv[0]) <= 0)
+      return 0;
+
+   /* get binary file name */
+   binaryFileName = strdup(argv[0]);
+
+   /* get binary directory name */
+   binaryDirName = (char *) malloc(sizeof(char) * (strlen(binaryFileName) + 1));
+   getDirectory(binaryFileName, binaryDirName);
 
    m_hInst = hInstance;
 
@@ -478,47 +486,54 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* set local to japan */
    setlocale(LC_CTYPE, "jpn");
 
-   /* get start directory */
-   GetCurrentDirectory(MAX_PATH, startDirName);
-
-   /* get path of MMDAgent.exe */
-   GetModuleFileName(NULL, buf, MAX_PATH);
-   getFullDirName(binaryDirName, buf);
-
    /* get application directory */
-   wcsncpy(m_appDirName, binaryDirName, MAX_PATH);
-   wcsncat_s(m_appDirName, MAX_PATH, MMDAGENT_SYSDATADIR, _TRUNCATE);
+   if(m_appDirName)
+      free(m_appDirName);
+   m_appDirName = (char *) malloc(sizeof(char) * (strlen(binaryDirName) + 1 + strlen(MMDAGENT_SYSDATADIR) + 1));
+   sprintf(m_appDirName, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_SYSDATADIR);
 
    /* get default config file name */
-   len = wcslen(buf);
+   strcpy(buff, binaryFileName);
+   len = strlen(buff);
    if (len > 4) {
-      buf[len-4] = L'.';
-      buf[len-3] = L'm';
-      buf[len-2] = L'd';
-      buf[len-1] = L'f';
+      buff[len-4] = '.';
+      buff[len-3] = 'm';
+      buff[len-2] = 'd';
+      buff[len-1] = 'f';
 
       /* load default config file */
-      wcstombs_s(&len, mbsbuf, MAX_PATH, buf, _TRUNCATE);
-      if(m_option.load(mbsbuf))
-         wcscpy(m_configFileName, buf);
+      if(m_option.load(buff)) {
+         if(m_configFileName)
+            free(m_configFileName);
+         m_configFileName = strdup(buff);
+      }
    }
-   wcscpy(m_configDirName, binaryDirName);
 
    /* load additional config file name */
    for (i = 1; i < argc; i++) {
-      if (hasSuffix(argv[i], L"mdf")) {
-         wcstombs_s(&len, mbsbuf, MAX_PATH, argv[i], _TRUNCATE);
-         if (m_option.load(mbsbuf)) {
-            wcscpy(m_configFileName, argv[i]);
-            getFullDirName(m_configDirName, argv[i]);
+      if (hasExtension(argv[i], ".mdf")) {
+         if (m_option.load(argv[i])) {
+            if(m_configFileName)
+               free(m_configFileName);
+            m_configFileName = strdup(argv[i]);
          }
       }
    }
 
+   /* get config directory name */
+   if(m_configDirName)
+      free(m_configDirName);
+   if(m_configFileName == NULL) {
+      m_configFileName = strdup(binaryFileName);
+      m_configDirName = strdup(binaryDirName);
+   } else {
+      m_configDirName = (char *) malloc(sizeof(char) * (strlen(m_configFileName) + 1));
+      getDirectory(m_configFileName, m_configDirName);
+   }
+
    /* load and start plugins */
-   wcsncpy(buf, binaryDirName, MAX_PATH);
-   wcsncat_s(buf, MAX_PATH, MMDAGENT_PLUGINDIR, _TRUNCATE);
-   m_plugin.load(buf);
+   sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
+   m_plugin.load(buff);
    m_plugin.execAppStart(this);
 
    /* initialize logger */
@@ -545,12 +560,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_audio.setup(m_hWnd);
 
    /* load toon textures from system directory */
-   char appDirNameA[1024];
-   size_t appDirNameASize;
-   wcstombs_s(&appDirNameASize, appDirNameA, 1024, m_appDirName, _TRUNCATE);
-   if (appDirNameASize <= 0)
-      return false;
-   if (m_systex->load(appDirNameA) == false)
+   if (m_systex->load(m_appDirName) == false)
       return false;
 
    /* initialize render */
@@ -558,11 +568,11 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       return false;
 
    /* initialize text render */
-   m_text.setup(m_screen->getDC(), L"Arial Unicode MS");
+   m_text.setup(m_screen->getDC());
 
    /* load model from arguments */
    for (i = 1; i < argc; i++)
-      if (hasSuffix(argv[i], L"pmd"))
+      if (hasExtension(argv[i], ".pmd"))
          addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
 
    /* set stage size */
@@ -583,7 +593,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* start timer */
    m_timer.startSystem();
 
-   SetCurrentDirectory(m_configDirName);
+   SetCurrentDirectoryA(m_configDirName);
+
+   free(binaryFileName);
+   free(binaryDirName);
    return m_hWnd;
 }
 
@@ -598,6 +611,7 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
    float s;
    wchar_t *aliasName;
    GLint polygonMode[2];
+   char *mes1, *mes2;
 
    /* execute plugin functions */
    m_plugin.execWindowProc(this, hWnd, message, wParam, lParam);
@@ -627,8 +641,6 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
       /* make model highlight */
       m_render->highlightModel(this, m_selectedModel);
       m_doubleClicked = true;
-      if (m_selectedModel != -1)
-         g_logger.log(L"DoubleClick on %s", m_model[m_selectedModel].getAlias());
       break;
    case WM_LBUTTONDOWN:
       /* start hold */
@@ -845,10 +857,6 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
          m_enablePhysicsSimulation = !m_enablePhysicsSimulation;
          for (i = 0; i < m_numModel; i++)
             m_model[i].getPMDModel()->setPhysicsControl(m_enablePhysicsSimulation);
-         if (m_enablePhysicsSimulation)
-            g_logger.log(L"Physics simulation enabled");
-         else
-            g_logger.log(L"Physics simulation disabled");
          break;
       case IDM_TOGGLE_DISP_LOG:
          m_dispLog = !m_dispLog;
@@ -870,33 +878,40 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
       /* audio stop */
       aliasName = m_audio.getFinishedAlias(wParam, lParam);
       if (aliasName) {
-         sendEventMessage(MMDAGENT_EVENT_SOUND_STOP, L"%s", aliasName);
-         m_audio.close(aliasName);
+         char mbsbuf[MMDAGENT_MAXBUFLEN];
+         size_t len;
+         wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, aliasName, _TRUNCATE);
+         sendEventMessage(MMDAGENTCOMMAND_SOUNDEVENTSTOP, "%s", mbsbuf);
+         m_audio.close(mbsbuf);
       }
       break;
    case WM_CHAR:
-      sendEventMessage(MMDAGENT_EVENT_KEY, L"%C", wParam);
+      sendEventMessage(MMDAGENTCOMMAND_KEY, "%C", wParam);
       break;
    case WM_MMDAGENT_COMMAND:
       /* check command and free strings */
-      command((wchar_t *) wParam, (wchar_t *) lParam);
-      if ((wchar_t *) wParam != NULL)
-         free((wchar_t *) wParam);
-      if ((wchar_t *) lParam != NULL)
-         free((wchar_t *) lParam);
+      mes1 = (char *) wParam;
+      mes2 = (char *) lParam;
+      command(mes1, mes2);
+      if (mes1 != NULL)
+         free(mes1);
+      if (mes2 != NULL)
+         free(mes2);
       break;
    case WM_MMDAGENT_EVENT:
       /* free strings */
-      if ((wchar_t *) wParam != NULL) {
-         if ((wchar_t *) lParam != NULL)
-            g_logger.log(L"[%s|%s]", (wchar_t *) wParam, (wchar_t *) lParam);
+      mes1 = (char *) wParam;
+      mes2 = (char *) lParam;
+      if (mes1 != NULL) {
+         if (mes2 != NULL && strlen(mes2) > 0)
+            g_logger.log("[%s|%s]", mes1, mes2);
          else
-            g_logger.log(L"[%s]", (wchar_t *) wParam);
+            g_logger.log("[%s]", mes1);
       }
-      if ((wchar_t *) wParam != NULL)
-         free((wchar_t *) wParam);
-      if ((wchar_t *) lParam != NULL)
-         free((wchar_t *) lParam);
+      if (mes1 != NULL)
+         free(mes1);
+      if (mes2 != NULL)
+         free(mes2);
       break;
    default:
       hit_window = false;
@@ -910,12 +925,12 @@ bool MMDAgent::procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 }
 
 /* MMDAgent::findModelAlias: find a model with the specified alias */
-int MMDAgent::findModelAlias(wchar_t *alias)
+int MMDAgent::findModelAlias(char *alias)
 {
    int i;
 
    for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() && wcscmp(m_model[i].getAlias(), alias) == 0)
+      if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
          return i;
 
    return -1;

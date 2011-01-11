@@ -78,46 +78,35 @@ VIManager_Thread vimanager_thread;
 /* extWindowCreate: load FST and start thread */
 void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
 {
-   wchar_t *buf1;
-   char buf2[VIMANAGER_MAXBUFLEN];
-   size_t len2;
+   char *buf;
+   int len;
 
    setlocale(LC_CTYPE, "japanese");
 
-   buf1 = m->getConfigFileName();
-   wcstombs_s(&len2, buf2, VIMANAGER_MAXBUFLEN, buf1, _TRUNCATE);
-   if (len2 > 5) {
-      buf2[len2-5] = '.';
-      buf2[len2-4] = 'f';
-      buf2[len2-3] = 's';
-      buf2[len2-2] = 't';
-      vimanager_thread.loadAndStart(hWnd, WM_MMDAGENT_COMMAND, buf2);
+   buf = strdup(m->getConfigFileName());
+   len = strlen(buf);
+   if (len > 4) {
+      buf[len-4] = '.';
+      buf[len-3] = 'f';
+      buf[len-2] = 's';
+      buf[len-1] = 't';
+      vimanager_thread.loadAndStart(hWnd, WM_MMDAGENT_COMMAND, buf);
    }
+   free(buf);
 }
 
 /* extWindowProc: catch dialog message */
 void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   wchar_t *mes1;
-   wchar_t *mes2;
-   char buf1[VIMANAGER_MAXBUFLEN];
-   char buf2[VIMANAGER_MAXBUFLEN];
-   size_t len1;
-   size_t len2;
+   char *mes1;
+   char *mes2;
 
    if (vimanager_thread.isStarted()) {
       if (message == WM_MMDAGENT_EVENT) {
-         mes1 = (wchar_t *) wParam;
-         mes2 = (wchar_t *) lParam;
-         if (mes1 != NULL && wcslen(mes1) > 0) {
-            wcstombs_s(&len1, buf1, VIMANAGER_MAXBUFLEN, mes1, _TRUNCATE);
-            if (len1 > 0) {
-               if (mes2 != NULL && wcslen(mes2) > 0)
-                  wcstombs_s(&len2, buf2, VIMANAGER_MAXBUFLEN, mes2, _TRUNCATE);
-               else
-                  strcpy(buf2, "");
-               vimanager_thread.enqueueBuffer(buf1, buf2); /* enqueue */
-            }
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
+         if (mes1 != NULL) {
+            vimanager_thread.enqueueBuffer(mes1, mes2); /* enqueue */
          }
       }
    }

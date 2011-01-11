@@ -72,7 +72,8 @@
 #include "Option.h"
 #include "MMDAgent.h"
 
-#define PLUGINJULIUS_NAME L"Julius"
+#define PLUGINJULIUS_NAME         "Julius"
+#define PLUGINJULIUS_DIRSEPARATOR '\\'
 
 /* global variables */
 
@@ -81,21 +82,19 @@ Julius_Thread julius_thread;
 /* extWindowCreate: load models and start thread */
 void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
 {
-   wchar_t buff[JULIUSTHREAD_MAXBUFLEN];
-   wchar_t current_dir[JULIUSTHREAD_MAXBUFLEN];
+   char buff[JULIUSTHREAD_MAXBUFLEN];
+   char current_dir[JULIUSTHREAD_MAXBUFLEN];
 
    /* save current directory and move directory */
-   GetCurrentDirectory(JULIUSTHREAD_MAXBUFLEN, current_dir);
-   wcscpy(buff, m->getAppDirName());
-   wcscat(buff, L"\\");
-   wcscat(buff, PLUGINJULIUS_NAME);
-   SetCurrentDirectory(buff);
+   GetCurrentDirectoryA(JULIUSTHREAD_MAXBUFLEN, current_dir);
+   sprintf(buff, "%s%c%s", m->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME);
+   SetCurrentDirectoryA(buff);
 
    /* load models and start thread */
    julius_thread.loadAndStart(hWnd, WM_MMDAGENT_EVENT);
 
    /* move directory */
-   SetCurrentDirectory(current_dir);
+   SetCurrentDirectoryA(current_dir);
 }
 
 /* DllMain: main for DLL */

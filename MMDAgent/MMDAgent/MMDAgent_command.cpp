@@ -55,17 +55,16 @@
 #define MMDAGENT_MAXLIPSYNCBUFLEN MMDAGENT_MAXCOMMANDBUFLEN
 
 /* arg2floatArray: parse float array from string */
-static bool arg2floatArray(float *dst, int len, wchar_t *arg)
+static bool arg2floatArray(float *dst, int len, char *arg)
 {
    int n;
-   wchar_t *buf, *p, *psave;
+   char *buf, *p;
 
-   buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(arg) + 1));
-   wcscpy(buf, arg);
+   buf = strdup(arg);
    n = 0;
-   for (p = wcstok_s(buf, L"(,)", &psave); p ; p = wcstok_s(NULL, L"(,)", &psave)) {
+   for (p = strtok(buf, "(,)"); p ; p = strtok(NULL, "(,)")) {
       if (n < len)
-         dst[n] = (float) _wtof(p);
+         dst[n] = (float) atof(p);
       n++;
    }
    free(buf);
@@ -77,7 +76,7 @@ static bool arg2floatArray(float *dst, int len, wchar_t *arg)
 }
 
 /* arg2pos: get position from string */
-static bool arg2pos(btVector3 *dst, wchar_t *arg)
+static bool arg2pos(btVector3 *dst, char *arg)
 {
    float f[3];
 
@@ -91,7 +90,7 @@ static bool arg2pos(btVector3 *dst, wchar_t *arg)
 }
 
 /* arg2rot: get rotation from string */
-static bool arg2rot(btQuaternion *dst, wchar_t *arg)
+static bool arg2rot(btQuaternion *dst, char *arg)
 {
    float angle[3];
 
@@ -104,13 +103,13 @@ static bool arg2rot(btQuaternion *dst, wchar_t *arg)
 }
 
 /* MMDAgent::command: decode command string from client and call process */
-bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
+bool MMDAgent::command(char *command, char *str)
 {
-   static wchar_t warg[MMDAGENT_MAXNUMCOMMAND][MMDAGENT_MAXCOMMANDBUFLEN]; /* static buffer */
+   static char argv[MMDAGENT_MAXNUMCOMMAND][MMDAGENT_MAXCOMMANDBUFLEN]; /* static buffer */
    int num = 0;
-   wchar_t *buf;
+   char *buf;
 
-   wchar_t *tmpStr1, *tmpStr2;
+   char *tmpStr1, *tmpStr2;
    bool tmpBool1, tmpBool2, tmpBool3, tmpBool4;
    float tmpFloat;
    btVector3 tmpPos;
@@ -118,314 +117,304 @@ bool MMDAgent::command(wchar_t *command, wchar_t *wstr)
    float tmpFloatList[3];
 
    /* divide string into arguments */
-   if (wstr == NULL) {
-      g_logger.log( L"<%s>", command);
+   if (str == NULL || strlen(str) <= 0) {
+      g_logger.log("<%s>", command);
       num = 0;
    } else {
-      g_logger.log( L"<%s|%s>", command, wstr );
-      buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(wstr) + 1));
-      wcscpy(buf, wstr);
-      for (tmpStr1 = wcstokWithDoubleQuotation(buf, L"|", &tmpStr2); tmpStr1; tmpStr1 = wcstokWithDoubleQuotation(NULL, L"|", &tmpStr2)) {
+      g_logger.log("<%s|%s>", command, str);
+      buf = strdup(str);
+      for (tmpStr1 = strtokWithDoubleQuotation(buf, "|", &tmpStr2); tmpStr1; tmpStr1 = strtokWithDoubleQuotation(NULL, "|", &tmpStr2)) {
          if (num >= MMDAGENT_MAXNUMCOMMAND) {
-            g_logger.log(L"! Error: too many argument in command %s: %s", command, wstr);
+            g_logger.log("! Error: too many argument in command %s: %s", command, str);
             free(buf);
             return false;
          }
-         wcsncpy(warg[num], tmpStr1, MMDAGENT_MAXCOMMANDBUFLEN);
-         warg[num][MMDAGENT_MAXCOMMANDBUFLEN - 1] = L'\0';
+         strncpy(argv[num], tmpStr1, MMDAGENT_MAXCOMMANDBUFLEN);
+         argv[num][MMDAGENT_MAXCOMMANDBUFLEN - 1] = '\0';
          num++;
       }
       free(buf);
    }
 
-   if (wcscmp(command, MMDAGENT_COMMAND_MODEL_ADD) == 0) {
+   if (strcmp(command, MMDAGENT_COMMAND_MODEL_ADD) == 0) {
       tmpStr1 = NULL;
       tmpStr2 = NULL;
       if (num < 2 || num > 6) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       if (num >= 3) {
-         if (arg2pos(&tmpPos, warg[2]) == false) {
-            g_logger.log(L"! Error: %s: not a position string: %s", command, warg[2]);
+         if (arg2pos(&tmpPos, argv[2]) == false) {
+            g_logger.log("! Error: %s: not a position string: %s", command, argv[2]);
             return false;
          }
       } else {
          tmpPos = btVector3(0.0, 0.0, 0.0);
       }
       if (num >= 4) {
-         if (arg2rot(&tmpRot, warg[3]) == false) {
-            g_logger.log(L"! Error: %s: not a rotation string: %s", command, warg[3]);
+         if (arg2rot(&tmpRot, argv[3]) == false) {
+            g_logger.log("! Error: %s: not a rotation string: %s", command, argv[3]);
             return false;
          }
       } else {
          tmpRot.setEulerZYX(0.0, 0.0, 0.0);
       }
       if (num >= 5) {
-         tmpStr1 = warg[4];
+         tmpStr1 = argv[4];
       }
       if (num >= 6) {
-         tmpStr2 = warg[5];
+         tmpStr2 = argv[5];
       }
-      return addModel(warg[0], warg[1], &tmpPos, &tmpRot, tmpStr1, tmpStr2);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MODEL_CHANGE) == 0) {
+      return addModel(argv[0], argv[1], &tmpPos, &tmpRot, tmpStr1, tmpStr2);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MODEL_CHANGE) == 0) {
       /* change model */
       if (num != 2) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return changeModel(warg[0], warg[1]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MODEL_DELETE) == 0) {
+      return changeModel(argv[0], argv[1]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MODEL_DELETE) == 0) {
       /* delete model */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return deleteModel(warg[0]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MOTION_ADD) == 0) {
+      return deleteModel(argv[0]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_ADD) == 0) {
       /* add motion */
       tmpBool1 = true; /* full */
       tmpBool2 = true; /* once */
       tmpBool3 = true; /* enableSmooth */
       tmpBool4 = true; /* enableRePos */
       if (num < 3 || num > 7) {
-         g_logger.log(L"! Error: %s: too few arguments", command);
+         g_logger.log("! Error: %s: too few arguments", command);
          return false;
       }
       if (num >= 4) {
-         if (wcscmp(warg[3], L"FULL") == 0) {
+         if (strcmp(argv[3], "FULL") == 0) {
             tmpBool1 = true;
-         } else if (wcscmp(warg[3], L"PART") == 0) {
+         } else if (strcmp(argv[3], "PART") == 0) {
             tmpBool1 = false;
          } else {
-            g_logger.log(L"! Error: %s: 4th argument should be \"FULL\" or \"PART\"", command);
+            g_logger.log("! Error: %s: 4th argument should be \"FULL\" or \"PART\"", command);
             return false;
          }
       }
       if (num >= 5) {
-         if (wcscmp(warg[4], L"ONCE") == 0) {
+         if (strcmp(argv[4], "ONCE") == 0) {
             tmpBool2 = true;
-         } else if (wcscmp(warg[4], L"LOOP") == 0) {
+         } else if (strcmp(argv[4], "LOOP") == 0) {
             tmpBool2 = false;
          } else {
-            g_logger.log(L"! Error: %s: 5th argument should be \"ONCE\" or \"LOOP\"", command);
+            g_logger.log("! Error: %s: 5th argument should be \"ONCE\" or \"LOOP\"", command);
             return false;
          }
       }
       if (num >= 6) {
-         if (wcscmp(warg[5], L"ON") == 0) {
+         if (strcmp(argv[5], "ON") == 0) {
             tmpBool3 = true;
-         } else if (wcscmp(warg[5], L"OFF") == 0) {
+         } else if (strcmp(argv[5], "OFF") == 0) {
             tmpBool3 = false;
          } else {
-            g_logger.log(L"! Error: %s: 6th argument should be \"ON\" or \"OFF\"", command);
+            g_logger.log("! Error: %s: 6th argument should be \"ON\" or \"OFF\"", command);
             return false;
          }
       }
       if (num >= 7) {
-         if (wcscmp(warg[6], L"ON") == 0) {
+         if (strcmp(argv[6], "ON") == 0) {
             tmpBool4 = true;
-         } else if (wcscmp(warg[6], L"OFF") == 0) {
+         } else if (strcmp(argv[6], "OFF") == 0) {
             tmpBool4 = false;
          } else {
-            g_logger.log(L"! Error: %s: 7th argument should be \"ON\" or \"OFF\"", command);
+            g_logger.log("! Error: %s: 7th argument should be \"ON\" or \"OFF\"", command);
             return false;
          }
       }
-      char mbsbuf[MMDAGENT_MAXBUFLEN];
-      size_t len;
-      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
-      return addMotion(warg[0], mbsbuf , warg[2], tmpBool1, tmpBool2, tmpBool3, tmpBool4);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MOTION_CHANGE) == 0) {
+      return addMotion(argv[0], argv[1], argv[2], tmpBool1, tmpBool2, tmpBool3, tmpBool4);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_CHANGE) == 0) {
       /* change motion */
       if (num != 3) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      char mbsbuf[MMDAGENT_MAXBUFLEN];
-      size_t len;
-      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
-      return changeMotion(warg[0], mbsbuf, warg[2]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MOTION_DELETE) == 0) {
+      return changeMotion(argv[0], argv[1], argv[2]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_DELETE) == 0) {
       /* delete motion */
       if (num != 2) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      char mbsbuf[MMDAGENT_MAXBUFLEN];
-      size_t len;
-      wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, warg[1], _TRUNCATE); /* should be removed */
-      return deleteMotion(warg[0], mbsbuf);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MOVE_START) == 0) {
+      return deleteMotion(argv[0], argv[1]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MOVE_START) == 0) {
       /* start moving */
       tmpBool1 = false;
       tmpFloat = -1.0;
       if (num < 2 || num > 4) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2pos(&tmpPos, warg[1]) == false) {
-         g_logger.log(L"! Error: %s: not a position string: %s", command, warg[1]);
+      if (arg2pos(&tmpPos, argv[1]) == false) {
+         g_logger.log("! Error: %s: not a position string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (wcscmp(warg[2], L"LOCAL") == 0) {
+         if (strcmp(argv[2], "LOCAL") == 0) {
             tmpBool1 = true;
-         } else if (wcscmp(warg[2], L"GLOBAL") == 0) {
+         } else if (strcmp(argv[2], "GLOBAL") == 0) {
             tmpBool1 = false;
          } else {
-            g_logger.log(L"! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            g_logger.log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) _wtof(warg[3]);
-      return startMove(warg[0], &tmpPos, tmpBool1, tmpFloat);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_MOVE_STOP) == 0) {
+         tmpFloat = (float) atof(argv[3]);
+      return startMove(argv[0], &tmpPos, tmpBool1, tmpFloat);
+   } else if (strcmp(command, MMDAGENT_COMMAND_MOVE_STOP) == 0) {
       /* stop moving */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return stopMove(warg[0]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_ROTATE_START) == 0) {
+      return stopMove(argv[0]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_ROTATE_START) == 0) {
       /* start rotation */
       tmpBool1 = false;
       tmpFloat = -1.0;
       if (num < 2 || num > 4) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2rot(&tmpRot, warg[1]) == false) {
-         g_logger.log(L"! Error: %s: not a rotation string: %s", command, warg[1]);
+      if (arg2rot(&tmpRot, argv[1]) == false) {
+         g_logger.log("! Error: %s: not a rotation string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (wcscmp(warg[2], L"LOCAL") == 0) {
+         if (strcmp(argv[2], "LOCAL") == 0) {
             tmpBool1 = true;
-         } else if (wcscmp(warg[2], L"GLOBAL") == 0) {
+         } else if (strcmp(argv[2], "GLOBAL") == 0) {
             tmpBool1 = false;
          } else {
-            g_logger.log(L"! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            g_logger.log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) _wtof(warg[3]);
-      return startRotation(warg[0], &tmpRot, tmpBool1, tmpFloat);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_ROTATE_STOP) == 0) {
+         tmpFloat = (float) atof(argv[3]);
+      return startRotation(argv[0], &tmpRot, tmpBool1, tmpFloat);
+   } else if (strcmp(command, MMDAGENT_COMMAND_ROTATE_STOP) == 0) {
       /* stop rotation */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return stopRotation(warg[0]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_TURN_START) == 0) {
+      return stopRotation(argv[0]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_TURN_START) == 0) {
       /* turn start */
       tmpBool1 = false;
       tmpFloat = -1.0;
       if (num < 2 || num > 4) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2pos(&tmpPos, warg[1]) == false) {
-         g_logger.log(L"! Error: %s: not a position string: %s", command, warg[1]);
+      if (arg2pos(&tmpPos, argv[1]) == false) {
+         g_logger.log("! Error: %s: not a position string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (wcscmp(warg[2], L"LOCAL") == 0) {
+         if (strcmp(argv[2], "LOCAL") == 0) {
             tmpBool1 = true;
-         } else if (wcscmp(warg[2], L"GLOBAL") == 0) {
+         } else if (strcmp(argv[2], "GLOBAL") == 0) {
             tmpBool1 = false;
          } else {
-            g_logger.log(L"! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            g_logger.log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) _wtof(warg[3]);
-      return startTurn(warg[0], &tmpPos, tmpBool1, tmpFloat);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_TURN_STOP) == 0) {
+         tmpFloat = (float) atof(argv[3]);
+      return startTurn(argv[0], &tmpPos, tmpBool1, tmpFloat);
+   } else if (strcmp(command, MMDAGENT_COMMAND_TURN_STOP) == 0) {
       /* stop turn */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return stopTurn(warg[0]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_SOUND_START) == 0) {
+      return stopTurn(argv[0]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_SOUND_START) == 0) {
       /* start sound */
       if (num != 2) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      startSound(warg[0], warg[1], true);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
+      startSound(argv[0], argv[1], true);
+   } else if (strcmp(command, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
       /* stop sound */
       if (num < 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      stopSound(warg[0]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_STAGE) == 0) {
+      stopSound(argv[0]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_STAGE) == 0) {
       /* change stage */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       /* pmd or bitmap */
-      tmpStr1 = wcsstr(warg[0], L",");
+      tmpStr1 = strstr(argv[0], ",");
       if (tmpStr1 == NULL) {
-         return setStage(warg[0]);
+         return setStage(argv[0]);
       } else {
-         (*tmpStr1) = L'\0';
+         (*tmpStr1) = '\0';
          tmpStr1++;
-         if (setFloor(warg[0]) == true && setBackground(tmpStr1) == true)
+         if (setFloor(argv[0]) == true && setBackground(tmpStr1) == true)
             return true;
          else
             return false;
       }
-   } else if (wcscmp(command, MMDAGENT_COMMAND_LIGHTCOLOR) == 0) {
+   } else if (strcmp(command, MMDAGENT_COMMAND_LIGHTCOLOR) == 0) {
       /* change light color */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2floatArray(tmpFloatList, 3, warg[0]) == false) {
-         g_logger.log(L"! Error: %s: not \"R,G,B\" value: %s", command, warg[0]);
+      if (arg2floatArray(tmpFloatList, 3, argv[0]) == false) {
+         g_logger.log("! Error: %s: not \"R,G,B\" value: %s", command, argv[0]);
          return false;
       }
       return changeLightColor(tmpFloatList[0], tmpFloatList[1], tmpFloatList[2]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_LIGHTDIRECTION) == 0) {
+   } else if (strcmp(command, MMDAGENT_COMMAND_LIGHTDIRECTION) == 0) {
       /* change light direction */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2floatArray(tmpFloatList, 3, warg[0]) == false) {
-         g_logger.log(L"! Error: %s: not \"x,y,z\" value: %s", command, warg[0]);
+      if (arg2floatArray(tmpFloatList, 3, argv[0]) == false) {
+         g_logger.log("! Error: %s: not \"x,y,z\" value: %s", command, argv[0]);
          return false;
       }
       return changeLightDirection(tmpFloatList[0], tmpFloatList[1], tmpFloatList[2]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_LIPSYNC_START) == 0) {
+   } else if (strcmp(command, MMDAGENT_COMMAND_LIPSYNC_START) == 0) {
       /* start lip sync */
       if (num != 2) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return startLipSync(warg[0], warg[1]);
-   } else if (wcscmp(command, MMDAGENT_COMMAND_LIPSYNC_STOP) == 0) {
+      return startLipSync(argv[0], argv[1]);
+   } else if (strcmp(command, MMDAGENT_COMMAND_LIPSYNC_STOP) == 0) {
       /* stop lip sync */
       if (num != 1) {
-         g_logger.log(L"! Error: %s: wrong number of arguments", command);
+         g_logger.log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      return stopLipSync(warg[0]);
+      return stopLipSync(argv[0]);
    }
    return true;
 }
 
 /* MMDAgent::addMotion: add motion */
-bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
+bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
 {
    int i;
    bool find;
@@ -435,19 +424,16 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileNa
    char *name;
 
    /* motion file */
-   char mbsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   vmd = m_motion.loadFromFile(mbsbuf);
+   vmd = m_motion.loadFromFile(fileName);
    if (vmd == NULL) {
-      g_logger.log(L"! Error: addMotion: failed to load %s.", fileName);
+      g_logger.log("! Error: addMotion: failed to load %s.", fileName);
       return false;
    }
 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: addMotion: not found %s.", modelAlias);
+      g_logger.log("! Error: addMotion: not found %s.", modelAlias);
       return false;
    }
 
@@ -457,7 +443,7 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileNa
       name = strdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
          if (motionPlayer->active && strcmp(motionPlayer->name, name) == 0) {
-            g_logger.log(L"! Error: addMotion: motion alias \"%s\" is already used.", name);
+            g_logger.log("! Error: addMotion: motion alias \"%s\" is already used.", name);
             free(name);
             return false;
          }
@@ -486,15 +472,13 @@ bool MMDAgent::addMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileNa
       return false;
    }
 
-   wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
-   mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, name, _TRUNCATE); /* should be removed */
-   sendEventMessage(MMDAGENT_EVENT_MOTION_ADD, L"%s|%s", modelAlias, wcsbuf);
+   sendEventMessage(MMDAGENTCOMMAND_EVENTMOTIONADD, "%s|%s", modelAlias, name);
    free(name);
    return true;
 }
 
 /* MMDAgent::changeMotion: change motion */
-bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fileName)
+bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
 {
    int id;
    VMD *vmd, *old = NULL;
@@ -503,23 +487,20 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fil
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: changeMotion: not found %s.", modelAlias);
+      g_logger.log("! Error: changeMotion: not found %s.", modelAlias);
       return false;
    }
 
    /* check */
    if (!motionAlias) {
-      g_logger.log(L"! Error: changeMotion: not specified %s.", motionAlias);
+      g_logger.log("! Error: changeMotion: not specified %s.", motionAlias);
       return false;
    }
 
    /* motion file */
-   char mbsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   vmd = m_motion.loadFromFile(mbsbuf);
+   vmd = m_motion.loadFromFile(fileName);
    if (vmd == NULL) {
-      g_logger.log(L"! Error: changeMotion: failed to load %s.", fileName);
+      g_logger.log("! Error: changeMotion: failed to load %s.", fileName);
       return false;
    }
 
@@ -531,14 +512,14 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fil
       }
    }
    if(old == NULL) {
-      g_logger.log(L"! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      g_logger.log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
       m_motion.unload(vmd);
       return false;
    }
 
    /* change motion */
    if (m_model[id].swapMotion(vmd, motionAlias) == false) {
-      g_logger.log(L"! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      g_logger.log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
       m_motion.unload(vmd);
       return false;
    }
@@ -547,27 +528,25 @@ bool MMDAgent::changeMotion(wchar_t *modelAlias, char *motionAlias, wchar_t *fil
    m_motion.unload(old);
 
    /* send event message */
-   wchar_t wcsbuf[MMDAGENT_MAXBUFLEN];
-   mbstowcs_s(&len, wcsbuf, MMDAGENT_MAXBUFLEN, motionAlias, _TRUNCATE); /* should be removed */
-   sendEventMessage(MMDAGENT_EVENT_MOTION_CHANGE, L"%s|%s", modelAlias, wcsbuf);
+   sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTCHANGE, "%s|%s", modelAlias, motionAlias);
    return true;
 }
 
 /* MMDAgent::deleteMotion: delete motion */
-bool MMDAgent::deleteMotion(wchar_t *modelAlias, char *motionAlias)
+bool MMDAgent::deleteMotion(char *modelAlias, char *motionAlias)
 {
    int id;
 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: deleteMotion: not found %s.", modelAlias);
+      g_logger.log("! Error: deleteMotion: not found %s.", modelAlias);
       return false;
    }
 
    /* delete motion */
    if (m_model[id].getMotionManager()->deleteMotion(motionAlias) == false) {
-      g_logger.log(L"! Error: deleteMotion: motion alias \"%s\"is not found.", motionAlias);
+      g_logger.log("! Error: deleteMotion: motion alias \"%s\"is not found.", motionAlias);
       return false;
    }
 
@@ -576,12 +555,12 @@ bool MMDAgent::deleteMotion(wchar_t *modelAlias, char *motionAlias)
 }
 
 /* MMDAgent::addModel: add model */
-bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, btQuaternion *rot, wchar_t *baseModelAlias, wchar_t *baseBoneName)
+bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName)
 {
    int i;
    int id;
    int baseID;
-   wchar_t *name;
+   char *name;
    btVector3 offsetPos = btVector3(0.0f, 0.0f, 0.0f);
    btQuaternion offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
    bool forcedPosition = false;
@@ -600,22 +579,19 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    if (baseModelAlias) {
       baseID = findModelAlias(baseModelAlias);
       if (baseID < 0) {
-         g_logger.log(L"!Error: addModel: model alias \"%s\" is not found", baseModelAlias);
+         g_logger.log("!Error: addModel: model alias \"%s\" is not found", baseModelAlias);
          return false;
       }
       if (baseBoneName) {
-         char mbsbuf[MMDAGENT_MAXBUFLEN];
-         size_t len;
-         wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, baseBoneName, _TRUNCATE);
-         assignBone = m_model[baseID].getPMDModel()->getBone(mbsbuf);
+         assignBone = m_model[baseID].getPMDModel()->getBone(baseBoneName);
       } else {
          assignBone = m_model[baseID].getPMDModel()->getCenterBone();
       }
       if (assignBone == NULL) {
          if (baseBoneName)
-            g_logger.log(L"!Error: addModel: bone \"%s\" is not exist on %s.", baseBoneName, baseModelAlias);
+            g_logger.log("!Error: addModel: bone \"%s\" is not exist on %s.", baseBoneName, baseModelAlias);
          else
-            g_logger.log(L"!Error: addModel: cannot assign to bone of %s.", baseModelAlias);
+            g_logger.log("!Error: addModel: cannot assign to bone of %s.", baseModelAlias);
          return false;
       }
       assignObject = &m_model[baseID];
@@ -624,24 +600,24 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    /* ID */
    id = getNewModelId();
    if (id == -1) {
-      g_logger.log(L"! Error: addModel: too many models.");
+      g_logger.log("! Error: addModel: too many models.");
       return false;
    }
 
    /* determine name */
-   if (modelAlias && wcslen(modelAlias) > 0) {
+   if (modelAlias && strlen(modelAlias) > 0) {
       /* check the same alias */
-      name = _wcsdup(modelAlias);
+      name = strdup(modelAlias);
       if (findModelAlias(name) >= 0) {
-         g_logger.log(L"! Error: addModel: model alias \"%s\" is already used.", name);
+         g_logger.log("! Error: addModel: model alias \"%s\" is already used.", name);
          free(name);
          return false;
       }
    } else {
       /* if model alias is not specified, unused digit is used */
       for(i = 0;; i++) {
-         name = (wchar_t *) malloc(sizeof(wchar_t) * (getNumDigit(i) + 1));
-         wsprintf(name, L"%d", i);
+         name = (char *) malloc(sizeof(char) * (getNumDigit(i) + 1));
+         sprintf(name, "%d", i);
          if (findModelAlias(name) >= 0)
             free(name);
          else
@@ -651,7 +627,7 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
 
    /* add model */
    if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
-      g_logger.log(L"! Error: addModel: failed to load %s.", fileName);
+      g_logger.log("! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
       return false;
@@ -662,13 +638,13 @@ bool MMDAgent::addModel(wchar_t *modelAlias, wchar_t *fileName, btVector3 *pos, 
    m_model[id].setAlias(name);
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_MODEL_ADD, L"%s", name);
+   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTADD, "%s", name);
    free(name);
    return true;
 }
 
 /* MMDAgent::changeModel: change model */
-bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
+bool MMDAgent::changeModel(char *modelAlias, char *fileName)
 {
    int i;
    int id;
@@ -680,13 +656,13 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: changeModel: not found %s.", modelAlias);
+      g_logger.log("! Error: changeModel: not found %s.", modelAlias);
       return false;
    }
 
    /* load model */
    if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
-      g_logger.log(L"! Error: changeModel: failed to load model %s.", fileName);
+      g_logger.log("! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }
 
@@ -710,12 +686,12 @@ bool MMDAgent::changeModel(wchar_t *modelAlias, wchar_t *fileName)
          deleteModel(m_model[i].getAlias());
 
    /* send message */
-   sendEventMessage(MMDAGENT_EVENT_MODEL_CHANGE, L"%s", modelAlias);
+   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTCHANGE, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::deleteModel: delete model */
-bool MMDAgent::deleteModel(wchar_t *modelAlias)
+bool MMDAgent::deleteModel(char *modelAlias)
 {
    int i;
    int id;
@@ -724,7 +700,7 @@ bool MMDAgent::deleteModel(wchar_t *modelAlias)
    id = findModelAlias(modelAlias);
    if (id < 0) {
       /* wrong alias */
-      g_logger.log(L"Error: deleteModel: not found %s.", modelAlias);
+      g_logger.log("Error: deleteModel: not found %s.", modelAlias);
       return false;
    }
 
@@ -737,66 +713,57 @@ bool MMDAgent::deleteModel(wchar_t *modelAlias)
    m_model[id].startDisappear();
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_MODEL_DELETE, L"%s", modelAlias);
+   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTDELETE, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::setFloor: set floor image */
-bool MMDAgent::setFloor(wchar_t *fileName)
+bool MMDAgent::setFloor(char *fileName)
 {
    /* load floor */
-   char mbsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   if (m_stage->loadFloor(mbsbuf, &m_bullet) == false) {
-      g_logger.log(L"Error: setFloor: cannot set floor %s.", fileName);
+   if (m_stage->loadFloor(fileName, &m_bullet) == false) {
+      g_logger.log("Error: setFloor: cannot set floor %s.", fileName);
       return false;
    }
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_FLOOR, L"%s", fileName);
+   sendEventMessage(MMDAGENTCOMMAND_FLOOR, "%s", fileName);
    return true;
 }
 
 /* MMDAgent::setBackground: set background image */
-bool MMDAgent::setBackground(wchar_t *fileName)
+bool MMDAgent::setBackground(char *fileName)
 {
    /* load background */
-   char mbsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, fileName, _TRUNCATE);
-   if (m_stage->loadBackground(mbsbuf, &m_bullet) == false) {
-      g_logger.log(L"Error: setBackground: cannot set background %s.", fileName);
+   if (m_stage->loadBackground(fileName, &m_bullet) == false) {
+      g_logger.log("Error: setBackground: cannot set background %s.", fileName);
       return false;
    }
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_BACKGROUND, L"%s", fileName);
+   sendEventMessage(MMDAGENTCOMMAND_BACKGROUND, "%s", fileName);
    return true;
 }
 
 /* MMDAgent::setStage: set stage */
-bool MMDAgent::setStage(wchar_t *fileName)
+bool MMDAgent::setStage(char *fileName)
 {
-   char mbsbuf[STAGE_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, STAGE_MAXBUFLEN, fileName, _TRUNCATE); /* should be removed */
-   if (m_stage->loadStagePMD(mbsbuf, &m_bullet, m_systex) == false) {
-      g_logger.log(L"Error: setStage: cannot set stage %s.", fileName);
+   if (m_stage->loadStagePMD(fileName, &m_bullet, m_systex) == false) {
+      g_logger.log("Error: setStage: cannot set stage %s.", fileName);
       return false;
    }
 
-   sendEventMessage(MMDAGENT_EVENT_STAGE, L"%s", fileName);
+   sendEventMessage(MMDAGENTCOMMAND_STAGE, "%s", fileName);
    return true;
 }
 
 /* MMDAgent::startSound: start sound */
-bool MMDAgent::startSound(wchar_t *soundAlias, wchar_t *fileName, bool adjust)
+bool MMDAgent::startSound(char *soundAlias, char *fileName, bool adjust)
 {
    m_audio.close(soundAlias);
    if (m_audio.play(fileName, soundAlias) == false) {
       m_timer.adjustStop();
-      g_logger.log(L"Error: startSound: cannot start sound %s.", fileName);
+      g_logger.log("Error: startSound: cannot start sound %s.", fileName);
       return false;
    }
 
@@ -807,12 +774,12 @@ bool MMDAgent::startSound(wchar_t *soundAlias, wchar_t *fileName, bool adjust)
    }
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_SOUND_START, L"%s", soundAlias);
+   sendEventMessage(MMDAGENTCOMMAND_SOUNDEVENTSTART, "%s", soundAlias);
    return true;
 }
 
 /* MMDAgent::stopSound: stop sound */
-bool MMDAgent::stopSound(wchar_t *soundAlias)
+bool MMDAgent::stopSound(char *soundAlias)
 {
    m_audio.close(soundAlias);
 
@@ -836,7 +803,7 @@ bool MMDAgent::changeLightDirection(float x, float y, float z)
    updateLight();
 
    /* send event message */
-   sendEventMessage( MMDAGENT_EVENT_LIGHTDIRECTION, L"%.2f,%.2f,%.2f", x, y, z);
+   sendEventMessage(MMDAGENTCOMMAND_EVENTLIGHTDIRECTION, "%.2f,%.2f,%.2f", x, y, z);
    return true;
 }
 
@@ -852,12 +819,12 @@ bool MMDAgent::changeLightColor(float r, float g, float b)
    updateLight();
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_LIGHTCOLOR, L"%.2f,%.2f,%.2f", r, g, b);
+   sendEventMessage(MMDAGENTCOMMAND_EVENTLIGHTCOLOR, "%.2f,%.2f,%.2f", r, g, b);
    return true;
 }
 
 /* MMDAgent::startMove: start moving */
-bool MMDAgent::startMove(wchar_t *modelAlias, btVector3 *pos, bool local, float speed)
+bool MMDAgent::startMove(char *modelAlias, btVector3 *pos, bool local, float speed)
 {
    int id;
    btVector3 currentPos;
@@ -868,7 +835,7 @@ bool MMDAgent::startMove(wchar_t *modelAlias, btVector3 *pos, bool local, float 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: startMove: not found %s.", modelAlias);
+      g_logger.log("! Error: startMove: not found %s.", modelAlias);
       return false;
    }
 
@@ -889,13 +856,12 @@ bool MMDAgent::startMove(wchar_t *modelAlias, btVector3 *pos, bool local, float 
 
    m_model[id].setMoveSpeed(speed);
    m_model[id].setPosition(targetPos);
-   sendEventMessage(MMDAGENT_EVENT_MOVE_START, L"%s", modelAlias);
-
+   sendEventMessage(MMDAGENTCOMMAND_MOVEEVENTSTART, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::stopMove: stop moving */
-bool MMDAgent::stopMove(wchar_t *modelAlias)
+bool MMDAgent::stopMove(char *modelAlias)
 {
    int id;
    btVector3 targetPos;
@@ -904,7 +870,7 @@ bool MMDAgent::stopMove(wchar_t *modelAlias)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: stopMove: not found %s.", modelAlias);
+      g_logger.log("! Error: stopMove: not found %s.", modelAlias);
       return false;
    }
 
@@ -917,13 +883,12 @@ bool MMDAgent::stopMove(wchar_t *modelAlias)
       return true;
 
    m_model[id].setPosition(targetPos);
-   sendEventMessage(MMDAGENT_EVENT_MOVE_STOP, L"%s", modelAlias);
-
+   sendEventMessage(MMDAGENTCOMMAND_MOVEEVENTSTOP, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::startRotation: start rotation */
-bool MMDAgent::startRotation(wchar_t *modelAlias, btQuaternion *rot, bool local, float speed)
+bool MMDAgent::startRotation(char *modelAlias, btQuaternion *rot, bool local, float speed)
 {
    int id;
    btQuaternion targetRot;
@@ -931,7 +896,7 @@ bool MMDAgent::startRotation(wchar_t *modelAlias, btQuaternion *rot, bool local,
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: startRotation: not found %s", modelAlias);
+      g_logger.log("! Error: startRotation: not found %s", modelAlias);
       return false;
    }
 
@@ -949,13 +914,12 @@ bool MMDAgent::startRotation(wchar_t *modelAlias, btQuaternion *rot, bool local,
 
    m_model[id].setSpinSpeed(speed);
    m_model[id].setRotation(targetRot);
-   sendEventMessage(MMDAGENT_EVENT_ROTATE_START, L"%s", modelAlias);
-
+   sendEventMessage(MMDAGENTCOMMAND_ROTATEEVENTSTART, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::stopRotation: stop rotation */
-bool MMDAgent::stopRotation(wchar_t *modelAlias)
+bool MMDAgent::stopRotation(char *modelAlias)
 {
    int id;
    btQuaternion currentRot;
@@ -963,7 +927,7 @@ bool MMDAgent::stopRotation(wchar_t *modelAlias)
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: stopRotation: not found %s", modelAlias);
+      g_logger.log("! Error: stopRotation: not found %s", modelAlias);
       return false;
    }
 
@@ -976,13 +940,12 @@ bool MMDAgent::stopRotation(wchar_t *modelAlias)
       return true;
 
    m_model[id].setRotation(targetRot);
-   sendEventMessage(MMDAGENT_EVENT_ROTATE_STOP, L"%s", modelAlias);
-
+   sendEventMessage(MMDAGENTCOMMAND_ROTATEEVENTSTOP, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::startTurn: start turn */
-bool MMDAgent::startTurn(wchar_t *modelAlias, btVector3 *pos, bool local, float speed)
+bool MMDAgent::startTurn(char *modelAlias, btVector3 *pos, bool local, float speed)
 {
    int id;
    btVector3 currentPos;
@@ -997,7 +960,7 @@ bool MMDAgent::startTurn(wchar_t *modelAlias, btVector3 *pos, bool local, float 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: startTurn: not found %s.", modelAlias);
+      g_logger.log("! Error: startTurn: not found %s.", modelAlias);
       return false;
    }
 
@@ -1031,13 +994,12 @@ bool MMDAgent::startTurn(wchar_t *modelAlias, btVector3 *pos, bool local, float 
    m_model[id].setSpinSpeed(speed);
    m_model[id].setRotation(targetRot);
    m_model[id].setTurningFlag(true);
-   sendEventMessage(MMDAGENT_EVENT_TURN_START, L"%s", modelAlias);
-
+   sendEventMessage(MMDAGENTCOMMAND_TURNEVENTSTART, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::stopTurn: stop turn */
-bool MMDAgent::stopTurn(wchar_t *modelAlias)
+bool MMDAgent::stopTurn(char *modelAlias)
 {
    int id;
    btQuaternion currentRot;
@@ -1045,7 +1007,7 @@ bool MMDAgent::stopTurn(wchar_t *modelAlias)
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: stopTurn: not found %s.", modelAlias);
+      g_logger.log("! Error: stopTurn: not found %s.", modelAlias);
       return false;
    }
 
@@ -1062,17 +1024,15 @@ bool MMDAgent::stopTurn(wchar_t *modelAlias)
       return true;
 
    m_model[id].setRotation(targetRot);
-   sendEventMessage(MMDAGENT_EVENT_TURN_STOP, L"%s", modelAlias);
+   sendEventMessage(MMDAGENTCOMMAND_TURNEVENTSTOP, "%s", modelAlias);
 
    return true;
 }
 
 /* MMDAgent::startLipSync: start lip sync */
-bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
+bool MMDAgent::startLipSync(char *modelAlias, char *seq)
 {
    int id;
-   size_t len;
-   char buf[8192];
    unsigned char *vmdData;
    unsigned long vmdSize;
    VMD *vmd;
@@ -1082,14 +1042,13 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: startLipSync not found %s.", modelAlias);
+      g_logger.log("! Error: startLipSync not found %s.", modelAlias);
       return false;
    }
 
    /* create motion */
-   wcstombs_s(&len, buf, MMDAGENT_MAXLIPSYNCBUFLEN, seq, _TRUNCATE);
-   if(m_model[id].getLipSync()->createMotion(buf, &vmdData, &vmdSize) == false) {
-      g_logger.log(L"! Error: startLipSync: cannot create lip motion.");
+   if(m_model[id].getLipSync()->createMotion(seq, &vmdData, &vmdSize) == false) {
+      g_logger.log("! Error: startLipSync: cannot create lip motion.");
       return false;
    }
    vmd = m_motion.loadFromData(vmdData, vmdSize);
@@ -1106,39 +1065,39 @@ bool MMDAgent::startLipSync(wchar_t *modelAlias, wchar_t *seq)
    /* start lip sync */
    if(find == true) {
       if (m_model[id].swapMotion(vmd, LIPSYNC_MOTIONNAME) == false) {
-         g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
+         g_logger.log("! Error: startLipSync: cannot start lip sync.");
          m_motion.unload(vmd);
          return false;
       }
-      sendEventMessage(MMDAGENT_EVENT_LIPSYNC_STOP, L"%s", modelAlias);
+      sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTOP, "%s", modelAlias);
    } else {
       if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true) == false) {
-         g_logger.log(L"! Error: startLipSync: cannot start lip sync.");
+         g_logger.log("! Error: startLipSync: cannot start lip sync.");
          m_motion.unload(vmd);
          return false;
       }
    }
 
    /* send event message */
-   sendEventMessage(MMDAGENT_EVENT_LIPSYNC_START, L"%s", modelAlias);
+   sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTART, "%s", modelAlias);
    return true;
 }
 
 /* MMDAgent::stopLipSync: stop lip sync */
-bool MMDAgent::stopLipSync(wchar_t *modelAlias)
+bool MMDAgent::stopLipSync(char *modelAlias)
 {
    int id;
 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      g_logger.log(L"! Error: stopLipSync: not found %s.", modelAlias);
+      g_logger.log("! Error: stopLipSync: not found %s.", modelAlias);
       return false;
    }
 
    /* stop lip sync */
    if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTIONNAME) == false) {
-      g_logger.log(L"! Error: stopLipSync: lipsync motion not found");
+      g_logger.log("! Error: stopLipSync: lipsync motion not found");
       return false;
    }
 

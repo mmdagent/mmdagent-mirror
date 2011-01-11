@@ -88,11 +88,12 @@
 
 /* global variables */
 
-#define PLUGINOPENJTALK_NAME    L"Open_JTalk"
-#define PLUGINOPENJTALK_NTHREAD 2
+#define PLUGINOPENJTALK_NAME         "Open_JTalk"
+#define PLUGINOPENJTALK_DIRSEPARATOR '\\'
+#define PLUGINOPENJTALK_NTHREAD      2
 
-#define PLUGINOPENJTALK_STARTCOMMAND L"SYNTH_START"
-#define PLUGINOPENJTALK_STOPCOMMAND  L"SYNTH_STOP"
+#define PLUGINOPENJTALK_STARTCOMMAND "SYNTH_START"
+#define PLUGINOPENJTALK_STOPCOMMAND  "SYNTH_STOP"
 
 int open_jtalk_thread_index;
 Open_JTalk_Thread open_jtalk_thread_list[PLUGINOPENJTALK_NTHREAD];
@@ -120,65 +121,58 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
 {
    int i;
    size_t size;
-   wchar_t buff[OPENJTALK_MAXBUFLEN];
    char dic_dir[OPENJTALK_MAXBUFLEN];
-   char config[OPENJTALK_MAXBUFLEN];
-   wchar_t current_dir[OPENJTALK_MAXBUFLEN];
+   char *config;
+   char current_dir[OPENJTALK_MAXBUFLEN];
 
    open_jtalk_thread_index = 0;
 
    /* get dictionary directory name */
-   wcscpy(buff, m->getAppDirName());
-   wcscat(buff, L"\\");
-   wcscat(buff, PLUGINOPENJTALK_NAME);
-   wcstombs_s(&size, dic_dir, OPENJTALK_MAXBUFLEN, buff, _TRUNCATE);
+   sprintf(dic_dir, "%s%c%s", m->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
 
    /* get config file */
-   wcscpy(buff, m->getConfigFileName());
-   wcstombs_s(&size, config, OPENJTALK_MAXBUFLEN, buff, _TRUNCATE);
+   config = strdup(m->getConfigFileName());
+   size = strlen(config);
 
    /* save current directory and move directory */
-   GetCurrentDirectory(OPENJTALK_MAXBUFLEN, current_dir);
-   SetCurrentDirectory(m->getConfigDirName());
+   GetCurrentDirectoryA(OPENJTALK_MAXBUFLEN, current_dir);
+   SetCurrentDirectoryA(m->getConfigDirName());
 
    /* load */
-   if (size > 5) {
-      config[size-5] = '.';
-      config[size-4] = 'o';
-      config[size-3] = 'j';
-      config[size-2] = 't';
+   if (size > 4) {
+      config[size-4] = '.';
+      config[size-3] = 'o';
+      config[size-2] = 'j';
+      config[size-1] = 't';
       for (i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
          open_jtalk_thread_list[i].loadAndStart(hWnd, WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
    }
 
    /* move directory */
-   SetCurrentDirectory(current_dir);
+   SetCurrentDirectoryA(current_dir);
+
+   free(config);
 }
 
 /* extWindowProc: catch message */
 void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    int i;
-   wchar_t *buf1;
-   wchar_t *buf2;
-   char buf3[OPENJTALK_MAXBUFLEN];
-   size_t len3;
+   char *buf1;
+   char *buf2;
 
    if (open_jtalk_thread_list[open_jtalk_thread_index].isStarted()) {
       if (message == WM_MMDAGENT_COMMAND) {
-         buf1 = (wchar_t *) wParam;
-         buf2 = (wchar_t *) lParam;
+         buf1 = (char *) wParam;
+         buf2 = (char *) lParam;
          if (buf1 != NULL) {
-            if (wcscmp(buf1, PLUGINOPENJTALK_STARTCOMMAND) == 0 && buf2 != NULL) {
+            if (strcmp(buf1, PLUGINOPENJTALK_STARTCOMMAND) == 0 && buf2 != NULL) {
                /* SYNTH_START command */
-               wcstombs_s(&len3, buf3, OPENJTALK_MAXBUFLEN, buf2, _TRUNCATE);
-               if (len3 > 0) {
-                  open_jtalk_thread_list[open_jtalk_thread_index].setSynthParameter(buf3);
-                  open_jtalk_thread_index++;
-                  if (open_jtalk_thread_index >= PLUGINOPENJTALK_NTHREAD)
-                     open_jtalk_thread_index = 0;
-               }
-            } else if (wcscmp(buf1, PLUGINOPENJTALK_STOPCOMMAND) == 0) {
+               open_jtalk_thread_list[open_jtalk_thread_index].setSynthParameter(buf2);
+               open_jtalk_thread_index++;
+               if (open_jtalk_thread_index >= PLUGINOPENJTALK_NTHREAD)
+                  open_jtalk_thread_index = 0;
+            } else if (strcmp(buf1, PLUGINOPENJTALK_STOPCOMMAND) == 0) {
                /* SYNTH_STOP command */
                for (i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
                   open_jtalk_thread_list[i].stop();

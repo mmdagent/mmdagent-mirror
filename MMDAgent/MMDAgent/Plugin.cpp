@@ -38,7 +38,7 @@
 /* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
-
+#include <stdio.h>
 #include <windows.h>
 
 #include "TextRenderer.h"
@@ -69,28 +69,26 @@ void Plugin_clear(Plugin *p)
       ::FreeLibrary(p->handle);
    if (p->name)
       free(p->name);
+
    Plugin_initialize(p);
 }
 
 /* Plugin_load: load DLL */
-bool Plugin_load(Plugin *p, const wchar_t *dllDirName, const wchar_t *dllFileName)
+bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
 {
-   wchar_t *buf;
+   char *buf;
 
    Plugin_clear(p);
 
    /* open DLL */
-   buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(dllDirName) + 1 + wcslen(dllFileName) + 1));
-   wcscpy(buf, dllDirName);
-   wcscat(buf, L"\\");
-   wcscat(buf, dllFileName);
-   p->handle = ::LoadLibraryEx(buf, NULL, 0);
+   buf = (char *) malloc(sizeof(char) * (strlen(dllDirName) + 1 + strlen(dllFileName) + 1));
+   sprintf(buf, "%s\\%s", dllDirName, dllFileName);
+   p->handle = ::LoadLibraryExA(buf, NULL, 0);
+   free(buf);
    if (!p->handle) {
-      g_logger.log(L"! Error: Plugin: failed to load library \"%s\"", dllFileName);
-      free(buf);
+      g_logger.log("! Error: Plugin: failed to load library \"%s\"", dllFileName);
       return false;
    }
-   free(buf);
 
    /* set function pointers */
    p->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppStart");
@@ -102,14 +100,12 @@ bool Plugin_load(Plugin *p, const wchar_t *dllDirName, const wchar_t *dllFileNam
 
    if (p->appStart || p->appEnd || p->windowCreate || p->windowProc || p->update || p->render) {
       /* save file name */
-      g_logger.log(L"Plugin: \"%s\" loaded", dllFileName);
-      p->name = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(dllFileName) + 1));
-      wcscpy(p->name, dllFileName);
+      p->name = strdup(dllFileName);
       p->enable = true;
       return true;
    } else {
       /* if none, exit */
-      g_logger.log(L"Plugin: \"%s\" has no ext function, skipped", dllFileName);
+      g_logger.log("! Warning: Plugin: \"%s\" has no ext function, skipped", dllFileName);
       Plugin_clear(p);
       return false;
    }
@@ -149,22 +145,21 @@ PluginList::~PluginList()
 }
 
 /* PluginList::load: load all DLLs in a directory */
-bool PluginList::load(const wchar_t *dirName)
+bool PluginList::load(const char *dir)
 {
-   WIN32_FIND_DATA findData;
+   WIN32_FIND_DATAA findData;
    HANDLE hFind;
-   wchar_t *buf;
+   char *buf;
    bool ret = false;
    Plugin *p;
 
-   buf = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(dirName) + 7));
-   wcscpy(buf, dirName);
-   wcscat(buf, L"\\*.dll");
+   buf = (char *) malloc(sizeof(char) * (strlen(dir) + 1 + strlen(PLUGIN_DYNAMICLIBS) + 1));
+   sprintf(buf, "%s%c%s", dir, PLUGIN_DIRSEPARATOR, PLUGIN_DYNAMICLIBS);
 
    /* search file */
-   hFind = FindFirstFile(buf, &findData);
+   hFind = FindFirstFileA(buf, &findData);
    if (hFind == INVALID_HANDLE_VALUE) {
-      g_logger.log(L"! Error: Plugin: unable to open dir \"%s\"", dirName);
+      g_logger.log("! Error: Plugin: unable to open dir \"%s\"", dir);
       free(buf);
       return ret;
    }
@@ -173,7 +168,7 @@ bool PluginList::load(const wchar_t *dirName)
    do {
       p = (Plugin *) malloc(sizeof(Plugin));
       Plugin_initialize(p);
-      if (Plugin_load(p, dirName, findData.cFileName) == false) {
+      if (Plugin_load(p, dir, findData.cFileName) == false) {
          free(p);
       } else {
          if (m_tail == NULL)
@@ -184,7 +179,7 @@ bool PluginList::load(const wchar_t *dirName)
          m_numPlugin++;
          ret = true;
       }
-   } while (FindNextFile(hFind, &findData));
+   } while (FindNextFileA(hFind, &findData));
 
    /* end */
    FindClose(hFind);
@@ -194,14 +189,14 @@ bool PluginList::load(const wchar_t *dirName)
 }
 
 /* PluginList::addPlugin: add internal plugin */
-bool PluginList::addPlugin(wchar_t *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *))
+bool PluginList::addPlugin(char *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *))
 {
    Plugin *p;
 
    /* check */
    if (name == NULL)
       return false;
-   if (wcslen(name) <= 0)
+   if (strlen(name) <= 0)
       return false;
    if (!appStart && !appEnd && !windowCreate && !windowProc && !update && !render)
       return false;
@@ -209,8 +204,7 @@ bool PluginList::addPlugin(wchar_t *name, void (__stdcall *appStart)(MMDAgent *)
    /* create */
    p = (Plugin *) malloc(sizeof(Plugin));
    Plugin_initialize(p);
-   p->name = (wchar_t *) malloc(sizeof(wchar_t) * (wcslen(name) + 1));
-   wcscpy(p->name, name);
+   p->name = strdup(name);
    p->appStart = appStart;
    p->appEnd = appEnd;
    p->windowCreate = windowCreate;

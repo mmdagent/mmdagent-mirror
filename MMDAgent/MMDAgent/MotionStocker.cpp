@@ -116,7 +116,7 @@ VMD * MotionStocker::loadFromFile(char *file)
    vl = new VMDList;
    if(vl->vmd.load(file) == false) {
       delete vl;
-      g_logger.mbslog("! Error: failed to load vmd from file: %s", file);
+      g_logger.log("! Error: failed to load vmd from file: %s", file);
       return NULL;
    }
 
@@ -147,7 +147,7 @@ VMD * MotionStocker::loadFromData(unsigned char *rawData, unsigned long rawSize)
    vl = new VMDList;
    if(vl->vmd.parse(rawData, rawSize) == false) {
       delete vl;
-      g_logger.mbslog("! Error: failed to load vmd from memories");
+      g_logger.log("! Error: failed to load vmd from memories");
       return NULL;
    }
 

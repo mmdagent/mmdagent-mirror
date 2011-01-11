@@ -46,47 +46,42 @@
 #include "TextRenderer.h"
 #include "utils.h"
 
-/* getDirName: get directory name from file name */
-void getDirName(wchar_t *wszDir, const wchar_t *wszPath)
+/* getDirectory: get directory from file path */
+bool getDirectory(const char *file, char *dir)
 {
-   int i;
-   wchar_t ch;
-   bool found = false;
 
-   wszDir[0] = L'\0';
-   for (i = wcslen(wszPath); i >= 0; i--) {
-      ch = wszPath[i];
-      if (found) {
-         wszDir[i] = wszPath[i];
-      } else if (ch == L'\\' || ch == L'/' || ch == L':') {
-         found = true;
-         wszDir[i+1] = L'\0';
-         wszDir[i] = wszPath[i];
+   int i, len;
+   bool found = false;
+   char ch;
+
+   if (file == NULL)
+      return false;
+   len = strlen(file);
+   if (len <= 0)
+      return false;
+
+   for (i = len; i >= 0; i--) {
+      ch = file[i];
+      if (found == true) {
+         dir[i] = ch;
+      } else {
+         if (ch == UTILS_DIRSEPARATOR)
+            found = true;
+         dir[i] = '\0';
       }
    }
+
+   if (dir[0] == '\0')
+      strcpy(dir, ".");
+   return true;
 }
 
-/* getFullDirName: get directory name from file name (full path) */
-void getFullDirName(wchar_t *wszDir, const wchar_t *wszPath)
+/* strtokWithPattern: strtok with given pattern */
+static char *strtokWithPattern(char *str, char *delim, char left_paren, char right_paren, char **strsave)
 {
-   wchar_t fbuf[MAX_PATH];
-
-   if (wcschr(wszPath, L':')) {
-      getDirName(wszDir, wszPath);
-   } else {
-      GetCurrentDirectory(MAX_PATH, fbuf);
-      wcsncat_s(fbuf, MAX_PATH, L"\\", _TRUNCATE);
-      wcsncat_s(fbuf, MAX_PATH, wszPath, _TRUNCATE);
-      getDirName(wszDir, fbuf);
-   }
-}
-
-/* wcstokWithPattern: wcstok with given pattern */
-static wchar_t *wcstokWithPattern(wchar_t *str, wchar_t *delim, wchar_t left_paren, wchar_t right_paren, int mode, wchar_t **strsave)
-{
-   wchar_t *p;
-   wchar_t *from;
-   wchar_t c;
+   char *p;
+   char *from;
+   char c;
 
    if (str != NULL) {
       *strsave = str;
@@ -94,27 +89,25 @@ static wchar_t *wcstokWithPattern(wchar_t *str, wchar_t *delim, wchar_t left_par
 
    /* find start point */
    p = *strsave;
-   while (*p != L'\0' && wcschr(delim, *p)) p++;
-   if (*p == L'\0') return NULL; /* no token left */
-
-   /* if mode == 1, exit here */
-   if (mode == 1) {
-      *strsave = p;
-      return p;
-   }
+   while (*p != L'\0' && strchr(delim, *p))
+      p++;
+   if (*p == L'\0')
+      return NULL; /* no token left */
 
    /* copy to ret_buf until end point is found */
    c = *p;
    if (c == left_paren) {
       p++;
-      if (*p == L'\0') return NULL;
+      if (*p == '\0') return NULL;
       from = p;
-      while ((c = *p) != L'\0' &&
-             ((c != right_paren) || (*(p + 1) != L'\0' && !wcschr(delim, *(p + 1))))) p++;
+      while ((c = *p) != '\0' &&
+             ((c != right_paren) || (*(p + 1) != '\0' && !strchr(delim, *(p + 1)))))
+         p++;
       /* if quotation not terminated, allow the rest as one token */
    } else {
       from = p;
-      while ((c = *p) != L'\0' && (!wcschr(delim, c))) p++;
+      while ((c = *p) != '\0' && (!strchr(delim, c)))
+         p++;
    }
    if (*p != '\0') {
       *p = '\0';
@@ -125,28 +118,37 @@ static wchar_t *wcstokWithPattern(wchar_t *str, wchar_t *delim, wchar_t left_par
    return from;
 }
 
-/* wcstokWithDoubleQuotation: wcstok with double quotation */
-wchar_t *wcstokWithDoubleQuotation(wchar_t *str, wchar_t *delim, wchar_t **strsave)
+/* strtokWithDoubleQuotation: strtok with double quotation */
+char *strtokWithDoubleQuotation(char *str, char *delim, char **strsave)
 {
-   return wcstokWithPattern(str, delim, L'\"', L'\"', 0, strsave);
+   return strtokWithPattern(str, delim, '\"', '\"', strsave);
 }
 
-/* hasSuffix: check suffix of a file */
-bool hasSuffix(wchar_t *fileName, wchar_t *suffix)
+/* hasExtension: check extension */
+bool hasExtension(char *file, char *ext)
 {
-   size_t len1 = wcslen(fileName);
-   size_t len2 = wcslen(suffix);
-   size_t pos = len2;
+   int i;
+   int len1;
+   int len2;
+   char c1;
+   char c2;
 
-   while (pos > 0) {
-      if (fileName[len1 - pos] != suffix[len2 - pos] && fileName[len1 - pos] != towupper(suffix[len2 - pos]))
-         break;
-      pos--;
+   if(file == NULL || ext == NULL)
+      return false;
+
+   len1 = strlen(file);
+   len2 = strlen(ext);
+   if(len1 <= len2)
+      return false;
+
+   for(i = 1; i <= len2; i++) {
+      c1 = tolower(file[len1 - i]);
+      c2 = tolower(ext[len2 - i]);
+      if(c1 != c2)
+         return false;
    }
-   if (pos == 0)
-      return true;
 
-   return false;
+   return true;
 }
 
 /* getNumDigit: get number of digit */
@@ -156,11 +158,11 @@ int getNumDigit(int in)
 
    if(in == 0)
       return 1;
+
    if(in < 0) {
       out = 1;
       in *= -1;
    }
-
    for (; in != 0; out++)
       in /= 10;
 

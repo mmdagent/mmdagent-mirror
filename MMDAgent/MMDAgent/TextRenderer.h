@@ -42,26 +42,25 @@
 #ifndef __mmdagent_textrenderer_h__
 #define __mmdagent_textrenderer_h__
 
-#define TEXTRENDERER_MAXNCHAR 1000 /* maxium number of character stored in display list without ASCII */
-
 #define TEXTRENDERER_MAXBUFLEN 1024
-#define TEXTRENDERER_ASCIISIZE 256
 
-typedef struct _Character {
-   wchar_t code;
-   unsigned int id;
-} Character;
+#define TEXTRENDERER_FONT     "Arial Unicode MS"
+#define TEXTRENDERER_MAXNCHAR 1024               /* maxium number of character stored in display list without ASCII */
+
+#define TEXTRENDERER_ASCIISIZE 256
 
 /* TextRenderer: text renderer */
 class TextRenderer
 {
 private:
 
-   HDC m_hDC;                                   /* device context */
-   HFONT m_outlineFont;                         /* outline font */
-   unsigned int m_outlineFontID;                /* first 256 ID in ASCII font (outline) */
-   unsigned int m_bitmapFontID;                 /* first 256 ID in ASCII font (bitmatp) */
-   Character m_codeList[TEXTRENDERER_MAXNCHAR]; /* character code list without ASCII */
+   HDC m_hDC;                    /* device context */
+   HFONT m_outlineFont;          /* outline font */
+   unsigned int m_outlineFontID; /* first 256 ID in ASCII font (outline) */
+   unsigned int m_bitmapFontID;  /* first 256 ID in ASCII font (bitmatp) */
+
+   unsigned long m_charList[TEXTRENDERER_MAXNCHAR]; /* 32 bit (sjis) code list without ASCII */
+   unsigned int m_idList[TEXTRENDERER_MAXNCHAR];    /* IDs */
 
    int m_idNum;   /* number of stored characters */
    int m_current; /* current pointer (point next Character) */
@@ -81,28 +80,19 @@ public:
    ~TextRenderer();
 
    /* setup: initialize and setup text renderer */
-   void setup(HDC hDC, wchar_t *fontName);
+   void setup(HDC hDC);
 
-   /* draw ascii string (bitmap, multi-byte char) */
+   /* drawAsciiStringBitmap: draw ascii string (bitmap) */
    void drawAsciiStringBitmap(char *str);
 
-   /* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap, multi-byte char) */
-   void drawAsciiStringBitmap(wchar_t *wstr);
+   /* getDisplayListArrayOfString: get array of display list indices draw any string (outline) */
+   int getDisplayListArrayOfString(char *str, unsigned int *idList, int maxlen);
 
-   /* TextRenderer::drawAsciiStringOutline: draw ascii string (outline, multi-byte char) */
-   void drawAsciiStringOutline(char *str);
-
-   /* TextRenderer::drawAsciiStringOutline: draw ascii string (outline, wide char) */
-   void drawAsciiStringOutline(wchar_t *wstr);
-
-   /* TextRenderer::getDisplayListArrayOfString: get array of display list indices draw any string (outline, wide char) */
-   int getDisplayListArrayOfString(wchar_t *wstr, unsigned int *idList, int maxlen);
-
-   /* TextRenderer::renderSispayListArrayOfString: render the obtained array of display lists for a string */
+   /* renderSispayListArrayOfString: render the obtained array of display lists for a string */
    void renderDisplayListArrayOfString(unsigned int *idList, int n);
 
-   /* drawString: draw any string (outline, wide char, slow) */
-   void drawString(wchar_t *wstr);
+   /* drawString: draw any string (outline, slow) */
+   void drawString(char *str);
 };
 
 #endif /* __mmdagent_textrenderer_h__ */

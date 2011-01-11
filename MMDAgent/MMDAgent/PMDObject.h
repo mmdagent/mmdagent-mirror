@@ -60,7 +60,7 @@ class PMDObject
 {
 private:
 
-   wchar_t *m_alias;               /* alias */
+   char *m_alias;                  /* alias */
    PMDModel m_pmd;                 /* model */
    MotionManager *m_motionManager; /* motion manager */
    LipSync m_lipSync;              /* lip sync */
@@ -111,7 +111,7 @@ public:
    void release();
 
    /* PMDObject::load: load model */
-   bool load(wchar_t *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light);
+   bool load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light);
 
    /* PMDObject::setMotion: start a motion */
    bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos);
@@ -147,10 +147,10 @@ public:
    bool updateModelRootRotation(float fps);
 
    /* PMDObject::getAlias: get alias name */
-   wchar_t *getAlias();
+   char *getAlias();
 
    /* PMDObject::setAlias: set alias name */
-   void setAlias(wchar_t *alias);
+   void setAlias(char *alias);
 
    /* PMDObject::getPMDModel: get PMDModel */
    PMDModel *getPMDModel();

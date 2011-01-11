@@ -72,10 +72,10 @@ public:
    void setup(HWND hWnd);
 
    /* play: play audio */
-   bool play(wchar_t *fname, wchar_t *alias);
+   bool play(char *file, char *alias);
 
    /* close: close audio */
-   void close(wchar_t *alias);
+   void close(char *alias);
 
    /* getFinishedAlias: return finished audio file name */
    wchar_t *getFinishedAlias(WPARAM wParam, LPARAM lParam);

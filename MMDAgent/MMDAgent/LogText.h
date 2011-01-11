@@ -55,11 +55,11 @@ private:
    float m_textZ;
    float m_textScale;
 
-   wchar_t **m_textBufArray;            /* text list */
-   unsigned int **m_displayListIdArray; /* display list index for rendering */
-   int *m_length;                       /* length of each line */
-   bool *m_updated;                     /* true when line is uploaded */
-   int m_textLine;                      /* current position */
+   char **m_textList;            /* text list */
+   unsigned int **m_displayList; /* display list index for rendering */
+   int *m_length;                /* length of each line */
+   bool *m_updated;              /* true when line is uploaded */
+   int m_textLine;               /* current position */
 
    /* LogText: initialize logger */
    void initialize();
@@ -79,10 +79,7 @@ public:
    void setup(int *size, float *position, float scale);
 
    /* log: store log text */
-   void log(const wchar_t *format, ...);
-
-   /* mbslog: store log text (multi-byte char) */
-   void mbslog(const char *format, ...);
+   void log(const char *format, ...);
 
    /* render: render text area */
    void render(TextRenderer *text);

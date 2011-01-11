@@ -42,11 +42,14 @@
 #ifndef __mmdagent_plugin_h__
 #define __mmdagent_plugin_h__
 
+#define PLUGIN_DIRSEPARATOR '\\'
+#define PLUGIN_DYNAMICLIBS  "*.dll"
+
 class MMDAgent;
 
 /* Plugin: plugin for MMDAgent */
 typedef struct _Plugin {
-   wchar_t *name;
+   char *name;
    HINSTANCE handle;
    bool enable;
 
@@ -67,7 +70,7 @@ void Plugin_initialize(Plugin *p);
 void Plugin_clear(Plugin *p);
 
 /* Plugin_load: load DLL */
-bool Plugin_load(Plugin *p, const wchar_t *dllDirName, const wchar_t *dllFileName);
+bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName);
 
 /* PluginList: plugin list */
 class PluginList
@@ -93,10 +96,10 @@ public:
    ~PluginList();
 
    /* load: load all DLLs in a directory */
-   bool load(const wchar_t *dirName);
+   bool load(const char *dir);
 
    /* addPlugin: add internal plugin */
-   bool addPlugin(wchar_t *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *));
+   bool addPlugin(char *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *));
 
    /* execAppStart: run when application is start */
    void execAppStart(MMDAgent *mmdagent);

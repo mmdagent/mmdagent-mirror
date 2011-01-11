@@ -61,7 +61,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
    int dropAllowedModelID;
    int targetModelID;
 
-   wchar_t droppedFileName[MAX_PATH];
+   char droppedFileName[MMDAGENT_MAXBUFLEN];
    HDROP hDrop = (HDROP) wParam;
    int fileNum;
 
@@ -70,7 +70,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
 
    /* for mp3 */
    int len;
-   wchar_t *buf;
+   char *buf;
    FILE *fp;
 
    /* get mouse position */
@@ -80,12 +80,12 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
    pos.y -= rc.top;
 
    /* get dropped file list */
-   fileNum = DragQueryFile(hDrop, -1, droppedFileName, MAX_PATH);
+   fileNum = DragQueryFileA(hDrop, -1, droppedFileName, MMDAGENT_MAXBUFLEN);
 
    for (i = 0; i < fileNum; i++) {
-      DragQueryFile(hDrop, i, droppedFileName, MAX_PATH);
+      DragQueryFileA(hDrop, i, droppedFileName, MAX_PATH);
 
-      if (hasSuffix(droppedFileName, L"vmd")) {
+      if (hasExtension(droppedFileName, ".vmd")) {
          dropAllowedModelID = -1;
          targetModelID = -1;
          if (m_keyCtrl) {
@@ -99,7 +99,7 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                targetModelID = dropAllowedModelID;
          }
          if (targetModelID == -1) {
-            g_logger.log(L"Warning: vmd file dropped but no model exit at the point");
+            g_logger.log("Warning: vmd file dropped but no model exit at the point");
          } else {
             /* pause timer to skip file loading time */
             m_timer.pause();
@@ -143,32 +143,28 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
                }
             }
             /* check mp3 */
-            len = wcslen(droppedFileName);
+            len = strlen(droppedFileName);
             if (len >= 5) {
-               buf = (wchar_t *) malloc(sizeof(wchar_t) * (len + 1));
-               wcscpy(buf, droppedFileName);
-               buf[len-3] = L'm';
-               buf[len-2] = L'p';
-               buf[len-1] = L'3';
-               fp = _wfopen(buf, L"rb");
+               buf = strdup(droppedFileName);
+               buf[len-3] = 'm';
+               buf[len-2] = 'p';
+               buf[len-1] = '3';
+               fp = fopen(buf, "rb");
                if (fp) {
                   /* start audio */
                   fclose(fp);
-                  stopSound(L"audio");
-                  startSound(L"audio", buf, true);
-               } else {
-                  /* stop audio */
-                  stopSound(L"audio");
+                  stopSound("audio");
+                  startSound("audio", buf, true);
                }
                free(buf);
             }
             /* resume timer */
             m_timer.resume();
          }
-      } else if (hasSuffix(droppedFileName, L"xpmd")) {
+      } else if (hasExtension(droppedFileName, ".xpmd")) {
          /* load stage */
          setStage(droppedFileName);
-      } else if (hasSuffix(droppedFileName, L"pmd")) {
+      } else if (hasExtension(droppedFileName, ".pmd")) {
          /* drop model */
          if (m_keyCtrl) {
             /* if Ctrl-key, add model */
@@ -180,12 +176,12 @@ void MMDAgent::dropFile(HWND hWnd, WPARAM wParam, LPARAM lParam)
             else
                targetModelID = m_render->pickModel(this, pos.x, pos.y, &dropAllowedModelID);
             if (targetModelID == -1) {
-               g_logger.log(L"Warning: pmd file dropped but no model at the point");
+               g_logger.log("Warning: pmd file dropped but no model at the point");
             } else {
                changeModel(m_model[targetModelID].getAlias(), droppedFileName);
             }
          }
-      } else if (hasSuffix(droppedFileName, L"bmp") || hasSuffix(droppedFileName, L"tga") || hasSuffix(droppedFileName, L"png")) {
+      } else if (hasExtension(droppedFileName, ".bmp") || hasExtension(droppedFileName, ".tga") || hasExtension(droppedFileName, ".png")) {
          if (m_keyCtrl)
             setFloor(droppedFileName); /* change floor with Ctrl-key */
          else

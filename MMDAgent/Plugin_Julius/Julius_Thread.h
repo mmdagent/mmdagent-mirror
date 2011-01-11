@@ -45,8 +45,8 @@
 #define JULIUSTHREAD_LOCALE    "Japanese_Japan.20932" /* EUC-JP */
 #define JULIUSTHREAD_LATENCY   50
 
-#define JULIUSTHREAD_EVENTSTART L"RECOG_EVENT_START"
-#define JULIUSTHREAD_EVENTSTOP  L"RECOG_EVENT_STOP"
+#define JULIUSTHREAD_EVENTSTART "RECOG_EVENT_START"
+#define JULIUSTHREAD_EVENTSTOP  "RECOG_EVENT_STOP"
 
 /* Julius_Thead: thread for Julius */
 class Julius_Thread
@@ -81,5 +81,5 @@ public :
    bool loadAndStart(HWND param1, UINT param2);
 
    /* sendMessage: send message to MMDAgent */
-   void sendMessage(wchar_t *str1, wchar_t *str2);
+   void sendMessage(char *str1, char *str2);
 };

@@ -70,6 +70,8 @@ static void callback_result_final(Recog *recog, void *data)
    _locale_t locale;
    static wchar_t wstr[JULIUSTHREAD_MAXBUFLEN];
 
+   static char sjisbuf[JULIUSTHREAD_MAXBUFLEN];
+
    /* get status */
    r = recog->process_list;
    if (!r->live)
@@ -93,14 +95,17 @@ static void callback_result_final(Recog *recog, void *data)
    }
 
    if (first == 0) {
-      /* convert to wide char */
+      /* euc-jp -> wide char */
       locale = _create_locale(LC_CTYPE, JULIUSTHREAD_LOCALE);
       if (locale)
          _mbstowcs_s_l(&size, wstr, JULIUSTHREAD_MAXBUFLEN, str, _TRUNCATE, locale);
       else
          mbstowcs_s(&size, wstr, JULIUSTHREAD_MAXBUFLEN, str, _TRUNCATE);
 
-      j->sendMessage(JULIUSTHREAD_EVENTSTOP, wstr);
+      /* wide char -> sjis */
+      wcstombs_s(&size, sjisbuf, JULIUSTHREAD_MAXBUFLEN, wstr, _TRUNCATE);
+
+      j->sendMessage(JULIUSTHREAD_EVENTSTOP, sjisbuf);
    }
 }
 
@@ -215,19 +220,18 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
 }
 
 /* Julius_Thread::sendMessage: send message to MMDAgent */
-void Julius_Thread::sendMessage(wchar_t *str1, wchar_t *str2)
+void Julius_Thread::sendMessage(char *str1, char *str2)
 {
-   wchar_t *wstr1;
-   wchar_t *wstr2;
+   char *mes1, *mes2;
 
-   wstr1 = (wchar_t *) malloc((wcslen(str1) + 1) * sizeof(wchar_t));
-   wcscpy(wstr1, str1);
-   if (str2 != NULL) {
-      wstr2 = (wchar_t *) malloc((wcslen(str2) + 1) * sizeof(wchar_t));
-      wcscpy(wstr2, str2);
-   } else {
-      wstr2 = NULL;
-   }
+   if(str1 == NULL)
+      return;
 
-   ::PostMessage(m_window, m_event, (WPARAM) wstr1, (LPARAM) wstr2);
+   mes1 = strdup(str1);
+   if(str2 != NULL)
+      mes2 = strdup(str2);
+   else
+      mes2 = strdup("");
+
+   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
 }

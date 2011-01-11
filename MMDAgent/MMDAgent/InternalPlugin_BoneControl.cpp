@@ -284,23 +284,22 @@ static void __stdcall execProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPAR
    case WM_KEYDOWN:
       if (wParam == 'L') {
          for (int i = 0; i < mmdagent->getNumModel(); i++) {
-            for (int j = 0; j < g_defNum; j++) {
-               if (g_controllers[i][j].enabled) g_controllers[i][j].disable();
-               else g_controllers[i][j].enable();
-            }
+            if (objs[i].isEnable() == true)
+               for (int j = 0; j < g_defNum; j++) {
+                  if (g_controllers[i][j].enabled) g_controllers[i][j].disable();
+                  else g_controllers[i][j].enable();
+               }
          }
-         g_logger.log(L"BoneControl: toggled");
       }
       break;
    case WM_MMDAGENT_EVENT:
-      wchar_t *str = (wchar_t *)wParam;
-      if (wcsncmp(str, MMDAGENT_EVENT_MODEL_CHANGE, wcslen(MMDAGENT_EVENT_MODEL_CHANGE)) == 0 || wcsncmp(str, MMDAGENT_EVENT_MODEL_ADD, wcslen(MMDAGENT_EVENT_MODEL_ADD)) == 0) {
-         wchar_t *buf = (wchar_t *)malloc(sizeof(wchar_t) * (wcslen((wchar_t *)lParam) + 1));
-         wchar_t *p, *psave;
+      char *str = (char *) wParam;
+      if (strcmp(str, MMDAGENTCOMMAND_MODELEVENTCHANGE) == 0 || strcmp(str, MMDAGENTCOMMAND_MODELEVENTADD) == 0) {
+         char *p;
          int c = 0;
          int id;
-         wcscpy(buf, (wchar_t *)lParam);
-         for (p = wcstok_s(buf, L"|", &psave); p; p = wcstok_s(NULL, L"|", &psave)) {
+         char *buf = strdup((char *) lParam);
+         for (p = strtok(buf, "|"); p; p = strtok(NULL, "|")) {
             if (c == 0) {
                id = mmdagent->findModelAlias(p);
                if (id != -1) {
@@ -330,6 +329,6 @@ void initializeLookAt(MMDAgent *mmdagent, PluginList *pluginList)
             g_controllers[i][j].initialize(objs[i].getPMDModel(), &(g_controlDef[j]));
 
    /* register */
-   if (pluginList->addPlugin(L"Internal: LookUp", NULL, NULL, NULL, execProc, execLookAt, NULL) == false)
-      g_logger.log(L"! Error: BoneControl: cannot load internal plugin");
+   if (pluginList->addPlugin("Internal: LookUp", NULL, NULL, NULL, execProc, execLookAt, NULL) == false)
+      g_logger.log("! Error: BoneControl: cannot load internal plugin");
 }

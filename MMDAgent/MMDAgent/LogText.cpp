@@ -61,8 +61,8 @@ void LogText::initialize()
    m_textZ = 0.0;
    m_textScale = 0.0;
 
-   m_textBufArray = NULL;
-   m_displayListIdArray = NULL;
+   m_textList = NULL;
+   m_displayList = NULL;
    m_length = NULL;
    m_updated = NULL;
 }
@@ -72,15 +72,15 @@ void LogText::clear()
 {
    int i;
 
-   if (m_textBufArray) {
+   if (m_textList) {
       for (i = 0; i < m_textHeight; i++)
-         free(m_textBufArray[i]);
-      free(m_textBufArray);
+         free(m_textList[i]);
+      free(m_textList);
    }
-   if (m_displayListIdArray) {
+   if (m_displayList) {
       for (i = 0; i < m_textHeight; i++)
-         free(m_displayListIdArray[i]);
-      free(m_displayListIdArray);
+         free(m_displayList[i]);
+      free(m_displayList);
    }
    if (m_length)
       free(m_length);
@@ -117,15 +117,15 @@ void LogText::setup(int *size, float *position, float scale)
    m_textZ = position[2];
    m_textScale = scale;
 
-   m_textBufArray = (wchar_t **) malloc(sizeof(wchar_t *) * m_textHeight);
+   m_textList = (char **) malloc(sizeof(char *) * m_textHeight);
    for (i = 0; i < m_textHeight; i++) {
-      m_textBufArray[i] = (wchar_t *) malloc(sizeof(wchar_t) * m_textWidth);
-      m_textBufArray[i][0] = L'\0';
+      m_textList[i] = (char *) malloc(sizeof(char) * m_textWidth);
+      strcpy(m_textList[i], "");
    }
 
-   m_displayListIdArray = (unsigned int **) malloc(sizeof(unsigned int *) * m_textHeight);
+   m_displayList = (unsigned int **) malloc(sizeof(unsigned int *) * m_textHeight);
    for (i = 0; i < m_textHeight; i++)
-      m_displayListIdArray[i] = (unsigned int *) malloc(sizeof(unsigned int) * m_textWidth);
+      m_displayList[i] = (unsigned int *) malloc(sizeof(unsigned int) * m_textWidth);
 
    m_length = (int *) malloc(sizeof(int) * m_textHeight);
    for (i = 0; i < m_textHeight; i++)
@@ -139,44 +139,23 @@ void LogText::setup(int *size, float *position, float scale)
 }
 
 /* LogText::log: store log text */
-void LogText::log(const wchar_t *format, ...)
+void LogText::log(const char *format, ...)
 {
-   wchar_t *p, *psave;
-   wchar_t buff[LOGTEXT_MAXBUFLEN];
-   va_list args;
-
-   if (!m_textBufArray) return;
-
-   va_start(args, format);
-   if (m_textBufArray) {
-      vswprintf(buff, LOGTEXT_MAXBUFLEN - 1, format, args);
-      buff[LOGTEXT_MAXBUFLEN - 1] = L'\0';
-      for (p = wcstok_s(buff, L"\n", &psave); p; p = wcstok_s(NULL, L"\n", &psave)) {
-         wcsncpy(m_textBufArray[m_textLine], p, m_textWidth - 1);
-         m_textBufArray[m_textLine][m_textWidth - 1] = L'\0';
-         m_updated[m_textLine] = true;
-         if (++m_textLine >= m_textHeight)
-            m_textLine = 0;
-      }
-   }
-   va_end(args);
-}
-
-/* LogText::mbslog: store log text (multi-byte char) */
-void LogText::mbslog(const char *format, ...)
-{
+   char *p;
    char buff[LOGTEXT_MAXBUFLEN];
    va_list args;
 
-   va_start(args, format);
-   vsnprintf(buff, LOGTEXT_MAXBUFLEN - 1, format, args);
-   buff[LOGTEXT_MAXBUFLEN - 1] = '\0';
-   va_end(args);
+   if (!m_textList) return;
 
-   wchar_t wcsbuf[LOGTEXT_MAXBUFLEN];
-   size_t len;
-   mbstowcs_s(&len, wcsbuf, LOGTEXT_MAXBUFLEN, buff, _TRUNCATE);
-   log(wcsbuf);
+   va_start(args, format);
+   vsprintf(buff, format, args);
+   for (p = strtok(buff, "\n"); p; p = strtok(NULL, "\n")) {
+      strncpy(m_textList[m_textLine], p, m_textWidth - 1);
+      m_updated[m_textLine] = true;
+      if (++m_textLine >= m_textHeight)
+         m_textLine = 0;
+   }
+   va_end(args);
 }
 
 /* LogText::render: render log text */
@@ -185,7 +164,7 @@ void LogText::render(TextRenderer *text)
    int i, j;
    float x, y, z, w, h;
 
-   if (!m_textBufArray) return;
+   if (!m_textList) return;
 
    x = m_textX;
    y = m_textY;
@@ -211,16 +190,16 @@ void LogText::render(TextRenderer *text)
       j = m_textLine + i;
       if (j >= m_textHeight)
          j -= m_textHeight;
-      if (m_textBufArray[j][0] != L'\0') {
+      if (strlen(m_textList[j]) > 0) {
          glColor4f(LOGTEXT_COLOR);
          glPushMatrix();
          if (m_updated[j]) {
             /* cache display list array */
-            m_length[j] = text->getDisplayListArrayOfString(m_textBufArray[j], m_displayListIdArray[j], m_textWidth);
+            m_length[j] = text->getDisplayListArrayOfString(m_textList[j], m_displayList[j], m_textWidth);
             m_updated[j] = false;
          }
          if (m_length[j] >= 0)
-            text->renderDisplayListArrayOfString(m_displayListIdArray[j], m_length[j]);
+            text->renderDisplayListArrayOfString(m_displayList[j], m_length[j]);
          glPopMatrix();
       }
    }
