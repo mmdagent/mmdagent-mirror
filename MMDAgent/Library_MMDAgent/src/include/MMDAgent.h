@@ -50,7 +50,6 @@
 #include "PMDObject.h"
 #include "MotionStocker.h"
 #include "Stage.h"
-#include "Audio.h"
 #include "Plugin.h"
 #include "TextRenderer.h"
 
@@ -86,7 +85,6 @@ private:
    SystemTexture *m_systex; /* system texture */
    Render *m_render;        /* render */
    Timer m_timer;           /* timer */
-   Audio m_audio;           /* audio */
    TextRenderer m_text;     /* text render */
    PluginList m_plugin;     /* plugins */
 
@@ -148,12 +146,6 @@ private:
 
    /* setStage: set stage */
    bool setStage(char *fileName);
-
-   /* startSound: start sound */
-   bool startSound(char *soundAlias, char *fileName, bool adjust);
-
-   /* stopSound: stop sound */
-   bool stopSound(char *soundAlias);
 
    /* changeLightDirection: change light direction */
    bool changeLightDirection(float x, float y, float z);
@@ -268,9 +260,6 @@ public:
 
    /* getTimer: get timer */
    Timer *getTimer();
-
-   /* getAudio: get audio */
-   Audio *getAudio();
 
    /* getWindowHandler: get window handle */
    HWND getWindowHandler();

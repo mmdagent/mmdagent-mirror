@@ -556,9 +556,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* initialize bullet phisics */
    m_bullet.setup(m_option.getBulletFps());
 
-   /* initialize audio */
-   m_audio.setup(m_hWnd);
-
    /* load toon textures from system directory */
    if (m_systex->load(m_appDirName) == false)
       return false;
@@ -969,12 +966,6 @@ Stage *MMDAgent::getStage()
 Timer *MMDAgent::getTimer()
 {
    return &m_timer;
-}
-
-/* MMDAgent::getAudio: get audio */
-Audio *MMDAgent::getAudio()
-{
-   return &m_audio;
 }
 
 /* MMDAgent::getWindowHandler: get window handle */

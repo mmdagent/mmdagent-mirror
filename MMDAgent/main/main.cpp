@@ -52,8 +52,9 @@
 #include "Option.h"
 #include "MMDAgent.h"
 #include "MMDAgent_command.h"
-#define GLOBAL_VARIABLE_DEFINE
-#include "utils.h"
+#include "LogText.h"
+
+LogText g_logger;
 
 #define MAIN_MAXBUFLEN 1024
 

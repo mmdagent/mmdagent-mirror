@@ -341,20 +341,6 @@ bool MMDAgent::command(char *command, char *str)
          return false;
       }
       return stopTurn(argv[0]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_SOUND_START) == 0) {
-      /* start sound */
-      if (num != 2) {
-         g_logger.log("! Error: %s: wrong number of arguments", command);
-         return false;
-      }
-      startSound(argv[0], argv[1], true);
-   } else if (strcmp(command, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
-      /* stop sound */
-      if (num < 1) {
-         g_logger.log("! Error: %s: wrong number of arguments", command);
-         return false;
-      }
-      stopSound(argv[0]);
    } else if (strcmp(command, MMDAGENT_COMMAND_STAGE) == 0) {
       /* change stage */
       if (num != 1) {
@@ -754,39 +740,6 @@ bool MMDAgent::setStage(char *fileName)
    }
 
    sendEventMessage(MMDAGENTCOMMAND_STAGE, "%s", fileName);
-   return true;
-}
-
-/* MMDAgent::startSound: start sound */
-bool MMDAgent::startSound(char *soundAlias, char *fileName, bool adjust)
-{
-   m_audio.close(soundAlias);
-   if (m_audio.play(fileName, soundAlias) == false) {
-      m_timer.adjustStop();
-      g_logger.log("Error: startSound: cannot start sound %s.", fileName);
-      return false;
-   }
-
-   /* start timer to adjust audio */
-   if (adjust) {
-      m_timer.adjustSetTarget((double) m_option.getMotionAdjustFrame() * 0.03);
-      m_timer.adjustStart();
-   }
-
-   /* send event message */
-   sendEventMessage(MMDAGENTCOMMAND_SOUNDEVENTSTART, "%s", soundAlias);
-   return true;
-}
-
-/* MMDAgent::stopSound: stop sound */
-bool MMDAgent::stopSound(char *soundAlias)
-{
-   m_audio.close(soundAlias);
-
-   /* stop timer */
-   m_timer.adjustStop();
-
-   /* don't send event message */
    return true;
 }
 

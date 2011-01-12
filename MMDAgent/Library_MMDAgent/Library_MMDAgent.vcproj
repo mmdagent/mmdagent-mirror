@@ -163,10 +163,6 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\lib\Audio.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\lib\InternalPlugin_BoneControl.cpp"
 				>
 			</File>
@@ -237,63 +233,55 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\src\lib\Audio.h"
+				RelativePath=".\src\include\LipSync.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\LipSync.h"
+				RelativePath=".\src\include\LogText.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\LogText.h"
+				RelativePath=".\src\include\MMDAgent.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\MMDAgent.h"
+				RelativePath=".\src\include\MMDAgent_command.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\MMDAgent_command.h"
+				RelativePath=".\src\include\MotionStocker.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\MotionStocker.h"
+				RelativePath=".\src\include\Option.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Option.h"
+				RelativePath=".\src\include\Plugin.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Plugin.h"
+				RelativePath=".\src\include\PMDObject.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\PMDObject.h"
+				RelativePath=".\src\include\Render.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Render.h"
+				RelativePath=".\src\include\Screen.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\resource.h"
+				RelativePath=".\src\include\Stage.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Screen.h"
+				RelativePath=".\src\include\TextRenderer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Stage.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\TextRenderer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\Timer.h"
+				RelativePath=".\src\include\Timer.h"
 				>
 			</File>
 			<File

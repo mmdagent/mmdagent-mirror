@@ -48,6 +48,7 @@
 
 #include "Option.h"
 #include "MMDAgent.h"
+#include "MMDAgent_command.h"
 #include "utils.h"
 
 /* MMDAgent::procDropFileMessage: handle file drops */
@@ -153,8 +154,7 @@ void MMDAgent::procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam)
                if (fp) {
                   /* start audio */
                   fclose(fp);
-                  stopSound("audio");
-                  startSound("audio", buf, true);
+                  sendCommandMessage(MMDAGENT_COMMAND_SOUND_START, "%s|%s", "audio", buf);
                }
                free(buf);
             }
