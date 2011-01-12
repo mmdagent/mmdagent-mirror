@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				CommandLine="copy src\include\HTS_engine.h include\HTS_engine.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -77,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\include\HTS_engine.h include\HTS_engine.h"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -90,6 +90,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\include\HTS_engine.h include\HTS_engine.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -146,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\include\HTS_engine.h include\HTS_engine.h"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>

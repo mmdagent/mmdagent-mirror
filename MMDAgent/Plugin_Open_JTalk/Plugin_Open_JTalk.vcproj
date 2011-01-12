@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_hts_engine_API\include;..\Library_Open_JTalk\include;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_hts_engine_API\include;..\Library_Open_JTalk\include;..\Library_MMDAgent\include;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_MUTEX_LOCK;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -123,7 +123,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_hts_engine_API\include;..\Library_Open_JTalk\include;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_hts_engine_API\include;..\Library_Open_JTalk\include;..\Library_MMDAgent\include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_MUTEX_LOCK;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

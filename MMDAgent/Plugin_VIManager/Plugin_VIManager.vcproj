@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_VIMANAGER_EXPORTS;_CRT_SECURE_NO_WARNINGS;"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -121,7 +121,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_VIMANAGER_EXPORTS;_CRT_SECURE_NO_WARNINGS;"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

@@ -25,6 +25,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\include\*.h include"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -77,7 +78,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\include\*.h include\"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -90,6 +91,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\include\*.h include"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -111,7 +113,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_libpng\include;..\Library_zlib\include;src\include;..\Library_GLee\include;src\lib;"
+				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_libpng\include;..\Library_zlib\include;src\include;..\Library_GLee\include;src\lib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -119,6 +121,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -147,7 +150,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\include\*.h include\"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>

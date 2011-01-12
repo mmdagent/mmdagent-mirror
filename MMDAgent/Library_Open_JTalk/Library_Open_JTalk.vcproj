@@ -24,6 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -76,7 +77,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -89,6 +90,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -145,7 +147,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>

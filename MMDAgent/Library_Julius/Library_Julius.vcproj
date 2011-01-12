@@ -25,6 +25,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\libjulius\include\julius\*.h include\julius&#x0D;&#x0A;copy src\libsent\include\sent\*.h include\sent&#x0D;&#x0A;copy src\msvc\config\config-*.h include&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -90,6 +91,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="copy src\libjulius\include\julius\*.h include\julius&#x0D;&#x0A;copy src\libsent\include\sent\*.h include\sent&#x0D;&#x0A;copy src\msvc\config\config-*.h include&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -150,7 +152,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy src\libjulius\include\julius\*.h include\julius&#x0D;&#x0A;copy src\libsent\include\sent\*.h include\sent&#x0D;&#x0A;copy src\msvc\config\config-*.h include&#x0D;&#x0A;"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
