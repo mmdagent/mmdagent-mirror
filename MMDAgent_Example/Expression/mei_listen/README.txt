@@ -1,10 +1,21 @@
+===============================================================================
+               MMDAgent Expression "Listen of Mei" version Alpha
+                           release December 25, 2010
+
+
+The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
+
+*******************************************************************************
+                                    Copying
+*******************************************************************************
+
 # ----------------------------------------------------------------- #
-#           MMDAgent Scenario Example                               #
+#           MMDAgent Expression "Listen of Mei"                     #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2011  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2010  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
@@ -40,71 +51,28 @@
 # See http://creativecommons.org/ for details.                      #
 # ----------------------------------------------------------------- #
 
-# Cartoon rendering
+See also "COPYRIGHT.txt" file in the current directory for details.
 
-use_cartoon_rendering=true
-use_mmd_like_cartoon=true
-cartoon_edge_width=0.35
-cartoon_edge_step=1.2
+*******************************************************************************
+                               Acknowledgements
+*******************************************************************************
 
-# Stage
+Keiichi Tokuda
+Akinobu Lee
+Keiichiro Oura
 
-stage_size=25.0,25.0,40.0
+*******************************************************************************
+                                  Who we are
+*******************************************************************************
 
-# Fps
+The MMDAgent project team is a voluntary group for developing the Toolkit for
+Building Voice Interaction System. Current members are
 
-show_fps=false
-fps_position=-2.5,22.0,3.0
+ Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
+ Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
+ Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
 
-# Window
-
-window_size=600,600
-top_most=false
-full_screen=false
-
-# Log
-
-log_size=80,30
-log_position_x=-17.5,3.0,-15.0
-log_scale=1.0
-
-# Light
-
-light_direction=0.5,1.0,0.5,0.0
-light_intensity=0.6
-light_color=1.0,1.0,1.0
-
-# Campus
-
-campus_color=0.0,0.0,0.2
-
-# OpenGL
-
-max_multi_sampling=4
-max_multi_sampling_color=4
-
-# Motion
-
-motion_adjust_frame=0
-
-# Bullet Physics
-
-bullet_fps=120
-
-# User interface
-
-rotate_step=0.08
-translate_step=0.5
-scale_step=1.05
-
-# Shadow mapping
-
-use_shadow_mapping=false
-shadow_mapping_texture_size=1024
-shadow_mapping_self_density=1.0
-shadow_mapping_floor_density=0.5
-shadow_mapping_light_first=true
-
-# Comment
-
-display_comment_frame=0.0
+and the members are dynamically changing. The current formal contact address of
+MMDAgent project team and a mailing list for MMDAgent users can be found at
+http://www.mmdagent.jp/
+===============================================================================
