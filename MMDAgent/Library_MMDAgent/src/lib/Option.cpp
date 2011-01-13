@@ -44,7 +44,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "Option.h"
 
 /* str2bool: convert string to boolean */

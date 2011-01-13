@@ -179,6 +179,7 @@
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_STR "shadow_mapping_light_first"
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_DEF true
 
+/* Option: user options */
 class Option
 {
 private:

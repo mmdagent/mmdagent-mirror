@@ -39,12 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_timer_h__
-#define __mmdagent_timer_h__
-
-#include <mmsystem.h>
-
-/* Timer: */
+/* Timer: timer */
 class Timer
 {
 private:
@@ -63,14 +58,14 @@ private:
    double m_adjustCurrentFrame; /* current frame to sync music */
    bool m_adjustEnable;         /* switch to sync music */
 
-   /* Timer::diffTime: return time difference between two counts */
+   /* diffTime: return time difference between two counts */
    DWORD diffTime(DWORD now, DWORD past);
 
-   /* Timer::initialize: initialize timer */
-   void Timer::initialize();
+   /* initialize: initialize timer */
+   void initialize();
 
-   /* Timer::clear: free timer */
-   void Timer::clear();
+   /* clear: free timer */
+   void clear();
 
 public:
 
@@ -80,41 +75,39 @@ public:
    /* ~Timer: destructor */
    ~Timer();
 
-   /* Timer::setPrecision: set timer precision */
+   /* setPrecision: set timer precision */
    void setPrecision(UINT msec);
 
-   /* Timer::startSystem: start system count */
+   /* startSystem: start system count */
    void startSystem();
 
-   /* Timer::getFrameInterval: return time interval from last call */
+   /* getFrameInterval: return time interval from last call */
    double getFrameInterval();
 
-   /* Timer::pause: pause timer */
+   /* pause: pause timer */
    void pause();
 
-   /* Timer::resume: resume timer */
+   /* resume: resume timer */
    void resume();
 
-   /* Timer::countFrame: increment frame count for FPS calculation */
+   /* countFrame: increment frame count for FPS calculation */
    void countFrame();
 
-   /* Timer::getFps: get fps */
+   /* getFps: get fps */
    float getFps();
 
-   /* Timer::adjustSetTarget: set target frame to sync music */
+   /* adjustSetTarget: set target frame to sync music */
    void adjustSetTarget(double frame);
 
-   /* Timer::adjustStart: start to sync music */
+   /* adjustStart: start to sync music */
    void adjustStart();
 
-   /* Timer::adjustStop: stop to sync music */
+   /* adjustStop: stop to sync music */
    void adjustStop();
 
-   /* Timer::adjustGetCurrent: get current frame to sync music */
+   /* adjustGetCurrent: get current frame to sync music */
    double adjustGetCurrent();
 
-   /* Timer::getAdditionalFrame: get number of additional frames to sync music */
+   /* getAdditionalFrame: get number of additional frames to sync music */
    double getAdditionalFrame(double baseProcFrame);
 };
-
-#endif /* __mmdagent_timer_h__ */

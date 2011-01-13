@@ -39,8 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VMDGRIDSIZE       10    /* number of cache VMD files */
-#define VMDGRID_MAXBUFLEN 2048
+#define MOTIONSTOCKER_NCACHE    10   /* number of cache VMD files */
 
 /* VMDList: VMD list */
 typedef struct _VMDList {

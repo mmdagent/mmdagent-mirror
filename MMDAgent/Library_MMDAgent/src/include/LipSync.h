@@ -39,13 +39,10 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_lipsync_h__
-#define __mmdagent_lipsync_h__
-
 #define LIPSYNC_MAXBUFLEN  1024
 #define LIPSYNC_MOTIONNAME "LipSync" /* motion name of lip sync */
-
-#define LIPSYNC_SEPARATOR ","
+#define LIPSYNC_SEPARATOR  ","
+#define LIPSYNC_MAXNPHONE  2048      /* maximum number of phoneme sequence */
 
 /* LibDef: lip definition */
 typedef struct _LipDef {
@@ -84,5 +81,3 @@ public:
    /* composeMotion: create motion from phoneme sequence */
    bool createMotion(char *lipSequence, unsigned char **vmdData, unsigned long *vmdSize);
 };
-
-#endif /* __mmdagent_lipsync_h__ */

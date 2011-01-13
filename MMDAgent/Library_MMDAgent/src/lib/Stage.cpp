@@ -41,9 +41,7 @@
 
 /* headers */
 
-#include "MMDFiles.h"
-
-#include "Stage.h"
+#include "MMDAgent.h"
 #include "utils.h"
 
 /* findPlane: calculate plane */

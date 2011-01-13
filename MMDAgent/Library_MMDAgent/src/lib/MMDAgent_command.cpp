@@ -41,14 +41,8 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "MMDFiles.h"
-
-#include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
-#include "MMDAgent_command.h"
 
 #define MMDAGENT_MAXNUMCOMMAND    10
 #define MMDAGENT_MAXCOMMANDBUFLEN 1024

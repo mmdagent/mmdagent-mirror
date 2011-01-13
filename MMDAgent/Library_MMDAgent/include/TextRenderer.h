@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_textrenderer_h__
-#define __mmdagent_textrenderer_h__
-
 #define TEXTRENDERER_MAXBUFLEN 1024
 
 #define TEXTRENDERER_FONT     "Arial Unicode MS"
@@ -94,6 +91,3 @@ public:
    /* drawString: draw any string (outline, slow) */
    void drawString(char *str);
 };
-
-#endif /* __mmdagent_textrenderer_h__ */
-

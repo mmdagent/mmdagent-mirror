@@ -61,15 +61,7 @@
 
 /* headers */
 
-#include <windows.h>
-#include <locale.h>
-#include "MMDFiles.h"
-#include "Option.h"
 #include "MMDAgent.h"
-#include "MMDAgent_command.h"
-#include "LogText.h"
-LogText g_logger;
-
 #include "BoneController.h"
 
 /* global variables */

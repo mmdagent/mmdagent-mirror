@@ -38,11 +38,9 @@
 /* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
-#include <stdio.h>
-#include <windows.h>
+/* headers */
 
-#include "TextRenderer.h"
-#include "Plugin.h"
+#include "MMDAgent.h"
 #include "utils.h"
 
 /* Plugin_initialize: initialize Plugin */

@@ -41,10 +41,10 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "TextRenderer.h"
+#include "MMDAgent.h"
 #include "utils.h"
+
+LogText g_logger;
 
 /* getDirectory: get directory from file path */
 bool getDirectory(const char *file, char *dir)

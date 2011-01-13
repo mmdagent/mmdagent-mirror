@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_eventcommanddef_h__
-#define __mmdagent_eventcommanddef_h__
-
 /* command names */
 #define MMDAGENT_COMMAND_MODEL_ADD      "MODEL_ADD"
 #define MMDAGENT_COMMAND_MODEL_DELETE   "MODEL_DELETE"
@@ -88,5 +85,3 @@
 #define MMDAGENTCOMMAND_LIPSYNCEVENTSTART   "LIPSYNC_EVENT_START"
 #define MMDAGENTCOMMAND_LIPSYNCEVENTSTOP    "LIPSYNC_EVENT_STOP"
 #define MMDAGENTCOMMAND_KEY                 "KEY"
-
-#endif /* __mmdagent_eventcommanddef_h__ */

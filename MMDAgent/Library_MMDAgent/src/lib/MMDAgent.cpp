@@ -43,13 +43,10 @@
 
 #include <windows.h>
 #include <locale.h>
+#include <shellapi.h>
 
-#include "MMDFiles.h"
-
-#include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
-#include "MMDAgent_command.h"
 
 /* MMDAgent::initialize: initialize MMDAgent */
 void MMDAgent::initialize()
@@ -124,12 +121,6 @@ MMDAgent::MMDAgent()
 
 /* MMDAgent::~MMDAgent: destructor */
 MMDAgent::~MMDAgent()
-{
-   release();
-}
-
-/* MMDAgent::release: free MMDAgent */
-void MMDAgent::release()
 {
    clear();
 }
@@ -382,16 +373,6 @@ void MMDAgent::renderScene(HWND hWnd)
    m_screen->swapBuffers();
 }
 
-/* MMDAgent::updateWindowSize: change OpenGL campus size to current window size */
-void MMDAgent::updateWindowSize(HWND hWnd)
-{
-   RECT rc;
-
-   GetWindowRect(hWnd, &rc);
-   m_render->setSize(rc.right - rc.left, rc.bottom - rc.top);
-}
-
-
 /* MMDAgent::updateLight: update light */
 void MMDAgent::updateLight()
 {
@@ -592,17 +573,92 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    return m_hWnd;
 }
 
+/* MMDAgent::findModelAlias: find a model with the specified alias */
+int MMDAgent::findModelAlias(char *alias)
+{
+   int i;
+
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
+         return i;
+
+   return -1;
+}
+
+/* MMDAgent::getMoelList: get model list */
+PMDObject *MMDAgent::getModelList()
+{
+   return &(m_model[0]);
+}
+
+/* MMDAgent::getNumModel: get number of models */
+short MMDAgent::getNumModel()
+{
+   return m_numModel;
+}
+
+/* MMDAgent::getOption: get option */
+Option *MMDAgent::getOption()
+{
+   return &m_option;
+}
+
+/* MMDAgent::getRender: get render */
+Render *MMDAgent::getRender()
+{
+   return m_render;
+}
+
+/* MMDAgent::getStage: get stage */
+Stage *MMDAgent::getStage()
+{
+   return m_stage;
+}
+
+/* MMDAgent::getWindowHandler: get window handle */
+HWND MMDAgent::getWindowHandler()
+{
+   return m_hWnd;
+}
+
+/* MMDAgent::getInstance: get instance */
+HINSTANCE MMDAgent::getInstance()
+{
+   return m_hInst;
+}
+
+/* MMDAgent::getConfigFileName: get config file name for plugin */
+char *MMDAgent::getConfigFileName()
+{
+   return m_configFileName;
+}
+
+/* MMDAgent::getConfigDirName: get directory of config file for plugin */
+char *MMDAgent::getConfigDirName()
+{
+   return m_configDirName;
+}
+
+/* MMDAgent::getAppDirName: get application directory name for plugin */
+char *MMDAgent::getAppDirName()
+{
+   return m_appDirName;
+}
+
+/* MMDAgent::procWindowCreateMessage: process window create message */
 void MMDAgent::procWindowCreateMessage(HWND hWnd)
 {
    m_plugin.execWindowCreate(this, hWnd);
 }
 
+/* MMDAgent::procWindowDestroyMessage: process window destroy message */
 void MMDAgent::procWindowDestroyMessage()
 {
    m_plugin.execAppEnd(this);
-   release();
+   clear();
 }
 
+/* MMDAgent::procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
 void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
 {
    /* double click */
@@ -615,6 +671,7 @@ void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
    m_doubleClicked = true;
 }
 
+/* MMDAgent::procMouseLeftButtonDownMessage: process mouse left button down message */
 void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift)
 {
    /* start hold */
@@ -628,6 +685,7 @@ void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool 
       m_render->highlightModel(this, m_selectedModel);
 }
 
+/* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
 void MMDAgent::procMouseLeftButtonUpMessage()
 {
    /* if highlight, trun off */
@@ -637,7 +695,8 @@ void MMDAgent::procMouseLeftButtonUpMessage()
    m_leftButtonPressed = false;
 }
 
-void MMDAgent::procMouseWheel(bool zoomup, bool withCtrl, bool withShift)
+/* MMDAgent::procMouseWheelMessage: process mouse wheel message */
+void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
 {
    float tmp1, tmp2;
 
@@ -655,7 +714,8 @@ void MMDAgent::procMouseWheel(bool zoomup, bool withCtrl, bool withShift)
    m_render->setScale(tmp2);
 }
 
-void MMDAgent::procMouseMove(int x, int y, bool withCtrl, bool withShift)
+/* MMDAgent::procMouseMoveMessage: process mouse move message */
+void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
 {
    float *f;
    float tmp1, tmp2, tmp3;
@@ -720,13 +780,17 @@ void MMDAgent::procMouseMove(int x, int y, bool withCtrl, bool withShift)
    }
 }
 
+/* MMDAgent::procMouseRightButtonDownMessage: process mouse right button down message */
 void MMDAgent::procMouseRightButtonDownMessage()
 {
    m_screen->setMouseActiveTime(45.0f);
 }
 
+/* MMDAgent::procFullScreenMessage: process full screen message */
 void MMDAgent::procFullScreenMessage()
 {
+   RECT rc;
+
    if (m_option.getFullScreen() == true) {
       m_screen->exitFullScreen(m_hWnd);
       m_option.setFullScreen(false);
@@ -734,9 +798,12 @@ void MMDAgent::procFullScreenMessage()
       m_screen->setFullScreen(m_hWnd);
       m_option.setFullScreen(true);
    }
-   updateWindowSize(m_hWnd);
+
+   GetWindowRect(m_hWnd, &rc);
+   procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
 }
 
+/* MMDAgent::procInfoStringMessage: process information string message */
 void MMDAgent::procInfoStringMessage()
 {
    if(m_option.getShowFps() == true)
@@ -745,11 +812,13 @@ void MMDAgent::procInfoStringMessage()
       m_option.setShowFps(true);
 }
 
+/* MMDAgent::procVSyncMessage: process vsync message */
 void MMDAgent::procVSyncMessage()
 {
    m_screen->toggleVSync();
 }
 
+/* MMDAgent::procShadowMappingMessage: process shadow mapping message */
 void MMDAgent::procShadowMappingMessage()
 {
    if(m_option.getUseShadowMapping() == true) {
@@ -761,6 +830,7 @@ void MMDAgent::procShadowMappingMessage()
    }
 }
 
+/* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
 void MMDAgent::procShadowMappingOrderMessage()
 {
    if(m_option.getShadowMappingLightFirst() == true)
@@ -769,11 +839,13 @@ void MMDAgent::procShadowMappingOrderMessage()
       m_option.setShadowMappingLightFirst(true);
 }
 
+/* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
 void MMDAgent::procDisplayRigidBodyMessage()
 {
    m_dispBulletBodyFlag = !m_dispBulletBodyFlag;
 }
 
+/* MMDAnget::procDisplayWireMessage: process display wire message */
 void MMDAgent::procDisplayWireMessage()
 {
    GLint polygonMode[2];
@@ -785,11 +857,13 @@ void MMDAgent::procDisplayWireMessage()
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
+/* MMDAgent::procDisplayBoneMessage: process display bone message */
 void MMDAgent::procDisplayBoneMessage()
 {
    m_dispModelDebug = !m_dispModelDebug;
 }
 
+/* MMDAgent::procCartoonEdgeMessage: process cartoon edge message */
 void MMDAgent::procCartoonEdgeMessage(bool plus)
 {
    int i;
@@ -802,6 +876,7 @@ void MMDAgent::procCartoonEdgeMessage(bool plus)
       m_model[i].getPMDModel()->setEdgeThin(m_option.getCartoonEdgeWidth());
 }
 
+/* MMDAgent::procTimeAdjustMessage: process time adjust message */
 void MMDAgent::procTimeAdjustMessage(bool plus)
 {
    if(plus)
@@ -812,6 +887,7 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
    m_dispFrameAdjust = 90.0;
 }
 
+/* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
 void MMDAgent::procHorizontalRotateMessage(bool right)
 {
    if(right)
@@ -820,6 +896,7 @@ void MMDAgent::procHorizontalRotateMessage(bool right)
       m_render->rotate(-m_option.getRotateStep(), 0.0f, 0.0f);
 }
 
+/* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
 void MMDAgent::procVerticalRotateMessage(bool up)
 {
    if(up)
@@ -828,6 +905,7 @@ void MMDAgent::procVerticalRotateMessage(bool up)
       m_render->rotate(0.0f, m_option.getRotateStep(), 0.0f);
 }
 
+/* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
 void MMDAgent::procHorizontalMoveMessage(bool right)
 {
    if(right)
@@ -836,6 +914,7 @@ void MMDAgent::procHorizontalMoveMessage(bool right)
       m_render->translate(-m_option.getTranslateStep(), 0.0f, 0.0f);
 }
 
+/* MMDAgent::procVerticalMoveMessage: process vertical move message */
 void MMDAgent::procVerticalMoveMessage(bool up)
 {
    if(up)
@@ -844,6 +923,7 @@ void MMDAgent::procVerticalMoveMessage(bool up)
       m_render->translate(0.0f, -m_option.getTranslateStep(), 0.0f);
 }
 
+/* MMDAgent::procDeleteModelMessage: process delete model message */
 void MMDAgent::procDeleteModelMessage()
 {
    if (m_doubleClicked) {
@@ -852,6 +932,7 @@ void MMDAgent::procDeleteModelMessage()
    }
 }
 
+/* MMDAgent::procPhysicsMessage: process physics message */
 void MMDAgent::procPhysicsMessage()
 {
    int i;
@@ -861,16 +942,19 @@ void MMDAgent::procPhysicsMessage()
       m_model[i].getPMDModel()->setPhysicsControl(m_enablePhysicsSimulation);
 }
 
+/* MMDAgent::procDisplayLogMessage: process display log message */
 void MMDAgent::procDisplayLogMessage()
 {
    m_dispLog = !m_dispLog;
 }
 
+/* MMDAgent::procWindowSizeMessage: process window size message */
 void MMDAgent::procWindowSizeMessage(int x, int y)
 {
    m_render->setSize(x, y);
 }
 
+/* MMDAgent::procCommandMessage: process command message */
 void MMDAgent::procCommandMessage(char *mes1, char *mes2)
 {
    /* check command and free strings */
@@ -881,6 +965,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       free(mes2);
 }
 
+/* MMDAgent::procEventMessage: process event message */
 void MMDAgent::procEventMessage(char *mes1, char *mes2)
 {
    /* free strings */
@@ -896,81 +981,8 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
       free(mes2);
 }
 
+/* MMDAgent::procPluginMessage: process plugin message */
 void MMDAgent::procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    m_plugin.execWindowProc(this, hWnd, message, wParam, lParam);
-}
-
-#if 0
-case MM_MCINOTIFY:
-/* audio stop */
-aliasName = m_audio.getFinishedAlias(wParam, lParam);
-if (aliasName)
-{
-   char mbsbuf[MMDAGENT_MAXBUFLEN];
-   size_t len;
-   wcstombs_s(&len, mbsbuf, MMDAGENT_MAXBUFLEN, aliasName, _TRUNCATE);
-   sendEventMessage(MMDAGENTCOMMAND_SOUNDEVENTSTOP, "%s", mbsbuf);
-   m_audio.close(mbsbuf);
-}
-break;
-#endif
-
-/* MMDAgent::findModelAlias: find a model with the specified alias */
-int MMDAgent::findModelAlias(char *alias)
-{
-   int i;
-
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
-         return i;
-
-   return -1;
-}
-
-/* MMDAgent::getMoelList: get model list */
-PMDObject *MMDAgent::getModelList()
-{
-   return &(m_model[0]);
-}
-
-/* MMDAgent::getNumModel: */
-short MMDAgent::getNumModel()
-{
-   return m_numModel;
-}
-
-Option *MMDAgent::getOption()
-{
-   return &m_option;
-}
-
-/* MMDAgent::getRender: get render */
-Render *MMDAgent::getRender()
-{
-   return m_render;
-}
-
-/* MMDAgent::getStage: get stage */
-Stage *MMDAgent::getStage()
-{
-   return m_stage;
-}
-
-/* MMDAgent::getTimer: get timer */
-Timer *MMDAgent::getTimer()
-{
-   return &m_timer;
-}
-
-/* MMDAgent::getWindowHandler: get window handle */
-HWND MMDAgent::getWindowHandler()
-{
-   return m_hWnd;
-}
-
-/* MMDAgent::getInstance: get instance */
-HINSTANCE MMDAgent::getInstance()
-{
-   return m_hInst;
 }

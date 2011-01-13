@@ -43,7 +43,7 @@
 
 #include <windows.h>
 
-#include "Timer.h"
+#include "MMDAgent.h"
 
 /* Timer::diffTime: return time difference between two counts */
 DWORD Timer::diffTime(DWORD now, DWORD past)

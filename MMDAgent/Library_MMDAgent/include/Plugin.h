@@ -39,13 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_plugin_h__
-#define __mmdagent_plugin_h__
-
 #define PLUGIN_DIRSEPARATOR '\\'
 #define PLUGIN_DYNAMICLIBS  "*.dll"
-
-class MMDAgent;
 
 /* Plugin: plugin for MMDAgent */
 typedef struct _Plugin {
@@ -116,5 +111,3 @@ public:
    /* execRender: */
    void execRender(MMDAgent *mmdagent);
 };
-
-#endif /* __mmdagent_plugin_h__ */

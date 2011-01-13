@@ -39,11 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_render_h__
-#define __mmdagent_render_h__
-
-#include "PMDObject.h"
-
 #define SHADOW_PCF                   /* use hardware PCF for shadow mapping */
 #define SHADOW_AUTO_VIEW             /* automatically define depth frustum */
 #define SHADOW_AUTO_VIEW_ANGLE 15.0f /* view angle for automatic depth frustum */
@@ -59,8 +54,6 @@
 #define RENDER_VIEWPOINT_Y_OFFSET     -13.0f
 #define RENDER_VIEWPOINT_FRUSTUM_NEAR 5.0f
 #define RENDER_VIEWPOINT_FRUSTUM_FAR  2000.0f
-
-class MMDAgent;
 
 /* Render: render */
 class Render
@@ -176,5 +169,3 @@ public:
    /* getScreenPointPosition: convert screen position to object position */
    void getScreenPointPosition(btVector3 *dst, btVector3 *src);
 };
-
-#endif /* __mmdagent_render_h__ */

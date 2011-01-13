@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "TextRenderer.h"
-#include "Screen.h"
-#include "GLee.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "utils.h"
+#include "MMDAgent.h"
 
 #define GL_COVERAGE_SAMPLES_NV  0x80A9
 #define GL_COLOR_SAMPLES_NV     0x8E20

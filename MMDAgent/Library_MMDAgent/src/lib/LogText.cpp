@@ -41,15 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-
-#include "TextRenderer.h"
-#include "LogText.h"
-#include "GLee.h"
+#include "MMDAgent.h"
 
 /* LogText::initialize: initialize logger */
 void LogText::initialize()

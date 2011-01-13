@@ -61,8 +61,6 @@
 
 /* headers */
 
-#include <stdlib.h>
-
 #include "mecab.h"
 #include "njd.h"
 #include "jpcommon.h"
@@ -82,8 +80,6 @@
 #include "Open_JTalk.h"
 #include "Open_JTalk_Thread.h"
 
-#include "MMDFiles.h"
-#include "Option.h"
 #include "MMDAgent.h"
 
 /* global variables */

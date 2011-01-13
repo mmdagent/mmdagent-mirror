@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="hts_engine_API_D.lib Open_JTalk_D.lib winmm.lib"
+				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib hts_engine_API_D.lib Open_JTalk_D.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\Library_hts_engine_API\lib;..\Library_Open_JTalk\lib;"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_hts_engine_API\lib;..\Library_Open_JTalk\lib"
 				ModuleDefinitionFile="Plugin_Open_JTalk.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -142,10 +142,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="hts_engine_API.lib Open_JTalk.lib winmm.lib"
+				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib hts_engine_API.lib Open_JTalk.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\Library_hts_engine_API\lib; ..\Library_Open_JTalk\lib;"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_hts_engine_API\lib; ..\Library_Open_JTalk\lib;"
 				ModuleDefinitionFile="Plugin_Open_JTalk.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"

@@ -44,11 +44,7 @@
 #include <windows.h>
 #include <shellapi.h>
 
-#include "MMDFiles.h"
-
-#include "Option.h"
 #include "MMDAgent.h"
-#include "MMDAgent_command.h"
 #include "utils.h"
 
 /* MMDAgent::procDropFileMessage: handle file drops */

@@ -42,19 +42,10 @@
 /* headers */
 
 #include <windows.h>
-#include <locale.h>
 #include <tchar.h>
 
-#include "MMDFiles.h"
-
-#include "TextRenderer.h"
 #include "resource.h"
-#include "Option.h"
 #include "MMDAgent.h"
-#include "MMDAgent_command.h"
-#include "LogText.h"
-
-LogText g_logger;
 
 #define MAIN_MAXBUFLEN 1024
 
@@ -149,11 +140,11 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       mmdagent.procMouseLeftButtonUpMessage();
       break;
    case WM_MOUSEWHEEL:
-      mmdagent.procMouseWheel((short) HIWORD(wParam) > 0 ? true : false, wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
+      mmdagent.procMouseWheelMessage((short) HIWORD(wParam) > 0 ? true : false, wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
       InvalidateRect(hWnd, NULL, false);
       break;
    case WM_MOUSEMOVE:
-      mmdagent.procMouseMove(LOWORD(lParam), HIWORD(lParam), wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
+      mmdagent.procMouseMoveMessage(LOWORD(lParam), HIWORD(lParam), wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
       break;
    case WM_RBUTTONDOWN:
       mmdagent.procMouseRightButtonDownMessage();
@@ -197,11 +188,11 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
          mmdagent.procTimeAdjustMessage(false);
          break;
       case IDM_ZOOM_IN:
-         mmdagent.procMouseWheel(true, false, false);
+         mmdagent.procMouseWheelMessage(true, false, false);
          InvalidateRect(hWnd, NULL, false);
          break;
       case IDM_ZOOM_OUT:
-         mmdagent.procMouseWheel(false, false, false);
+         mmdagent.procMouseWheelMessage(false, false, false);
          InvalidateRect(hWnd, NULL, false);
          break;
       case IDM_ROTATE_LEFT:

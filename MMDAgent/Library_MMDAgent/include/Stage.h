@@ -39,11 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_stage_h__
-#define __mmdagent_stage_h__
-
-#include "PMDObject.h"
-
 #define STAGE_MAXBUFLEN 1024
 
 /* TileTexture: texture for background and floor */
@@ -160,5 +155,3 @@ public:
    /* getShadowMatrix: get shadow projection matrix */
    GLfloat *getShadowMatrix();
 };
-
-#endif /* __mmdagent_stage_h__ */

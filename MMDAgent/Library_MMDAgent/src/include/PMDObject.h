@@ -39,12 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_pmdobject_h__
-#define __mmdagent_pmdobject_h__
-
-#include "TextRenderer.h"
-#include "LipSync.h"
-
 #define PMDOBJECT_MAXBUFLEN 1024
 
 #define PMDOBJECT_ALPHAFRAME    15.0   /* number of frames for appear/disappear alpha blending */
@@ -215,5 +209,3 @@ public:
    /* renderError: render model error */
    void renderError(TextRenderer *text);
 };
-
-#endif /* __mmdagent_pmdobject_h__ */

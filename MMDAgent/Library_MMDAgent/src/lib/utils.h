@@ -41,16 +41,7 @@
 
 #define UTILS_DIRSEPARATOR '\\'
 
-/* if GLOBAL_VARIABLE_DEFINE is defined, global variables are actually made */
-/* else, these are external definition */
-#ifdef GLOBAL_VARIABLE_DEFINE
-#define GLOBAL
-#else
-#define GLOBAL extern
-#endif
-
-#include "LogText.h"
-GLOBAL LogText g_logger; /* logger */
+extern LogText g_logger; /* logger */
 
 /* getDirectory: get directory from file path */
 bool getDirectory(const char *file, char *dir);

@@ -41,14 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "TextRenderer.h"
-#include "PMDFile.h"
-#include "PTree.h"
-#include "btBulletDynamicsCommon.h"
-#include "VMD.h"
-#include "MotionStocker.h"
+#include "MMDAgent.h"
 #include "utils.h"
 
 /* MotionStocker::initialize: initialize MotionStocker */
@@ -193,7 +186,7 @@ void MotionStocker::unload(VMD *vmd)
    }
 
    /* remove unused cache */
-   for(vl = m_head; vl && count > VMDGRIDSIZE; vl = tmp) {
+   for(vl = m_head; vl && count > MOTIONSTOCKER_NCACHE; vl = tmp) {
       tmp = vl->next;
       if(vl->use <= 0) {
          if(vl == m_head && vl == m_tail) {

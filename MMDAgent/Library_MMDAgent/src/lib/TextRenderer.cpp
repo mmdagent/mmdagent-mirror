@@ -41,10 +41,7 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "TextRenderer.h"
-#include "GLee.h"
+#include "MMDAgent.h"
 
 /* TextRenderer::initialize: initialize text renderer */
 void TextRenderer::initialize()

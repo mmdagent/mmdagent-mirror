@@ -39,11 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#include "MMDFiles.h"
+/* headers */
 
-#include "PMDObject.h"
-#include "utils.h"
-#include <mmsystem.h>
+#include "MMDAgent.h"
 
 /* PMDObject::initialize: initialize PMDObject */
 void PMDObject::initialize()

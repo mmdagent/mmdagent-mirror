@@ -42,16 +42,25 @@
 #ifndef __mmdagent_h__
 #define __mmdagent_h__
 
-#include <stdarg.h>
+/* headers */
 
+#include "MMDFiles.h"
+
+class MMDAgent;
+
+#include "TextRenderer.h"
+#include "LogText.h"
+#include "LipSync.h"
+#include "PMDObject.h"
+
+#include "Option.h"
 #include "Screen.h"
+#include "Stage.h"
 #include "Render.h"
 #include "Timer.h"
-#include "PMDObject.h"
-#include "MotionStocker.h"
-#include "Stage.h"
 #include "Plugin.h"
-#include "TextRenderer.h"
+#include "MotionStocker.h"
+#include "MMDAgent_command.h"
 
 #define MAXMODEL  20    /* maximum number of model */
 #define MODEL_ALL 65535 /* alias for all model */
@@ -113,9 +122,6 @@ private:
 
    /* removeRelatedModels: delete a model */
    void removeRelatedModels(int modelId);
-
-   /* updateWindowSize: change OpenGL campus size to current window size */
-   void updateWindowSize(HWND hWnd);
 
    /* updateLight: update light */
    void updateLight();
@@ -194,9 +200,6 @@ public:
    /* ~MMDAgent: destructor */
    ~MMDAgent();
 
-   /* release: free MMDAgent */
-   void release();
-
    /* updateScene: update the whole scene */
    void updateScene();
 
@@ -212,44 +215,13 @@ public:
    /* setup: initialize and setup MMDAgent */
    HWND setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv);
 
-   void procWindowCreateMessage(HWND hWnd);
-   void procWindowDestroyMessage();
-   void procMouseLeftButtonDoubleClickMessage(int x, int y);
-   void procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift);
-   void procMouseLeftButtonUpMessage();
-   void procMouseWheel(bool zoomup, bool withCtrl, bool withShift);
-   void procMouseMove(int x, int y, bool withCtrl, bool withShift);
-   void procMouseRightButtonDownMessage();
-
-   void procFullScreenMessage();
-   void procInfoStringMessage();
-   void procVSyncMessage();
-   void procShadowMappingMessage();
-   void procShadowMappingOrderMessage();
-   void procDisplayRigidBodyMessage();
-   void procDisplayWireMessage();
-   void procDisplayBoneMessage();
-   void procCartoonEdgeMessage(bool plus);
-   void procTimeAdjustMessage(bool plus);
-   void procHorizontalRotateMessage(bool right);
-   void procVerticalRotateMessage(bool up);
-   void procHorizontalMoveMessage(bool right);
-   void procVerticalMoveMessage(bool up);
-   void procDeleteModelMessage();
-   void procPhysicsMessage();
-   void procDisplayLogMessage();
-   void procWindowSizeMessage(int x, int y);
-   void procCommandMessage(char *mes1, char *mes2);
-   void procEventMessage(char *mes1, char *mes2);
-
-   void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
    /* getMoelList: get model list */
    PMDObject *getModelList();
 
    /* getNumModel: get number of models */
    short getNumModel();
 
+   /* getOption: get option */
    Option *getOption();
 
    /* getRender: get render */
@@ -257,9 +229,6 @@ public:
 
    /* getStage: get stage */
    Stage *getStage();
-
-   /* getTimer: get timer */
-   Timer *getTimer();
 
    /* getWindowHandler: get window handle */
    HWND getWindowHandler();
@@ -270,23 +239,104 @@ public:
    /* findModelAlias: find a model with the specified alias */
    int findModelAlias(char *alias);
 
-   /* procDropFileMessage: handle file drops */
-   void procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam);
-
    /* getConfigFileName: get config file name for plugin */
-   inline char *getConfigFileName() {
-      return m_configFileName;
-   }
+   char *getConfigFileName();
 
    /* getConfigDirName: get directory of config file for plugin */
-   inline char *getConfigDirName() {
-      return m_configDirName;
-   }
+   char *getConfigDirName();
 
    /* getAppDirName: get application directory name for plugin */
-   inline char *getAppDirName() {
-      return m_appDirName;
-   }
+   char *getAppDirName();
+
+   /* MMDAgent::procWindowCreateMessage: process window create message */
+   void procWindowCreateMessage(HWND hWnd);
+
+   /* MMDAgent::procWindowDestroyMessage: process window destroy message */
+   void procWindowDestroyMessage();
+
+   /* MMDAgent::procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
+   void procMouseLeftButtonDoubleClickMessage(int x, int y);
+
+   /* MMDAgent::procMouseLeftButtonDownMessage: process mouse left button down message */
+   void procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift);
+
+   /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
+   void procMouseLeftButtonUpMessage();
+
+   /* MMDAgent::procMouseWheel: process mouse wheel message */
+   void procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift);
+
+   /* MMDAgent::procMouseMoveMessage: process mouse move message */
+   void procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift);
+
+   /* MMDAgent::procMouseRightButtonDownMessage: process mouse right button down message */
+   void procMouseRightButtonDownMessage();
+
+   /* MMDAgent::procFullScreenMessage: process full screen message */
+   void procFullScreenMessage();
+
+   /* MMDAgent::procInfoStringMessage: process information string message */
+   void procInfoStringMessage();
+
+   /* MMDAgent::procVSyncMessage: process vsync message */
+   void procVSyncMessage();
+
+   /* MMDAgent::procShadowMappingMessage: process shadow mapping message */
+   void procShadowMappingMessage();
+
+   /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
+   void procShadowMappingOrderMessage();
+
+   /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
+   void procDisplayRigidBodyMessage();
+
+   /* MMDAnget::procDisplayWireMessage: process display wire message */
+   void procDisplayWireMessage();
+
+   /* MMDAgent::procDisplayBoneMessage: process display bone message */
+   void procDisplayBoneMessage();
+
+   /* MMDAgent::procCartoonEdgeMessage: process cartoon edge message */
+   void procCartoonEdgeMessage(bool plus);
+
+   /* MMDAgent::procTimeAdjustMessage: process time adjust message */
+   void procTimeAdjustMessage(bool plus);
+
+   /* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
+   void procHorizontalRotateMessage(bool right);
+
+   /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
+   void procVerticalRotateMessage(bool up);
+
+   /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
+   void procHorizontalMoveMessage(bool right);
+
+   /* MMDAgent::procVerticalMoveMessage: process vertical move message */
+   void procVerticalMoveMessage(bool up);
+
+   /* MMDAgent::procDeleteModelMessage: process delete model message */
+   void procDeleteModelMessage();
+
+   /* MMDAgent::procPhysicsMessage: process physics message */
+   void procPhysicsMessage();
+
+   /* MMDAgent::procDisplayLogMessage: process display log message */
+   void procDisplayLogMessage();
+
+   /* MMDAgent::procWindowSizeMessage: process window size message */
+   void procWindowSizeMessage(int x, int y);
+
+   /* MMDAgent::procCommandMessage: process command message */
+   void procCommandMessage(char *mes1, char *mes2);
+
+   /* MMDAgent::procEventMessage: process event message */
+   void procEventMessage(char *mes1, char *mes2);
+
+   /* MMDAgent::procPluginMessage: process plugin message */
+   void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+   /* procDropFileMessage: handle file drops */
+   void procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam);
 };
 
 #endif /* __mmdagent_h__ */

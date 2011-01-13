@@ -41,15 +41,8 @@
 
 /* headers */
 
-#include <windows.h>
-
-#include "MMDFiles.h"
-
-#include "TextRenderer.h"
-#include "LipSync.h"
+#include "MMDAgent.h"
 #include "utils.h"
-
-#define MAXPNUM 2048 /* maximum number of phoneme sequence */
 
 /* LipSync::initialize: initialize LipSync */
 void LipSync::initialize()
@@ -477,8 +470,8 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
 {
    int i, j;
 
-   int pseq[MAXPNUM];
-   float dur[MAXPNUM];
+   int pseq[LIPSYNC_MAXNPHONE];
+   float dur[LIPSYNC_MAXNPHONE];
    char *buf1;
    KeyFrame **keyframe;
    bool ret = true;
@@ -514,8 +507,8 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    buf1[len] = '\0';
    seqlen = 0;
    for (p = strtok_s(buf1, LIPSYNC_SEPARATOR, &p_save); p; p = strtok_s(NULL, LIPSYNC_SEPARATOR, &p_save)) {
-      if (seqlen >= MAXPNUM) {
-         g_logger.log("! Error: LipSync: too long phone sequence (>%d)", MAXPNUM);
+      if (seqlen >= LIPSYNC_MAXNPHONE) {
+         g_logger.log("! Error: LipSync: too long phone sequence (>%d)", LIPSYNC_MAXNPHONE);
          ret = false;
          break;
       }

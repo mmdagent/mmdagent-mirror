@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDFiles.h"
-
 #include "BoneController.h"
 
 /* BoneController::initialize: initialize bone controller */

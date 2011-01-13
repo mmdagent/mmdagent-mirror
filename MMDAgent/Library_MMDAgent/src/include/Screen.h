@@ -39,9 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#ifndef __mmdagent_screen_h__
-#define __mmdagent_screen_h__
-
 /* DeviceContextInfo: device context information */
 typedef struct _DeviceContextInfo {
    HDC hDC;               /* device context */
@@ -126,5 +123,3 @@ public:
    /* getDC: get device context */
    HDC getDC();
 };
-
-#endif /* __mmdagent_screen_h__ */
