@@ -173,7 +173,7 @@
 
 2   51  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
 2   51  KEY|5                   MODEL_DELETE|メニュー
-51  52  <eps>                   MODEL_ADD|パネル|Accessory\map_library\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
+51  52  <eps>                   MODEL_ADD|パネル|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
 52  53  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
 53  54  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_normal.vmd
 54  55  <eps>                   SYNTH_START|メイ|メイ（普）|図書館は，正面から見ると，右前の方向にあります．
