@@ -66,7 +66,7 @@ enum PMD_FACE_TYPE {
 };
 
 /* PMDFile_Header: header */
-typedef struct {
+typedef struct _PMDFileHeader {
    char magic[3];     /* magic string, should be "Pmd" */
    float version;     /* version number */
    char name[20];     /* model name */
@@ -74,7 +74,7 @@ typedef struct {
 } PMDFile_Header;
 
 /* PMDFile_Vertex: vertex element */
-typedef struct {
+typedef struct _PMDFile_Vertex {
    float pos[3];              /* position (x, y, z) */
    float normal[3];           /* normal vector (x, y, z) */
    float uv[2];               /* texture coordinate (u, v) */
@@ -84,7 +84,7 @@ typedef struct {
 } PMDFile_Vertex;
 
 /* PMDFile_Material: material element */
-typedef struct {
+typedef struct _PMDFile_Material {
    float diffuse[3];              /* diffuse color */
    float alpha;                   /* alpha color */
    float shiness;                 /* shiness intensity */
@@ -97,7 +97,7 @@ typedef struct {
 } PMDFile_Material;
 
 /* PMDFile_Bone: bone element */
-typedef struct {
+typedef struct _PMDFile_Bone {
    char name[20];      /* bone name */
    short parentBoneID; /* parent bone ID (-1 = none) */
    short childBoneID;  /* child bone ID (-1 = none) */
@@ -107,7 +107,7 @@ typedef struct {
 } PMDFile_Bone;
 
 /* PMDFile_IK: IK element */
-typedef struct {
+typedef struct _PMDFile_IK {
    short destBoneID;            /* bone of destination position */
    short targetBoneID;          /* bone to be directly manipulated by this IK */
    unsigned char numLink;       /* length of bone list affected by this IK */
@@ -116,7 +116,7 @@ typedef struct {
 } PMDFile_IK;
 
 /* PMDFile_Face_Vertex: face vertex element */
-typedef struct {
+typedef struct _PMDFile_Face_Vertex {
    unsigned long vertexID; /* vertex index of this model to be controlled */
    /* if base face, this is index for model vertex index */
    /* if not base, this is index for base face vertices */
@@ -124,15 +124,15 @@ typedef struct {
 } PMDFile_Face_Vertex;
 
 /* PMDFile_Face: face element */
-typedef struct {
+typedef struct _PMDFile_Face {
    char name[20];           /* name of this face */
    unsigned long numVertex; /* number of vertices controlled by this face */
    unsigned char type;      /* face type (PMD_FACE_TYPE) */
 } PMDFile_Face;
 
 /* PMDFile_RigidBody: Bullet Physics RigidBody element */
-typedef struct {
-   char name[20];                  /* name of this rigid body */
+typedef struct _PMDFile_RigidBody {
+   char name[20];                  /* name of this rigid body (unused) */
    unsigned short boneID;          /* related bone */
    unsigned char collisionGroupID; /* collision group in which this body belongs to */
    unsigned short collisionMask;   /* collision group mask */
@@ -151,8 +151,8 @@ typedef struct {
 } PMDFile_RigidBody;
 
 /* Bulletphysics Constraint element */
-typedef struct {
-   char name[20];         /* name of this constraint */
+typedef struct _PMDFile_Constraint {
+   char name[20];         /* name of this constraint (unused) */
    unsigned long bodyIDA; /* ID of body A */
    unsigned long bodyIDB; /* ID of body B */
    float pos[3];          /* position (x, y, z), relative to related bone */

@@ -94,11 +94,14 @@ PMDBone::~PMDBone()
 bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones, PMDBone *rootBone)
 {
    bool ret = true;
+   char name[21];
 
    clear();
 
    /* name */
-   m_name = strdup(b->name);
+   strncpy(name, b->name, 20);
+   name[20] = '\0';
+   m_name = strdup(name);
 
    /* mark if this bone should be treated as angle-constrained bone in IK process */
    if (strstr(m_name, PMDBONE_KNEENAME))

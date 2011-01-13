@@ -639,7 +639,7 @@ bool LipSync::createMotion(char *seq, unsigned char **rawData, unsigned long *ra
    for (i = 0; i < m_numFaces; i++) {
       for (kf = keyframe[i]; kf; kf = kf->next) {
          face = (VMDFile_FaceFrame *) data;
-         strncpy(face->faceName, m_faceName[i], 15);
+         strncpy(face->name, m_faceName[i], 15);
          face->keyFrame = (unsigned long) (kf->frame + 0.5f);
          face->weight = kf->rate;
          data += sizeof(VMDFile_FaceFrame);

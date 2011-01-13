@@ -62,10 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib julius_D.lib ws2_32.lib PortAudio_D.lib zlib_D.lib"
+				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib julius_D.lib ws2_32.lib PortAudio_D.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\Library_Julius\lib;..\Library_PortAudio\lib;..\Library_zlib\lib;"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib"
 				ModuleDefinitionFile="Plugin_Julius.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -144,10 +144,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="opengl32.lib glu32.lib Julius.lib ws2_32.lib PortAudio.lib zlib.lib"
+				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib Julius.lib ws2_32.lib PortAudio.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\Library_Julius\lib;..\Library_PortAudio\lib;..\Library_zlib\lib;"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib"
 				ModuleDefinitionFile="Plugin_Julius.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"

@@ -61,11 +61,10 @@
 
 /* headers */
 
-#include "MMDFiles.h"
-#include "Option.h"
-#include "MMDAgent.h"
-#include "MMDAgent_command.h"
+#include <windows.h>
+#include <MMSystem.h>
 
+#include "MMDAgent.h"
 #include "Audio.h"
 
 /* global variables */

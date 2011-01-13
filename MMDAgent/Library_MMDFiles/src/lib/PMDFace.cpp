@@ -80,11 +80,14 @@ PMDFace::~PMDFace()
 void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
 {
    unsigned long i;
+   char name[21];
 
    clear();
 
    /* name */
-   m_name = strdup(face->name);
+   strncpy(name, face->name, 20);
+   name[20] = '\0';
+   m_name = strdup(name);
 
    /* type */
    m_type = face->type;

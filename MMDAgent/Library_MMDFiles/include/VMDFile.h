@@ -45,12 +45,12 @@
 /* VMDFile_Header: header structure for VMD file reading */
 typedef struct _VMDFile_Header {
    char header[30]; /* "Vocaloid Motion Data 0002" */
-   char name[20];   /* model name */
+   char name[20];   /* model name (unused) */
 } VMDFile_Header;
 
 /* VMDFile_BoneFrame: bone motion element structure for VMD file reading */
 typedef struct _VMDFile_BoneFrame {
-   char boneName[15];      /* bone name */
+   char name[15];          /* bone name */
    unsigned long keyFrame; /* key frame */
    float pos[3];           /* position (x, y, z) */
    float rot[4];           /* rotation (x, y, z, w) */
@@ -59,7 +59,7 @@ typedef struct _VMDFile_BoneFrame {
 
 /* VMDFile_FaceFrame: face motion element structure for VMD file reading */
 typedef struct _VMDFile_FaceFrame {
-   char faceName[15];      /* face name */
+   char name[15];          /* face name */
    unsigned long keyFrame; /* key frame */
    float weight;           /* weight (0.0 - 1.0) */
 } VMDFile_FaceFrame;

@@ -89,6 +89,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
    char *p;
    char buf[MMDFILES_MAXBUFLEN];
    bool ret = true;
+   char name[21];
 
    clear();
 
@@ -115,13 +116,15 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
    m_edgeFlag = m->edgeFlag ? true : false;
 
    /* load model texture */
-   if (m->textureFile[0] != '\0') {
-      p = strchr(m->textureFile, '*');
+   strncpy(name, m->textureFile, 20);
+   name[20] = '\0';
+   if (strlen(name) > 0) {
+      p = strchr(name, '*');
       if (p) {
          /* has extra sphere map */
-         len = p - &(m->textureFile[0]);
+         len = p - &(name[0]);
          sprintf(buf, "%s%c", dir, MMDFILES_DIRSEPARATOR);
-         strncat(buf, m->textureFile, len);
+         strncat(buf, name, len);
          m_texture = textureLoader->load(buf);
          if (!m_texture)
             ret = false;
@@ -130,7 +133,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
          if (!m_additionalTexture)
             ret = false;
       } else {
-         sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, m->textureFile);
+         sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, name);
          m_texture = textureLoader->load(buf);
          if (!m_texture)
             ret = false;

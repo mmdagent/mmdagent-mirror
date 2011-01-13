@@ -42,15 +42,9 @@
 /* headers */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <windows.h>
 
-#include "TextRenderer.h"
 #include "Audio.h"
-#include "LogText.h"
-
-extern LogText g_logger;
 
 /* Audio::initialize: initialize audio */
 void Audio::initialize()

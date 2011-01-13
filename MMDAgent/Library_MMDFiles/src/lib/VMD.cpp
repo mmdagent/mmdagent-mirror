@@ -299,11 +299,17 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    FaceMotion *fm;
    FaceMotionLink *fl;
 
+   VMDFile_Header *header;
+   VMDFile_BoneFrame *boneFrame;
+   VMDFile_FaceFrame *faceFrame;
+
+   char name[16];
+
    /* free VMD */
    clear();
 
    /* header */
-   VMDFile_Header *header = (VMDFile_Header *) data;
+   header = (VMDFile_Header *) data;
    if (strncmp(header->header, "Vocaloid Motion Data 0002", 30) != 0)
       return false;
 
@@ -313,15 +319,17 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    m_numTotalBoneKeyFrame = *((unsigned long *) data);
    data += sizeof(unsigned long);
 
-   VMDFile_BoneFrame *boneFrame = (VMDFile_BoneFrame *) data;
+   boneFrame = (VMDFile_BoneFrame *) data;
 
    /* list bones that exists in the data and count the number of defined key frames for each */
    for (i = 0; i < m_numTotalBoneKeyFrame; i++) {
-      bm = getBoneMotion(boneFrame[i].boneName);
+      strncpy(name, boneFrame[i].name, 15);
+      name[15] = '\0';
+      bm = getBoneMotion(name);
       if (bm)
          bm->numKeyFrame++;
       else
-         addBoneMotion(boneFrame[i].boneName);
+         addBoneMotion(name);
    }
    /* allocate memory to store the key frames, and reset count again */
    for (bl = m_boneLink; bl; bl = bl->next) {
@@ -330,7 +338,9 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    }
    /* store the key frames, parsing the data again. also compute max frame */
    for (i = 0; i < m_numTotalBoneKeyFrame; i++) {
-      bm = getBoneMotion(boneFrame[i].boneName);
+      strncpy(name, boneFrame[i].name, 15);
+      name[15] = '\0';
+      bm = getBoneMotion(name);
       bm->keyFrameList[bm->numKeyFrame].keyFrame = (float) boneFrame[i].keyFrame;
       if (m_maxFrame < bm->keyFrameList[bm->numKeyFrame].keyFrame)
          m_maxFrame = bm->keyFrameList[bm->numKeyFrame].keyFrame;
@@ -360,15 +370,17 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    m_numTotalFaceKeyFrame = *((unsigned long *) data);
    data += sizeof(unsigned long);
 
-   VMDFile_FaceFrame *faceFrame = (VMDFile_FaceFrame *) data;
+   faceFrame = (VMDFile_FaceFrame *) data;
 
    /* list faces that exists in the data and count the number of defined key frames for each */
    for (i = 0; i < m_numTotalFaceKeyFrame; i++) {
-      fm = getFaceMotion(faceFrame[i].faceName);
+      strncpy(name, faceFrame[i].name, 15);
+      name[15] = '\0';
+      fm = getFaceMotion(name);
       if (fm)
          fm->numKeyFrame++;
       else
-         addFaceMotion(faceFrame[i].faceName);
+         addFaceMotion(name);
    }
    /* allocate memory to store the key frames, and reset count again */
    for (fl = m_faceLink; fl; fl = fl->next) {
@@ -377,7 +389,9 @@ bool VMD::parse(unsigned char *data, unsigned long size)
    }
    /* store the key frames, parsing the data again. also compute max frame */
    for (i = 0; i < m_numTotalFaceKeyFrame; i++) {
-      fm = getFaceMotion(faceFrame[i].faceName);
+      strncpy(name, faceFrame[i].name, 15);
+      name[15] = '\0';
+      fm = getFaceMotion(faceFrame[i].name);
       fm->keyFrameList[fm->numKeyFrame].keyFrame = (float) faceFrame[i].keyFrame;
       if (m_maxFrame < fm->keyFrameList[fm->numKeyFrame].keyFrame)
          m_maxFrame = fm->keyFrameList[fm->numKeyFrame].keyFrame;
