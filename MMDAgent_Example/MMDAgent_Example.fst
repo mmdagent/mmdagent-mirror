@@ -156,7 +156,8 @@
 2   31  KEY|3                       SYNTH_START|メイ|メイ（普）|どういたしまして。
 31  32  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART
 32  33  SYNTH_EVENT_STOP|メイ       SYNTH_START|メイ|メイ（喜）|いつでも、話しかけてくださいね。
-33  2   SYNTH_EVENT_STOP|メイ       <eps>
+33  34  <eps>                       MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
+34  2   SYNTH_EVENT_STOP|メイ       MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
 
 # 0041-0050 Positive comments (key 4)
 
@@ -167,3 +168,21 @@
 2   41  KEY|4                     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
 41  42  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART
 42  2   SYNTH_EVENT_STOP|メイ     <eps>
+
+# 0051-0070 Information (key 5)
+
+2   51  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
+2   51  KEY|5                   MODEL_DELETE|メニュー
+51  52  <eps>                   MODEL_ADD|パネル|Accessory\map_library\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
+52  53  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
+53  54  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_normal.vmd
+54  55  <eps>                   SYNTH_START|メイ|メイ（普）|図書館は，正面から見ると，右前の方向にあります．
+55  56  SYNTH_EVENT_STOP|メイ   MOTION_ADD|メイ|視線|Motion\mei_look\mei_look_down.vmd|PART|ONCE
+56  57  <eps>                   SYNTH_START|メイ|メイ（普）|キャンパスマップでは，こちらになります．
+57  58  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
+58  59  SYNTH_EVENT_STOP|メイ   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
+59  60  <eps>                   SYNTH_START|メイ|メイ（普）|お解りになりますか？
+60  61  SYNTH_EVENT_STOP|メイ   MODEL_DELETE|パネル
+61  62  <eps>                   MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
+62  63  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
+63  2   <eps>                   MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
