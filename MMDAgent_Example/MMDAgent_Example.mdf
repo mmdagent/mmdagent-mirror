@@ -71,12 +71,12 @@ log_scale=1.0
 # Light
 
 light_direction=0.5,1.0,0.5,0.0
-light_intensity=0.6f
+light_intensity=0.6
 light_color=1.0,1.0,1.0
 
 # Campus
 
-campus_color=0.0,0.0,0.0
+campus_color=0.0,0.0,0.2
 
 # OpenGL
 
@@ -104,3 +104,7 @@ shadow_mapping_texture_size=1024
 shadow_mapping_self_density=1.0
 shadow_mapping_floor_density=0.5
 shadow_mapping_light_first=true
+
+# Comment
+
+display_comment_frame=0.0
