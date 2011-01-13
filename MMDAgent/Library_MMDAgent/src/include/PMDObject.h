@@ -42,7 +42,6 @@
 #define PMDOBJECT_MAXBUFLEN 1024
 
 #define PMDOBJECT_ALPHAFRAME    15.0   /* number of frames for appear/disappear alpha blending */
-#define PMDOBJECT_COMMENTFRAME  150.0
 #define PMDOBJECT_ALIASNAMELEN  50
 #define PMDOBJECT_MINMOVEDIFF   0.0001f
 #define PMDOBJECT_MOVESPEEDRATE 0.90f /* current * 0.90 + target * 0.10 */
@@ -105,7 +104,7 @@ public:
    void release();
 
    /* PMDObject::load: load model */
-   bool load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light);
+   bool load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
 
    /* PMDObject::setMotion: start a motion */
    bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos);

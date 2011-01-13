@@ -150,7 +150,7 @@
 
 #define OPTION_TRANSLATESTEP_STR "translate_step"
 #define OPTION_TRANSLATESTEP_DEF 0.5f
-#define OPTION_TRANSLATESTEP_MAX 1000.f
+#define OPTION_TRANSLATESTEP_MAX 1000.0f
 #define OPTION_TRANSLATESTEP_MIN 0.001f
 
 #define OPTION_SCALESTEP_STR "scale_step"
@@ -178,6 +178,11 @@
 
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_STR "shadow_mapping_light_first"
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_DEF true
+
+#define OPTION_DISPLAYCOMMENTFRAME_STR "display_comment_frame"
+#define OPTION_DISPLAYCOMMENTFRAME_DEF 150.0f
+#define OPTION_DISPLAYCOMMENTFRAME_MAX 1000.0f
+#define OPTION_DISPLAYCOMMENTFRAME_MIN 0.0f
 
 /* Option: user options */
 class Option
@@ -236,6 +241,9 @@ private:
    float m_shadowMapSelfDensity;
    float m_shadowMapFloorDensity;
    bool m_shadowMapLightFirst;
+
+   /* comment */
+   float m_displayCommentFrame;
 
    /* initialize: initialize options */
    void initialize();
@@ -421,4 +429,10 @@ public:
 
    /* setShadowMappingLightFirst: set first light flag */
    void setShadowMappingLightFirst(bool b);
+
+   /* getDisplayCommentFrame: get display comment frame */
+   float getDisplayCommentFrame();
+
+   /* setDisplayCommentFrame: set display comment frame */
+   void setDisplayCommentFrame(float f);
 };

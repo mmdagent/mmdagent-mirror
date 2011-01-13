@@ -167,6 +167,8 @@ void Option::initialize()
    m_shadowMapSelfDensity = OPTION_SHADOWMAPPINGSELFDENSITY_DEF;
    m_shadowMapFloorDensity = OPTION_SHADOWMAPPINGFLOORDENSITY_DEF;
    m_shadowMapLightFirst = OPTION_SHADOWMAPPINGLIGHTFIRST_DEF;
+
+   m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_DEF;
 }
 
 /* Option::Option: constructor */
@@ -270,6 +272,8 @@ bool Option::load(char *file)
          setShadowMappingFloorDensity(str2float(p1));
       } else if(strcmp(buf, OPTION_SHADOWMAPPINGLIGHTFIRST_STR) == 0) {
          setShadowMappingLightFirst(str2bool(p1));
+      } else if(strcmp(buf, OPTION_DISPLAYCOMMENTFRAME_STR) == 0) {
+         setDisplayCommentFrame(str2float(p1));
       }
    }
    fclose(fp);
@@ -776,4 +780,21 @@ bool Option::getShadowMappingLightFirst()
 void Option::setShadowMappingLightFirst(bool b)
 {
    m_shadowMapLightFirst = b;
+}
+
+/* Option::getDisplayCommentFrame: get display comment frame */
+float Option::getDisplayCommentFrame()
+{
+   return m_displayCommentFrame;
+}
+
+/* Option::setDisplayCommentFrame: set display comment frame */
+void Option::setDisplayCommentFrame(float f)
+{
+   if(OPTION_DISPLAYCOMMENTFRAME_MAX < f)
+      m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_MAX;
+   else if(OPTION_DISPLAYCOMMENTFRAME_MIN > f)
+      m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_MIN;
+   else
+      m_displayCommentFrame = f;
 }

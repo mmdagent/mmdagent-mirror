@@ -95,7 +95,7 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light)
+bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame)
 {
    int i;
 
@@ -147,7 +147,7 @@ bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetR
    m_alphaDisappearFrame = 0.0;
 
    /* set comment frame */
-   m_displayCommentFrame = PMDOBJECT_COMMENTFRAME;
+   m_displayCommentFrame = commentFrame;
 
    /* load model */
    if (m_pmd.load(fileName, bullet, systex) == false) {
@@ -554,7 +554,7 @@ void PMDObject::renderComment(TextRenderer * text)
    float tpos[3];
    char *p;
 
-   if (m_displayCommentFrame == 0.0)
+   if (m_displayCommentFrame <= 0.0)
       return;
 
    if(m_pmd.getComment() == NULL)

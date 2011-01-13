@@ -606,7 +606,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
+   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
       g_logger.log("! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
@@ -641,7 +641,7 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light)) {
+   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
       g_logger.log("! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }
