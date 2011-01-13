@@ -188,42 +188,6 @@ bool PluginList::load(const char *dir)
    return ret;
 }
 
-/* PluginList::addPlugin: add internal plugin */
-bool PluginList::addPlugin(char *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *))
-{
-   Plugin *p;
-
-   /* check */
-   if (name == NULL)
-      return false;
-   if (strlen(name) <= 0)
-      return false;
-   if (!appStart && !appEnd && !windowCreate && !windowProc && !update && !render)
-      return false;
-
-   /* create */
-   p = (Plugin *) malloc(sizeof(Plugin));
-   Plugin_initialize(p);
-   p->name = strdup(name);
-   p->appStart = appStart;
-   p->appEnd = appEnd;
-   p->windowCreate = windowCreate;
-   p->windowProc = windowProc;
-   p->update = update;
-   p->render = render;
-   p->enable = true;
-
-   /* add */
-   if (m_tail == NULL)
-      m_head = p;
-   else
-      m_tail->next = p;
-   m_tail = p;
-   m_numPlugin++;
-
-   return true;
-}
-
 /* PluginList::execAppStart: run when application is start */
 void PluginList::execAppStart(MMDAgent *mmdagent)
 {

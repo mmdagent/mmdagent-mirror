@@ -46,13 +46,10 @@
 
 #include "MMDFiles.h"
 
-//#include "resource.h"
 #include "Option.h"
 #include "MMDAgent.h"
 #include "utils.h"
 #include "MMDAgent_command.h"
-
-extern void initializeLookAt(MMDAgent *mmdagent, PluginList *pluginList);
 
 /* MMDAgent::initialize: initialize MMDAgent */
 void MMDAgent::initialize()
@@ -584,8 +581,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* update light */
    updateLight();
-
-   initializeLookAt(this, &m_plugin);
 
    /* start timer */
    m_timer.startSystem();

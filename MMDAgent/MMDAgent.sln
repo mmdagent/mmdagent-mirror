@@ -45,6 +45,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "main", "main\main.vcproj", 
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_Audio", "Plugin_Audio\Plugin_Audio.vcproj", "{811BCAAF-9A56-4B92-80AE-8B660B984D1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8F5C492B-1FDD-4FD5-8191-528A4A0A4D86} = {8F5C492B-1FDD-4FD5-8191-528A4A0A4D86}
+		{08C504D6-E965-4F03-983D-F89E61F6FDC3} = {08C504D6-E965-4F03-983D-F89E61F6FDC3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_LookAt", "Plugin_LookAt\Plugin_LookAt.vcproj", "{66B083C9-DB71-4B6C-ACF9-62FBA82BE6F8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8F5C492B-1FDD-4FD5-8191-528A4A0A4D86} = {8F5C492B-1FDD-4FD5-8191-528A4A0A4D86}
+		{08C504D6-E965-4F03-983D-F89E61F6FDC3} = {08C504D6-E965-4F03-983D-F89E61F6FDC3}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,6 +102,10 @@ Global
 		{811BCAAF-9A56-4B92-80AE-8B660B984D1F}.Debug|Win32.Build.0 = Debug|Win32
 		{811BCAAF-9A56-4B92-80AE-8B660B984D1F}.Release|Win32.ActiveCfg = Release|Win32
 		{811BCAAF-9A56-4B92-80AE-8B660B984D1F}.Release|Win32.Build.0 = Release|Win32
+		{66B083C9-DB71-4B6C-ACF9-62FBA82BE6F8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{66B083C9-DB71-4B6C-ACF9-62FBA82BE6F8}.Debug|Win32.Build.0 = Debug|Win32
+		{66B083C9-DB71-4B6C-ACF9-62FBA82BE6F8}.Release|Win32.ActiveCfg = Release|Win32
+		{66B083C9-DB71-4B6C-ACF9-62FBA82BE6F8}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

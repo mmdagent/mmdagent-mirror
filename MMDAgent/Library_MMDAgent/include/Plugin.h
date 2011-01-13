@@ -98,9 +98,6 @@ public:
    /* load: load all DLLs in a directory */
    bool load(const char *dir);
 
-   /* addPlugin: add internal plugin */
-   bool addPlugin(char *name, void (__stdcall *appStart)(MMDAgent *), void (__stdcall *appEnd)(MMDAgent *), void (__stdcall *windowCreate)(MMDAgent *, HWND), void (__stdcall *windowProc)(MMDAgent *, HWND, UINT, WPARAM, LPARAM), void (__stdcall *update)(MMDAgent *, double), void (__stdcall *render)(MMDAgent *));
-
    /* execAppStart: run when application is start */
    void execAppStart(MMDAgent *mmdagent);
 
