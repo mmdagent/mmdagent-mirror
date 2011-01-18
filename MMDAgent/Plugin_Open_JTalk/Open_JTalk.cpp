@@ -61,17 +61,6 @@
 
 #include "Open_JTalk.h"
 
-#ifdef OPENJTALK_DEBUG
-void dprint(char *str)
-{
-   FILE *fp = fopen("C:\\cygwin\\home\\uratec\\SRC\\MMDAgentTask\\MMDAgentExample\\log.txt", "a");
-   fprintf(fp, "[");
-   fprintf(fp, str);
-   fprintf(fp, "]\n");
-   fclose(fp);
-}
-#endif
-
 /* Open_JTalk::initialize: initialize system */
 void Open_JTalk::initialize()
 {

@@ -2,3 +2,4 @@ LIBRARY	"Plugin_Open_JTalk"
 EXPORTS
 	extWindowCreate
 	extWindowProc
+	extAppEnd

@@ -167,20 +167,25 @@ static unsigned __stdcall main_thread(void *param)
 {
    Open_JTalk_Thread *open_jtalk_thread = (Open_JTalk_Thread *) param;
 
-   while (1)
+   while (open_jtalk_thread->isRunning())
       open_jtalk_thread->synthesis();
+
+   _endthreadex(0);
+   return 0;
 }
 
 /* Open_JTalk_Thread::initialize: initialize thread */
 void Open_JTalk_Thread::initialize()
 {
-   m_window = NULL;
-   m_event = NULL;
-   m_command = NULL;
+   m_window = 0;
+   m_event = 0;
+   m_command = 0;
 
    m_threadHandle = 0;
    m_bufferMutex = 0;
    m_synthEvent = 0;
+
+   m_stop = false;
 
    Open_JTalk_EventQueue_initialize(&m_bufferQueue);
 
@@ -195,20 +200,23 @@ void Open_JTalk_Thread::clear()
 {
    int i;
 
-   m_window = NULL;
-   m_event = NULL;
-   m_command = NULL;
+   if(m_stop == false) {
+      m_stop = true;
+      stop();
+   }
+   if (m_synthEvent)
+      SetEvent(m_synthEvent);
 
-   /* stop thread & close mutex */
-   if (m_threadHandle != 0)
+   /* wait end of thread */
+   if(m_threadHandle != 0) {
+      if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
+         MessageBox(NULL, L"ERROR: Cannot wait thread end.", L"Error", MB_OK);
       CloseHandle(m_threadHandle);
-   m_threadHandle = 0;
+   }
    if (m_bufferMutex)
       CloseHandle(m_bufferMutex);
-   m_bufferMutex = 0;
    if (m_synthEvent)
       CloseHandle(m_synthEvent);
-   m_synthEvent = 0;
 
    Open_JTalk_EventQueue_clear(&m_bufferQueue);
 
@@ -218,8 +226,6 @@ void Open_JTalk_Thread::clear()
          free(m_modelNames[i]);
       free(m_modelNames);
    }
-   m_numModels = 0;
-   m_modelNames = NULL;
 
    /* free style names */
    if (m_numStyles > 0) {
@@ -227,8 +233,8 @@ void Open_JTalk_Thread::clear()
          free(m_styleNames[i]);
       free(m_styleNames);
    }
-   m_numStyles = 0;
-   m_styleNames = NULL;
+
+   initialize();
 }
 
 /* Open_JTalk_Thread::Open_JTalk_Thread: thread constructor */
@@ -359,12 +365,18 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    }
 }
 
-/* Open_JTalk_Thread::isStarted: check running */
-bool Open_JTalk_Thread::isStarted()
+/* Open_JTalk_Thread::isRunning: check running */
+bool Open_JTalk_Thread::isRunning()
 {
-   if (m_threadHandle == 0)
+   if (m_threadHandle == 0 || m_stop == true)
       return false;
    return true;
+}
+
+/* Open_JTalk_Thread::stopAndRelease: stop thread and free Open JTalk */
+void Open_JTalk_Thread::stopAndRelease()
+{
+   clear();
 }
 
 /* Open_JTalk_Thread::setSynthParameter: set buffer for synthesis (chara|style|text) */
@@ -399,7 +411,7 @@ void Open_JTalk_Thread::synthesis()
    }
    ResetEvent(m_synthEvent);
 
-   while (remain) {
+   while (remain && m_stop == false) {
       /* wait text */
       if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
          MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);

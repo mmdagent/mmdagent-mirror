@@ -88,6 +88,8 @@ private:
    HANDLE m_bufferMutex;  /* mutex for buffer */
    HANDLE m_synthEvent;   /* event for synthesis */
 
+   bool m_stop;
+
    Open_JTalk_EventQueue m_bufferQueue; /* buffer for synthesis (chara|style|text) */
 
    int m_numModels;     /* number of models */
@@ -112,8 +114,11 @@ public:
    /* loadAndStart: load models and start thread */
    void loadAndStart(HWND param1, UINT param2, UINT param3, char *dicDir, char *config);
 
-   /* isStarted: check running */
-   bool isStarted();
+   /* isRunning: check running */
+   bool isRunning();
+
+   /* stopAndRelease: stop thread and free Open JTalk */
+   void stopAndRelease();
 
    /* set_synth_parameter: set buffer for synthesis (chara|style|text) */
    void setSynthParameter(char *str);

@@ -94,24 +94,6 @@
 int open_jtalk_thread_index;
 Open_JTalk_Thread open_jtalk_thread_list[PLUGINOPENJTALK_NTHREAD];
 
-/* startSynthesis: start to synthesize speech */
-static bool startSynthesis(char *val)
-{
-   /* check */
-   if (open_jtalk_thread_list[open_jtalk_thread_index].isStarted() == false || val == NULL || strlen(val) <= 0)
-      return false;
-
-   /* synthesis */
-   open_jtalk_thread_list[open_jtalk_thread_index].setSynthParameter(val);
-
-   /* change thread */
-   open_jtalk_thread_index++;
-   if (open_jtalk_thread_index >= PLUGINOPENJTALK_NTHREAD)
-      open_jtalk_thread_index = 0;
-
-   return true;
-}
-
 /* extWindowCreate: load models and start thread */
 void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
 {
@@ -157,7 +139,7 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
    char *buf1;
    char *buf2;
 
-   if (open_jtalk_thread_list[open_jtalk_thread_index].isStarted()) {
+   if (open_jtalk_thread_list[open_jtalk_thread_index].isRunning()) {
       if (message == WM_MMDAGENT_COMMAND) {
          buf1 = (char *) wParam;
          buf2 = (char *) lParam;
@@ -176,6 +158,15 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
          }
       }
    }
+}
+
+/* extAppEnd: stop and free thread */
+void __stdcall extAppEnd(MMDAgent *m)
+{
+   int i;
+
+   for(i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
+      open_jtalk_thread_list[i].stopAndRelease();
 }
 
 /* DllMain: main for DLL */

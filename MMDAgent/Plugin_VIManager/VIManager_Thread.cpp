@@ -159,7 +159,8 @@ void VIManager_Thread::initialize()
 void VIManager_Thread::clear()
 {
    m_stop = true;
-   SetEvent(m_transEvent);
+   if(m_transEvent)
+      SetEvent(m_transEvent);
 
    /* stop thread & close mutex */
    if (m_threadHandle != 0) {
@@ -223,7 +224,7 @@ void VIManager_Thread::loadAndStart(HWND window, UINT command, char *fn)
 /* VIManager_Thread::isRunning: check running */
 bool VIManager_Thread::isRunning()
 {
-   if (m_threadHandle == 0 && m_stop == false)
+   if (m_threadHandle == 0 || m_stop == true)
       return false;
    return true;
 }
