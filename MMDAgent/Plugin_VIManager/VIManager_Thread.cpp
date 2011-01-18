@@ -136,6 +136,7 @@ static unsigned __stdcall main_thread(void *param)
    VIManager_Thread *vimanager_thread = (VIManager_Thread *) param;
 
    vimanager_thread->stateTransition();
+   _endthreadex(0);
    return 0;
 }
 
@@ -144,6 +145,8 @@ void VIManager_Thread::initialize()
 {
    m_window = NULL;
    m_command = NULL;
+
+   m_stop = false;
 
    m_threadHandle = 0;
    m_queueMutex = 0;
@@ -155,13 +158,21 @@ void VIManager_Thread::initialize()
 /* VIManager_Thread::clear: free thread */
 void VIManager_Thread::clear()
 {
+   m_stop = true;
+   SetEvent(m_transEvent);
+
    /* stop thread & close mutex */
-   if (m_threadHandle != 0)
+   if (m_threadHandle != 0) {
+      if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
+         MessageBox(NULL, L"ERROR: Cannot wait thread end.", L"Error", MB_OK);
       CloseHandle(m_threadHandle);
+   }
    if (m_queueMutex)
       CloseHandle(m_queueMutex);
    if (m_transEvent)
       CloseHandle(m_transEvent);
+
+   /* free */
    VIManager_EventQueue_clear(&eventQueue);
 
    initialize();
@@ -209,12 +220,18 @@ void VIManager_Thread::loadAndStart(HWND window, UINT command, char *fn)
    }
 }
 
-/* VIManager_Thread::isStarted: check running */
-bool VIManager_Thread::isStarted()
+/* VIManager_Thread::isRunning: check running */
+bool VIManager_Thread::isRunning()
 {
-   if (m_threadHandle == 0)
+   if (m_threadHandle == 0 && m_stop == false)
       return false;
    return true;
+}
+
+/* VIManager_Thread::stopAndRelease: stop thread and release */
+void VIManager_Thread::stopAndRelease()
+{
+   clear();
 }
 
 /* VIManager_Thread::enqueueBuffer: enqueue buffer to check */
@@ -249,16 +266,18 @@ void VIManager_Thread::stateTransition()
          sendMessage(otype, oargs);
    }
 
-   while(1) {
+   while(m_stop == false) {
       /* wait transition event */
       if (WaitForSingleObject(m_transEvent, INFINITE) != WAIT_OBJECT_0)
          MessageBox(NULL, L"ERROR: Cannot wait event.", L"Error", MB_OK);
+      if(m_stop) return;
       ResetEvent(m_transEvent);
 
       do {
          /* wait queue access */
          if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
             MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);
+         if(m_stop) return;
          /* load input message */
          remain = VIManager_EventQueue_dequeue(&eventQueue, itype, iargs);
          ReleaseMutex(m_queueMutex);

@@ -99,7 +99,7 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
    char *mes1;
    char *mes2;
 
-   if (vimanager_thread.isStarted()) {
+   if (vimanager_thread.isRunning()) {
       if (message == WM_MMDAGENT_EVENT) {
          mes1 = (char *) wParam;
          mes2 = (char *) lParam;
@@ -108,6 +108,12 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
          }
       }
    }
+}
+
+/* extAppEnd: stop and free thread */
+void __stdcall extAppEnd(MMDAgent *m)
+{
+   vimanager_thread.stopAndRelease();
 }
 
 /* DllMain: main for DLL */

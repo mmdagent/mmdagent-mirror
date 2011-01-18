@@ -79,6 +79,8 @@ private:
    HWND m_window;   /* window handle to post message */
    UINT m_command;  /* message type to post message */
 
+   bool m_stop;
+
    HANDLE m_threadHandle; /* thread handle */
    HANDLE m_queueMutex;   /* mutex for queue */
    HANDLE m_transEvent;   /* event for transition */
@@ -102,8 +104,11 @@ public:
    /* loadAndStart: load FST and start thread */
    void loadAndStart(HWND window, UINT command, char *fn);
 
-   /* isStarted: check running */
-   bool isStarted();
+   /* isRunning: check running */
+   bool isRunning();
+
+   /* stopAndRelease: stop thread and release */
+   void stopAndRelease();
 
    /* enqueueBuffer: enqueue buffer to check */
    void enqueueBuffer(char *type, char *args);

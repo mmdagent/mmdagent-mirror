@@ -2,3 +2,4 @@ LIBRARY	"Plugin_VIManager"
 EXPORTS
 	extWindowCreate
 	extWindowProc
+	extAppEnd
