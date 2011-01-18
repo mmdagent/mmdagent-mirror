@@ -96,7 +96,7 @@ bool Audio::play(wchar_t *alias, wchar_t *file)
    wchar_t buf[AUDIO_MAXBUFLEN];
 
    /* wait */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"open \"%s\" alias %s wait", file, alias);
+   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"open \"%s\" alias _%s wait", file, alias);
    if (mciSendString(buf, NULL, 0, NULL) != 0)
       return false;
 
@@ -117,17 +117,17 @@ bool Audio::play(wchar_t *alias, wchar_t *file)
    }
 
    /* enqueue */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"cue %s output wait", alias);
+   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"cue _%s output wait", alias);
    if (mciSendString(buf, NULL, 0, NULL) != 0) {
-      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close %s", alias);
+      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
       mciSendString(buf, NULL, 0, NULL);
       return false;
    }
 
    /* start */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"play %s notify", alias);
+   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"play _%s notify", alias);
    if (mciSendString(buf, NULL, 0, m_window) != 0) {
-      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close %s", alias);
+      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
       mciSendString(buf, NULL, 0, NULL);
       return false;
    }
@@ -143,9 +143,9 @@ void Audio::stop(wchar_t *alias)
    wchar_t buf[AUDIO_MAXBUFLEN];
 
    /* send close command */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"stop %s", alias);
+   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"stop _%s", alias);
    mciSendString(buf, NULL, 0, NULL);
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close %s", alias);
+   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
    mciSendString(buf, NULL, 0, NULL);
 
    /* remove file name */
