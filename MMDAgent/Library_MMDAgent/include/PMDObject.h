@@ -56,7 +56,9 @@ private:
    char *m_alias;                  /* alias */
    PMDModel m_pmd;                 /* model */
    MotionManager *m_motionManager; /* motion manager */
-   LipSync m_lipSync;              /* lip sync */
+
+   LipSync *m_globalLipSync; /* lip sync */
+   LipSync *m_localLipSync;
 
    bool m_isEnable; /* true if this model is enabled */
 
@@ -86,117 +88,117 @@ private:
 
    bool m_needResetKinematic; /* flag for reset Kinematic State when base motion is changed */
 
-   /* PMDObject::initialize: initialize PMDObject */
+   /* initialize: initialize PMDObject */
    void initialize();
 
-   /* PMDOjbect::clear: free PMDObject */
+   /* clear: free PMDObject */
    void clear();
 
 public:
 
-   /* PMDObject::PMDObject: constructor */
+   /* PMDObject: constructor */
    PMDObject();
 
-   /* PMDObject::PMDObject: destructor */
+   /* PMDObject: destructor */
    ~PMDObject();
 
-   /* PMDOjbect::release: free PMDObject */
+   /* release: free PMDObject */
    void release();
 
-   /* PMDObject::load: load model */
-   bool load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
+   /* load: load model */
+   bool load(char *fileName, char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
 
-   /* PMDObject::setMotion: start a motion */
+   /* setMotion: start a motion */
    bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos);
 
-   /* PMDObject::swapMotion: swap a motion */
+   /* swapMotion: swap a motion */
    bool swapMotion(VMD *vmd, char *name);
 
-   /* PMDObject::updateRootBone: update root bone if assigned to a base bone */
+   /* updateRootBone: update root bone if assigned to a base bone */
    void updateRootBone();
 
-   /* PMDObject::updateMotion: update motions */
+   /* updateMotion: update motions */
    bool updateMotion(double deltaFrame);
 
-   /* PMDObject::updateAfterSimulation: update bone transforms from simulated rigid bodies */
+   /* updateAfterSimulation: update bone transforms from simulated rigid bodies */
    void updateAfterSimulation(bool physicsEnabled);
 
-   /* PMDObject::updateAlpha: update global model alpha */
+   /* updateAlpha: update global model alpha */
    bool updateAlpha(double deltaFrame);
 
-   /* PMDObject::startDisppear: set disapper timer */
+   /* startDisppear: set disapper timer */
    void startDisappear();
 
-   /* PMDModel::deleteModel: disable model */
+   /* deleteModel: disable model */
    void deleteModel();
 
-   /* PMDModel::setLightForToon: set light direction for ton shading */
+   /* setLightForToon: set light direction for ton shading */
    void setLightForToon(btVector3 *v);
 
-   /* PMDObject::updateModel: update model position of root bone */
+   /* updateModel: update model position of root bone */
    bool updateModelRootOffset(float fps);
 
-   /* PMDObject::updateModelRootRotation: update model rotation of root bone */
+   /* updateModelRootRotation: update model rotation of root bone */
    bool updateModelRootRotation(float fps);
 
-   /* PMDObject::getAlias: get alias name */
+   /* getAlias: get alias name */
    char *getAlias();
 
-   /* PMDObject::setAlias: set alias name */
+   /* setAlias: set alias name */
    void setAlias(char *alias);
 
-   /* PMDObject::getPMDModel: get PMDModel */
+   /* getPMDModel: get PMDModel */
    PMDModel *getPMDModel();
 
-   /* PMDObject::getMotionManager: get MotionManager */
+   /* getMotionManager: get MotionManager */
    MotionManager *getMotionManager();
 
-   /* PMDObject::resetMotionManager: reset MotionManager */
+   /* resetMotionManager: reset MotionManager */
    void resetMotionManager();
 
-   /* PMDObject::getLipSync: get LipSync */
-   LipSync *getLipSync();
+   /* createLipSyncMotion: create LipSync motion */
+   bool createLipSyncMotion(char *str, unsigned char **rawData, unsigned long *rawSize);
 
-   /* PMDObject::getPosition: get root bone offset */
+   /* getPosition: get root bone offset */
    void getPosition(btVector3 &pos);
 
-   /* PMDObject::setPosition: set root bone offset */
+   /* setPosition: set root bone offset */
    void setPosition(btVector3 &pos);
 
-   /* PMDObject::getRotation: get root bone rotation */
+   /* getRotation: get root bone rotation */
    void getRotation(btQuaternion &rot);
 
-   /* PMDObject::setRotation: set root bone rotation */
+   /* setRotation: set root bone rotation */
    void setRotation(btQuaternion &rot);
 
-   /* PMDObject::setMoveSpeed: set move speed per second */
+   /* setMoveSpeed: set move speed per second */
    void setMoveSpeed(float speed);
 
-   /* PMDObject::setSpinSpeed: set spin seed per second */
+   /* setSpinSpeed: set spin seed per second */
    void setSpinSpeed(float speed);
 
-   /* PMDObject::isMoving: return true when model move */
+   /* isMoving: return true when model move */
    bool isMoving();
 
-   /* PMDObject::isRotating: return true when model spin */
+   /* isRotating: return true when model spin */
    bool isRotating();
 
-   /* PMDObject::isTruning: return true when model turn */
+   /* isTruning: return true when model turn */
    bool isTurning();
 
-   /* PMDObject::setTurnFlag: set turnning flag */
+   /* setTurnFlag: set turnning flag */
    void setTurningFlag(bool flag);
 
-   /* PMDObject::isEnable: get enable flag */
+   /* isEnable: get enable flag */
    bool isEnable();
 
-   /* PMDObject::setEnableFlag: set enable flag */
+   /* setEnableFlag: set enable flag */
    void setEnableFlag(bool flag);
 
-   /* PMDObject::allowMotionFileDrop: return true if motion file drop is allowed */
+   /* allowMotionFileDrop: return true if motion file drop is allowed */
    bool allowMotionFileDrop();
 
-   /* PMDObject::getAssignedModel: get parent model */
+   /* getAssignedModel: get parent model */
    PMDObject *getAssignedModel();
 
    /* renderComment: render model comment */

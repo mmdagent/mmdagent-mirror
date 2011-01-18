@@ -110,10 +110,10 @@ private:
    /* renderScene: render scene */
    void renderScene(MMDAgent *mmdagent);
 
-   /* Render::initialize: initialzie Render */
+   /* initialize: initialzie Render */
    void initialize();
 
-   /* Render::clear: free Render */
+   /* clear: free Render */
    void clear();
 
 public:

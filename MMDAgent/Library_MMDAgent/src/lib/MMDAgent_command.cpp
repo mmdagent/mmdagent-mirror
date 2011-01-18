@@ -606,7 +606,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, &m_lipSync, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
       g_logger.log("! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
@@ -615,7 +615,6 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
 
    /* initialize motion manager */
    m_model[id].resetMotionManager();
-   m_model[id].setAlias(name);
 
    /* send event message */
    sendEventMessage(MMDAGENTCOMMAND_MODELEVENTADD, "%s", name);
@@ -630,6 +629,7 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    int id;
    MotionPlayer *motionPlayer;
    double currentFrame;
+   double previousFrame;
    float *l = m_option.getLightDirection();
    btVector3 light = btVector3(l[0], l[1], l[2]);
 
@@ -641,7 +641,7 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, &m_lipSync, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
       g_logger.log("! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }
@@ -651,19 +651,18 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
          if (motionPlayer->active) {
             currentFrame = motionPlayer->mc.getCurrentFrame();
+            previousFrame = motionPlayer->mc.getPreviousFrame();
             m_model[id].getMotionManager()->startMotionSub(motionPlayer->vmd, motionPlayer);
             motionPlayer->mc.setCurrentFrame(currentFrame);
+            motionPlayer->mc.setPreviousFrame(previousFrame);
          }
       }
    }
 
-   /* set alias */
-   m_model[id].setAlias(modelAlias);
-
-   /* delete accessories  */
+   /* delete accessories immediately*/
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() && m_model[i].getAssignedModel() == &(m_model[id]))
-         deleteModel(m_model[i].getAlias());
+         removeRelatedModels(i);
 
    /* send message */
    sendEventMessage(MMDAGENTCOMMAND_MODELEVENTCHANGE, "%s", modelAlias);
@@ -693,7 +692,6 @@ bool MMDAgent::deleteModel(char *modelAlias)
    m_model[id].startDisappear();
 
    /* send event message */
-   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTDELETE, "%s", modelAlias);
    return true;
 }
 
@@ -994,7 +992,7 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
    }
 
    /* create motion */
-   if(m_model[id].getLipSync()->createMotion(seq, &vmdData, &vmdSize) == false) {
+   if(m_model[id].createLipSyncMotion(seq, &vmdData, &vmdSize) == false) {
       g_logger.log("! Error: startLipSync: cannot create lip motion.");
       return false;
    }

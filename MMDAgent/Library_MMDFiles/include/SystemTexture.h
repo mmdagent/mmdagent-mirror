@@ -50,10 +50,10 @@ private:
    unsigned int m_toonTextureID[SYSTEMTEXTURE_NUMFILES];
    PMDTexture m_toonTexture[SYSTEMTEXTURE_NUMFILES];
 
-   /* SystemTexture::initialize: initialize SystemTexture */
+   /* initialize: initialize SystemTexture */
    void initialize();
 
-   /* SystemTexture::clear: free SystemTexutre */
+   /* clear: free SystemTexutre */
    void clear();
 
 public:

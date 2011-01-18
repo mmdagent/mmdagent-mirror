@@ -550,3 +550,15 @@ void MotionController::setCurrentFrame(double frame)
 {
    m_currentFrame = frame;
 }
+
+/* MotionController::getPreviousFrame: get previous frame */
+double MotionController::getPreviousFrame()
+{
+   return m_previousFrame;
+}
+
+/* MotionController::setPreviousFrame: set previous frame */
+void MotionController::setPreviousFrame(double frame)
+{
+   m_previousFrame = frame;
+}

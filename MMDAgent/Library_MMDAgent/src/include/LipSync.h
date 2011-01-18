@@ -39,32 +39,37 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define LIPSYNC_MAXBUFLEN  1024
-#define LIPSYNC_MOTIONNAME "LipSync" /* motion name of lip sync */
-#define LIPSYNC_SEPARATOR  ","
-#define LIPSYNC_MAXNPHONE  2048      /* maximum number of phoneme sequence */
+#define LIPSYNC_CONFIGFILE          "lip.txt"
+#define LIPSYNC_MAXBUFLEN           1024
+#define LIPSYNC_MOTIONNAME          "LipSync" /* motion name of lip sync */
+#define LIPSYNC_INTERPOLATIONMARGIN 2
+#define LIPSYNC_INTERPOLATIONRATE   0.8f
+#define LIPSYNC_SEPARATOR           ","
 
-/* LibDef: lip definition */
-typedef struct _LipDef {
-   char *name; /* expression name */
-   float rate; /* blend rate */
-   struct _LipDef *next;
-} LipDef;
+/* LipKeyFrame: key frame for lip motion */
+typedef struct _LipKeyFrame {
+   int phone;
+   int duration;
+   float rate;
+   struct _LipKeyFrame *next;
+} LipKeyFrame;
 
-/* LipSync: lip sync */
+/* LipSync: lipsync */
 class LipSync
 {
 private:
 
-   LipDef *m_lipDef[6]; /* list of blend rate */
-   int m_numFaces;      /* number of expression */
-   char **m_faceName;   /* name list of expression */
-   float *m_table[6];   /* table of phoneme ID and blend rate*/
+   int m_numMotion; /* number of expression */
+   char **m_motion;
 
-   /* initialize: initialize LipSync */
+   int m_numPhone; /* number of phoneme */
+   char **m_phone;
+   float **m_blendRate;
+
+   /* initialize: initialize lipsync */
    void initialize();
 
-   /* clear: free LipSync */
+   /* clear: free lipsync */
    void clear();
 
 public:
@@ -75,9 +80,9 @@ public:
    /* ~LipSync: destructor */
    ~LipSync();
 
-   /* setup: initialize and setup LipSync */
-   bool setup(PMDModel *pmd);
+   /* load: initialize and load lip setting */
+   bool load(char *file);
 
-   /* composeMotion: create motion from phoneme sequence */
-   bool createMotion(char *lipSequence, unsigned char **vmdData, unsigned long *vmdSize);
+   /* createMotion: create motion from phoneme sequence */
+   bool createMotion(char *str, unsigned char **rawData, unsigned long *rawSize);
 };

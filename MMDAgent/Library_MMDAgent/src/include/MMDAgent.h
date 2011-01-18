@@ -92,6 +92,7 @@ private:
    Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
    SystemTexture *m_systex; /* system texture */
+   LipSync m_lipSync;       /* system default lipsync */
    Render *m_render;        /* render */
    Timer m_timer;           /* timer */
    TextRenderer m_text;     /* text render */
@@ -248,91 +249,91 @@ public:
    /* getAppDirName: get application directory name for plugin */
    char *getAppDirName();
 
-   /* MMDAgent::procWindowCreateMessage: process window create message */
+   /* procWindowCreateMessage: process window create message */
    void procWindowCreateMessage(HWND hWnd);
 
-   /* MMDAgent::procWindowDestroyMessage: process window destroy message */
+   /* procWindowDestroyMessage: process window destroy message */
    void procWindowDestroyMessage();
 
-   /* MMDAgent::procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
+   /* procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
    void procMouseLeftButtonDoubleClickMessage(int x, int y);
 
-   /* MMDAgent::procMouseLeftButtonDownMessage: process mouse left button down message */
+   /* procMouseLeftButtonDownMessage: process mouse left button down message */
    void procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift);
 
-   /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
+   /* procMouseLeftButtonUpMessage: process mouse left button up message */
    void procMouseLeftButtonUpMessage();
 
-   /* MMDAgent::procMouseWheel: process mouse wheel message */
+   /* procMouseWheel: process mouse wheel message */
    void procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift);
 
-   /* MMDAgent::procMouseMoveMessage: process mouse move message */
+   /* procMouseMoveMessage: process mouse move message */
    void procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift);
 
-   /* MMDAgent::procMouseRightButtonDownMessage: process mouse right button down message */
+   /* procMouseRightButtonDownMessage: process mouse right button down message */
    void procMouseRightButtonDownMessage();
 
-   /* MMDAgent::procFullScreenMessage: process full screen message */
+   /* procFullScreenMessage: process full screen message */
    void procFullScreenMessage();
 
-   /* MMDAgent::procInfoStringMessage: process information string message */
+   /* procInfoStringMessage: process information string message */
    void procInfoStringMessage();
 
-   /* MMDAgent::procVSyncMessage: process vsync message */
+   /* procVSyncMessage: process vsync message */
    void procVSyncMessage();
 
-   /* MMDAgent::procShadowMappingMessage: process shadow mapping message */
+   /* procShadowMappingMessage: process shadow mapping message */
    void procShadowMappingMessage();
 
-   /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
+   /* procShadowMappingOrderMessage: process shadow mapping order message */
    void procShadowMappingOrderMessage();
 
-   /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
+   /* procDisplayRigidBodyMessage: process display rigid body message */
    void procDisplayRigidBodyMessage();
 
-   /* MMDAnget::procDisplayWireMessage: process display wire message */
+   /* procDisplayWireMessage: process display wire message */
    void procDisplayWireMessage();
 
-   /* MMDAgent::procDisplayBoneMessage: process display bone message */
+   /* procDisplayBoneMessage: process display bone message */
    void procDisplayBoneMessage();
 
-   /* MMDAgent::procCartoonEdgeMessage: process cartoon edge message */
+   /* procCartoonEdgeMessage: process cartoon edge message */
    void procCartoonEdgeMessage(bool plus);
 
-   /* MMDAgent::procTimeAdjustMessage: process time adjust message */
+   /* procTimeAdjustMessage: process time adjust message */
    void procTimeAdjustMessage(bool plus);
 
-   /* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
+   /* procHorizontalRotateMessage: process horizontal rotate message */
    void procHorizontalRotateMessage(bool right);
 
-   /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
+   /* procVerticalRotateMessage: process vertical rotate message */
    void procVerticalRotateMessage(bool up);
 
-   /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
+   /* procHorizontalMoveMessage: process horizontal move message */
    void procHorizontalMoveMessage(bool right);
 
-   /* MMDAgent::procVerticalMoveMessage: process vertical move message */
+   /* procVerticalMoveMessage: process vertical move message */
    void procVerticalMoveMessage(bool up);
 
-   /* MMDAgent::procDeleteModelMessage: process delete model message */
+   /* procDeleteModelMessage: process delete model message */
    void procDeleteModelMessage();
 
-   /* MMDAgent::procPhysicsMessage: process physics message */
+   /* procPhysicsMessage: process physics message */
    void procPhysicsMessage();
 
-   /* MMDAgent::procDisplayLogMessage: process display log message */
+   /* procDisplayLogMessage: process display log message */
    void procDisplayLogMessage();
 
-   /* MMDAgent::procWindowSizeMessage: process window size message */
+   /* procWindowSizeMessage: process window size message */
    void procWindowSizeMessage(int x, int y);
 
-   /* MMDAgent::procCommandMessage: process command message */
+   /* procCommandMessage: process command message */
    void procCommandMessage(char *mes1, char *mes2);
 
-   /* MMDAgent::procEventMessage: process event message */
+   /* procEventMessage: process event message */
    void procEventMessage(char *mes1, char *mes2);
 
-   /* MMDAgent::procPluginMessage: process plugin message */
+   /* procPluginMessage: process plugin message */
    void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
    /* procDropFileMessage: handle file drops */

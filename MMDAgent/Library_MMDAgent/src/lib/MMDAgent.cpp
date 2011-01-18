@@ -155,6 +155,7 @@ void MMDAgent::removeRelatedModels(int modelId)
          removeRelatedModels(i);
 
    /* remove model */
+   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTDELETE, "%s", m_model[modelId].getAlias());
    m_model[modelId].deleteModel();
 }
 
@@ -537,6 +538,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* load toon textures from system directory */
    if (m_systex->load(m_appDirName) == false)
       return false;
+
+   /* load system default lipsync */
+   sprintf(buff, "%s%c%s", m_appDirName, MMDAGENT_DIRSEPARATOR, LIPSYNC_CONFIGFILE);
+   m_lipSync.load(buff);
 
    /* initialize render */
    if (m_render->setup(m_option.getWindowSize(), m_option.getCampusColor(), m_option.getUseShadowMapping(), m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst()) == false)

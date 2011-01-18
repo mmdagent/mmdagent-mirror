@@ -155,4 +155,10 @@ public:
 
    /* setCurrentFrame: set current frame */
    void setCurrentFrame(double frame);
+
+   /* getPreviousFrame: get previous frame */
+   double getPreviousFrame();
+
+   /* setPreviousFrame: set previous frame */
+   void setPreviousFrame(double frame);
 };

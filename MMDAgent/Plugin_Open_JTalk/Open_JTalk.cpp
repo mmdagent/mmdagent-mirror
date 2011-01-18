@@ -356,7 +356,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
       /* get ms */
       for (j = 0, k = 0; j < nstate; j++)
          k += (HTS_Engine_get_state_duration(&m_engine, i * nstate + j) * fperiod * 1000) / sampling_rate;
-      sprintf(str, "%s%d", str, k);
+      sprintf(str, "%s,%d", str, k);
    }
 }
 

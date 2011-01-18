@@ -49,6 +49,9 @@ void PMDObject::initialize()
    m_isEnable = false;
    m_motionManager = NULL;
 
+   m_globalLipSync = NULL;
+   m_localLipSync = NULL;
+
    m_moveSpeed = -1.0f;
    m_spinSpeed = -1.0f;
    m_isMoving = false;
@@ -71,6 +74,8 @@ void PMDObject::clear()
    m_pmd.release();
    if (m_motionManager)
       delete m_motionManager;
+   if (m_localLipSync)
+      delete m_localLipSync;
    if(m_alias)
       free(m_alias);
    initialize();
@@ -95,11 +100,14 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame)
+bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame)
 {
    int i;
+   int len;
+   char *buf;
+   LipSync *lip;
 
-   if (fileName == NULL) return false;
+   if (fileName == NULL || alias == NULL) return false;
 
    /* apply given parameters */
    m_assignTo = assignObject;
@@ -155,10 +163,30 @@ bool PMDObject::load(char *fileName, btVector3 *offsetPos, btQuaternion *offsetR
       return false;
    }
 
-   /* set up lip sync */
-   m_lipSync.setup(&m_pmd);
-   /* set initial alias name as the same as model name */
-   setAlias(m_pmd.getName());
+   /* load lip sync */
+   m_globalLipSync = sysLipSync;
+   if(m_localLipSync != NULL)
+      delete m_localLipSync;
+   m_localLipSync = NULL;
+   lip = new LipSync();
+   buf = strdup(fileName);
+   len = strlen(fileName);
+   if(len < 5) {
+      delete lip;
+   } else {
+      buf[len-4] = '.';
+      buf[len-3] = 'l';
+      buf[len-2] = 'i';
+      buf[len-1] = 'p';
+      if(lip->load(buf) == true) {
+         m_localLipSync = lip;
+      } else
+         delete lip;
+   }
+   free(buf);
+
+   /* set alias */
+   setAlias(alias);
 
    /* reset */
    setLightForToon(light);
@@ -428,7 +456,7 @@ char *PMDObject::getAlias()
 /* PMDObject::setAlias: set alias name */
 void PMDObject::setAlias(char *alias)
 {
-   if(alias && strlen(alias) > 0) {
+   if(alias && strlen(alias) > 0 && m_alias != alias) {
       if(m_alias)
          free(m_alias);
       m_alias = strdup(alias);
@@ -455,10 +483,14 @@ void PMDObject::resetMotionManager()
    m_motionManager = new MotionManager(&m_pmd);
 }
 
-/* PMDObject::getLipSync: get LipSync */
-LipSync *PMDObject::getLipSync()
+/* PMDObject::createLipSyncMotion: create LipSync motion */
+bool PMDObject::createLipSyncMotion(char *str, unsigned char **rawData, unsigned long *rawSize)
 {
-   return &m_lipSync;;
+   if(m_localLipSync != NULL && m_localLipSync->createMotion(str, rawData, rawSize) == true)
+      return true;
+   if(m_globalLipSync != NULL && m_globalLipSync->createMotion(str, rawData, rawSize) == true)
+      return true;
+   return false;
 }
 
 /* PMDObject::getPosition: get root bone offset */
