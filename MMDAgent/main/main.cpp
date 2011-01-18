@@ -42,7 +42,6 @@
 /* headers */
 
 #include <windows.h>
-#include <tchar.h>
 
 #include "resource.h"
 #include "MMDAgent.h"
@@ -268,7 +267,6 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    case WM_DESTROY:
       isRunning = false;
       mmdagent.procWindowDestroyMessage();
-      //mmdagent.release();
       PostQuitMessage(0);
       break;
    default:
@@ -281,8 +279,8 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    return 0;
 }
 
-/* _tWinMain: main function */
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+/* WinMain: main function */
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
    MSG msg;
    HACCEL hAccelTable;
