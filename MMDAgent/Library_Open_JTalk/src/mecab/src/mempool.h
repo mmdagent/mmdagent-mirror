@@ -108,6 +108,21 @@ getMemoryPool() {
 
 #else
 
+#if 1 /* for Open JTalk */
+
+#define MMAP_OPEN(type, map, file, mode) do {   \
+    map = new Mmap<type>;                       \
+    if (!map->open(file.c_str(), mode)) {       \
+      close();                                  \
+      return false;                             \
+    }                                           \
+  } while (0)
+
+#define MMAP_CLOSE(type, map) do {              \
+    if(map) delete map; map = NULL; } while (0)
+
+#else
+
 #define MMAP_OPEN(type, map, file) do {         \
     map = new Mmap<type>;                       \
     if (!map->open(file.c_str())) {             \
@@ -119,6 +134,8 @@ getMemoryPool() {
 
 #define MMAP_CLOSE(type, map) do {              \
     delete map; } while (0)
+
+#endif
 
 #endif
 #endif

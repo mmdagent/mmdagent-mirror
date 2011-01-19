@@ -119,9 +119,8 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
             }
          } else if(strcmp(mes1, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
             /* audio stop command */
-            if(mes2 != NULL) 
+            if(mes2 != NULL)
                audio.stop(mes2);
-            
          }
       }
    }

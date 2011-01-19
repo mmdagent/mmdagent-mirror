@@ -164,8 +164,9 @@ void VIManager_Thread::clear()
 
    /* stop thread & close mutex */
    if (m_threadHandle != 0) {
-      if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot wait thread end.", "Error", MB_OK);
+      if (WaitForSingleObject(m_threadHandle, VIMANAGERTHREAD_WAITMS) != WAIT_OBJECT_0) {
+         /* MessageBoxA(NULL, "ERROR: Cannot stop VIManager thread.", "Error", MB_OK); */
+      }
       CloseHandle(m_threadHandle);
    }
    if (m_queueMutex)

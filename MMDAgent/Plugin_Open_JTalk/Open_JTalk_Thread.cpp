@@ -200,17 +200,17 @@ void Open_JTalk_Thread::clear()
 {
    int i;
 
-   if(m_stop == false) {
-      m_stop = true;
-      stop();
-   }
+   stop();
+   m_stop = true;
+
    if (m_synthEvent)
       SetEvent(m_synthEvent);
 
    /* wait end of thread */
    if(m_threadHandle != 0) {
-      if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot wait thread end.", "Error", MB_OK);
+      if (WaitForSingleObject(m_threadHandle, OPENJTALKTHREAD_WAITMS) != WAIT_OBJECT_0) {
+         /* MessageBoxA(NULL, "ERROR: Cannot stop Open JTalk thread.", "Error", MB_OK); */
+      }
       CloseHandle(m_threadHandle);
    }
    if (m_bufferMutex)
@@ -459,7 +459,8 @@ void Open_JTalk_Thread::synthesis()
 /* Open_JTalk_Thread::stop: barge-in function */
 void Open_JTalk_Thread::stop()
 {
-   m_openJTalk.stop();
+   if(isRunning())
+      m_openJTalk.stop();
 }
 
 /* Open_JTalk_Thread::sendStartEventMessage: send start event message to MMDAgent */

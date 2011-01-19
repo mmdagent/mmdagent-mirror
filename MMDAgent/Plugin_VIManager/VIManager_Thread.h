@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+#define VIMANAGERTHREAD_WAITMS 10000
+
 /* VIManager_Event: input message buffer */
 typedef struct _VIManager_Event {
    char *type;
