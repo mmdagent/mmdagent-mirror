@@ -1,3 +1,4 @@
 LIBRARY	"Plugin_Julius"
 EXPORTS
 	extWindowCreate
+	extAppEnd

@@ -210,7 +210,7 @@ void Open_JTalk_Thread::clear()
    /* wait end of thread */
    if(m_threadHandle != 0) {
       if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
-         MessageBox(NULL, L"ERROR: Cannot wait thread end.", L"Error", MB_OK);
+         MessageBoxA(NULL, "ERROR: Cannot wait thread end.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_bufferMutex)
@@ -265,13 +265,13 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    /* number of speakers */
    i = get_token_from_fp(fp, buff);
    if (i <= 0) {
-      MessageBox(NULL, L"ERROR: Cannot load the number of models in config file of Open JTalk.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot load the number of models in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       return;
    }
    m_numModels = atoi(buff);
    if (m_numModels <= 0) {
-      MessageBox(NULL, L"ERROR: The number of models must be positive value.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: The number of models must be positive value.", "Error", MB_OK);
       m_numModels = 0;
       fclose(fp);
       return;
@@ -283,7 +283,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    for (i = 0; i < m_numModels; i++) {
       j = get_token_from_fp(fp, buff);
       if (j <= 0) {
-         MessageBox(NULL, L"ERROR: Cannot load model directory names in config file of Open JTalk.", L"Error", MB_OK);
+         MessageBoxA(NULL, "ERROR: Cannot load model directory names in config file of Open JTalk.", "Error", MB_OK);
          fclose(fp);
          return;
       }
@@ -293,13 +293,13 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    /* number of speaking styles */
    i = get_token_from_fp(fp, buff);
    if (i <= 0) {
-      MessageBox(NULL, L"ERROR: Cannot load the number of speaking styles in config file of Open JTalk.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot load the number of speaking styles in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       return;
    }
    m_numStyles = atoi(buff);
    if (m_numStyles <= 0) {
-      MessageBox(NULL, L"ERROR: The number of speaking styles must be positive value.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: The number of speaking styles must be positive value.", "Error", MB_OK);
       m_numStyles = 0;
       fclose(fp);
       return;
@@ -312,7 +312,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    for (i = 0; i < m_numStyles; i++) {
       j = get_token_from_fp(fp, buff);
       if (j <= 0) {
-         MessageBox(NULL, L"ERROR: Cannot load style definitions in config file of Open JTalk.", L"Error", MB_OK);
+         MessageBoxA(NULL, "ERROR: Cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
          fclose(fp);
          free(weights);
          return;
@@ -321,7 +321,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
       for (j = 0; j < 3 * m_numModels + 4; j++) {
          k = get_token_from_fp(fp, buff);
          if (k <= 0) {
-            MessageBox(NULL, L"ERROR: Cannot load style definitions in config file of Open JTalk.", L"Error", MB_OK);
+            MessageBoxA(NULL, "ERROR: Cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
             fclose(fp);
             free(weights);
             return;
@@ -333,7 +333,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
 
    /* load models for TTS */
    if (m_openJTalk.load(dicDir, m_modelNames, m_numModels, weights, m_numStyles) != true) {
-      MessageBox(NULL, L"ERROR: Cannot initialize Open JTalk.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot initialize Open JTalk.", "Error", MB_OK);
       free(weights);
       return;
    }
@@ -348,19 +348,19 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    /* create mutex */
    m_bufferMutex = CreateMutex(NULL, false, NULL);
    if (m_bufferMutex == 0) {
-      MessageBox(NULL, L"ERROR: Cannot create mutex.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot create mutex.", "Error", MB_OK);
       return;
    }
    m_synthEvent = CreateEvent(NULL, true, false, NULL);
    if (m_synthEvent == 0) {
-      MessageBox(NULL, L"ERROR: Cannot create event.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot create event.", "Error", MB_OK);
       return;
    }
 
    /* thread start */
    m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if (m_threadHandle == 0) {
-      MessageBox(NULL, L"ERROR: Cannot start Open JTalk thread.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot start Open JTalk thread.", "Error", MB_OK);
       return;
    }
 }
@@ -384,7 +384,7 @@ void Open_JTalk_Thread::setSynthParameter(char *str)
 {
    /* wait buffer */
    if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
 
    /* save character name, speaking style, and text */
    Open_JTalk_EventQueue_enqueue(&m_bufferQueue, str);
@@ -407,14 +407,14 @@ void Open_JTalk_Thread::synthesis()
 
    /* wait event */
    if (WaitForSingleObject(m_synthEvent, INFINITE) != WAIT_OBJECT_0) {
-      MessageBox(NULL, L"ERROR: Cannot wait event.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot wait event.", "Error", MB_OK);
    }
    ResetEvent(m_synthEvent);
 
    while (remain && m_stop == false) {
       /* wait text */
       if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-         MessageBox(NULL, L"ERROR: Cannot wait buffer.", L"Error", MB_OK);
+         MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
       }
       remain = Open_JTalk_EventQueue_dequeue(&m_bufferQueue, tmp1);
       ReleaseMutex(m_bufferMutex);

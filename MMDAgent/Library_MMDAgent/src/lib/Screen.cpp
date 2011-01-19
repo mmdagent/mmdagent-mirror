@@ -48,7 +48,7 @@
 #define WGL_COVERAGE_SAMPLES_NV 0x2042
 #define WGL_COLOR_SAMPLES_NV    0x20B9
 
-#define DUMMY_CLASS_NAME L"MMD_AGENT_DUMMY"
+#define DUMMY_CLASS_NAME "MMD_AGENT_DUMMY"
 
 #define IDI_MMDAGENT  107 /* should be removed */
 
@@ -317,7 +317,7 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR 
    dummyMyRegisterClass(hInstance);
 
    /* make dummy window */
-   hWnd = CreateWindowEx(
+   hWnd = CreateWindowExA(
              (topMost ? WS_EX_TOPMOST : 0),
              max_sample_num > 0 ? DUMMY_CLASS_NAME : szWindowClass,
              szTitle,
@@ -347,7 +347,7 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR 
       /* close winodw */
       DestroyWindow(hWnd);
       /* re-make window */
-      hWnd = CreateWindowEx(
+      hWnd = CreateWindowExA(
                 (topMost ? WS_EX_TOPMOST : 0),
                 szWindowClass,
                 szTitle,

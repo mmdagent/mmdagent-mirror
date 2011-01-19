@@ -127,27 +127,27 @@ void Julius_Thread::initialize()
    m_jconf = NULL;
    m_recog = NULL;
 
-   m_window = NULL;
-   m_event = NULL;
+   m_window = 0;
+   m_event = 0;
 
-   m_opened = false;
-   m_threadHandle = NULL;
+   m_threadHandle = 0;
 }
 
 /* Julius_Thread::clear: free thread */
 void Julius_Thread::clear()
 {
-   if (m_recog == NULL)
-      return;
-
-   if (m_opened == true)
-      j_close_stream(m_recog);
-   if (m_threadHandle != NULL)
+   if(m_threadHandle != 0) {
+      if(m_recog)
+         j_close_stream(m_recog);
+      if(WaitForSingleObject(m_threadHandle, 1000) != WAIT_OBJECT_0)
+         MessageBoxA(NULL, "ERROR : Cannot wait thread end.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
-   if (m_recog)
-      j_recog_free(m_recog);
-   if (m_jconf)
+   }
+   if (m_recog) {
+      j_recog_free(m_recog); /* jconf is also released in j_recog_free */
+   } else if (m_jconf) {
       j_jconf_free(m_jconf);
+   }
 
    initialize();
 }
@@ -189,7 +189,7 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
    /* create instance */
    m_recog = j_create_instance_from_jconf(m_jconf);
    if (m_recog == NULL) {
-      MessageBox(NULL, L"ERROR: Cannot create Julius instance.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot create Julius instance.", "Error", MB_OK);
       return false;
    }
 
@@ -200,7 +200,7 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
       return false;
 
    if (j_open_stream(m_recog, NULL) != 0) {
-      MessageBox(NULL, L"ERROR: Cannot open recognition stream.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot open recognition stream.", "Error", MB_OK);
       return false;
    }
 
@@ -211,16 +211,21 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
    m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, m_recog, 0, NULL);
    if (m_threadHandle == 0) {
       j_close_stream(m_recog);
-      MessageBox(NULL, L"ERROR: Cannot start Julius thread.", L"Error", MB_OK);
+      MessageBoxA(NULL, "ERROR: Cannot start Julius thread.", "Error", MB_OK);
       return false;
    }
 
-   m_opened = true;
    return true;
 }
 
+/* Julius_Thread::stopAndRelease: stop thread and release julius */
+void Julius_Thread::stopAndRelease()
+{
+   clear();
+}
+
 /* Julius_Thread::sendMessage: send message to MMDAgent */
-void Julius_Thread::sendMessage(char *str1, char *str2)
+void Julius_Thread::sendMessage(char * str1, char * str2)
 {
    char *mes1, *mes2;
 

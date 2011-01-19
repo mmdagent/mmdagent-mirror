@@ -89,12 +89,11 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
 
    if(message == MM_MCINOTIFY) {
       /* audio stop event */
-      aliasW = audio.getFinishedAlias(wParam, lParam);
-      if (aliasW) {
-         audio.stop(aliasW);
-         mes1 = _strdup(MMDAGENTCOMMAND_SOUNDEVENTSTOP);
-         mes2 = (char *) malloc(sizeof(char) * AUDIO_MAXBUFLEN);
-         wcstombs_s(&len, mes2, AUDIO_MAXBUFLEN, aliasW, _TRUNCATE);
+      aliasA = audio.getFinishedAlias(wParam, lParam);
+      if (aliasA) {
+         audio.stop(aliasA);
+         mes1 = strdup(MMDAGENTCOMMAND_SOUNDEVENTSTOP);
+         mes2 = strdup(aliasA);
          ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) mes1, (LPARAM) mes2);
       }
    } else if(message == WM_MMDAGENT_COMMAND) {
@@ -112,26 +111,17 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
                      fileA = p;
                }
                if(i == 2) {
-                  aliasW = (wchar_t *) malloc(sizeof(wchar_t) * AUDIO_MAXBUFLEN);
-                  fileW = (wchar_t *) malloc(sizeof(wchar_t) * AUDIO_MAXBUFLEN);
-                  mbstowcs_s(&len, aliasW, AUDIO_MAXBUFLEN, aliasA, _TRUNCATE);
-                  mbstowcs_s(&len, fileW, AUDIO_MAXBUFLEN, fileA, _TRUNCATE);
-                  audio.stop(aliasW);
-                  if(audio.play(aliasW, fileW) == true)
+                  audio.stop(aliasA);
+                  if(audio.play(aliasA, fileA) == true)
                      ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) _strdup(MMDAGENTCOMMAND_SOUNDEVENTSTART), (LPARAM) _strdup(aliasA));
-                  free(aliasW);
-                  free(fileW);
                }
                free(buf);
             }
          } else if(strcmp(mes1, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
             /* audio stop command */
-            if(mes2 != NULL) {
-               aliasW = (wchar_t *) malloc(sizeof(wchar_t) * AUDIO_MAXBUFLEN);
-               mbstowcs_s(&len, aliasW, AUDIO_MAXBUFLEN, mes2, _TRUNCATE);
-               audio.stop(aliasW);
-               free(aliasW);
-            }
+            if(mes2 != NULL) 
+               audio.stop(mes2);
+            
          }
       }
    }

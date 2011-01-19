@@ -95,6 +95,12 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
    SetCurrentDirectoryA(current_dir);
 }
 
+/* extAppEnd: stop thread and free julius */
+void __stdcall extAppEnd(MMDAgent *m)
+{
+   julius_thread.stopAndRelease();
+}
+
 /* DllMain: main for DLL */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {

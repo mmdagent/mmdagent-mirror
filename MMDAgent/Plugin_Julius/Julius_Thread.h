@@ -59,8 +59,6 @@ private :
    HWND m_window; /* window handle to post message */
    UINT m_event;  /* message type to post message */
 
-   bool m_opened; /* open flag */
-
    HANDLE m_threadHandle; /* thread handle */
 
    /* initialize: initialize thread */
@@ -79,6 +77,9 @@ public :
 
    /* loadAndStart: load models and start thread */
    bool loadAndStart(HWND param1, UINT param2);
+
+   /* stopAndRlease: stop thread and release julius */
+   void stopAndRelease();
 
    /* sendMessage: send message to MMDAgent */
    void sendMessage(char *str1, char *str2);

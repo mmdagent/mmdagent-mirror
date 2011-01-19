@@ -65,8 +65,8 @@ void Audio::initialize()
 void Audio::clear()
 {
    if (m_needToClose) {
-      mciSendString(L"stop all", NULL, 0, NULL);
-      mciSendString(L"close all", NULL, 0, NULL);
+      mciSendStringA("stop all", NULL, 0, NULL);
+      mciSendStringA("close all", NULL, 0, NULL);
    }
    initialize();
 }
@@ -90,21 +90,21 @@ void Audio::setup(HWND hWnd)
 }
 
 /* Audio::play: play audio */
-bool Audio::play(wchar_t *alias, wchar_t *file)
+bool Audio::play(char *alias, char *file)
 {
    int i, j;
-   wchar_t buf[AUDIO_MAXBUFLEN];
+   char buf[AUDIO_MAXBUFLEN];
 
    /* wait */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"open \"%s\" alias _%s wait", file, alias);
-   if (mciSendString(buf, NULL, 0, NULL) != 0)
+   sprintf(buf, "open \"%s\" alias _%s wait", file, alias);
+   if (mciSendStringA(buf, NULL, 0, NULL) != 0)
       return false;
 
    /* check */
    for (i = 0, j = -1; i < AUDIO_MAXNSOUND; i++) {
-      if (m_fileName[i][0] == L'\0' && j == -1)
+      if (m_fileName[i][0] == '\0' && j == -1)
          j = i;
-      if (wcsncmp(m_fileName[i], alias, AUDIO_MAXBUFLEN) == 0) {
+      if (strcmp(m_fileName[i], alias) == 0) {
          m_id[i] = mciGetDeviceID(alias);
          break;
       }
@@ -113,22 +113,22 @@ bool Audio::play(wchar_t *alias, wchar_t *file)
       if (j == -1)
          return false;
       m_id[j] = mciGetDeviceID(alias);
-      wcsncpy_s(m_fileName[j], AUDIO_MAXBUFLEN, alias, AUDIO_MAXBUFLEN);
+      strcpy(m_fileName[j], alias);
    }
 
    /* enqueue */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"cue _%s output wait", alias);
-   if (mciSendString(buf, NULL, 0, NULL) != 0) {
-      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
-      mciSendString(buf, NULL, 0, NULL);
+   sprintf(buf, "cue _%s output wait", alias);
+   if (mciSendStringA(buf, NULL, 0, NULL) != 0) {
+      sprintf(buf, "close _%s", alias);
+      mciSendStringA(buf, NULL, 0, NULL);
       return false;
    }
 
    /* start */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"play _%s notify", alias);
-   if (mciSendString(buf, NULL, 0, m_window) != 0) {
-      _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
-      mciSendString(buf, NULL, 0, NULL);
+   sprintf(buf, "play _%s notify", alias);
+   if (mciSendStringA(buf, NULL, 0, m_window) != 0) {
+      sprintf(buf, "close _%s", alias);
+      mciSendStringA(buf, NULL, 0, NULL);
       return false;
    }
    m_needToClose = true; /* set flag to close */
@@ -137,28 +137,28 @@ bool Audio::play(wchar_t *alias, wchar_t *file)
 }
 
 /* Audio::stop: close audio */
-void Audio::stop(wchar_t *alias)
+void Audio::stop(char *alias)
 {
    int i;
-   wchar_t buf[AUDIO_MAXBUFLEN];
+   char buf[AUDIO_MAXBUFLEN];
 
    /* send close command */
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"stop _%s", alias);
-   mciSendString(buf, NULL, 0, NULL);
-   _snwprintf_s(buf, AUDIO_MAXBUFLEN, L"close _%s", alias);
-   mciSendString(buf, NULL, 0, NULL);
+   sprintf(buf, "stop _%s", alias);
+   mciSendStringA(buf, NULL, 0, NULL);
+   sprintf(buf, "close _%s", alias);
+   mciSendStringA(buf, NULL, 0, NULL);
 
    /* remove file name */
    for (i = 0; i < AUDIO_MAXNSOUND; i++) {
-      if (wcsncmp(m_fileName[i], alias, AUDIO_MAXBUFLEN) == 0) {
-         m_fileName[i][0] = L'\0';
+      if (strcmp(m_fileName[i], alias) == 0) {
+         m_fileName[i][0] = '\0';
          break;
       }
    }
 }
 
 /* Audio::getFinishedAlias: return finished audio alias */
-wchar_t *Audio::getFinishedAlias(WPARAM wParam, LPARAM lParam)
+char *Audio::getFinishedAlias(WPARAM wParam, LPARAM lParam)
 {
    int i;
 

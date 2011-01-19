@@ -50,7 +50,7 @@ private:
    HWND m_window;      /* window handle to send MCI event message */
    bool m_needToClose; /* true if MCI command has been invoked */
 
-   wchar_t m_fileName[AUDIO_MAXNSOUND][AUDIO_MAXBUFLEN];
+   char m_fileName[AUDIO_MAXNSOUND][AUDIO_MAXBUFLEN];
    MCIDEVICEID m_id[AUDIO_MAXNSOUND];
    int m_current;
 
@@ -72,11 +72,11 @@ public:
    void setup(HWND hWnd);
 
    /* play: play audio */
-   bool play(wchar_t *alias, wchar_t *file);
+   bool play(char *alias, char *file);
 
    /* stop: stop audio */
-   void stop(wchar_t *alias);
+   void stop(char *alias);
 
    /* getFinishedAlias: return finished audio file name */
-   wchar_t *getFinishedAlias(WPARAM wParam, LPARAM lParam);
+   char *getFinishedAlias(WPARAM wParam, LPARAM lParam);
 };
