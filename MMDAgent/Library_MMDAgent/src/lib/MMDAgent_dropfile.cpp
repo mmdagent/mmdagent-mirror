@@ -96,7 +96,7 @@ void MMDAgent::procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam)
                targetModelID = dropAllowedModelID;
          }
          if (targetModelID == -1) {
-            g_logger.log("Warning: vmd file dropped but no model exit at the point");
+            m_logger.log("Warning: vmd file dropped but no model exit at the point");
          } else {
             /* pause timer to skip file loading time */
             m_timer.pause();
@@ -172,7 +172,7 @@ void MMDAgent::procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam)
             else
                targetModelID = m_render->pickModel(this, pos.x, pos.y, &dropAllowedModelID);
             if (targetModelID == -1) {
-               g_logger.log("Warning: pmd file dropped but no model at the point");
+               m_logger.log("Warning: pmd file dropped but no model at the point");
             } else {
                changeModel(m_model[targetModelID].getAlias(), droppedFileName);
             }

@@ -83,10 +83,8 @@ bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
    sprintf(buf, "%s\\%s", dllDirName, dllFileName);
    p->handle = ::LoadLibraryExA(buf, NULL, 0);
    free(buf);
-   if (!p->handle) {
-      g_logger.log("! Error: Plugin: failed to load library \"%s\"", dllFileName);
+   if (!p->handle)
       return false;
-   }
 
    /* set function pointers */
    p->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppStart");
@@ -103,7 +101,6 @@ bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
       return true;
    } else {
       /* if none, exit */
-      g_logger.log("! Warning: Plugin: \"%s\" has no ext function, skipped", dllFileName);
       Plugin_clear(p);
       return false;
    }
@@ -157,7 +154,6 @@ bool PluginList::load(const char *dir)
    /* search file */
    hFind = FindFirstFileA(buf, &findData);
    if (hFind == INVALID_HANDLE_VALUE) {
-      g_logger.log("! Error: Plugin: unable to open dir \"%s\"", dir);
       free(buf);
       return ret;
    }

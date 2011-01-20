@@ -96,6 +96,7 @@ private:
    Render *m_render;        /* render */
    Timer m_timer;           /* timer */
    TextRenderer m_text;     /* text render */
+   LogText m_logger;        /* logger */
    PluginList m_plugin;     /* plugins */
 
    PMDObject m_model[MAXMODEL]; /* models */

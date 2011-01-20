@@ -294,7 +294,7 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show log window */
    if (m_dispLog)
-      g_logger.render(&m_text);
+      m_logger.render(&m_text);
 
    /* count fps */
    m_timer.countFrame();
@@ -516,7 +516,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_plugin.execAppStart(this);
 
    /* initialize logger */
-   g_logger.setup(m_option.getLogSize(), m_option.getLogPosition(), m_option.getLogScale());
+   m_logger.setup(m_option.getLogSize(), m_option.getLogPosition(), m_option.getLogScale());
 
    /* create components */
    m_screen = new Screen;
@@ -976,9 +976,9 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
    /* free strings */
    if (mes1 != NULL) {
       if (mes2 != NULL && strlen(mes2) > 0)
-         g_logger.log("[%s|%s]", mes1, mes2);
+         m_logger.log("[%s|%s]", mes1, mes2);
       else
-         g_logger.log("[%s]", mes1);
+         m_logger.log("[%s]", mes1);
    }
    if (mes1 != NULL)
       free(mes1);

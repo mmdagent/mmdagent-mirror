@@ -41,8 +41,6 @@
 
 #define UTILS_DIRSEPARATOR '\\'
 
-extern LogText g_logger; /* logger */
-
 /* getDirectory: get directory from file path */
 bool getDirectory(const char *file, char *dir);
 
