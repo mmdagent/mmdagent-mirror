@@ -208,9 +208,8 @@ void Open_JTalk_Thread::clear()
 
    /* wait end of thread */
    if(m_threadHandle != 0) {
-      if (WaitForSingleObject(m_threadHandle, OPENJTALKTHREAD_WAITMS) != WAIT_OBJECT_0) {
-         /* MessageBoxA(NULL, "ERROR: Cannot stop Open JTalk thread.", "Error", MB_OK); */
-      }
+      if (WaitForSingleObject(m_threadHandle, OPENJTALKTHREAD_WAITMS) != WAIT_OBJECT_0)
+         MessageBoxA(NULL, "ERROR: Cannot stop Open JTalk thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_bufferMutex)

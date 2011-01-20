@@ -139,9 +139,8 @@ void Julius_Thread::clear()
    if(m_threadHandle != 0) {
       if(m_recog)
          j_close_stream(m_recog);
-      if(WaitForSingleObject(m_threadHandle, JULIUSTHREAD_WAITMS) != WAIT_OBJECT_0) {
-         /* MessageBoxA(NULL, "ERROR: Cannot stop Julius thread.", "Error", MB_OK); */
-      }
+      if(WaitForSingleObject(m_threadHandle, JULIUSTHREAD_WAITMS) != WAIT_OBJECT_0)
+         MessageBoxA(NULL, "ERROR: Cannot stop Julius thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_recog) {
