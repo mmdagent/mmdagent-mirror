@@ -49,7 +49,6 @@
 #define MAIN_MAXBUFLEN 1024
 
 MMDAgent mmdagent;
-bool isRunning;
 
 HWND windowHandleCommandDialogBox; /* window handle of command dialog box */
 
@@ -265,7 +264,6 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       mmdagent.procEventMessage((char *) wParam, (char *) lParam);
       break;
    case WM_DESTROY:
-      isRunning = false;
       mmdagent.procWindowDestroyMessage();
       PostQuitMessage(0);
       break;
@@ -337,10 +335,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MMDAGENT));
 
    /* initialize variables */
-   isRunning = true;
    windowHandleCommandDialogBox = 0;
 
-   while (isRunning) {
+   while(true) {
       if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
          if (!GetMessage(&msg, NULL, 0, 0)) break;
          if (windowHandleCommandDialogBox && IsDialogMessage(windowHandleCommandDialogBox, &msg)) continue;
