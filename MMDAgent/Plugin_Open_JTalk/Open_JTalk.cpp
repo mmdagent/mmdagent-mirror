@@ -334,8 +334,8 @@ void Open_JTalk::getPhonemeSequence(char *str)
       if (i > 0)
          strcat(str, ",");
       /* get phoneme from full-context label */
-      start = strstr(feature[i], "-");
-      end = strstr(feature[i], "+");
+      start = strchr(feature[i], '-');
+      end = strchr(feature[i], '+');
       if (start != NULL && end != NULL) {
          for (ch = start + 1; ch != end; ch++)
             sprintf(str, "%s%c", str, *ch);

@@ -1,0 +1,5 @@
+LIBRARY	"Plugin_Variables"
+EXPORTS
+	extWindowCreate
+	extWindowProc
+	extAppEnd
