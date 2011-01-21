@@ -83,17 +83,15 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
    int i;
    char *mes1, *mes2;
    char *buf, *p, *q;
-   char *aliasA, *fileA;
-   wchar_t *aliasW, *fileW;
-   size_t len;
+   char *alias, *file;
 
    if(message == MM_MCINOTIFY) {
       /* audio stop event */
-      aliasA = audio.getFinishedAlias(wParam, lParam);
-      if (aliasA) {
-         audio.stop(aliasA);
+      alias = audio.getFinishedAlias(wParam, lParam);
+      if (alias) {
+         audio.stop(alias);
          mes1 = strdup(MMDAGENTCOMMAND_SOUNDEVENTSTOP);
-         mes2 = strdup(aliasA);
+         mes2 = strdup(alias);
          ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) mes1, (LPARAM) mes2);
       }
    } else if(message == WM_MMDAGENT_COMMAND) {
@@ -106,14 +104,14 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
                buf = _strdup(mes2);
                for(i = 0, p = strtok_s(buf, "|", &q); p; i++, p = strtok_s(NULL, "|", &q)) {
                   if(i == 0)
-                     aliasA = p;
+                     alias = p;
                   else if(i == 1)
-                     fileA = p;
+                     file = p;
                }
                if(i == 2) {
-                  audio.stop(aliasA);
-                  if(audio.play(aliasA, fileA) == true)
-                     ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) _strdup(MMDAGENTCOMMAND_SOUNDEVENTSTART), (LPARAM) _strdup(aliasA));
+                  audio.stop(alias);
+                  if(audio.play(alias, file) == true)
+                     ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(MMDAGENTCOMMAND_SOUNDEVENTSTART), (LPARAM) strdup(alias));
                }
                free(buf);
             }

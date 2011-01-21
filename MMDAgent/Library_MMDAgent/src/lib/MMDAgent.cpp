@@ -583,9 +583,10 @@ int MMDAgent::findModelAlias(char *alias)
 {
    int i;
 
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
-         return i;
+   if(alias)
+      for (i = 0; i < m_numModel; i++)
+         if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
+            return i;
 
    return -1;
 }

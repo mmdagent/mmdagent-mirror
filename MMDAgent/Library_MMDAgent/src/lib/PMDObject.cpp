@@ -445,12 +445,7 @@ bool PMDObject::updateModelRootRotation(float fps)
 /* PMDObject::getAlias: get alias name */
 char *PMDObject::getAlias()
 {
-   char *none = "";
-
-   if(m_alias)
-      return m_alias;
-   else
-      return none;
+   return m_alias;
 }
 
 /* PMDObject::setAlias: set alias name */
@@ -631,19 +626,41 @@ void PMDObject::renderComment(TextRenderer * text)
 void PMDObject::renderDebug(TextRenderer * text)
 {
    btVector3 pos;
+   float dest;
+   MotionPlayer *motionPlayer;
 
    /* render debug */
    m_pmd.renderDebug();
+
    /* render model name */
    glDisable(GL_LIGHTING);
+
    glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
    glPushMatrix();
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
-   pos.setY(m_pmd.getMaxHeight() + 1.0f);
-   glTranslatef(pos.x(), pos.y(), pos.z());
-   text->drawString(m_pmd.getName());
-   glEnable(GL_LIGHTING);
+   glTranslatef(pos.x() + 2.0f, m_pmd.getMaxHeight() + 2.0f , pos.z());
+   if(m_alias)
+      text->drawString(m_alias);
+   if(m_pmd.getName()) {
+      text->drawString("(");
+      text->drawString(m_pmd.getName());
+      text->drawString(")");
+   }
    glPopMatrix();
+
+   /* render motion name */
+   glColor4f(0.0, 1.0f, 1.0f, 1.0f);
+   for(dest = 0.7f, motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if(motionPlayer->active) {
+         glPushMatrix();
+         glTranslatef(pos.x() + 2.0f + dest, m_pmd.getMaxHeight() + 2.0f - dest, pos.z() - dest);
+         text->drawString(motionPlayer->name);
+         glPopMatrix();
+         dest += 0.7f;
+      }
+   }
+
+   glEnable(GL_LIGHTING);
 }
 
 /* PMDObject::renderError: render model error */

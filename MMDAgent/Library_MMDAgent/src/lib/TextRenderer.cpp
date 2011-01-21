@@ -239,6 +239,7 @@ void TextRenderer::drawString(char *str)
    unsigned int idList[TEXTRENDERER_MAXBUFLEN];
    int n;
 
+   if(str == NULL) return;
    n = getDisplayListArrayOfString(str, idList, TEXTRENDERER_MAXBUFLEN);
 
    if (n != -1) renderDisplayListArrayOfString(idList, n);
