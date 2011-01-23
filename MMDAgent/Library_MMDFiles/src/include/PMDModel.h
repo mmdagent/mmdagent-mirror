@@ -217,7 +217,7 @@ public:
    unsigned long getNumConstraint();
 
    /* getErrorTextureList: get error texture list */
-   void getErrorTextureList(char *buf, int maxLen);
+   void getErrorTextureList(char *buf, int size);
 
    /* getMaxHeight: get max height */
    float getMaxHeight();

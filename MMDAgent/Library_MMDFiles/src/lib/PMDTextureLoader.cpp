@@ -43,6 +43,25 @@
 
 #include "MMDFiles.h"
 
+/* PMDTextureLoader_strcat: strcat using buffer size */
+static void PMDTextureLoader_strcat(char *buf, int size, char *str)
+{
+   int i, j, len1, len2;
+   char c;
+
+   if(buf == NULL || size <= 0 || str == NULL) return;
+
+   len1 = strlen(buf);
+   len2 = strlen(str);
+
+   for(i = 0, j = len1; i < len2; i++, j++) {
+      c = str[i];
+      if(j >= size - 1) break;
+      buf[j] = c;
+   }
+   buf[j] = '\0';
+}
+
 /* PMDTextureLoader:lookup: lookup texture in cache */
 PMDTexture *PMDTextureLoader::lookup(char *fileName, bool *alreadyFailRet)
 {
@@ -134,7 +153,7 @@ PMDTexture *PMDTextureLoader::load(char *fileName)
 }
 
 /* PMDTextureLoader::getErrorTextureString: get newline-separated list of error textures */
-void PMDTextureLoader::getErrorTextureString(char *buf, int maxlen)
+void PMDTextureLoader::getErrorTextureString(char *buf, int size)
 {
    TextureLink *tmp = m_root;
 
@@ -142,8 +161,8 @@ void PMDTextureLoader::getErrorTextureString(char *buf, int maxlen)
    if (!m_hasError) return;
    for (tmp = m_root; tmp; tmp = tmp->next) {
       if (tmp->texture == NULL) {
-         strncat(buf, tmp->name, maxlen);
-         strncat(buf, "\n", maxlen);
+         PMDTextureLoader_strcat(buf, size, tmp->name);
+         PMDTextureLoader_strcat(buf, size, "\n");
       }
    }
 }

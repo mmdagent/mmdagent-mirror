@@ -666,13 +666,13 @@ void PMDObject::renderDebug(TextRenderer * text)
 /* PMDObject::renderError: render model error */
 void PMDObject::renderError(TextRenderer * text)
 {
-   char buf[256];
+   char buf[PMDOBJECT_MAXBUFLEN];
    btVector3 pos;
    float w, h;
    float tpos[3];
    char *p;
 
-   m_pmd.getErrorTextureList(buf, 256);
+   m_pmd.getErrorTextureList(buf, PMDOBJECT_MAXBUFLEN);
    if (strlen(buf) <= 0)
       return;
 

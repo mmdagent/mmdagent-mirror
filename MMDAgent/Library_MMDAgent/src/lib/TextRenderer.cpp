@@ -173,6 +173,7 @@ int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, i
          n++;
          i++;
       } else {
+         if(str[i+1] == '\0') return n;
          c1 = (unsigned char) str[i];
          c2 = (unsigned char) str[i+1];
          mbc = (c1 << 8) | c2;

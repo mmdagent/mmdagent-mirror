@@ -78,7 +78,7 @@ public:
    PMDTexture *load(char *fileName);
 
    /* getErrorTextureString: get newline-separated list of error textures */
-   void getErrorTextureString(char *buf, int maxlen);
+   void getErrorTextureString(char *buf, int size);
 
    /* release: free texture loader */
    void release();

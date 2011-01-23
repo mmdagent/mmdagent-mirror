@@ -493,9 +493,9 @@ unsigned long PMDModel::getNumConstraint()
 }
 
 /* PMDModel::getErrorTextureList: get error texture list */
-void PMDModel::getErrorTextureList(char *buf, int maxLen)
+void PMDModel::getErrorTextureList(char *buf, int size)
 {
-   m_textureLoader.getErrorTextureString(buf, maxLen);
+   m_textureLoader.getErrorTextureString(buf, size);
 }
 
 /* PMDModel::getMaxHeight: get max height */
