@@ -87,8 +87,9 @@ private:
    HWND m_hWnd;       /* window handle */
    HINSTANCE m_hInst; /* application instance */
 
-   Option m_option;         /* user options */
-   BulletPhysics m_bullet;  /* Bullet Physics */
+   Option *m_option;        /* user options */
+   BulletPhysics *m_bullet; /* Bullet Physics */
+   PluginList *m_plugin;    /* plugins */
    Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
    SystemTexture *m_systex; /* system texture */
@@ -97,7 +98,6 @@ private:
    Timer m_timer;           /* timer */
    TextRenderer m_text;     /* text render */
    LogText m_logger;        /* logger */
-   PluginList m_plugin;     /* plugins */
 
    PMDObject m_model[MAXMODEL]; /* models */
    short m_numModel;            /* number of models */
@@ -186,7 +186,7 @@ private:
    bool stopLipSync(char *modelAlias);
 
    /* command: decode command string from client and call process */
-   bool command(char *command, char *wstr);
+   bool command(char *command, char *str);
 
    /* initialize: initialize MMDAgent */
    void initialize();

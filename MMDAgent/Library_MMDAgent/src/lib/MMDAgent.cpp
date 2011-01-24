@@ -60,6 +60,9 @@ void MMDAgent::initialize()
    m_hWnd = 0;
    m_hInst = 0;
 
+   m_option = NULL;
+   m_bullet = NULL;
+   m_plugin = NULL;
    m_screen = NULL;
    m_stage = NULL;
    m_systex = NULL;
@@ -105,6 +108,12 @@ void MMDAgent::clear()
       delete m_stage;
    if (m_screen)
       delete m_screen;
+   if (m_plugin)
+      delete m_plugin;
+   if (m_bullet)
+      delete m_bullet;
+   if (m_option)
+      delete m_option;
    for (i = 0; i < m_numModel; i++) {
       if (m_model[i].isEnable())
          m_model[i].release();
@@ -174,8 +183,8 @@ void MMDAgent::updateScene()
    /* get frame interval */
    intervalFrame = m_timer.getFrameInterval();
 
-   stepmax = m_option.getBulletFps();
-   stepFrame = 30.0 / m_option.getBulletFps();
+   stepmax = m_option->getBulletFps();
+   stepFrame = 30.0 / m_option->getBulletFps();
    restFrame = intervalFrame;
 
    for (ite = 0; ite < stepmax; ite++) {
@@ -217,9 +226,9 @@ void MMDAgent::updateScene()
             removeRelatedModels(i); /* remove model and accessories */
       }
       /* execute plugin */
-      m_plugin.execUpdate(this, procFrame + adjustFrame);
+      m_plugin->execUpdate(this, procFrame + adjustFrame);
       /* update bullet physics */
-      m_bullet.update((float) procFrame);
+      m_bullet->update((float) procFrame);
    }
    /* update after simulation */
    for (i = 0; i < m_numModel; i++)
@@ -227,7 +236,7 @@ void MMDAgent::updateScene()
          m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
 
    /* calculate rendering range for shadow mapping */
-   if(m_option.getUseShadowMapping())
+   if(m_option->getUseShadowMapping())
       m_render->updateDepthTextureViewParam(m_model, m_numModel);
 
    /* decrement each indicator */
@@ -290,7 +299,7 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show bullet body */
    if (m_dispBulletBodyFlag)
-      m_bullet.debugDisplay();
+      m_bullet->debugDisplay();
 
    /* show log window */
    if (m_dispLog)
@@ -300,13 +309,13 @@ void MMDAgent::renderScene(HWND hWnd)
    m_timer.countFrame();
 
    /* show fps */
-   if (m_option.getShowFps()) {
+   if (m_option->getShowFps()) {
       _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%5.1ffps ", m_timer.getFps());
       m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXDISPSTRLEN - 9);
       glDisable(GL_LIGHTING);
       glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
       glPushMatrix();
-      glRasterPos3fv(m_option.getFpsPosition());
+      glRasterPos3fv(m_option->getFpsPosition());
       m_text.drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
@@ -314,10 +323,10 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show adjustment time for audio */
    if (m_dispFrameAdjust > 0.0) {
-      if (m_option.getMotionAdjustFrame() > 0)
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec advance", m_option.getMotionAdjustFrame());
+      if (m_option->getMotionAdjustFrame() > 0)
+         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec advance", m_option->getMotionAdjustFrame());
       else
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec delay", m_option.getMotionAdjustFrame());
+         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec delay", m_option->getMotionAdjustFrame());
       glDisable(GL_LIGHTING);
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
@@ -368,7 +377,7 @@ void MMDAgent::renderScene(HWND hWnd)
    }
 
    /* execute plugin */
-   m_plugin.execRender(this);
+   m_plugin->execRender(this);
 
    /* swap buffer */
    m_screen->swapBuffers();
@@ -382,9 +391,9 @@ void MMDAgent::updateLight()
    btVector3 l;
 
    /* udpate OpenGL light */
-   m_render->updateLighting(m_option.getUseCartoonRendering(), m_option.getUseMMDLikeCartoon(), m_option.getLightDirection(), m_option.getLightIntensity(), m_option.getLightColor());
+   m_render->updateLighting(m_option->getUseCartoonRendering(), m_option->getUseMMDLikeCartoon(), m_option->getLightDirection(), m_option->getLightIntensity(), m_option->getLightColor());
    /* update shadow matrix */
-   f = m_option.getLightDirection();
+   f = m_option->getLightDirection();
    m_stage->updateShadowMatrix(f);
    /* update vector for cartoon */
    l = btVector3(f[0], f[1], f[2]);
@@ -471,6 +480,9 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_appDirName = (char *) malloc(sizeof(char) * (strlen(binaryDirName) + 1 + strlen(MMDAGENT_SYSDATADIR) + 1));
    sprintf(m_appDirName, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_SYSDATADIR);
 
+   /* initialize Option */
+   m_option = new Option();
+
    /* get default config file name */
    strcpy(buff, binaryFileName);
    len = strlen(buff);
@@ -481,7 +493,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       buff[len-1] = 'f';
 
       /* load default config file */
-      if(m_option.load(buff)) {
+      if(m_option->load(buff)) {
          if(m_configFileName)
             free(m_configFileName);
          m_configFileName = strdup(buff);
@@ -491,7 +503,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* load additional config file name */
    for (i = 1; i < argc; i++) {
       if (hasExtension(argv[i], ".mdf")) {
-         if (m_option.load(argv[i])) {
+         if (m_option->load(argv[i])) {
             if(m_configFileName)
                free(m_configFileName);
             m_configFileName = strdup(argv[i]);
@@ -510,13 +522,18 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       getDirectory(m_configFileName, m_configDirName);
    }
 
+   /* initialize BulletPhysics */
+   m_bullet = new BulletPhysics();
+   m_bullet->setup(m_option->getBulletFps());
+
    /* load and start plugins */
+   m_plugin = new PluginList();
    sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
-   m_plugin.load(buff);
-   m_plugin.execAppStart(this);
+   m_plugin->load(buff);
+   m_plugin->execAppStart(this);
 
    /* initialize logger */
-   m_logger.setup(m_option.getLogSize(), m_option.getLogPosition(), m_option.getLogScale());
+   m_logger.setup(m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
 
    /* create components */
    m_screen = new Screen;
@@ -525,15 +542,12 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_render = new Render;
 
    /* create window */
-   m_hWnd = m_screen->createWindow(m_option.getWindowSize(), hInstance, szTitle, szWindowClass, m_option.getMaxMultiSampling(), m_option.getMaxMultiSamplingColor(), m_option.getTopMost());
+   m_hWnd = m_screen->createWindow(m_option->getWindowSize(), hInstance, szTitle, szWindowClass, m_option->getMaxMultiSampling(), m_option->getMaxMultiSamplingColor(), m_option->getTopMost());
    if (!m_hWnd)
       return m_hWnd;
 
    /* allow drag and drop */
    DragAcceptFiles(m_hWnd, true);
-
-   /* initialize bullet phisics */
-   m_bullet.setup(m_option.getBulletFps());
 
    /* load toon textures from system directory */
    if (m_systex->load(m_appDirName) == false)
@@ -544,7 +558,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_lipSync.load(buff);
 
    /* initialize render */
-   if (m_render->setup(m_option.getWindowSize(), m_option.getCampusColor(), m_option.getUseShadowMapping(), m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst()) == false)
+   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst()) == false)
       return false;
 
    /* initialize text render */
@@ -556,10 +570,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
          addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
 
    /* set stage size */
-   m_stage->setSize(m_option.getStageSize(), 1.0f, 1.0f);
+   m_stage->setSize(m_option->getStageSize(), 1.0f, 1.0f);
 
    /* set full screen */
-   if (m_option.getFullScreen())
+   if (m_option->getFullScreen())
       m_screen->setFullScreen(m_hWnd);
 
    /* set mouse enable timer */
@@ -606,7 +620,7 @@ short MMDAgent::getNumModel()
 /* MMDAgent::getOption: get option */
 Option *MMDAgent::getOption()
 {
-   return &m_option;
+   return m_option;
 }
 
 /* MMDAgent::getRender: get render */
@@ -654,13 +668,13 @@ char *MMDAgent::getAppDirName()
 /* MMDAgent::procWindowCreateMessage: process window create message */
 void MMDAgent::procWindowCreateMessage(HWND hWnd)
 {
-   m_plugin.execWindowCreate(this, hWnd);
+   m_plugin->execWindowCreate(this, hWnd);
 }
 
 /* MMDAgent::procWindowDestroyMessage: process window destroy message */
 void MMDAgent::procWindowDestroyMessage()
 {
-   m_plugin.execAppEnd(this);
+   m_plugin->execAppEnd(this);
    clear();
 }
 
@@ -707,7 +721,7 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
    float tmp1, tmp2;
 
    /* zoom */
-   tmp1 = m_option.getScaleStep();
+   tmp1 = m_option->getScaleStep();
    tmp2 = m_render->getScale();
    if (withCtrl) /* faster */
       tmp1 = (tmp1 - 1.0f) * 5.0f + 1.0f;
@@ -745,7 +759,7 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
       if (r2 < -32768) r2 += 65536;
       if (withShift && withCtrl) {
          /* if Shift- and Ctrl-key, rotate light direction */
-         f = m_option.getLightDirection();
+         f = m_option->getLightDirection();
          v = btVector3(f[0], f[1], f[2]);
          bm = btMatrix3x3(btQuaternion(0, r2 * 0.007f, 0) * btQuaternion(r1 * 0.007f, 0, 0));
          v = bm * v;
@@ -797,12 +811,12 @@ void MMDAgent::procFullScreenMessage()
 {
    RECT rc;
 
-   if (m_option.getFullScreen() == true) {
+   if (m_option->getFullScreen() == true) {
       m_screen->exitFullScreen(m_hWnd);
-      m_option.setFullScreen(false);
+      m_option->setFullScreen(false);
    } else {
       m_screen->setFullScreen(m_hWnd);
-      m_option.setFullScreen(true);
+      m_option->setFullScreen(true);
    }
 
    GetWindowRect(m_hWnd, &rc);
@@ -812,10 +826,10 @@ void MMDAgent::procFullScreenMessage()
 /* MMDAgent::procInfoStringMessage: process information string message */
 void MMDAgent::procInfoStringMessage()
 {
-   if(m_option.getShowFps() == true)
-      m_option.setShowFps(false);
+   if(m_option->getShowFps() == true)
+      m_option->setShowFps(false);
    else
-      m_option.setShowFps(true);
+      m_option->setShowFps(true);
 }
 
 /* MMDAgent::procVSyncMessage: process vsync message */
@@ -827,22 +841,22 @@ void MMDAgent::procVSyncMessage()
 /* MMDAgent::procShadowMappingMessage: process shadow mapping message */
 void MMDAgent::procShadowMappingMessage()
 {
-   if(m_option.getUseShadowMapping() == true) {
-      m_option.setUseShadowMapping(false);
-      m_render->setShadowMapping(false, m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst());
+   if(m_option->getUseShadowMapping() == true) {
+      m_option->setUseShadowMapping(false);
+      m_render->setShadowMapping(false, m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
    } else {
-      m_option.setUseShadowMapping(true);
-      m_render->setShadowMapping(true, m_option.getShadowMappingTextureSize(), m_option.getShadowMappingLightFirst());
+      m_option->setUseShadowMapping(true);
+      m_render->setShadowMapping(true, m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
    }
 }
 
 /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
 void MMDAgent::procShadowMappingOrderMessage()
 {
-   if(m_option.getShadowMappingLightFirst() == true)
-      m_option.setShadowMappingLightFirst(false);
+   if(m_option->getShadowMappingLightFirst() == true)
+      m_option->setShadowMappingLightFirst(false);
    else
-      m_option.setShadowMappingLightFirst(true);
+      m_option->setShadowMappingLightFirst(true);
 }
 
 /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
@@ -875,21 +889,21 @@ void MMDAgent::procCartoonEdgeMessage(bool plus)
    int i;
 
    if(plus)
-      m_option.setCartoonEdgeWidth(m_option.getCartoonEdgeWidth() * m_option.getCartoonEdgeStep());
+      m_option->setCartoonEdgeWidth(m_option->getCartoonEdgeWidth() * m_option->getCartoonEdgeStep());
    else
-      m_option.setCartoonEdgeWidth(m_option.getCartoonEdgeWidth() / m_option.getCartoonEdgeStep());
+      m_option->setCartoonEdgeWidth(m_option->getCartoonEdgeWidth() / m_option->getCartoonEdgeStep());
    for (i = 0; i < m_numModel; i++)
-      m_model[i].getPMDModel()->setEdgeThin(m_option.getCartoonEdgeWidth());
+      m_model[i].getPMDModel()->setEdgeThin(m_option->getCartoonEdgeWidth());
 }
 
 /* MMDAgent::procTimeAdjustMessage: process time adjust message */
 void MMDAgent::procTimeAdjustMessage(bool plus)
 {
    if(plus)
-      m_option.setMotionAdjustFrame(m_option.getMotionAdjustFrame() + 10); /* todo: 10 -> option */
+      m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() + 10); /* todo: 10 -> option */
    else
-      m_option.setMotionAdjustFrame(m_option.getMotionAdjustFrame() - 10);
-   m_timer.adjustSetTarget((double) m_option.getMotionAdjustFrame() * 0.03);
+      m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() - 10);
+   m_timer.adjustSetTarget((double) m_option->getMotionAdjustFrame() * 0.03);
    m_dispFrameAdjust = 90.0;
 }
 
@@ -897,36 +911,36 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
 void MMDAgent::procHorizontalRotateMessage(bool right)
 {
    if(right)
-      m_render->rotate(m_option.getRotateStep(), 0.0f, 0.0f);
+      m_render->rotate(m_option->getRotateStep(), 0.0f, 0.0f);
    else
-      m_render->rotate(-m_option.getRotateStep(), 0.0f, 0.0f);
+      m_render->rotate(-m_option->getRotateStep(), 0.0f, 0.0f);
 }
 
 /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
 void MMDAgent::procVerticalRotateMessage(bool up)
 {
    if(up)
-      m_render->rotate(0.0f, -m_option.getRotateStep(), 0.0f);
+      m_render->rotate(0.0f, -m_option->getRotateStep(), 0.0f);
    else
-      m_render->rotate(0.0f, m_option.getRotateStep(), 0.0f);
+      m_render->rotate(0.0f, m_option->getRotateStep(), 0.0f);
 }
 
 /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
 void MMDAgent::procHorizontalMoveMessage(bool right)
 {
    if(right)
-      m_render->translate(m_option.getTranslateStep(), 0.0f, 0.0f);
+      m_render->translate(m_option->getTranslateStep(), 0.0f, 0.0f);
    else
-      m_render->translate(-m_option.getTranslateStep(), 0.0f, 0.0f);
+      m_render->translate(-m_option->getTranslateStep(), 0.0f, 0.0f);
 }
 
 /* MMDAgent::procVerticalMoveMessage: process vertical move message */
 void MMDAgent::procVerticalMoveMessage(bool up)
 {
    if(up)
-      m_render->translate(0.0f, m_option.getTranslateStep(), 0.0f);
+      m_render->translate(0.0f, m_option->getTranslateStep(), 0.0f);
    else
-      m_render->translate(0.0f, -m_option.getTranslateStep(), 0.0f);
+      m_render->translate(0.0f, -m_option->getTranslateStep(), 0.0f);
 }
 
 /* MMDAgent::procDeleteModelMessage: process delete model message */
@@ -990,5 +1004,5 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
 /* MMDAgent::procPluginMessage: process plugin message */
 void MMDAgent::procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   m_plugin.execWindowProc(this, hWnd, message, wParam, lParam);
+   m_plugin->execWindowProc(this, hWnd, message, wParam, lParam);
 }

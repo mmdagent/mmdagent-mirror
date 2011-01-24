@@ -546,7 +546,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    bool forcedPosition = false;
    PMDBone *assignBone = NULL;
    PMDObject *assignObject = NULL;
-   float *l = m_option.getLightDirection();
+   float *l = m_option->getLightDirection();
    btVector3 light = btVector3(l[0], l[1], l[2]);
 
    /* set */
@@ -606,7 +606,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, &m_bullet, m_systex, &m_lipSync, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, &m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
       m_logger.log("! Error: addModel: failed to load %s.", fileName);
       m_model[id].deleteModel();
       free(name);
@@ -630,7 +630,7 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    MotionPlayer *motionPlayer;
    double currentFrame;
    double previousFrame;
-   float *l = m_option.getLightDirection();
+   float *l = m_option->getLightDirection();
    btVector3 light = btVector3(l[0], l[1], l[2]);
 
    /* ID */
@@ -641,7 +641,7 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, &m_bullet, m_systex, &m_lipSync, m_option.getUseCartoonRendering(), m_option.getCartoonEdgeWidth(), &light, m_option.getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, &m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
       m_logger.log("! Error: changeModel: failed to load model %s.", fileName);
       return false;
    }
@@ -699,7 +699,7 @@ bool MMDAgent::deleteModel(char *modelAlias)
 bool MMDAgent::setFloor(char *fileName)
 {
    /* load floor */
-   if (m_stage->loadFloor(fileName, &m_bullet) == false) {
+   if (m_stage->loadFloor(fileName, m_bullet) == false) {
       m_logger.log("Error: setFloor: cannot set floor %s.", fileName);
       return false;
    }
@@ -713,7 +713,7 @@ bool MMDAgent::setFloor(char *fileName)
 bool MMDAgent::setBackground(char *fileName)
 {
    /* load background */
-   if (m_stage->loadBackground(fileName, &m_bullet) == false) {
+   if (m_stage->loadBackground(fileName, m_bullet) == false) {
       m_logger.log("Error: setBackground: cannot set background %s.", fileName);
       return false;
    }
@@ -726,7 +726,7 @@ bool MMDAgent::setBackground(char *fileName)
 /* MMDAgent::setStage: set stage */
 bool MMDAgent::setStage(char *fileName)
 {
-   if (m_stage->loadStagePMD(fileName, &m_bullet, m_systex) == false) {
+   if (m_stage->loadStagePMD(fileName, m_bullet, m_systex) == false) {
       m_logger.log("Error: setStage: cannot set stage %s.", fileName);
       return false;
    }
@@ -744,7 +744,7 @@ bool MMDAgent::changeLightDirection(float x, float y, float z)
    f[1] = y;
    f[2] = z;
    f[3] = 0.0f;
-   m_option.setLightDirection(f);
+   m_option->setLightDirection(f);
    updateLight();
 
    /* send event message */
@@ -760,7 +760,7 @@ bool MMDAgent::changeLightColor(float r, float g, float b)
    f[0] = r;
    f[1] = g;
    f[2] = b;
-   m_option.setLightColor(f);
+   m_option->setLightColor(f);
    updateLight();
 
    /* send event message */
