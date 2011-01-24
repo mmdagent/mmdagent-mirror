@@ -243,17 +243,33 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       mmdagent.renderScene(hWnd);
       ValidateRect(hWnd, NULL);
       break;
-   case WM_SIZE:
+   case WM_SIZE: {
       RECT rc;
       GetWindowRect(hWnd, &rc);
       mmdagent.procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
-      break;
+   }
+   break;
    case WM_MOVE:
       mmdagent.updateScene();
       break;
-   case WM_DROPFILES:
-      mmdagent.procDropFileMessage(hWnd, wParam, lParam);
-      break;
+   case WM_DROPFILES: {
+      RECT rc;
+      POINT pos;
+      char file[MMDAGENT_MAXBUFLEN];
+      int i, num;
+      /* get mouse position */
+      if(!GetWindowRect(hWnd, &rc)) break;
+      if(!GetCursorPos(&pos)) break;
+      pos.x -= rc.left;
+      pos.y -= rc.top;
+      /* num */
+      num = DragQueryFileA((HDROP) wParam, -1, file, MMDAGENT_MAXBUFLEN);
+      for(i = 0; i < num; i++) {
+         DragQueryFileA((HDROP) wParam, i, file, MMDAGENT_MAXBUFLEN);
+         mmdagent.procDropFileMessage(file, pos.x, pos.y);
+      }
+   }
+   break;
    case WM_CHAR:
       mmdagent.sendEventMessage(MMDAGENTCOMMAND_KEY, "%C", wParam);
       break;

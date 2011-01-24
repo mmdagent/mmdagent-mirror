@@ -337,8 +337,8 @@ public:
    /* procPluginMessage: process plugin message */
    void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-   /* procDropFileMessage: handle file drops */
-   void procDropFileMessage(HWND hWnd, WPARAM wParam, LPARAM lParam);
+   /* procDropFileMessage: process file drops message */
+   void procDropFileMessage(char *file, int x, int y);
 };
 
 #endif /* __mmdagent_h__ */
