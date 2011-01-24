@@ -75,11 +75,8 @@ public:
    /* ~Timer: destructor */
    ~Timer();
 
-   /* setPrecision: set timer precision */
-   void setPrecision(UINT msec);
-
-   /* startSystem: start system count */
-   void startSystem();
+   /* setup: initialize and start timer */
+   void setup(UINT msec);
 
    /* getFrameInterval: return time interval from last call */
    double getFrameInterval();

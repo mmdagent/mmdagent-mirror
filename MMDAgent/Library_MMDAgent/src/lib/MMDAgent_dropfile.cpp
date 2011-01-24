@@ -77,10 +77,10 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             targetModelID = dropAllowedModelID;
       }
       if (targetModelID == -1) {
-         m_logger.log("Warning: vmd file dropped but no model exit at the point");
+         m_logger->log("Warning: vmd file dropped but no model exit at the point");
       } else {
          /* pause timer to skip file loading time */
-         m_timer.pause();
+         m_timer->pause();
          if (m_keyShift) { /* if Shift-key, insert motion */
             if (targetModelID == MODEL_ALL) {
                /* all model */
@@ -136,7 +136,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             free(buf);
          }
          /* resume timer */
-         m_timer.resume();
+         m_timer->resume();
       }
    } else if (hasExtension(file, ".xpmd")) {
       /* load stage */
@@ -153,7 +153,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          else
             targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID);
          if (targetModelID == -1) {
-            m_logger.log("Warning: pmd file dropped but no model at the point");
+            m_logger->log("Warning: pmd file dropped but no model at the point");
          } else {
             changeModel(m_model[targetModelID].getAlias(), file);
          }

@@ -92,8 +92,8 @@ Timer::~Timer()
    clear();
 }
 
-/* Timer::setPrecision: set timer precision */
-void Timer::setPrecision(UINT msec)
+/* Timer::setup: initialize and start timer */
+void Timer::setup(UINT msec)
 {
    if (m_prec != msec) {
       if (m_prec > 0)
@@ -101,11 +101,7 @@ void Timer::setPrecision(UINT msec)
       m_prec = msec;
       timeBeginPeriod(m_prec);
    }
-}
 
-/* Timer::startSystem: start system count */
-void Timer::startSystem()
-{
    /* get system start time */
    m_systemStartTime = timeGetTime();
    /* reset number of frames from last getTimeInterval function */

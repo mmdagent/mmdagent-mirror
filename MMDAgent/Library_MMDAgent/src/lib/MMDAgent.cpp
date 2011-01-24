@@ -66,7 +66,11 @@ void MMDAgent::initialize()
    m_screen = NULL;
    m_stage = NULL;
    m_systex = NULL;
+   m_lipSync = NULL;
    m_render = NULL;
+   m_timer = NULL;
+   m_text = NULL;
+   m_logger = NULL;
 
    m_numModel = 0;
 
@@ -100,8 +104,16 @@ void MMDAgent::clear()
       free(m_configDirName);
    if(m_appDirName)
       free(m_appDirName);
+   if (m_logger)
+      delete m_logger;
+   if (m_text)
+      delete m_text;
+   if (m_timer)
+      delete m_timer;
    if (m_render)
       delete m_render;
+   if (m_lipSync)
+      delete m_lipSync;
    if (m_systex)
       delete m_systex;
    if (m_stage)
@@ -181,7 +193,7 @@ void MMDAgent::updateScene()
    MotionPlayer *motionPlayer;
 
    /* get frame interval */
-   intervalFrame = m_timer.getFrameInterval();
+   intervalFrame = m_timer->getFrameInterval();
 
    stepmax = m_option->getBulletFps();
    stepFrame = 30.0 / m_option->getBulletFps();
@@ -198,7 +210,7 @@ void MMDAgent::updateScene()
          restFrame -= stepFrame;
       }
       /* calculate adjustment time for audio */
-      adjustFrame = m_timer.getAdditionalFrame(procFrame);
+      adjustFrame = m_timer->getAdditionalFrame(procFrame);
       if (adjustFrame != 0.0)
          m_dispFrameCue = 90.0;
       /* update motion */
@@ -272,7 +284,7 @@ void MMDAgent::renderScene(HWND hWnd)
    if (!m_hWnd) return;
 
    /* update model position and rotation */
-   fps = m_timer.getFps();
+   fps = m_timer->getFps();
    for (i = 0; i < m_numModel; i++) {
       if (m_model[i].isEnable() == true) {
          if (m_model[i].updateModelRootOffset(fps))
@@ -295,7 +307,7 @@ void MMDAgent::renderScene(HWND hWnd)
    if (m_dispModelDebug)
       for (i = 0; i < m_numModel; i++)
          if (m_model[i].isEnable() == true)
-            m_model[i].renderDebug(&m_text);
+            m_model[i].renderDebug(m_text);
 
    /* show bullet body */
    if (m_dispBulletBodyFlag)
@@ -303,20 +315,20 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show log window */
    if (m_dispLog)
-      m_logger.render(&m_text);
+      m_logger->render(m_text);
 
    /* count fps */
-   m_timer.countFrame();
+   m_timer->countFrame();
 
    /* show fps */
    if (m_option->getShowFps()) {
-      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%5.1ffps ", m_timer.getFps());
+      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%5.1ffps ", m_timer->getFps());
       m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXDISPSTRLEN - 9);
       glDisable(GL_LIGHTING);
       glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
       glPushMatrix();
       glRasterPos3fv(m_option->getFpsPosition());
-      m_text.drawAsciiStringBitmap(buff);
+      m_text->drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
@@ -331,19 +343,19 @@ void MMDAgent::renderScene(HWND hWnd)
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
       glWindowPos2f(5.0f, 5.0f);
-      m_text.drawAsciiStringBitmap(buff);
+      m_text->drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
 
    /* show adjustment time per model */
    if (m_dispFrameCue > 0.0) {
-      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "Cuing Motion: %+d", (int)(m_timer.adjustGetCurrent() / 0.03));
+      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "Cuing Motion: %+d", (int)(m_timer->adjustGetCurrent() / 0.03));
       glDisable(GL_LIGHTING);
       glColor3f(0.0f, 1.0f, 0.0f);
       glPushMatrix();
       glWindowPos2f(160.0f, 5.0f);
-      m_text.drawAsciiStringBitmap(buff);
+      m_text->drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
@@ -361,7 +373,7 @@ void MMDAgent::renderScene(HWND hWnd)
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
       glWindowPos2f(5.0f, 5.0f);
-      m_text.drawAsciiStringBitmap(buff);
+      m_text->drawAsciiStringBitmap(buff);
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
@@ -370,8 +382,8 @@ void MMDAgent::renderScene(HWND hWnd)
    for (i = 0; i < m_numModel; i++) {
       if (m_model[i].isEnable() == true) {
          glPushMatrix();
-         m_model[i].renderComment(&m_text);
-         m_model[i].renderError(&m_text);
+         m_model[i].renderComment(m_text);
+         m_model[i].renderError(m_text);
          glPopMatrix();
       }
    }
@@ -468,9 +480,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    m_hInst = hInstance;
 
-   /* set timer precision to 2ms */
-   m_timer.setPrecision(2);
-
    /* set local to japan */
    setlocale(LC_CTYPE, "jpn");
 
@@ -532,45 +541,57 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_plugin->load(buff);
    m_plugin->execAppStart(this);
 
-   /* initialize logger */
-   m_logger.setup(m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
-
-   /* create components */
-   m_screen = new Screen;
-   m_stage = new Stage;
-   m_systex = new SystemTexture;
-   m_render = new Render;
-
    /* create window */
+   m_screen = new Screen();
    m_hWnd = m_screen->createWindow(m_option->getWindowSize(), hInstance, szTitle, szWindowClass, m_option->getMaxMultiSampling(), m_option->getMaxMultiSamplingColor(), m_option->getTopMost());
-   if (!m_hWnd)
+   if (!m_hWnd) {
+      clear();
       return m_hWnd;
+   }
+   DragAcceptFiles(m_hWnd, true); /* allow drag and drop */
 
-   /* allow drag and drop */
-   DragAcceptFiles(m_hWnd, true);
+   /* create stage */
+   m_stage = new Stage();
+   m_stage->setSize(m_option->getStageSize(), 1.0f, 1.0f);
 
    /* load toon textures from system directory */
-   if (m_systex->load(m_appDirName) == false)
+   m_systex = new SystemTexture();
+   if (m_systex->load(m_appDirName) == false) {
+      clear();
       return false;
+   }
 
-   /* load system default lipsync */
+   /* setup lipsync */
+   m_lipSync = new LipSync();
    sprintf(buff, "%s%c%s", m_appDirName, MMDAGENT_DIRSEPARATOR, LIPSYNC_CONFIGFILE);
-   m_lipSync.load(buff);
-
-   /* initialize render */
-   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst()) == false)
+   if (m_lipSync->load(buff) == false) {
+      clear();
       return false;
+   }
 
-   /* initialize text render */
-   m_text.setup(m_screen->getDC());
+   /* setup render */
+   m_render = new Render();
+   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst()) == false) {
+      clear();
+      return false;
+   }
+
+   /* setup timer */
+   m_timer = new Timer();
+   m_timer->setup(2); /* set timer precision to 2ms */
+
+   /* setup text render */
+   m_text = new TextRenderer();
+   m_text->setup(m_screen->getDC());
+
+   /* setup logger */
+   m_logger = new LogText();
+   m_logger->setup(m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
 
    /* load model from arguments */
    for (i = 1; i < argc; i++)
       if (hasExtension(argv[i], ".pmd"))
          addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
-
-   /* set stage size */
-   m_stage->setSize(m_option->getStageSize(), 1.0f, 1.0f);
 
    /* set full screen */
    if (m_option->getFullScreen())
@@ -581,9 +602,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* update light */
    updateLight();
-
-   /* start timer */
-   m_timer.startSystem();
 
    SetCurrentDirectoryA(m_configDirName);
 
@@ -668,13 +686,15 @@ char *MMDAgent::getAppDirName()
 /* MMDAgent::procWindowCreateMessage: process window create message */
 void MMDAgent::procWindowCreateMessage(HWND hWnd)
 {
-   m_plugin->execWindowCreate(this, hWnd);
+   if(m_plugin)
+      m_plugin->execWindowCreate(this, hWnd);
 }
 
 /* MMDAgent::procWindowDestroyMessage: process window destroy message */
 void MMDAgent::procWindowDestroyMessage()
 {
-   m_plugin->execAppEnd(this);
+   if(m_plugin)
+      m_plugin->execAppEnd(this);
    clear();
 }
 
@@ -903,7 +923,7 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
       m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() + 10); /* todo: 10 -> option */
    else
       m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() - 10);
-   m_timer.adjustSetTarget((double) m_option->getMotionAdjustFrame() * 0.03);
+   m_timer->adjustSetTarget((double) m_option->getMotionAdjustFrame() * 0.03);
    m_dispFrameAdjust = 90.0;
 }
 
@@ -991,9 +1011,9 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
    /* free strings */
    if (mes1 != NULL) {
       if (mes2 != NULL && strlen(mes2) > 0)
-         m_logger.log("[%s|%s]", mes1, mes2);
+         m_logger->log("[%s|%s]", mes1, mes2);
       else
-         m_logger.log("[%s]", mes1);
+         m_logger->log("[%s]", mes1);
    }
    if (mes1 != NULL)
       free(mes1);
@@ -1004,5 +1024,6 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
 /* MMDAgent::procPluginMessage: process plugin message */
 void MMDAgent::procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   m_plugin->execWindowProc(this, hWnd, message, wParam, lParam);
+   if(m_plugin)
+      m_plugin->execWindowProc(this, hWnd, message, wParam, lParam);
 }

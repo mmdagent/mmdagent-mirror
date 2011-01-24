@@ -93,11 +93,11 @@ private:
    Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
    SystemTexture *m_systex; /* system texture */
-   LipSync m_lipSync;       /* system default lipsync */
+   LipSync *m_lipSync;      /* system default lipsync */
    Render *m_render;        /* render */
-   Timer m_timer;           /* timer */
-   TextRenderer m_text;     /* text render */
-   LogText m_logger;        /* logger */
+   Timer *m_timer;          /* timer */
+   TextRenderer *m_text;    /* text render */
+   LogText *m_logger;       /* logger */
 
    PMDObject m_model[MAXMODEL]; /* models */
    short m_numModel;            /* number of models */
