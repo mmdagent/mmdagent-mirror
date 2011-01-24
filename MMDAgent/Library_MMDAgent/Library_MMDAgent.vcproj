@@ -219,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\TileTexture.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\Timer.cpp"
 				>
 			</File>
@@ -282,6 +286,10 @@
 			</File>
 			<File
 				RelativePath=".\src\include\TextRenderer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\include\TileTexture.h"
 				>
 			</File>
 			<File

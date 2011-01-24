@@ -41,61 +41,13 @@
 
 #define STAGE_MAXBUFLEN 1024
 
-/* TileTexture: texture for background and floor */
-class TileTexture
-{
-private:
-
-   PMDTexture m_texture;     /* texture */
-   bool m_isLoaded;
-   GLuint m_listIndex;       /* display list */
-   bool m_listIndexValid;    /* true if m_listIndex was registered */
-
-   GLfloat m_vertices[4][3]; /* position */
-   GLfloat m_numx;
-   GLfloat m_numy;
-
-   /* resetDisplayList: reset display list */
-   void resetDisplayList();
-
-   /* initialize: initialize texture */
-   void initialize();
-
-   /* clear: free texture */
-   void clear();
-
-public:
-
-   /* TileTexture: constructor */
-   TileTexture();
-
-   /* TileTexture: destructor */
-   ~TileTexture();
-
-   /* load: load a texture from file name */
-   bool load(char *file);
-
-   /* render: render the textures */
-   void render(bool cullFace, const float normal[3]);
-
-   /* setSize: set texture size */
-   void setSize(float v00, float v01, float v02,
-                float v10, float v11, float v12,
-                float v20, float v21, float v22,
-                float v30, float v31, float v32,
-                float x, float y);
-
-   /* getSize: get texture size */
-   GLfloat getSize(int i, int j);
-};
-
 /* Stage: stage */
 class Stage
 {
 private:
 
-   TileTexture m_floor; /* floor texture */
-   TileTexture m_background;  /* background texture */
+   TileTexture m_floor;      /* floor texture */
+   TileTexture m_background; /* background texture */
 
    PMDModel m_pmd;           /* PMD for background */
    bool m_hasPMD;            /* true if m_pmd is used */
@@ -150,7 +102,7 @@ public:
    void renderPMD();
 
    /* updateShadowMatrix: update shadow projection matrix */
-   void updateShadowMatrix(float lightDirection[4]);
+   void updateShadowMatrix(float *lightDirection);
 
    /* getShadowMatrix: get shadow projection matrix */
    GLfloat *getShadowMatrix();

@@ -44,200 +44,6 @@
 #include "MMDAgent.h"
 #include "utils.h"
 
-/* findPlane: calculate plane */
-static void findPlane(GLfloat plane[4], TileTexture *t)
-{
-   GLfloat vec0x, vec0y, vec0z, vec1x, vec1y, vec1z;
-
-   /* need 2 vectors to find cross product */
-   vec0x = t->getSize(2, 0) - t->getSize(1, 0);
-   vec0y = t->getSize(2, 1) - t->getSize(1, 1);
-   vec0z = t->getSize(2, 2) - t->getSize(1, 2);
-
-   vec1x = t->getSize(3, 0) - t->getSize(1, 0);
-   vec1y = t->getSize(3, 1) - t->getSize(1, 1);
-   vec1z = t->getSize(3, 2) - t->getSize(1, 2);
-
-   /* find cross product to get A, B, and C of plane equation */
-   plane[0] =   vec0y * vec1z - vec0z * vec1y;
-   plane[1] = -(vec0x * vec1z - vec0z * vec1x);
-   plane[2] =   vec0x * vec1y - vec0y * vec1x;
-   plane[3] = -(plane[0] * t->getSize(1, 0) + plane[1] * t->getSize(1, 1) + plane[2] * t->getSize(1, 2));
-}
-
-/* shadowMatrix: calculate shadow projection matrix */
-static void shadowMatrix(GLfloat shadowMat[4][4], GLfloat groundplane[4], GLfloat lightpos[4])
-{
-   GLfloat dot;
-
-   /* find dot product between light position vector and ground plane normal */
-   dot = groundplane[0] * lightpos[0] +
-         groundplane[1] * lightpos[1] +
-         groundplane[2] * lightpos[2] +
-         groundplane[3] * lightpos[3];
-
-   shadowMat[0][0] = dot - lightpos[0] * groundplane[0];
-   shadowMat[1][0] = 0.f - lightpos[0] * groundplane[1];
-   shadowMat[2][0] = 0.f - lightpos[0] * groundplane[2];
-   shadowMat[3][0] = 0.f - lightpos[0] * groundplane[3];
-
-   shadowMat[0][1] = 0.f - lightpos[1] * groundplane[0];
-   shadowMat[1][1] = dot - lightpos[1] * groundplane[1];
-   shadowMat[2][1] = 0.f - lightpos[1] * groundplane[2];
-   shadowMat[3][1] = 0.f - lightpos[1] * groundplane[3];
-
-   shadowMat[0][2] = 0.f - lightpos[2] * groundplane[0];
-   shadowMat[1][2] = 0.f - lightpos[2] * groundplane[1];
-   shadowMat[2][2] = dot - lightpos[2] * groundplane[2];
-   shadowMat[3][2] = 0.f - lightpos[2] * groundplane[3];
-
-   shadowMat[0][3] = 0.f - lightpos[3] * groundplane[0];
-   shadowMat[1][3] = 0.f - lightpos[3] * groundplane[1];
-   shadowMat[2][3] = 0.f - lightpos[3] * groundplane[2];
-   shadowMat[3][3] = dot - lightpos[3] * groundplane[3];
-}
-
-/* TileTexture::resetDisplayList: reset display list */
-void TileTexture::resetDisplayList()
-{
-   if (m_listIndexValid) {
-      glDeleteLists(m_listIndex, 1);
-      m_listIndexValid = false;
-   }
-}
-
-/* TileTexture::initialize: initialize texture */
-void TileTexture::initialize()
-{
-   int i, j;
-
-   m_isLoaded = false;
-   m_listIndex = 0;
-   m_listIndexValid = false;
-
-   for (i = 0; i < 4; i++)
-      for (j = 0; j < 3; j++)
-         m_vertices[i][j] = 0.0f;
-   m_numx = 1.0f;
-   m_numy = 1.0f;
-}
-
-/* TileTexture::clear: free texture */
-void TileTexture::clear()
-{
-   if (m_isLoaded)
-      m_texture.release();
-   initialize();
-}
-
-/* TileTexture::TileTexture: constructor */
-TileTexture::TileTexture()
-{
-   initialize();
-}
-
-/* TileTexture: destructor */
-TileTexture::~TileTexture()
-{
-   clear();
-}
-
-/* TileTexture::load: load a texture from file name (wide char) */
-bool TileTexture::load(char *file)
-{
-   if (file == NULL)
-      return false;
-   if (strlen(file) <= 0)
-      return false;
-
-   if(m_texture.load(file) == false)
-      return false;
-
-   m_isLoaded = true;
-   resetDisplayList();
-
-   return true;
-}
-
-/* TileTexture::render: render the textures */
-void TileTexture::render(bool cullFace, const float normal[3])
-{
-   static const GLfloat color[] = { 0.65f, 0.65f, 0.65f, 1.0f };
-
-   if (m_isLoaded == false) return;
-
-   if (m_listIndexValid) {
-      /* call display list */
-      glCallList(m_listIndex);
-      return;
-   }
-
-   /* create display list  */
-   m_listIndex = glGenLists(1); /* get display list index */
-   glNewList(m_listIndex, GL_COMPILE);
-
-   /* register rendering command */
-   if (!cullFace)
-      glDisable(GL_CULL_FACE);
-
-   glEnable(GL_TEXTURE_2D);
-   glPushMatrix();
-   glNormal3f(normal[0], normal[1], normal[2]);
-   glBindTexture(GL_TEXTURE_2D, m_texture.getID());
-   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-   glBegin(GL_QUADS);
-   glTexCoord2f(0.0, m_numy);
-   glVertex3fv(m_vertices[0]);
-   glTexCoord2f(m_numx, m_numy);
-   glVertex3fv(m_vertices[1]);
-   glTexCoord2f(m_numx, 0.0);
-   glVertex3fv(m_vertices[2]);
-   glTexCoord2f(0.0, 0.0);
-   glVertex3fv(m_vertices[3]);
-   glEnd();
-   glPopMatrix();
-   glDisable(GL_TEXTURE_2D);
-
-   if (!cullFace)
-      glEnable(GL_CULL_FACE);
-
-   /* end of regist */
-   glEndList();
-   m_listIndexValid = true;
-}
-
-/* TileTexture::getSize: get texture size */
-GLfloat TileTexture::getSize(int i, int j)
-{
-   return m_vertices[i][j];
-}
-
-/* TileTexture::setSize: set texture size */
-void TileTexture::setSize(float v00, float v01, float v02,
-                          float v10, float v11, float v12,
-                          float v20, float v21, float v22,
-                          float v30, float v31, float v32,
-                          float numx, float numy)
-{
-   m_vertices[0][0] = v00;
-   m_vertices[0][1] = v01;
-   m_vertices[0][2] = v02;
-   m_vertices[1][0] = v10;
-   m_vertices[1][1] = v11;
-   m_vertices[1][2] = v12;
-   m_vertices[2][0] = v20;
-   m_vertices[2][1] = v21;
-   m_vertices[2][2] = v22;
-   m_vertices[3][0] = v30;
-   m_vertices[3][1] = v31;
-   m_vertices[3][2] = v32;
-
-   m_numx = numx;
-   m_numy = numy;
-
-   resetDisplayList();
-}
-
 /* Stage::makeFloorBody: create a rigid body for floor */
 void Stage::makeFloorBody(float width, float depth)
 {
@@ -421,12 +227,52 @@ void Stage::renderPMD()
 }
 
 /* Stage::updateShadowMatrix: update shadow projection matrix */
-void Stage::updateShadowMatrix(float lightDirection[4])
+void Stage::updateShadowMatrix(float *lightDirection)
 {
+   GLfloat dot;
    GLfloat floorPlane[4];
+   GLfloat vec0x, vec0y, vec0z, vec1x, vec1y, vec1z;
 
-   findPlane(floorPlane, &m_floor);
-   shadowMatrix(m_floorShadow, floorPlane, lightDirection);
+   /* need 2 vectors to find cross product */
+   vec0x = m_floor.getSize(2, 0) - m_floor.getSize(1, 0);
+   vec0y = m_floor.getSize(2, 1) - m_floor.getSize(1, 1);
+   vec0z = m_floor.getSize(2, 2) - m_floor.getSize(1, 2);
+
+   vec1x = m_floor.getSize(3, 0) - m_floor.getSize(1, 0);
+   vec1y = m_floor.getSize(3, 1) - m_floor.getSize(1, 1);
+   vec1z = m_floor.getSize(3, 2) - m_floor.getSize(1, 2);
+
+   /* find cross product to get A, B, and C of plane equation */
+   floorPlane[0] =   vec0y * vec1z - vec0z * vec1y;
+   floorPlane[1] = -(vec0x * vec1z - vec0z * vec1x);
+   floorPlane[2] =   vec0x * vec1y - vec0y * vec1x;
+   floorPlane[3] = -(floorPlane[0] * m_floor.getSize(1, 0) + floorPlane[1] * m_floor.getSize(1, 1) + floorPlane[2] * m_floor.getSize(1, 2));
+
+   /* find dot product between light position vector and ground plane normal */
+   dot = floorPlane[0] * lightDirection[0] +
+         floorPlane[1] * lightDirection[1] +
+         floorPlane[2] * lightDirection[2] +
+         floorPlane[3] * lightDirection[3];
+
+   m_floorShadow[0][0] = dot - lightDirection[0] * floorPlane[0];
+   m_floorShadow[1][0] = 0.f - lightDirection[0] * floorPlane[1];
+   m_floorShadow[2][0] = 0.f - lightDirection[0] * floorPlane[2];
+   m_floorShadow[3][0] = 0.f - lightDirection[0] * floorPlane[3];
+
+   m_floorShadow[0][1] = 0.f - lightDirection[1] * floorPlane[0];
+   m_floorShadow[1][1] = dot - lightDirection[1] * floorPlane[1];
+   m_floorShadow[2][1] = 0.f - lightDirection[1] * floorPlane[2];
+   m_floorShadow[3][1] = 0.f - lightDirection[1] * floorPlane[3];
+
+   m_floorShadow[0][2] = 0.f - lightDirection[2] * floorPlane[0];
+   m_floorShadow[1][2] = 0.f - lightDirection[2] * floorPlane[1];
+   m_floorShadow[2][2] = dot - lightDirection[2] * floorPlane[2];
+   m_floorShadow[3][2] = 0.f - lightDirection[2] * floorPlane[3];
+
+   m_floorShadow[0][3] = 0.f - lightDirection[3] * floorPlane[0];
+   m_floorShadow[1][3] = 0.f - lightDirection[3] * floorPlane[1];
+   m_floorShadow[2][3] = 0.f - lightDirection[3] * floorPlane[2];
+   m_floorShadow[3][3] = dot - lightDirection[3] * floorPlane[3];
 }
 
 /* Stage::getShadowMatrix: get shadow projection matrix */

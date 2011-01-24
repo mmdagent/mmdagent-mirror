@@ -55,6 +55,7 @@ class MMDAgent;
 
 #include "Option.h"
 #include "Screen.h"
+#include "TileTexture.h"
 #include "Stage.h"
 #include "Render.h"
 #include "Timer.h"
