@@ -38,6 +38,7 @@
 /* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
+
 /* headers */
 
 #include "MMDAgent.h"
@@ -96,7 +97,7 @@ bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
 
    if (p->appStart || p->appEnd || p->windowCreate || p->windowProc || p->update || p->render) {
       /* save file name */
-      p->name = strdup(dllFileName);
+      p->name = MMDAgent_strdup(dllFileName);
       p->enable = true;
       return true;
    } else {

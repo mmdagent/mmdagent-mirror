@@ -42,43 +42,7 @@
 /* headers */
 
 #include "MMDAgent.h"
-
-/* getTokenFromFp: get token from file pointer */
-static int getTokenFromFp(FILE *fp, char *buff)
-{
-   int i;
-   char c;
-
-   c = fgetc(fp);
-   printf("%ld\n", ftell(fp));
-   if(c == EOF) {
-      buff[0] = '\0';
-      return 0;
-   }
-
-   if(c == '#') {
-      for(c = fgetc(fp); c != EOF; c = fgetc(fp))
-         if(c == '\n')
-            return getTokenFromFp(fp, buff);
-      buff[0] = '\0';
-      return 0;
-   }
-
-   if(c == ' ' || c == '\t' || c == '\r' || c == '\n')
-      return getTokenFromFp(fp, buff);
-
-   buff[0] = c;
-   for(i = 1, c = fgetc(fp); c != EOF && c != '#' && c != ' ' && c != '\t' && c != '\r' && c != '\n'; c = fgetc(fp))
-      buff[i++] = c;
-   buff[i] = '\0';
-
-   if(c == '#')
-      fseek(fp, -1, SEEK_CUR);
-   if(c == EOF)
-      fseek(fp, 0, SEEK_END);
-
-   return i;
-}
+#include "utils.h"
 
 /* LipSync::initialize: initialize lipsync */
 void LipSync::initialize()
@@ -141,12 +105,12 @@ bool LipSync::load(char *file)
       return false;
 
    /* number of expression */
-   len = getTokenFromFp(fp, buff);
+   len = MMDAgent_fgettoken(fp, buff);
    if(len <= 0) {
       fclose(fp);
       return false;
    }
-   m_numMotion = atoi(buff);
+   m_numMotion = MMDAgent_str2int(buff);
    if(m_numMotion <= 0) {
       fclose(fp);
       clear();
@@ -156,9 +120,9 @@ bool LipSync::load(char *file)
    /* motion name */
    m_motion = (char **) malloc(sizeof(char *) * m_numMotion);
    for(i = 0; i < m_numMotion; i++) {
-      len = getTokenFromFp(fp, buff);
+      len = MMDAgent_fgettoken(fp, buff);
       if(len <= 0) err = true;
-      m_motion[i] = strdup(buff);
+      m_motion[i] = MMDAgent_strdup(buff);
    }
    if(err == true) {
       fclose(fp);
@@ -167,13 +131,13 @@ bool LipSync::load(char *file)
    }
 
    /* number of phone */
-   len = getTokenFromFp(fp, buff);
+   len = MMDAgent_fgettoken(fp, buff);
    if(len <= 0) {
       fclose(fp);
       clear();
       return false;
    }
-   m_numPhone = atoi(buff);
+   m_numPhone = MMDAgent_str2int(buff);
    if(m_numPhone <= 0) {
       fclose(fp);
       clear();
@@ -184,14 +148,14 @@ bool LipSync::load(char *file)
    m_phone = (char **) malloc(sizeof(char *) * m_numPhone);
    m_blendRate = (float **) malloc(sizeof(float *) * m_numPhone);
    for(i = 0; i < m_numPhone; i++) {
-      len = getTokenFromFp(fp, buff);
+      len = MMDAgent_fgettoken(fp, buff);
       if(len <= 0) err = true;
-      m_phone[i] = strdup(buff);
+      m_phone[i] = MMDAgent_strdup(buff);
       m_blendRate[i] = (float *) malloc(sizeof(float) * m_numMotion);
       for(j = 0; j < m_numMotion; j++) {
-         len = getTokenFromFp(fp, buff);
+         len = MMDAgent_fgettoken(fp, buff);
          if(len <= 0) err = true;
-         m_blendRate[i][j] = (float) atof(buff);
+         m_blendRate[i][j] = MMDAgent_str2float(buff);
          if(m_blendRate[i][j] < 0.0f) err = true;
       }
    }
@@ -210,7 +174,7 @@ bool LipSync::createMotion(char *str, unsigned char **rawData, unsigned long *ra
 {
    int i, j, k;
    int len;
-   char *buf, *p;
+   char *buf, *p, *save;
 
    LipKeyFrame *head, *tail, *tmp1, *tmp2;
    float f, diff;
@@ -232,14 +196,14 @@ bool LipSync::createMotion(char *str, unsigned char **rawData, unsigned long *ra
    (*rawSize) = 0;
 
    /* get phone index and duration */
-   buf = strdup(str);
+   buf = MMDAgent_strdup(str);
    head = NULL;
    tail = NULL;
    diff = 0.0f;
-   for(i = 0, k = 0, p = strtok(buf, LIPSYNC_SEPARATOR); p; i++, p = strtok(NULL, LIPSYNC_SEPARATOR)) {
+   for(i = 0, k = 0, p = MMDAgent_strtok(buf, LIPSYNC_SEPARATOR, &save); p; i++, p = MMDAgent_strtok(NULL, LIPSYNC_SEPARATOR, &save)) {
       if(i % 2 == 0) {
          for(j = 0; j < m_numPhone; j++) {
-            if(strcmp(m_phone[j], p) == 0) {
+            if(MMDAgent_strequal(m_phone[j], p)) {
                k = j;
                break;
             }
@@ -249,7 +213,7 @@ bool LipSync::createMotion(char *str, unsigned char **rawData, unsigned long *ra
       } else {
          tmp1 = (LipKeyFrame *) malloc(sizeof(LipKeyFrame));
          tmp1->phone = k;
-         f = 0.03f * (float) atof(p) + diff; /* convert ms to frame */
+         f = 0.03f * MMDAgent_str2float(p) + diff; /* convert ms to frame */
          tmp1->duration = (int) (f + 0.5);
          if(tmp1->duration < 1)
             tmp1->duration = 1;

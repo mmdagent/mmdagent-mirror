@@ -223,7 +223,7 @@ void MMDAgent::updateScene()
             for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
                if (motionPlayer->statusFlag == MOTION_STATUS_DELETED) {
                   /* send event message */
-                  if (strcmp(motionPlayer->name, LIPSYNC_MOTIONNAME) == 0)
+                  if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
                      sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTOP, "%s", m_model[i].getAlias());
                   else {
                      sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
@@ -420,7 +420,7 @@ void MMDAgent::sendCommandMessage(char *type, const char *format, ...)
    va_list argv;
    char *buf1, *buf2;
 
-   buf1 = strdup(type);
+   buf1 = MMDAgent_strdup(type);
 
    if (format == NULL) {
       ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) NULL);
@@ -442,7 +442,7 @@ void MMDAgent::sendEventMessage(char *type, const char *format, ...)
    va_list argv;
    char *buf1, *buf2;
 
-   buf1 = strdup(type);
+   buf1 = MMDAgent_strdup(type);
 
    if (format == NULL) {
       ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) NULL);
@@ -472,11 +472,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       return 0;
 
    /* get binary file name */
-   binaryFileName = strdup(argv[0]);
+   binaryFileName = MMDAgent_strdup(argv[0]);
 
    /* get binary directory name */
-   binaryDirName = (char *) malloc(sizeof(char) * (strlen(binaryFileName) + 1));
-   getDirectory(binaryFileName, binaryDirName);
+   binaryDirName = MMDAgent_dirdup(argv[0]);
 
    m_hInst = hInstance;
 
@@ -505,17 +504,17 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
       if(m_option->load(buff)) {
          if(m_configFileName)
             free(m_configFileName);
-         m_configFileName = strdup(buff);
+         m_configFileName = MMDAgent_strdup(buff);
       }
    }
 
    /* load additional config file name */
    for (i = 1; i < argc; i++) {
-      if (hasExtension(argv[i], ".mdf")) {
+      if (MMDAgent_strtailmatch(argv[i], ".mdf")) {
          if (m_option->load(argv[i])) {
             if(m_configFileName)
                free(m_configFileName);
-            m_configFileName = strdup(argv[i]);
+            m_configFileName = MMDAgent_strdup(argv[i]);
          }
       }
    }
@@ -524,11 +523,10 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    if(m_configDirName)
       free(m_configDirName);
    if(m_configFileName == NULL) {
-      m_configFileName = strdup(binaryFileName);
-      m_configDirName = strdup(binaryDirName);
+      m_configFileName = MMDAgent_strdup(binaryFileName);
+      m_configDirName = MMDAgent_strdup(binaryDirName);
    } else {
-      m_configDirName = (char *) malloc(sizeof(char) * (strlen(m_configFileName) + 1));
-      getDirectory(m_configFileName, m_configDirName);
+      m_configDirName = MMDAgent_dirdup(m_configFileName);
    }
 
    /* initialize BulletPhysics */
@@ -596,7 +594,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* load model from arguments */
    for (i = 1; i < argc; i++)
-      if (hasExtension(argv[i], ".pmd"))
+      if (MMDAgent_strtailmatch(argv[i], ".pmd"))
          addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
 
    /* set full screen */
@@ -623,7 +621,7 @@ int MMDAgent::findModelAlias(char *alias)
 
    if(alias)
       for (i = 0; i < m_numModel; i++)
-         if (m_model[i].isEnable() && strcmp(m_model[i].getAlias(), alias) == 0)
+         if (m_model[i].isEnable() && MMDAgent_strequal(m_model[i].getAlias(), alias))
             return i;
 
    return -1;

@@ -42,6 +42,7 @@
 /* headers */
 
 #include "MMDAgent.h"
+#include "utils.h"
 
 /* LogText::initialize: initialize logger */
 void LogText::initialize()
@@ -133,7 +134,7 @@ void LogText::setup(int *size, float *position, float scale)
 /* LogText::log: store log text */
 void LogText::log(const char *format, ...)
 {
-   char *p;
+   char *p, *save;
    char buff[LOGTEXT_MAXBUFLEN];
    va_list args;
 
@@ -141,7 +142,7 @@ void LogText::log(const char *format, ...)
 
    va_start(args, format);
    vsprintf(buff, format, args);
-   for (p = strtok(buff, "\n"); p; p = strtok(NULL, "\n")) {
+   for (p = MMDAgent_strtok(buff, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
       strncpy(m_textList[m_textLine], p, m_textWidth - 2);
       m_textList[m_textLine][m_textWidth-1] = '\0';
       m_updated[m_textLine] = true;

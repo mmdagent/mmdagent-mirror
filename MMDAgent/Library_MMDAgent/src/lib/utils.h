@@ -40,15 +40,49 @@
 /* ----------------------------------------------------------------- */
 
 #define UTILS_DIRSEPARATOR '\\'
+#define UTILS_MAXCHARBYTE 3
 
-/* getDirectory: get directory from file path */
-bool getDirectory(const char *file, char *dir);
+/* MMDAgent_getcharsize: get character size */
+char MMDAgent_getcharsize(const char *str);
 
-/* strtokWithDoubleQuotation: strtok with double quotation */
-char *strtokWithDoubleQuotation(char *str, char *delim, char **strsave);
+/* MMDAgent_strequal: string matching */
+bool MMDAgent_strequal(const char *str1, const char *str2);
 
-/* hasExtension: check extension */
-bool hasExtension(char *file, char *ext);
+/* MMDAgent_strtailmatch: match tail string */
+bool MMDAgent_strtailmatch(const char *str1, const char *str2);
 
-/* getNumDigit: get number of digit from integer */
-int getNumDigit(int in);
+/* MMDAgent_strdup: strdup */
+char *MMDAgent_strdup(const char *str);
+
+/* MMDAgent_intdup: integer type strdup */
+char *MMDAgent_intdup(const int digit);
+
+/* MMDAgent_dirdup: get directory from file path */
+char *MMDAgent_dirdup(const char *file);
+
+/* MMDAgent_strtok: strtok */
+char *MMDAgent_strtok(char *str, const char *pat, char **save);
+
+/* MMDAgent_str2bool: convert string to boolean */
+bool MMDAgent_str2bool(const char *str);
+
+/* MMDAgent_str2int: convert string to integer */
+int MMDAgent_str2int(const char *str);
+
+/* MMDAgent_str2float: convert string to float */
+float MMDAgent_str2float(const char *str);
+
+/* MMDAgent_str2ivec: convert string to integer vector */
+bool MMDAgent_str2ivec(const char *str, int *vec, const int size);
+
+/* MMDAgent_str2fvec: convert string to float vector */
+bool MMDAgent_str2fvec(const char *str, float *vec, const int size);
+
+/* MMDAgent_str2pos: get position from string */
+bool MMDAgent_str2pos(const char *str, btVector3 *pos);
+
+/* MMDAgent_str2rot: get rotation from string */
+bool MMDAgent_str2rot(const char *str, btQuaternion *rot);
+
+/* MMDAgent_fgettoken: get token from file pointer */
+int MMDAgent_fgettoken(FILE *fp, char *buff);

@@ -86,7 +86,7 @@ VMD * MotionStocker::loadFromFile(char *file)
    /* search cache from tail to head */
    for(vl = m_tail; vl; vl = tmp) {
       tmp = vl->prev;
-      if(vl->name && strcmp(vl->name, file) == 0) {
+      if(MMDAgent_strequal(vl->name, file)) {
          if(vl != m_tail) {
             if(vl == m_head) {
                m_head = vl->next;
@@ -113,7 +113,7 @@ VMD * MotionStocker::loadFromFile(char *file)
    }
 
    /* save name */
-   vl->name = _strdup(file);
+   vl->name = MMDAgent_strdup(file);
    vl->use = 1;
    vl->next = NULL;
 

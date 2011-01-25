@@ -63,7 +63,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
    char *buf;
    FILE *fp;
 
-   if (hasExtension(file, ".vmd")) {
+   if (MMDAgent_strtailmatch(file, ".vmd")) {
       dropAllowedModelID = -1;
       targetModelID = -1;
       if (m_keyCtrl) {
@@ -99,7 +99,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                for (i = 0; i < m_numModel; i++) {
                   if (m_model[i].isEnable() && m_model[i].allowMotionFileDrop()) {
                      for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-                        if (motionPlayer->active && strcmp(motionPlayer->name, "base") == 0) {
+                        if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
                            changeMotion(m_model[i].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
                            break;
                         }
@@ -111,7 +111,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             } else {
                /* target model */
                for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-                  if (motionPlayer->active && strcmp(motionPlayer->name, "base") == 0) {
+                  if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
                      changeMotion(m_model[targetModelID].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
                      break;
                   }
@@ -123,7 +123,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          /* check mp3 */
          len = strlen(file);
          if (len >= 5) {
-            buf = strdup(file);
+            buf = MMDAgent_strdup(file);
             buf[len-3] = 'm';
             buf[len-2] = 'p';
             buf[len-1] = '3';
@@ -138,10 +138,10 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          /* resume timer */
          m_timer->resume();
       }
-   } else if (hasExtension(file, ".xpmd")) {
+   } else if (MMDAgent_strtailmatch(file, ".xpmd")) {
       /* load stage */
       setStage(file);
-   } else if (hasExtension(file, ".pmd")) {
+   } else if (MMDAgent_strtailmatch(file, ".pmd")) {
       /* drop model */
       if (m_keyCtrl) {
          /* if Ctrl-key, add model */
@@ -158,7 +158,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             changeModel(m_model[targetModelID].getAlias(), file);
          }
       }
-   } else if (hasExtension(file, ".bmp") || hasExtension(file, ".tga") || hasExtension(file, ".png")) {
+   } else if (MMDAgent_strtailmatch(file, ".bmp") || MMDAgent_strtailmatch(file, ".tga") || MMDAgent_strtailmatch(file, ".png")) {
       if (m_keyCtrl)
          setFloor(file); /* change floor with Ctrl-key */
       else

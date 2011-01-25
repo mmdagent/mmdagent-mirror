@@ -42,6 +42,7 @@
 /* headers */
 
 #include "MMDAgent.h"
+#include "utils.h"
 
 /* TextRenderer::initialize: initialize text renderer */
 void TextRenderer::initialize()
@@ -164,18 +165,26 @@ int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, i
    unsigned char c1;
    unsigned char c2;
    DWORD mbc;
+   char size;
 
    for (i = 0; i < len;) {
       if (n >= maxlen) return maxlen; /* overflow */
-      if (isascii(str[i])) {
+      size = MMDAgent_getcharsize(&str[i]);
+      if(size <= 0) {
+         break;
+      } else if(size == 1 && isascii(str[i])) {
          /* ascii, use display list whose id number equals to ascii code */
          idList[n] = (unsigned int) str[i];
          n++;
          i++;
-      } else {
-         if(str[i+1] == '\0') return n;
-         c1 = (unsigned char) str[i];
-         c2 = (unsigned char) str[i+1];
+      } else if(size <= 2) {
+         if(size == 1) {
+            c1 = (unsigned char) 0;
+            c2 = (unsigned char) str[i];
+         } else {
+            c1 = (unsigned char) str[i];
+            c2 = (unsigned char) str[i+1];
+         }
          mbc = (c1 << 8) | c2;
          /* non-ascii look for already allocated display lists */
          /* search from latest to oldest */
@@ -220,7 +229,9 @@ int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, i
          }
          idList[n] = id;
          n++;
-         i += 2;
+         i += size;
+      } else {
+         break; /* unknown character */
       }
    }
    return n;

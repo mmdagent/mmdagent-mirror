@@ -41,73 +41,8 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "Option.h"
-
-/* str2bool: convert string to boolean */
-static bool str2bool(char *str)
-{
-   if(strcmp(str, "TRUE") == 0 || strcmp(str, "True") == 0 || strcmp(str, "true") == 0)
-      return true;
-   else
-      return false;
-}
-
-/* str2int: convert string to integer */
-static int str2int(char *str)
-{
-   return atoi(str);
-}
-
-/* str2float: convert string to float */
-static float str2float(char *str)
-{
-   return (float) atof(str);
-}
-
-/* str2ivec2: convert string to 2 integer */
-static bool str2ivec2(char *str, int *ivec2)
-{
-   int i = 0;
-   char *p;
-
-   for(p = strtok(str, ","); p && i < 2; p = strtok(NULL, ","))
-      ivec2[i++] = str2int(p);
-   if(i == 2)
-      return true;
-   else
-      return false;
-}
-
-/* str2fvec3: convert string to 3 float */
-static bool str2fvec3(char *str, float *fvec3)
-{
-   int i = 0;
-   char *p;
-
-   for(p = strtok(str, ","); p && i < 3; p = strtok(NULL, ","))
-      fvec3[i++] = str2float(p);
-   if(i == 3)
-      return true;
-   else
-      return false;
-}
-
-/* str2fvec4: convert string to 4 float */
-static bool str2fvec4(char *str, float *fvec4)
-{
-   int i = 0;
-   char *p;
-
-   for(p = strtok(str, ","); p && i < 4; p = strtok(NULL, ","))
-      fvec4[i++] = str2float(p);
-   if(i == 4)
-      return true;
-   else
-      return false;
-}
+#include "MMDAgent.h"
+#include "utils.h"
 
 /* Option::initialize: initialize options */
 void Option::initialize()
@@ -206,74 +141,74 @@ bool Option::load(char *file)
       p1++;
 
       /* overwrite option values */
-      if(strcmp(buf, OPTION_USECARTOONRENDERING_STR) == 0) {
-         setUseCartoonRendering(str2bool(p1));
-      } else if(strcmp(buf, OPTION_USEMMDLIKECARTOON_STR) == 0) {
-         setUseMMDLikeCartoon(str2bool(p1));
-      } else if(strcmp(buf, OPTION_CARTOONEDGEWIDTH_STR) == 0) {
-         setCartoonEdgeWidth(str2float(p1));
-      } else if(strcmp(buf, OPTION_CARTOONEDGESTEP_STR) == 0) {
-         setCartoonEdgeStep(str2float(p1));
-      } else if(strcmp(buf, OPTION_STAGESIZE_STR) == 0) {
-         if(str2fvec3(p1, fvec3))
+      if(MMDAgent_strequal(buf, OPTION_USECARTOONRENDERING_STR)) {
+         setUseCartoonRendering(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_USEMMDLIKECARTOON_STR)) {
+         setUseMMDLikeCartoon(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_CARTOONEDGEWIDTH_STR)) {
+         setCartoonEdgeWidth(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_CARTOONEDGESTEP_STR)) {
+         setCartoonEdgeStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_STAGESIZE_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
             setStageSize(fvec3);
-      } else if(strcmp(buf, OPTION_SHOWFPS_STR) == 0) {
-         setShowFps(str2bool(p1));
-      } else if(strcmp(buf, OPTION_FPSPOSITION_STR) == 0) {
-         if(str2fvec3(p1, fvec3))
+      } else if(MMDAgent_strequal(buf, OPTION_SHOWFPS_STR)) {
+         setShowFps(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_FPSPOSITION_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
             setFpsPosition(fvec3);
-      } else if(strcmp(buf, OPTION_WINDOWSIZE_STR) == 0) {
-         if(str2ivec2(p1, ivec2))
+      } else if(MMDAgent_strequal(buf, OPTION_WINDOWSIZE_STR)) {
+         if(MMDAgent_str2ivec(p1, ivec2, 2))
             setWindowSize(ivec2);
-      } else if(strcmp(buf, OPTION_TOPMOST_STR) == 0) {
-         setTopMost(str2bool(p1));
-      } else if(strcmp(buf, OPTION_FULLSCREEN_STR) == 0) {
-         setFullScreen(str2bool(p1));
-      } else if(strcmp(buf, OPTION_LOGSIZE_STR) == 0) {
-         if(str2ivec2(p1, ivec2))
+      } else if(MMDAgent_strequal(buf, OPTION_TOPMOST_STR)) {
+         setTopMost(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_FULLSCREEN_STR)) {
+         setFullScreen(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_LOGSIZE_STR)) {
+         if(MMDAgent_str2ivec(p1, ivec2, 2))
             setLogSize(ivec2);
-      } else if(strcmp(buf, OPTION_LOGPOSITION_STR) == 0) {
-         if(str2fvec3(p1, fvec3))
+      } else if(MMDAgent_strequal(buf, OPTION_LOGPOSITION_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
             setLogPosition(fvec3);
-      } else if(strcmp(buf, OPTION_LOGSCALE_STR) == 0) {
-         setLogScale(str2float(p1));
-      } else if(strcmp(buf, OPTION_LIGHTDIRECTION_STR) == 0) {
-         if(str2fvec4(p1, fvec4))
+      } else if(MMDAgent_strequal(buf, OPTION_LOGSCALE_STR)) {
+         setLogScale(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_LIGHTDIRECTION_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec4, 4))
             setLightDirection(fvec4);
-      } else if(strcmp(buf, OPTION_LIGHTINTENSITY_STR) == 0) {
-         setLightIntensity(str2float(p1));
-      } else if(strcmp(buf, OPTION_LIGHTCOLOR_STR) == 0) {
-         if(str2fvec3(p1, fvec3))
+      } else if(MMDAgent_strequal(buf, OPTION_LIGHTINTENSITY_STR)) {
+         setLightIntensity(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_LIGHTCOLOR_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
             setLightColor(fvec3);
-      } else if(strcmp(buf, OPTION_CAMPUSCOLOR_STR) == 0) {
-         if(str2fvec3(p1, fvec3))
+      } else if(MMDAgent_strequal(buf, OPTION_CAMPUSCOLOR_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
             setCampusColor(fvec3);
-      } else if(strcmp(buf, OPTION_MAXMULTISAMPLING_STR) == 0) {
-         setMaxMultiSampling(str2int(p1));
-      } else if(strcmp(buf, OPTION_MAXMULTISAMPLINGCOLOR_STR) == 0) {
-         setMaxMultiSamplingColor(str2int(p1));
-      } else if(strcmp(buf, OPTION_MOTIONADJUSTFRAME_STR) == 0) {
-         setMotionAdjustFrame(str2int(p1));
-      } else if(strcmp(buf, OPTION_BULLETFPS_STR) == 0) {
-         setBulletFps(str2int(p1));
-      } else if(strcmp(buf, OPTION_ROTATESTEP_STR) == 0) {
-         setRotateStep(str2float(p1));
-      } else if(strcmp(buf, OPTION_TRANSLATESTEP_STR) == 0) {
-         setTranslateStep(str2float(p1));
-      } else if(strcmp(buf, OPTION_SCALESTEP_STR) == 0) {
-         setScaleStep(str2float(p1));
-      } else if(strcmp(buf, OPTION_USESHADOWMAPPING_STR) == 0) {
-         setUseShadowMapping(str2bool(p1));
-      } else if(strcmp(buf, OPTION_SHADOWMAPPINGTEXTURESIZE_STR) == 0) {
-         setShadowMappingTextureSize(str2int(p1));
-      } else if(strcmp(buf, OPTION_SHADOWMAPPINGSELFDENSITY_STR) == 0) {
-         setShadowMappingSelfDensity(str2float(p1));
-      } else if(strcmp(buf, OPTION_SHADOWMAPPINGFLOORDENSITY_STR) == 0) {
-         setShadowMappingFloorDensity(str2float(p1));
-      } else if(strcmp(buf, OPTION_SHADOWMAPPINGLIGHTFIRST_STR) == 0) {
-         setShadowMappingLightFirst(str2bool(p1));
-      } else if(strcmp(buf, OPTION_DISPLAYCOMMENTFRAME_STR) == 0) {
-         setDisplayCommentFrame(str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_MAXMULTISAMPLING_STR)) {
+         setMaxMultiSampling(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_MAXMULTISAMPLINGCOLOR_STR)) {
+         setMaxMultiSamplingColor(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_MOTIONADJUSTFRAME_STR)) {
+         setMotionAdjustFrame(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_BULLETFPS_STR)) {
+         setBulletFps(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_ROTATESTEP_STR)) {
+         setRotateStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_TRANSLATESTEP_STR)) {
+         setTranslateStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_SCALESTEP_STR)) {
+         setScaleStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_USESHADOWMAPPING_STR)) {
+         setUseShadowMapping(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGTEXTURESIZE_STR)) {
+         setShadowMappingTextureSize(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGSELFDENSITY_STR)) {
+         setShadowMappingSelfDensity(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGFLOORDENSITY_STR)) {
+         setShadowMappingFloorDensity(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGLIGHTFIRST_STR)) {
+         setShadowMappingLightFirst(MMDAgent_str2bool(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_DISPLAYCOMMENTFRAME_STR)) {
+         setDisplayCommentFrame(MMDAgent_str2float(p1));
       }
    }
    fclose(fp);

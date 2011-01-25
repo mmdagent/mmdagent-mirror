@@ -48,54 +48,6 @@
 #define MMDAGENT_MAXCOMMANDBUFLEN 1024
 #define MMDAGENT_MAXLIPSYNCBUFLEN MMDAGENT_MAXCOMMANDBUFLEN
 
-/* arg2floatArray: parse float array from string */
-static bool arg2floatArray(float *dst, int len, char *arg)
-{
-   int n;
-   char *buf, *p;
-
-   buf = strdup(arg);
-   n = 0;
-   for (p = strtok(buf, "(,)"); p ; p = strtok(NULL, "(,)")) {
-      if (n < len)
-         dst[n] = (float) atof(p);
-      n++;
-   }
-   free(buf);
-
-   if (n != len)
-      return false;
-   else
-      return true;
-}
-
-/* arg2pos: get position from string */
-static bool arg2pos(btVector3 *dst, char *arg)
-{
-   float f[3];
-
-   if (arg2floatArray(f, 3, arg) == false)
-      return false;
-
-   dst->setZero();
-   dst->setValue(f[0], f[1], f[2]);
-
-   return true;
-}
-
-/* arg2rot: get rotation from string */
-static bool arg2rot(btQuaternion *dst, char *arg)
-{
-   float angle[3];
-
-   if (arg2floatArray(angle, 3, arg) == false)
-      return false;
-
-   dst->setEulerZYX(MMDFILES_RAD(angle[2]), MMDFILES_RAD(angle[1]), MMDFILES_RAD(angle[0]));
-
-   return true;
-}
-
 /* MMDAgent::command: decode command string from client and call process */
 bool MMDAgent::command(char *command, char *str)
 {
@@ -103,12 +55,12 @@ bool MMDAgent::command(char *command, char *str)
    int num = 0;
    char *buf;
 
-   char *tmpStr1, *tmpStr2;
-   bool tmpBool1, tmpBool2, tmpBool3, tmpBool4;
-   float tmpFloat;
-   btVector3 tmpPos;
-   btQuaternion tmpRot;
-   float tmpFloatList[3];
+   char *str1, *str2;
+   bool bool1, bool2, bool3, bool4;
+   float f;
+   btVector3 pos;
+   btQuaternion rot;
+   float fvec[3];
 
    /* divide string into arguments */
    if (str == NULL || strlen(str) <= 0) {
@@ -116,273 +68,273 @@ bool MMDAgent::command(char *command, char *str)
       num = 0;
    } else {
       m_logger->log("<%s|%s>", command, str);
-      buf = strdup(str);
-      for (tmpStr1 = strtokWithDoubleQuotation(buf, "|", &tmpStr2); tmpStr1; tmpStr1 = strtokWithDoubleQuotation(NULL, "|", &tmpStr2)) {
+      buf = MMDAgent_strdup(str);
+      for (str1 = MMDAgent_strtok(buf, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
          if (num >= MMDAGENT_MAXNUMCOMMAND) {
             m_logger->log("! Error: too many argument in command %s: %s", command, str);
             free(buf);
             return false;
          }
-         strncpy(argv[num], tmpStr1, MMDAGENT_MAXCOMMANDBUFLEN);
+         strncpy(argv[num], str1, MMDAGENT_MAXCOMMANDBUFLEN);
          argv[num][MMDAGENT_MAXCOMMANDBUFLEN - 1] = '\0';
          num++;
       }
       free(buf);
    }
 
-   if (strcmp(command, MMDAGENT_COMMAND_MODEL_ADD) == 0) {
-      tmpStr1 = NULL;
-      tmpStr2 = NULL;
+   if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODEL_ADD)) {
+      str1 = NULL;
+      str2 = NULL;
       if (num < 2 || num > 6) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       if (num >= 3) {
-         if (arg2pos(&tmpPos, argv[2]) == false) {
+         if (MMDAgent_str2pos(argv[2], &pos) == false) {
             m_logger->log("! Error: %s: not a position string: %s", command, argv[2]);
             return false;
          }
       } else {
-         tmpPos = btVector3(0.0, 0.0, 0.0);
+         pos = btVector3(0.0, 0.0, 0.0);
       }
       if (num >= 4) {
-         if (arg2rot(&tmpRot, argv[3]) == false) {
+         if (MMDAgent_str2rot(argv[3], &rot) == false) {
             m_logger->log("! Error: %s: not a rotation string: %s", command, argv[3]);
             return false;
          }
       } else {
-         tmpRot.setEulerZYX(0.0, 0.0, 0.0);
+         rot.setEulerZYX(0.0, 0.0, 0.0);
       }
       if (num >= 5) {
-         tmpStr1 = argv[4];
+         str1 = argv[4];
       }
       if (num >= 6) {
-         tmpStr2 = argv[5];
+         str2 = argv[5];
       }
-      return addModel(argv[0], argv[1], &tmpPos, &tmpRot, tmpStr1, tmpStr2);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MODEL_CHANGE) == 0) {
+      return addModel(argv[0], argv[1], &pos, &rot, str1, str2);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODEL_CHANGE)) {
       /* change model */
       if (num != 2) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return changeModel(argv[0], argv[1]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MODEL_DELETE) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODEL_DELETE)) {
       /* delete model */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return deleteModel(argv[0]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_ADD) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTION_ADD)) {
       /* add motion */
-      tmpBool1 = true; /* full */
-      tmpBool2 = true; /* once */
-      tmpBool3 = true; /* enableSmooth */
-      tmpBool4 = true; /* enableRePos */
+      bool1 = true; /* full */
+      bool2 = true; /* once */
+      bool3 = true; /* enableSmooth */
+      bool4 = true; /* enableRePos */
       if (num < 3 || num > 7) {
          m_logger->log("! Error: %s: too few arguments", command);
          return false;
       }
       if (num >= 4) {
-         if (strcmp(argv[3], "FULL") == 0) {
-            tmpBool1 = true;
-         } else if (strcmp(argv[3], "PART") == 0) {
-            tmpBool1 = false;
+         if (MMDAgent_strequal(argv[3], "FULL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[3], "PART")) {
+            bool1 = false;
          } else {
             m_logger->log("! Error: %s: 4th argument should be \"FULL\" or \"PART\"", command);
             return false;
          }
       }
       if (num >= 5) {
-         if (strcmp(argv[4], "ONCE") == 0) {
-            tmpBool2 = true;
-         } else if (strcmp(argv[4], "LOOP") == 0) {
-            tmpBool2 = false;
+         if (MMDAgent_strequal(argv[4], "ONCE")) {
+            bool2 = true;
+         } else if (MMDAgent_strequal(argv[4], "LOOP")) {
+            bool2 = false;
          } else {
             m_logger->log("! Error: %s: 5th argument should be \"ONCE\" or \"LOOP\"", command);
             return false;
          }
       }
       if (num >= 6) {
-         if (strcmp(argv[5], "ON") == 0) {
-            tmpBool3 = true;
-         } else if (strcmp(argv[5], "OFF") == 0) {
-            tmpBool3 = false;
+         if (MMDAgent_strequal(argv[5], "ON")) {
+            bool3 = true;
+         } else if (MMDAgent_strequal(argv[5], "OFF")) {
+            bool3 = false;
          } else {
             m_logger->log("! Error: %s: 6th argument should be \"ON\" or \"OFF\"", command);
             return false;
          }
       }
       if (num >= 7) {
-         if (strcmp(argv[6], "ON") == 0) {
-            tmpBool4 = true;
-         } else if (strcmp(argv[6], "OFF") == 0) {
-            tmpBool4 = false;
+         if (MMDAgent_strequal(argv[6], "ON")) {
+            bool4 = true;
+         } else if (MMDAgent_strequal(argv[6], "OFF")) {
+            bool4 = false;
          } else {
             m_logger->log("! Error: %s: 7th argument should be \"ON\" or \"OFF\"", command);
             return false;
          }
       }
-      return addMotion(argv[0], argv[1], argv[2], tmpBool1, tmpBool2, tmpBool3, tmpBool4);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_CHANGE) == 0) {
+      return addMotion(argv[0], argv[1], argv[2], bool1, bool2, bool3, bool4);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTION_CHANGE)) {
       /* change motion */
       if (num != 3) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return changeMotion(argv[0], argv[1], argv[2]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MOTION_DELETE) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTION_DELETE)) {
       /* delete motion */
       if (num != 2) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return deleteMotion(argv[0], argv[1]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MOVE_START) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVE_START)) {
       /* start moving */
-      tmpBool1 = false;
-      tmpFloat = -1.0;
+      bool1 = false;
+      f = -1.0;
       if (num < 2 || num > 4) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2pos(&tmpPos, argv[1]) == false) {
+      if (MMDAgent_str2pos(argv[1], &pos) == false) {
          m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (strcmp(argv[2], "LOCAL") == 0) {
-            tmpBool1 = true;
-         } else if (strcmp(argv[2], "GLOBAL") == 0) {
-            tmpBool1 = false;
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
          } else {
             m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) atof(argv[3]);
-      return startMove(argv[0], &tmpPos, tmpBool1, tmpFloat);
-   } else if (strcmp(command, MMDAGENT_COMMAND_MOVE_STOP) == 0) {
+         f = MMDAgent_str2float(argv[3]);
+      return startMove(argv[0], &pos, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVE_STOP)) {
       /* stop moving */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return stopMove(argv[0]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_ROTATE_START) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATE_START)) {
       /* start rotation */
-      tmpBool1 = false;
-      tmpFloat = -1.0;
+      bool1 = false;
+      f = -1.0;
       if (num < 2 || num > 4) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2rot(&tmpRot, argv[1]) == false) {
+      if (MMDAgent_str2rot(argv[1], &rot) == false) {
          m_logger->log("! Error: %s: not a rotation string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (strcmp(argv[2], "LOCAL") == 0) {
-            tmpBool1 = true;
-         } else if (strcmp(argv[2], "GLOBAL") == 0) {
-            tmpBool1 = false;
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
          } else {
             m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) atof(argv[3]);
-      return startRotation(argv[0], &tmpRot, tmpBool1, tmpFloat);
-   } else if (strcmp(command, MMDAGENT_COMMAND_ROTATE_STOP) == 0) {
+         f = MMDAgent_str2float(argv[3]);
+      return startRotation(argv[0], &rot, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATE_STOP)) {
       /* stop rotation */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return stopRotation(argv[0]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_TURN_START) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURN_START)) {
       /* turn start */
-      tmpBool1 = false;
-      tmpFloat = -1.0;
+      bool1 = false;
+      f = -1.0;
       if (num < 2 || num > 4) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2pos(&tmpPos, argv[1]) == false) {
+      if (MMDAgent_str2pos(argv[1], &pos) == false) {
          m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
          return false;
       }
       if (num >= 3) {
-         if (strcmp(argv[2], "LOCAL") == 0) {
-            tmpBool1 = true;
-         } else if (strcmp(argv[2], "GLOBAL") == 0) {
-            tmpBool1 = false;
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
          } else {
             m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
             return false;
          }
       }
       if (num >= 4)
-         tmpFloat = (float) atof(argv[3]);
-      return startTurn(argv[0], &tmpPos, tmpBool1, tmpFloat);
-   } else if (strcmp(command, MMDAGENT_COMMAND_TURN_STOP) == 0) {
+         f = MMDAgent_str2float(argv[3]);
+      return startTurn(argv[0], &pos, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURN_STOP)) {
       /* stop turn */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return stopTurn(argv[0]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_STAGE) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_STAGE)) {
       /* change stage */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       /* pmd or bitmap */
-      tmpStr1 = strstr(argv[0], ",");
-      if (tmpStr1 == NULL) {
+      str1 = strstr(argv[0], ",");
+      if (str1 == NULL) {
          return setStage(argv[0]);
       } else {
-         (*tmpStr1) = '\0';
-         tmpStr1++;
-         if (setFloor(argv[0]) == true && setBackground(tmpStr1) == true)
+         (*str1) = '\0';
+         str1++;
+         if (setFloor(argv[0]) == true && setBackground(str1) == true)
             return true;
          else
             return false;
       }
-   } else if (strcmp(command, MMDAGENT_COMMAND_LIGHTCOLOR) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTCOLOR)) {
       /* change light color */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2floatArray(tmpFloatList, 3, argv[0]) == false) {
+      if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
          m_logger->log("! Error: %s: not \"R,G,B\" value: %s", command, argv[0]);
          return false;
       }
-      return changeLightColor(tmpFloatList[0], tmpFloatList[1], tmpFloatList[2]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_LIGHTDIRECTION) == 0) {
+      return changeLightColor(fvec[0], fvec[1], fvec[2]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTDIRECTION)) {
       /* change light direction */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
-      if (arg2floatArray(tmpFloatList, 3, argv[0]) == false) {
+      if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
          m_logger->log("! Error: %s: not \"x,y,z\" value: %s", command, argv[0]);
          return false;
       }
-      return changeLightDirection(tmpFloatList[0], tmpFloatList[1], tmpFloatList[2]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_LIPSYNC_START) == 0) {
+      return changeLightDirection(fvec[0], fvec[1], fvec[2]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNC_START)) {
       /* start lip sync */
       if (num != 2) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
          return false;
       }
       return startLipSync(argv[0], argv[1]);
-   } else if (strcmp(command, MMDAGENT_COMMAND_LIPSYNC_STOP) == 0) {
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNC_STOP)) {
       /* stop lip sync */
       if (num != 1) {
          m_logger->log("! Error: %s: wrong number of arguments", command);
@@ -420,9 +372,9 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
    /* alias */
    if (motionAlias && strlen(motionAlias) > 0) {
       /* check the same alias */
-      name = strdup(motionAlias);
+      name = MMDAgent_strdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-         if (motionPlayer->active && strcmp(motionPlayer->name, name) == 0) {
+         if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, name)) {
             m_logger->log("! Error: addMotion: motion alias \"%s\" is already used.", name);
             free(name);
             return false;
@@ -432,10 +384,9 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
       /* if motion alias is not specified, unused digit is used */
       for(i = 0;; i++) {
          find = false;
-         name = (char *) malloc(sizeof(char) * (getNumDigit(i) + 1));
-         sprintf(name, "%d", i);
+         name = MMDAgent_intdup(i);
          for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-            if (motionPlayer->active && strcmp(motionPlayer->name, name) == 0) {
+            if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, name)) {
                find = true;
                break;
             }
@@ -486,7 +437,7 @@ bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
 
    /* get motion before change */
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-      if (motionPlayer->active && strcmp(motionPlayer->name, motionAlias) == 0) {
+      if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, motionAlias)) {
          old = motionPlayer->vmd;
          break;
       }
@@ -587,7 +538,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    /* determine name */
    if (modelAlias && strlen(modelAlias) > 0) {
       /* check the same alias */
-      name = strdup(modelAlias);
+      name = MMDAgent_strdup(modelAlias);
       if (findModelAlias(name) >= 0) {
          m_logger->log("! Error: addModel: model alias \"%s\" is already used.", name);
          free(name);
@@ -596,8 +547,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    } else {
       /* if model alias is not specified, unused digit is used */
       for(i = 0;; i++) {
-         name = (char *) malloc(sizeof(char) * (getNumDigit(i) + 1));
-         sprintf(name, "%d", i);
+         name = MMDAgent_intdup(i);
          if (findModelAlias(name) >= 0)
             free(name);
          else
@@ -1001,7 +951,7 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
 
    /* search running lip motion */
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-      if (motionPlayer->active && strcmp(motionPlayer->name, LIPSYNC_MOTIONNAME) == 0) {
+      if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME)) {
          find = true;
          break;
       }

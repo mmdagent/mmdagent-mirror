@@ -42,6 +42,7 @@
 /* headers */
 
 #include "MMDAgent.h"
+#include "utils.h"
 
 /* PMDObject::initialize: initialize PMDObject */
 void PMDObject::initialize()
@@ -169,7 +170,7 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
       delete m_localLipSync;
    m_localLipSync = NULL;
    lip = new LipSync();
-   buf = strdup(fileName);
+   buf = MMDAgent_strdup(fileName);
    len = strlen(fileName);
    if(len < 5) {
       delete lip;
@@ -454,7 +455,7 @@ void PMDObject::setAlias(char *alias)
    if(alias && strlen(alias) > 0 && m_alias != alias) {
       if(m_alias)
          free(m_alias);
-      m_alias = strdup(alias);
+      m_alias = MMDAgent_strdup(alias);
    }
 }
 
@@ -575,11 +576,10 @@ PMDObject *PMDObject::getAssignedModel()
 /* PMDObject::renderCommand: render model comment */
 void PMDObject::renderComment(TextRenderer * text)
 {
-   char *buf;
+   char *buf, *p, *save;
    btVector3 pos;
    float w, h;
    float tpos[3];
-   char *p;
 
    if (m_displayCommentFrame <= 0.0)
       return;
@@ -587,7 +587,7 @@ void PMDObject::renderComment(TextRenderer * text)
    if(m_pmd.getComment() == NULL)
       return;
 
-   buf = strdup(m_pmd.getComment());
+   buf = MMDAgent_strdup(m_pmd.getComment());
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    w = 13.0f;
@@ -610,7 +610,7 @@ void PMDObject::renderComment(TextRenderer * text)
    tpos[0] = pos.x();
    tpos[1] = pos.y() + 4.5f;
    tpos[2] = pos.z();
-   for (p = strtok(buf, "\n"); p; p = strtok(NULL, "\n")) {
+   for (p = MMDAgent_strtok(buf, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
       tpos[1] -= 0.65f;
       glPushMatrix();
       glTranslatef(tpos[0], tpos[1], tpos[2]);
@@ -670,7 +670,7 @@ void PMDObject::renderError(TextRenderer * text)
    btVector3 pos;
    float w, h;
    float tpos[3];
-   char *p;
+   char *p, *save;
 
    m_pmd.getErrorTextureList(buf, PMDOBJECT_MAXBUFLEN);
    if (strlen(buf) <= 0)
@@ -702,7 +702,7 @@ void PMDObject::renderError(TextRenderer * text)
    text->drawString("[Texture Errors]");
    glPopMatrix();
 
-   for (p = strtok(buf, "\n"); p; p = strtok(NULL, "\n")) {
+   for (p = MMDAgent_strtok(buf, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
       tpos[1] -= 0.7f;
       glPushMatrix();
       glTranslatef(tpos[0], tpos[1], tpos[2]);
