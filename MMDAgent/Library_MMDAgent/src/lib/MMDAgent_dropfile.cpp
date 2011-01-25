@@ -68,7 +68,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
       targetModelID = -1;
       if (m_keyCtrl) {
          /* if Ctrl-key, start motion on all models */
-         targetModelID = MODEL_ALL;
+         targetModelID = MMDAGENT_ALLMODEL;
       } else if (m_doubleClicked && m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
          targetModelID = m_selectedModel;
       } else {
@@ -82,7 +82,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          /* pause timer to skip file loading time */
          m_timer->pause();
          if (m_keyShift) { /* if Shift-key, insert motion */
-            if (targetModelID == MODEL_ALL) {
+            if (targetModelID == MMDAGENT_ALLMODEL) {
                /* all model */
                for (i = 0; i < m_numModel; i++) {
                   if (m_model[i].isEnable() && m_model[i].allowMotionFileDrop())
@@ -94,7 +94,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             }
          } else {
             /* change base motion */
-            if (targetModelID == MODEL_ALL) {
+            if (targetModelID == MMDAGENT_ALLMODEL) {
                /* all model */
                for (i = 0; i < m_numModel; i++) {
                   if (m_model[i].isEnable() && m_model[i].allowMotionFileDrop()) {

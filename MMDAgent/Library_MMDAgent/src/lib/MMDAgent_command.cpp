@@ -404,7 +404,7 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
    char *name;
 
    /* motion file */
-   vmd = m_motion.loadFromFile(fileName);
+   vmd = m_motion->loadFromFile(fileName);
    if (vmd == NULL) {
       m_logger->log("! Error: addMotion: failed to load %s.", fileName);
       return false;
@@ -478,7 +478,7 @@ bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
    }
 
    /* motion file */
-   vmd = m_motion.loadFromFile(fileName);
+   vmd = m_motion->loadFromFile(fileName);
    if (vmd == NULL) {
       m_logger->log("! Error: changeMotion: failed to load %s.", fileName);
       return false;
@@ -493,19 +493,19 @@ bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
    }
    if(old == NULL) {
       m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
-      m_motion.unload(vmd);
+      m_motion->unload(vmd);
       return false;
    }
 
    /* change motion */
    if (m_model[id].swapMotion(vmd, motionAlias) == false) {
       m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
-      m_motion.unload(vmd);
+      m_motion->unload(vmd);
       return false;
    }
 
    /* unload old motion from motion stocker */
-   m_motion.unload(old);
+   m_motion->unload(old);
 
    /* send event message */
    sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTCHANGE, "%s|%s", modelAlias, motionAlias);
@@ -996,7 +996,7 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
       m_logger->log("! Error: startLipSync: cannot create lip motion.");
       return false;
    }
-   vmd = m_motion.loadFromData(vmdData, vmdSize);
+   vmd = m_motion->loadFromData(vmdData, vmdSize);
    free(vmdData);
 
    /* search running lip motion */
@@ -1011,14 +1011,14 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
    if(find == true) {
       if (m_model[id].swapMotion(vmd, LIPSYNC_MOTIONNAME) == false) {
          m_logger->log("! Error: startLipSync: cannot start lip sync.");
-         m_motion.unload(vmd);
+         m_motion->unload(vmd);
          return false;
       }
       sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTOP, "%s", modelAlias);
    } else {
       if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true) == false) {
          m_logger->log("! Error: startLipSync: cannot start lip sync.");
-         m_motion.unload(vmd);
+         m_motion->unload(vmd);
          return false;
       }
    }

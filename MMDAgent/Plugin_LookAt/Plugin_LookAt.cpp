@@ -67,8 +67,8 @@
 /* global variables */
 
 bool enable;
-BoneController neckController[MAXMODEL];
-BoneController eyeController[MAXMODEL];
+BoneController neckController[MMDAGENT_MAXNMODEL];
+BoneController eyeController[MMDAGENT_MAXNMODEL];
 
 static void setNeckController(BoneController *controller, PMDModel *model)
 {

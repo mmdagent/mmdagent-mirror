@@ -72,7 +72,9 @@ void MMDAgent::initialize()
    m_text = NULL;
    m_logger = NULL;
 
+   m_model = NULL;
    m_numModel = 0;
+   m_motion = NULL;
 
    m_keyCtrl = false;
    m_keyShift = false;
@@ -89,21 +91,23 @@ void MMDAgent::initialize()
 
    m_dispFrameAdjust = 0.0;
    m_dispFrameCue = 0.0;
-   for (i = 0; i < MAXMODEL; i++)
+   for (i = 0; i < MMDAGENT_MAXNMODEL; i++)
       m_dispModelMove[i] = 0.0;
 }
 
 /* MMDAgent::clear: free MMDAgent */
 void MMDAgent::clear()
 {
-   int i;
-
    if(m_configFileName)
       free(m_configFileName);
    if(m_configDirName)
       free(m_configDirName);
    if(m_appDirName)
       free(m_appDirName);
+   if(m_motion)
+      delete m_motion;
+   if (m_model)
+      delete [] m_model;
    if (m_logger)
       delete m_logger;
    if (m_text)
@@ -126,10 +130,6 @@ void MMDAgent::clear()
       delete m_bullet;
    if (m_option)
       delete m_option;
-   for (i = 0; i < m_numModel; i++) {
-      if (m_model[i].isEnable())
-         m_model[i].release();
-   }
 
    initialize();
 }
@@ -155,7 +155,7 @@ int MMDAgent::getNewModelId()
       if (m_model[i].isEnable() == false)
          return i; /* re-use it */
 
-   if (m_numModel >= MAXMODEL)
+   if (m_numModel >= MMDAGENT_MAXNMODEL)
       return -1; /* no more room */
 
    i = m_numModel;
@@ -229,7 +229,7 @@ void MMDAgent::updateScene()
                      sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
                   }
                   /* unload from motion stocker */
-                  m_motion.unload(motionPlayer->vmd);
+                  m_motion->unload(motionPlayer->vmd);
                }
             }
          }
@@ -277,7 +277,7 @@ void MMDAgent::updateScene()
 void MMDAgent::renderScene(HWND hWnd)
 {
    int i;
-   char buff[MMDAGENT_MAXDISPSTRLEN];
+   char buff[MMDAGENT_MAXBUFLEN];
    btVector3 pos;
    float fps;
 
@@ -322,8 +322,8 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show fps */
    if (m_option->getShowFps()) {
-      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%5.1ffps ", m_timer->getFps());
-      m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXDISPSTRLEN - 9);
+      _snprintf(buff, MMDAGENT_MAXBUFLEN, "%5.1ffps ", m_timer->getFps());
+      m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXBUFLEN - 9);
       glDisable(GL_LIGHTING);
       glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
       glPushMatrix();
@@ -336,9 +336,9 @@ void MMDAgent::renderScene(HWND hWnd)
    /* show adjustment time for audio */
    if (m_dispFrameAdjust > 0.0) {
       if (m_option->getMotionAdjustFrame() > 0)
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec advance", m_option->getMotionAdjustFrame());
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec advance", m_option->getMotionAdjustFrame());
       else
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%d msec delay", m_option->getMotionAdjustFrame());
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec delay", m_option->getMotionAdjustFrame());
       glDisable(GL_LIGHTING);
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
@@ -350,7 +350,7 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show adjustment time per model */
    if (m_dispFrameCue > 0.0) {
-      _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "Cuing Motion: %+d", (int)(m_timer->adjustGetCurrent() / 0.03));
+      _snprintf(buff, MMDAGENT_MAXBUFLEN, "Cuing Motion: %+d", (int)(m_timer->adjustGetCurrent() / 0.03));
       glDisable(GL_LIGHTING);
       glColor3f(0.0f, 1.0f, 0.0f);
       glPushMatrix();
@@ -365,7 +365,7 @@ void MMDAgent::renderScene(HWND hWnd)
    for (i = 0; i < m_numModel; i++) {
       if (m_model[i].isEnable() == true && m_dispModelMove[i] > 0.0) {
          m_model[i].getPosition(pos);
-         _snprintf(buff, MMDAGENT_MAXDISPSTRLEN, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
       }
    }
    if (strlen(buff) > 0) {
@@ -588,6 +588,12 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_logger = new LogText();
    m_logger->setup(m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
 
+   /* setup models */
+   m_model = new PMDObject[MMDAGENT_MAXNMODEL];
+
+   /* setup motions */
+   m_motion = new MotionStocker();
+
    /* load model from arguments */
    for (i = 1; i < argc; i++)
       if (hasExtension(argv[i], ".pmd"))
@@ -626,7 +632,7 @@ int MMDAgent::findModelAlias(char *alias)
 /* MMDAgent::getMoelList: get model list */
 PMDObject *MMDAgent::getModelList()
 {
-   return &(m_model[0]);
+   return m_model;
 }
 
 /* MMDAgent::getNumModel: get number of models */

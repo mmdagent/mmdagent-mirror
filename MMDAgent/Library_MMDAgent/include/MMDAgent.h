@@ -63,9 +63,8 @@ class MMDAgent;
 #include "MotionStocker.h"
 #include "MMDAgent_command.h"
 
-#define MAXMODEL  20    /* maximum number of model */
-#define MODEL_ALL 65535 /* alias for all model */
-#define MMDAGENT_MAXDISPSTRLEN 1024
+#define MMDAGENT_MAXNMODEL 10                 /* maximum number of model */
+#define MMDAGENT_ALLMODEL  MMDAGENT_MAXNMODEL /* alias for all model */
 
 #define MMDAGENT_MAXBUFLEN    1024
 #define MMDAGENT_DIRSEPARATOR '\\'
@@ -100,9 +99,9 @@ private:
    TextRenderer *m_text;    /* text render */
    LogText *m_logger;       /* logger */
 
-   PMDObject m_model[MAXMODEL]; /* models */
-   short m_numModel;            /* number of models */
-   MotionStocker m_motion;      /* motions */
+   PMDObject *m_model;      /* models */
+   int m_numModel;          /* number of models */
+   MotionStocker *m_motion; /* motions */
 
    bool m_keyCtrl;           /* true if Ctrl-key is on */
    bool m_keyShift;          /* true if Shift-key is on */
@@ -116,9 +115,9 @@ private:
    bool m_dispBulletBodyFlag;      /* true if bullet body is shown */
    bool m_dispModelDebug;          /* true if model debugger is on */
 
-   double m_dispFrameAdjust;         /* display time for audio time adjustment */
-   double m_dispFrameCue;            /* display time for audio time difference */
-   double m_dispModelMove[MAXMODEL]; /* display time for model position when model is moving */
+   double m_dispFrameAdjust;                   /* display time for audio time adjustment */
+   double m_dispFrameCue;                      /* display time for audio time difference */
+   double m_dispModelMove[MMDAGENT_MAXNMODEL]; /* display time for model position when model is moving */
 
    /* getNewModelId: return new model ID */
    int getNewModelId();
