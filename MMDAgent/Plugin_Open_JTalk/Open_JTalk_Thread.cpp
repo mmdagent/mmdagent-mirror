@@ -63,32 +63,7 @@
 #include "Open_JTalk.h"
 #include "Open_JTalk_Thread.h"
 
-/* get_token_from_fp: get token from a file pointer */
-static int get_token_from_fp(FILE * fp, char *str)
-{
-   char c;
-   int i;
-
-   str[0] = '\0';
-
-   if (feof(fp))
-      return 0;
-
-   c = fgetc(fp);
-   while (c == '\n' || c == '\r' || c == '\t' || c == ' ') {
-      if (feof(fp))
-         return 0;
-      c = getc(fp);
-   }
-
-   for (i = 0; c != '\n' && c != '\r' && c != '\t' && c != ' ' && !feof(fp); i++) {
-      str[i] = c;
-      c = fgetc(fp);
-   }
-
-   str[i] = '\0';
-   return i;
-}
+int MMDAgent_fgettoken(FILE *, char *);
 
 /* Open_JTalk_Event_initialize: initialize input message buffer */
 void Open_JTalk_Event_initialize(Open_JTalk_Event *e, char *str)
@@ -262,7 +237,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    if (fp == NULL)
       return;
    /* number of speakers */
-   i = get_token_from_fp(fp, buff);
+   i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
       MessageBoxA(NULL, "ERROR: Cannot load the number of models in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
@@ -280,7 +255,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    for (i = 0; i < m_numModels; i++)
       m_modelNames[i] = (char *) calloc(OPENJTALK_MAXBUFLEN, sizeof(char));
    for (i = 0; i < m_numModels; i++) {
-      j = get_token_from_fp(fp, buff);
+      j = MMDAgent_fgettoken(fp, buff);
       if (j <= 0) {
          MessageBoxA(NULL, "ERROR: Cannot load model directory names in config file of Open JTalk.", "Error", MB_OK);
          fclose(fp);
@@ -290,7 +265,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
    }
 
    /* number of speaking styles */
-   i = get_token_from_fp(fp, buff);
+   i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
       MessageBoxA(NULL, "ERROR: Cannot load the number of speaking styles in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
@@ -309,7 +284,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
       m_styleNames[i] = (char *) calloc(OPENJTALK_MAXBUFLEN, sizeof(char));
    weights = (double *) calloc((3 * m_numModels + 4) * m_numStyles, sizeof(double));
    for (i = 0; i < m_numStyles; i++) {
-      j = get_token_from_fp(fp, buff);
+      j = MMDAgent_fgettoken(fp, buff);
       if (j <= 0) {
          MessageBoxA(NULL, "ERROR: Cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
          fclose(fp);
@@ -318,7 +293,7 @@ void Open_JTalk_Thread::loadAndStart(HWND param1, UINT param2, UINT param3, char
       }
       strcpy(m_styleNames[i], buff);
       for (j = 0; j < 3 * m_numModels + 4; j++) {
-         k = get_token_from_fp(fp, buff);
+         k = MMDAgent_fgettoken(fp, buff);
          if (k <= 0) {
             MessageBoxA(NULL, "ERROR: Cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
             fclose(fp);
