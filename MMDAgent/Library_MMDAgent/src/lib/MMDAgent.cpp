@@ -48,6 +48,709 @@
 #include "MMDAgent.h"
 #include "utils.h"
 
+/* MMDAgent::getNewModelId: return new model ID */
+int MMDAgent::getNewModelId()
+{
+   int i;
+
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() == false)
+         return i; /* re-use it */
+
+   if (m_numModel >= MMDAGENT_MAXNMODEL)
+      return -1; /* no more room */
+
+   i = m_numModel;
+   m_numModel++;
+
+   m_model[i].setEnableFlag(false); /* model is not loaded yet */
+   return i;
+}
+
+/* MMDAgent::removeRelatedModels: delete a model */
+void MMDAgent::removeRelatedModels(int modelId)
+{
+   int i;
+
+   /* remove assigned accessories */
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() == true && m_model[i].getAssignedModel() == &(m_model[modelId]))
+         removeRelatedModels(i);
+
+   /* remove model */
+   sendEventMessage(MMDAGENT_EVENT_MODELDELETE, "%s", m_model[modelId].getAlias());
+   m_model[modelId].deleteModel();
+}
+
+/* MMDAgent::updateLight: update light */
+void MMDAgent::updateLight()
+{
+   int i;
+   float *f;
+   btVector3 l;
+
+   /* udpate OpenGL light */
+   m_render->updateLighting(m_option->getUseCartoonRendering(), m_option->getUseMMDLikeCartoon(), m_option->getLightDirection(), m_option->getLightIntensity(), m_option->getLightColor());
+   /* update shadow matrix */
+   f = m_option->getLightDirection();
+   m_stage->updateShadowMatrix(f);
+   /* update vector for cartoon */
+   l = btVector3(f[0], f[1], f[2]);
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() == true)
+         m_model[i].setLightForToon(&l);
+}
+
+/* MMDAgent::addModel: add model */
+bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName)
+{
+   int i;
+   int id;
+   int baseID;
+   char *name;
+   btVector3 offsetPos = btVector3(0.0f, 0.0f, 0.0f);
+   btQuaternion offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   bool forcedPosition = false;
+   PMDBone *assignBone = NULL;
+   PMDObject *assignObject = NULL;
+   float *l = m_option->getLightDirection();
+   btVector3 light = btVector3(l[0], l[1], l[2]);
+
+   /* set */
+   if (pos)
+      offsetPos = (*pos);
+   if (rot)
+      offsetRot = (*rot);
+   if (pos || rot)
+      forcedPosition = true;
+   if (baseModelAlias) {
+      baseID = findModelAlias(baseModelAlias);
+      if (baseID < 0) {
+         m_logger->log("!Error: addModel: model alias \"%s\" is not found", baseModelAlias);
+         return false;
+      }
+      if (baseBoneName) {
+         assignBone = m_model[baseID].getPMDModel()->getBone(baseBoneName);
+      } else {
+         assignBone = m_model[baseID].getPMDModel()->getCenterBone();
+      }
+      if (assignBone == NULL) {
+         if (baseBoneName)
+            m_logger->log("!Error: addModel: bone \"%s\" is not exist on %s.", baseBoneName, baseModelAlias);
+         else
+            m_logger->log("!Error: addModel: cannot assign to bone of %s.", baseModelAlias);
+         return false;
+      }
+      assignObject = &m_model[baseID];
+   }
+
+   /* ID */
+   id = getNewModelId();
+   if (id == -1) {
+      m_logger->log("! Error: addModel: too many models.");
+      return false;
+   }
+
+   /* determine name */
+   if (MMDAgent_strlen(modelAlias) > 0) {
+      /* check the same alias */
+      name = MMDAgent_strdup(modelAlias);
+      if (findModelAlias(name) >= 0) {
+         m_logger->log("! Error: addModel: model alias \"%s\" is already used.", name);
+         free(name);
+         return false;
+      }
+   } else {
+      /* if model alias is not specified, unused digit is used */
+      for(i = 0;; i++) {
+         name = MMDAgent_intdup(i);
+         if (findModelAlias(name) >= 0)
+            free(name);
+         else
+            break;
+      }
+   }
+
+   /* add model */
+   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+      m_logger->log("! Error: addModel: failed to load %s.", fileName);
+      m_model[id].deleteModel();
+      free(name);
+      return false;
+   }
+
+   /* initialize motion manager */
+   m_model[id].resetMotionManager();
+
+   /* send event message */
+   sendEventMessage(MMDAGENT_EVENT_MODELADD, "%s", name);
+   free(name);
+   return true;
+}
+
+/* MMDAgent::changeModel: change model */
+bool MMDAgent::changeModel(char *modelAlias, char *fileName)
+{
+   int i;
+   int id;
+   MotionPlayer *motionPlayer;
+   double currentFrame;
+   double previousFrame;
+   float *l = m_option->getLightDirection();
+   btVector3 light = btVector3(l[0], l[1], l[2]);
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: changeModel: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* load model */
+   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+      m_logger->log("! Error: changeModel: failed to load model %s.", fileName);
+      return false;
+   }
+
+   /* update motion manager */
+   if (m_model[id].getMotionManager()) {
+      for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+         if (motionPlayer->active) {
+            currentFrame = motionPlayer->mc.getCurrentFrame();
+            previousFrame = motionPlayer->mc.getPreviousFrame();
+            m_model[id].getMotionManager()->startMotionSub(motionPlayer->vmd, motionPlayer);
+            motionPlayer->mc.setCurrentFrame(currentFrame);
+            motionPlayer->mc.setPreviousFrame(previousFrame);
+         }
+      }
+   }
+
+   /* delete accessories immediately*/
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() && m_model[i].getAssignedModel() == &(m_model[id]))
+         removeRelatedModels(i);
+
+   /* send message */
+   sendEventMessage(MMDAGENT_EVENT_MODELCHANGE, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::deleteModel: delete model */
+bool MMDAgent::deleteModel(char *modelAlias)
+{
+   int i;
+   int id;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      /* wrong alias */
+      m_logger->log("Error: deleteModel: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* delete accessories  */
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() && m_model[i].getAssignedModel() == &(m_model[id]))
+         deleteModel(m_model[i].getAlias());
+
+   /* set frame from now to disappear */
+   m_model[id].startDisappear();
+
+   /* don't send event message yet */
+   return true;
+}
+
+/* MMDAgent::addMotion: add motion */
+bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bool full, bool once, bool enableSmooth, bool enableRePos)
+{
+   int i;
+   bool find;
+   int id;
+   VMD *vmd;
+   MotionPlayer *motionPlayer;
+   char *name;
+
+   /* motion file */
+   vmd = m_motion->loadFromFile(fileName);
+   if (vmd == NULL) {
+      m_logger->log("! Error: addMotion: failed to load %s.", fileName);
+      return false;
+   }
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: addMotion: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* alias */
+   if (MMDAgent_strlen(motionAlias) > 0) {
+      /* check the same alias */
+      name = MMDAgent_strdup(motionAlias);
+      for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+         if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, name)) {
+            m_logger->log("! Error: addMotion: motion alias \"%s\" is already used.", name);
+            free(name);
+            return false;
+         }
+      }
+   } else {
+      /* if motion alias is not specified, unused digit is used */
+      for(i = 0;; i++) {
+         find = false;
+         name = MMDAgent_intdup(i);
+         for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+            if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, name)) {
+               find = true;
+               break;
+            }
+         }
+         if(find == false)
+            break;
+         free(name);
+      }
+   }
+
+   /* start motion */
+   if (m_model[id].startMotion(vmd, name, full, once, enableSmooth, enableRePos) == false) {
+      free(name);
+      return false;
+   }
+
+   sendEventMessage(MMDAGENT_EVENT_MOTIONADD, "%s|%s", modelAlias, name);
+   free(name);
+   return true;
+}
+
+/* MMDAgent::changeMotion: change motion */
+bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
+{
+   int id;
+   VMD *vmd, *old = NULL;
+   MotionPlayer *motionPlayer;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: changeMotion: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* check */
+   if (!motionAlias) {
+      m_logger->log("! Error: changeMotion: not specified %s.", motionAlias);
+      return false;
+   }
+
+   /* motion file */
+   vmd = m_motion->loadFromFile(fileName);
+   if (vmd == NULL) {
+      m_logger->log("! Error: changeMotion: failed to load %s.", fileName);
+      return false;
+   }
+
+   /* get motion before change */
+   for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, motionAlias)) {
+         old = motionPlayer->vmd;
+         break;
+      }
+   }
+   if(old == NULL) {
+      m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_motion->unload(vmd);
+      return false;
+   }
+
+   /* change motion */
+   if (m_model[id].swapMotion(vmd, motionAlias) == false) {
+      m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_motion->unload(vmd);
+      return false;
+   }
+
+   /* unload old motion from motion stocker */
+   m_motion->unload(old);
+
+   /* send event message */
+   sendEventMessage(MMDAGENT_EVENT_MOTIONCHANGE, "%s|%s", modelAlias, motionAlias);
+   return true;
+}
+
+/* MMDAgent::deleteMotion: delete motion */
+bool MMDAgent::deleteMotion(char *modelAlias, char *motionAlias)
+{
+   int id;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: deleteMotion: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* delete motion */
+   if (m_model[id].getMotionManager()->deleteMotion(motionAlias) == false) {
+      m_logger->log("! Error: deleteMotion: motion alias \"%s\"is not found.", motionAlias);
+      return false;
+   }
+
+   /* don't send event message yet */
+   return true;
+}
+
+/* MMDAgent::startMove: start moving */
+bool MMDAgent::startMove(char *modelAlias, btVector3 *pos, bool local, float speed)
+{
+   int id;
+   btVector3 currentPos;
+   btQuaternion currentRot;
+   btVector3 targetPos;
+   btTransform tr;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: startMove: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* set */
+   m_model[id].getPosition(currentPos);
+   targetPos = (*pos);
+
+   /* local or global */
+   if (local) {
+      m_model[id].getRotation(currentRot);
+      tr = btTransform(currentRot, currentPos);
+      targetPos = tr * targetPos;
+   }
+
+   /* not need to start */
+   if (currentPos == targetPos)
+      return true;
+
+   m_model[id].setMoveSpeed(speed);
+   m_model[id].setPosition(targetPos);
+   sendEventMessage(MMDAGENT_EVENT_MOVESTART, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::stopMove: stop moving */
+bool MMDAgent::stopMove(char *modelAlias)
+{
+   int id;
+   btVector3 targetPos;
+   btVector3 currentPos;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: stopMove: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* set */
+   targetPos = (*(m_model[id].getPMDModel()->getRootBone()->getOffset()));
+   m_model[id].getPosition(currentPos);
+
+   /* not need to stop */
+   if (currentPos == targetPos)
+      return true;
+
+   m_model[id].setPosition(targetPos);
+   sendEventMessage(MMDAGENT_EVENT_MOVESTOP, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::startTurn: start turn */
+bool MMDAgent::startTurn(char *modelAlias, btVector3 *pos, bool local, float speed)
+{
+   int id;
+   btVector3 currentPos;
+   btQuaternion currentRot;
+   btVector3 targetPos;
+   btQuaternion targetRot;
+   btTransform tr;
+
+   btVector3 diffPos;
+   float z, rad;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: startTurn: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* set */
+   targetPos = (*pos);
+   m_model[id].getRotation(currentRot);
+
+   /* local or global */
+   if (local) {
+      m_model[id].getPosition(currentPos);
+      tr = btTransform(currentRot, currentPos);
+      targetPos = tr * targetPos;
+   }
+
+   /* get vector from current position to target position */
+   diffPos = (*(m_model[id].getPMDModel()->getRootBone()->getOffset()));
+   diffPos = targetPos - diffPos;
+   diffPos.normalize();
+
+   z = diffPos.z();
+   if (z > 1.0f) z = 1.0f;
+   if (z < -1.0f) z = -1.0f;
+   rad = acosf(z);
+   if (diffPos.x() < 0.0f) rad = -rad;
+   targetRot.setEulerZYX(0, rad, 0);
+
+   /* not need to turn */
+   if (currentRot == targetRot)
+      return true;
+
+   m_model[id].setSpinSpeed(speed);
+   m_model[id].setRotation(targetRot);
+   m_model[id].setTurningFlag(true);
+   sendEventMessage(MMDAGENT_EVENT_TURNSTART, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::stopTurn: stop turn */
+bool MMDAgent::stopTurn(char *modelAlias)
+{
+   int id;
+   btQuaternion currentRot;
+   btQuaternion targetRot;
+
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: stopTurn: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* not need to stop turn */
+   if (!m_model[id].isTurning())
+      return true;
+
+   /* set */
+   targetRot = (*(m_model[id].getPMDModel()->getRootBone()->getCurrentRotation()));
+   m_model[id].getRotation(currentRot);
+
+   /* not need to turn */
+   if (currentRot == targetRot)
+      return true;
+
+   m_model[id].setRotation(targetRot);
+   sendEventMessage(MMDAGENT_EVENT_TURNSTOP, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::startRotation: start rotation */
+bool MMDAgent::startRotation(char *modelAlias, btQuaternion *rot, bool local, float speed)
+{
+   int id;
+   btQuaternion targetRot;
+   btQuaternion currentRot;
+
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: startRotation: not found %s", modelAlias);
+      return false;
+   }
+
+   /* set */
+   m_model[id].getRotation(currentRot);
+   targetRot = (*rot);
+
+   /* local or global */
+   if (local)
+      targetRot += currentRot;
+
+   /* not need to start */
+   if (currentRot == targetRot)
+      return true;
+
+   m_model[id].setSpinSpeed(speed);
+   m_model[id].setRotation(targetRot);
+   sendEventMessage(MMDAGENT_EVENT_ROTATESTART, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::stopRotation: stop rotation */
+bool MMDAgent::stopRotation(char *modelAlias)
+{
+   int id;
+   btQuaternion currentRot;
+   btQuaternion targetRot;
+
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: stopRotation: not found %s", modelAlias);
+      return false;
+   }
+
+   /* set */
+   targetRot = (*(m_model[id].getPMDModel()->getRootBone()->getCurrentRotation()));
+   m_model[id].getRotation(currentRot);
+
+   /* not need to rotate */
+   if (currentRot == targetRot)
+      return true;
+
+   m_model[id].setRotation(targetRot);
+   sendEventMessage(MMDAGENT_EVENT_ROTATESTOP, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::setFloor: set floor image */
+bool MMDAgent::setFloor(char *fileName)
+{
+   /* load floor */
+   if (m_stage->loadFloor(fileName, m_bullet) == false) {
+      m_logger->log("Error: setFloor: cannot set floor %s.", fileName);
+      return false;
+   }
+
+   /* don't send event message */
+   return true;
+}
+
+/* MMDAgent::setBackground: set background image */
+bool MMDAgent::setBackground(char *fileName)
+{
+   /* load background */
+   if (m_stage->loadBackground(fileName, m_bullet) == false) {
+      m_logger->log("Error: setBackground: cannot set background %s.", fileName);
+      return false;
+   }
+
+   /* don't send event message */
+   return true;
+}
+
+/* MMDAgent::setStage: set stage */
+bool MMDAgent::setStage(char *fileName)
+{
+   if (m_stage->loadStagePMD(fileName, m_bullet, m_systex) == false) {
+      m_logger->log("Error: setStage: cannot set stage %s.", fileName);
+      return false;
+   }
+
+   /* don't send event message */
+   return true;
+}
+
+/* MMDAgent::changeLightColor: change light color */
+bool MMDAgent::changeLightColor(float r, float g, float b)
+{
+   float f[3];
+
+   f[0] = r;
+   f[1] = g;
+   f[2] = b;
+   m_option->setLightColor(f);
+   updateLight();
+
+   /* don't send event message */
+   return true;
+}
+
+/* MMDAgent::changeLightDirection: change light direction */
+bool MMDAgent::changeLightDirection(float x, float y, float z)
+{
+   float f[4];
+
+   f[0] = x;
+   f[1] = y;
+   f[2] = z;
+   f[3] = 0.0f;
+   m_option->setLightDirection(f);
+   updateLight();
+
+   /* don't send event message */
+   return true;
+}
+
+/* MMDAgent::startLipSync: start lip sync */
+bool MMDAgent::startLipSync(char *modelAlias, char *seq)
+{
+   int id;
+   unsigned char *vmdData;
+   unsigned long vmdSize;
+   VMD *vmd;
+   bool find = false;
+   MotionPlayer *motionPlayer;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: startLipSync not found %s.", modelAlias);
+      return false;
+   }
+
+   /* create motion */
+   if(m_model[id].createLipSyncMotion(seq, &vmdData, &vmdSize) == false) {
+      m_logger->log("! Error: startLipSync: cannot create lip motion.");
+      return false;
+   }
+   vmd = m_motion->loadFromData(vmdData, vmdSize);
+   free(vmdData);
+
+   /* search running lip motion */
+   for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME)) {
+         find = true;
+         break;
+      }
+   }
+
+   /* start lip sync */
+   if(find == true) {
+      if (m_model[id].swapMotion(vmd, LIPSYNC_MOTIONNAME) == false) {
+         m_logger->log("! Error: startLipSync: cannot start lip sync.");
+         m_motion->unload(vmd);
+         return false;
+      }
+      sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", modelAlias);
+   } else {
+      if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true) == false) {
+         m_logger->log("! Error: startLipSync: cannot start lip sync.");
+         m_motion->unload(vmd);
+         return false;
+      }
+   }
+
+   /* send event message */
+   sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTART, "%s", modelAlias);
+   return true;
+}
+
+/* MMDAgent::stopLipSync: stop lip sync */
+bool MMDAgent::stopLipSync(char *modelAlias)
+{
+   int id;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("! Error: stopLipSync: not found %s.", modelAlias);
+      return false;
+   }
+
+   /* stop lip sync */
+   if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTIONNAME) == false) {
+      m_logger->log("! Error: stopLipSync: lipsync motion not found");
+      return false;
+   }
+
+   /* don't send message yet */
+   return true;
+}
+
 /* MMDAgent::initialize: initialize MMDAgent */
 void MMDAgent::initialize()
 {
@@ -144,318 +847,6 @@ MMDAgent::MMDAgent()
 MMDAgent::~MMDAgent()
 {
    clear();
-}
-
-/* MMDAgent::getNewModelId: return new model ID */
-int MMDAgent::getNewModelId()
-{
-   int i;
-
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() == false)
-         return i; /* re-use it */
-
-   if (m_numModel >= MMDAGENT_MAXNMODEL)
-      return -1; /* no more room */
-
-   i = m_numModel;
-   m_numModel++;
-
-   m_model[i].setEnableFlag(false); /* model is not loaded yet */
-   return i;
-}
-
-/* MMDAgent::removeRelatedModels: delete a model */
-void MMDAgent::removeRelatedModels(int modelId)
-{
-   int i;
-
-   /* remove assigned accessories */
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() == true && m_model[i].getAssignedModel() == &(m_model[modelId]))
-         removeRelatedModels(i);
-
-   /* remove model */
-   sendEventMessage(MMDAGENTCOMMAND_MODELEVENTDELETE, "%s", m_model[modelId].getAlias());
-   m_model[modelId].deleteModel();
-}
-
-/* MMDAgent::updateScene: update the whole scene */
-void MMDAgent::updateScene()
-{
-   int i, ite;
-   double intervalFrame;
-   int stepmax;
-   double stepFrame;
-   double restFrame;
-   double procFrame;
-   double adjustFrame;
-   MotionPlayer *motionPlayer;
-
-   /* get frame interval */
-   intervalFrame = m_timer->getFrameInterval();
-
-   stepmax = m_option->getBulletFps();
-   stepFrame = 30.0 / m_option->getBulletFps();
-   restFrame = intervalFrame;
-
-   for (ite = 0; ite < stepmax; ite++) {
-      if (restFrame <= stepFrame) {
-         /* break */
-         procFrame = restFrame;
-         ite = stepmax;
-      } else {
-         /* add stepFrame */
-         procFrame = stepFrame;
-         restFrame -= stepFrame;
-      }
-      /* calculate adjustment time for audio */
-      adjustFrame = m_timer->getAdditionalFrame(procFrame);
-      if (adjustFrame != 0.0)
-         m_dispFrameCue = 90.0;
-      /* update motion */
-      for (i = 0; i < m_numModel; i++) {
-         if (m_model[i].isEnable() == false) continue;
-         /* update root bone */
-         m_model[i].updateRootBone();
-         if (m_model[i].updateMotion(procFrame + adjustFrame)) {
-            /* search end of motion */
-            for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-               if (motionPlayer->statusFlag == MOTION_STATUS_DELETED) {
-                  /* send event message */
-                  if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
-                     sendEventMessage(MMDAGENTCOMMAND_LIPSYNCEVENTSTOP, "%s", m_model[i].getAlias());
-                  else {
-                     sendEventMessage(MMDAGENTCOMMAND_MOTIONEVENTDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
-                  }
-                  /* unload from motion stocker */
-                  m_motion->unload(motionPlayer->vmd);
-               }
-            }
-         }
-         /* update alpha for appear or disappear */
-         if (m_model[i].updateAlpha(procFrame + adjustFrame))
-            removeRelatedModels(i); /* remove model and accessories */
-      }
-      /* execute plugin */
-      m_plugin->execUpdate(this, procFrame + adjustFrame);
-      /* update bullet physics */
-      m_bullet->update((float) procFrame);
-   }
-   /* update after simulation */
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() == true)
-         m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
-
-   /* calculate rendering range for shadow mapping */
-   if(m_option->getUseShadowMapping())
-      m_render->updateDepthTextureViewParam(m_model, m_numModel);
-
-   /* decrement each indicator */
-   if (m_dispFrameAdjust > 0.0)
-      m_dispFrameAdjust -= intervalFrame;
-   if (m_dispFrameCue > 0.0)
-      m_dispFrameCue -= intervalFrame;
-   for (i = 0; i < m_numModel; i++) {
-      if (m_model[i].isEnable()) {
-         if (m_model[i].isMoving()) {
-            m_dispModelMove[i] = 15.0;
-         } else if (m_dispModelMove[i] > 0.0) {
-            m_dispModelMove[i] -= intervalFrame;
-         }
-      }
-   }
-
-   /* decrement mouse active time */
-   m_screen->updateMouseActiveTime(intervalFrame);
-
-   InvalidateRect(m_hWnd, NULL, false);
-}
-
-
-/* MMDAgent::renderScene: render the whole scene */
-void MMDAgent::renderScene(HWND hWnd)
-{
-   int i;
-   char buff[MMDAGENT_MAXBUFLEN];
-   btVector3 pos;
-   float fps;
-
-   if (!m_hWnd) return;
-
-   /* update model position and rotation */
-   fps = m_timer->getFps();
-   for (i = 0; i < m_numModel; i++) {
-      if (m_model[i].isEnable() == true) {
-         if (m_model[i].updateModelRootOffset(fps))
-            sendEventMessage(MMDAGENTCOMMAND_MOVEEVENTSTOP, "%s", m_model[i].getAlias());
-         if (m_model[i].updateModelRootRotation(fps)) {
-            if (m_model[i].isTurning()) {
-               sendEventMessage(MMDAGENTCOMMAND_TURNEVENTSTOP, "%s", m_model[i].getAlias());
-               m_model[i].setTurningFlag(false);
-            } else {
-               sendEventMessage(MMDAGENTCOMMAND_ROTATEEVENTSTOP, "%s", m_model[i].getAlias());
-            }
-         }
-      }
-   }
-
-   /* render scene */
-   m_render->render(this);
-
-   /* show debug display */
-   if (m_dispModelDebug)
-      for (i = 0; i < m_numModel; i++)
-         if (m_model[i].isEnable() == true)
-            m_model[i].renderDebug(m_text);
-
-   /* show bullet body */
-   if (m_dispBulletBodyFlag)
-      m_bullet->debugDisplay();
-
-   /* show log window */
-   if (m_dispLog)
-      m_logger->render(m_text);
-
-   /* count fps */
-   m_timer->countFrame();
-
-   /* show fps */
-   if (m_option->getShowFps()) {
-      _snprintf(buff, MMDAGENT_MAXBUFLEN, "%5.1ffps ", m_timer->getFps());
-      m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXBUFLEN - 9);
-      glDisable(GL_LIGHTING);
-      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-      glPushMatrix();
-      glRasterPos3fv(m_option->getFpsPosition());
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
-   }
-
-   /* show adjustment time for audio */
-   if (m_dispFrameAdjust > 0.0) {
-      if (m_option->getMotionAdjustFrame() > 0)
-         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec advance", m_option->getMotionAdjustFrame());
-      else
-         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec delay", m_option->getMotionAdjustFrame());
-      glDisable(GL_LIGHTING);
-      glColor3f(1.0f, 0.0f, 0.0f);
-      glPushMatrix();
-      glWindowPos2f(5.0f, 5.0f);
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
-   }
-
-   /* show adjustment time per model */
-   if (m_dispFrameCue > 0.0) {
-      _snprintf(buff, MMDAGENT_MAXBUFLEN, "Cuing Motion: %+d", (int)(m_timer->adjustGetCurrent() / 0.03));
-      glDisable(GL_LIGHTING);
-      glColor3f(0.0f, 1.0f, 0.0f);
-      glPushMatrix();
-      glWindowPos2f(160.0f, 5.0f);
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
-   }
-
-   /* show model position */
-   strcpy(buff, "");
-   for (i = 0; i < m_numModel; i++) {
-      if (m_model[i].isEnable() == true && m_dispModelMove[i] > 0.0) {
-         m_model[i].getPosition(pos);
-         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
-      }
-   }
-   if (MMDAgent_strlen(buff) > 0) {
-      glDisable(GL_LIGHTING);
-      glColor3f(1.0f, 0.0f, 0.0f);
-      glPushMatrix();
-      glWindowPos2f(5.0f, 5.0f);
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
-   }
-
-   /* show model comments and error */
-   for (i = 0; i < m_numModel; i++) {
-      if (m_model[i].isEnable() == true) {
-         glPushMatrix();
-         m_model[i].renderComment(m_text);
-         m_model[i].renderError(m_text);
-         glPopMatrix();
-      }
-   }
-
-   /* execute plugin */
-   m_plugin->execRender(this);
-
-   /* swap buffer */
-   m_screen->swapBuffers();
-}
-
-/* MMDAgent::updateLight: update light */
-void MMDAgent::updateLight()
-{
-   int i;
-   float *f;
-   btVector3 l;
-
-   /* udpate OpenGL light */
-   m_render->updateLighting(m_option->getUseCartoonRendering(), m_option->getUseMMDLikeCartoon(), m_option->getLightDirection(), m_option->getLightIntensity(), m_option->getLightColor());
-   /* update shadow matrix */
-   f = m_option->getLightDirection();
-   m_stage->updateShadowMatrix(f);
-   /* update vector for cartoon */
-   l = btVector3(f[0], f[1], f[2]);
-   for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() == true)
-         m_model[i].setLightForToon(&l);
-}
-
-/* MMDAgent::sendCommandMessage: send command message */
-void MMDAgent::sendCommandMessage(char *type, const char *format, ...)
-{
-   va_list argv;
-   char *buf1, *buf2;
-
-   buf1 = MMDAgent_strdup(type);
-
-   if (format == NULL) {
-      ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) NULL);
-      return;
-   }
-
-   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
-
-   va_start(argv, format);
-   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
-   va_end(argv);
-
-   ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) buf2);
-}
-
-/* MMDAgent::sendEventMessage: send event message */
-void MMDAgent::sendEventMessage(char *type, const char *format, ...)
-{
-   va_list argv;
-   char *buf1, *buf2;
-
-   buf1 = MMDAgent_strdup(type);
-
-   if (format == NULL) {
-      ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) NULL);
-      return;
-   }
-
-   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
-
-   va_start(argv, format);
-   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
-   va_end(argv);
-
-   ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) buf2);
 }
 
 /* MMDAgent::setup: initialize and setup MMDAgent */
@@ -613,6 +1004,264 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    free(binaryFileName);
    free(binaryDirName);
    return m_hWnd;
+}
+
+/* MMDAgent::updateScene: update the whole scene */
+void MMDAgent::updateScene()
+{
+   int i, ite;
+   double intervalFrame;
+   int stepmax;
+   double stepFrame;
+   double restFrame;
+   double procFrame;
+   double adjustFrame;
+   MotionPlayer *motionPlayer;
+
+   /* get frame interval */
+   intervalFrame = m_timer->getFrameInterval();
+
+   stepmax = m_option->getBulletFps();
+   stepFrame = 30.0 / m_option->getBulletFps();
+   restFrame = intervalFrame;
+
+   for (ite = 0; ite < stepmax; ite++) {
+      if (restFrame <= stepFrame) {
+         /* break */
+         procFrame = restFrame;
+         ite = stepmax;
+      } else {
+         /* add stepFrame */
+         procFrame = stepFrame;
+         restFrame -= stepFrame;
+      }
+      /* calculate adjustment time for audio */
+      adjustFrame = m_timer->getAdditionalFrame(procFrame);
+      if (adjustFrame != 0.0)
+         m_dispFrameCue = 90.0;
+      /* update motion */
+      for (i = 0; i < m_numModel; i++) {
+         if (m_model[i].isEnable() == false) continue;
+         /* update root bone */
+         m_model[i].updateRootBone();
+         if (m_model[i].updateMotion(procFrame + adjustFrame)) {
+            /* search end of motion */
+            for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+               if (motionPlayer->statusFlag == MOTION_STATUS_DELETED) {
+                  /* send event message */
+                  if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
+                     sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", m_model[i].getAlias());
+                  else {
+                     sendEventMessage(MMDAGENT_EVENT_MOTIONDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
+                  }
+                  /* unload from motion stocker */
+                  m_motion->unload(motionPlayer->vmd);
+               }
+            }
+         }
+         /* update alpha for appear or disappear */
+         if (m_model[i].updateAlpha(procFrame + adjustFrame))
+            removeRelatedModels(i); /* remove model and accessories */
+      }
+      /* execute plugin */
+      m_plugin->execUpdate(this, procFrame + adjustFrame);
+      /* update bullet physics */
+      m_bullet->update((float) procFrame);
+   }
+   /* update after simulation */
+   for (i = 0; i < m_numModel; i++)
+      if (m_model[i].isEnable() == true)
+         m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
+
+   /* calculate rendering range for shadow mapping */
+   if(m_option->getUseShadowMapping())
+      m_render->updateDepthTextureViewParam(m_model, m_numModel);
+
+   /* decrement each indicator */
+   if (m_dispFrameAdjust > 0.0)
+      m_dispFrameAdjust -= intervalFrame;
+   if (m_dispFrameCue > 0.0)
+      m_dispFrameCue -= intervalFrame;
+   for (i = 0; i < m_numModel; i++) {
+      if (m_model[i].isEnable()) {
+         if (m_model[i].isMoving()) {
+            m_dispModelMove[i] = 15.0;
+         } else if (m_dispModelMove[i] > 0.0) {
+            m_dispModelMove[i] -= intervalFrame;
+         }
+      }
+   }
+
+   /* decrement mouse active time */
+   m_screen->updateMouseActiveTime(intervalFrame);
+
+   InvalidateRect(m_hWnd, NULL, false);
+}
+
+/* MMDAgent::renderScene: render the whole scene */
+void MMDAgent::renderScene(HWND hWnd)
+{
+   int i;
+   char buff[MMDAGENT_MAXBUFLEN];
+   btVector3 pos;
+   float fps;
+
+   if (!m_hWnd) return;
+
+   /* update model position and rotation */
+   fps = m_timer->getFps();
+   for (i = 0; i < m_numModel; i++) {
+      if (m_model[i].isEnable() == true) {
+         if (m_model[i].updateModelRootOffset(fps))
+            sendEventMessage(MMDAGENT_EVENT_MOVESTOP, "%s", m_model[i].getAlias());
+         if (m_model[i].updateModelRootRotation(fps)) {
+            if (m_model[i].isTurning()) {
+               sendEventMessage(MMDAGENT_EVENT_TURNSTOP, "%s", m_model[i].getAlias());
+               m_model[i].setTurningFlag(false);
+            } else {
+               sendEventMessage(MMDAGENT_EVENT_ROTATESTOP, "%s", m_model[i].getAlias());
+            }
+         }
+      }
+   }
+
+   /* render scene */
+   m_render->render(this);
+
+   /* show debug display */
+   if (m_dispModelDebug)
+      for (i = 0; i < m_numModel; i++)
+         if (m_model[i].isEnable() == true)
+            m_model[i].renderDebug(m_text);
+
+   /* show bullet body */
+   if (m_dispBulletBodyFlag)
+      m_bullet->debugDisplay();
+
+   /* show log window */
+   if (m_dispLog)
+      m_logger->render(m_text);
+
+   /* count fps */
+   m_timer->countFrame();
+
+   /* show fps */
+   if (m_option->getShowFps()) {
+      _snprintf(buff, MMDAGENT_MAXBUFLEN, "%5.1ffps ", m_timer->getFps());
+      m_screen->getInfoString(&(buff[9]), MMDAGENT_MAXBUFLEN - 9);
+      glDisable(GL_LIGHTING);
+      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+      glPushMatrix();
+      glRasterPos3fv(m_option->getFpsPosition());
+      m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* show adjustment time for audio */
+   if (m_dispFrameAdjust > 0.0) {
+      if (m_option->getMotionAdjustFrame() > 0)
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec advance", m_option->getMotionAdjustFrame());
+      else
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%d msec delay", m_option->getMotionAdjustFrame());
+      glDisable(GL_LIGHTING);
+      glColor3f(1.0f, 0.0f, 0.0f);
+      glPushMatrix();
+      glWindowPos2f(5.0f, 5.0f);
+      m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* show adjustment time per model */
+   if (m_dispFrameCue > 0.0) {
+      _snprintf(buff, MMDAGENT_MAXBUFLEN, "Cuing Motion: %+d", (int)(m_timer->adjustGetCurrent() / 0.03));
+      glDisable(GL_LIGHTING);
+      glColor3f(0.0f, 1.0f, 0.0f);
+      glPushMatrix();
+      glWindowPos2f(160.0f, 5.0f);
+      m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* show model position */
+   strcpy(buff, "");
+   for (i = 0; i < m_numModel; i++) {
+      if (m_model[i].isEnable() == true && m_dispModelMove[i] > 0.0) {
+         m_model[i].getPosition(pos);
+         _snprintf(buff, MMDAGENT_MAXBUFLEN, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
+      }
+   }
+   if (MMDAgent_strlen(buff) > 0) {
+      glDisable(GL_LIGHTING);
+      glColor3f(1.0f, 0.0f, 0.0f);
+      glPushMatrix();
+      glWindowPos2f(5.0f, 5.0f);
+      m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* show model comments and error */
+   for (i = 0; i < m_numModel; i++) {
+      if (m_model[i].isEnable() == true) {
+         glPushMatrix();
+         m_model[i].renderComment(m_text);
+         m_model[i].renderError(m_text);
+         glPopMatrix();
+      }
+   }
+
+   /* execute plugin */
+   m_plugin->execRender(this);
+
+   /* swap buffer */
+   m_screen->swapBuffers();
+}
+
+/* MMDAgent::sendCommandMessage: send command message */
+void MMDAgent::sendCommandMessage(char *type, const char *format, ...)
+{
+   va_list argv;
+   char *buf1, *buf2;
+
+   buf1 = MMDAgent_strdup(type);
+
+   if (format == NULL) {
+      ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) NULL);
+      return;
+   }
+
+   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+
+   va_start(argv, format);
+   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
+   va_end(argv);
+
+   ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) buf2);
+}
+
+/* MMDAgent::sendEventMessage: send event message */
+void MMDAgent::sendEventMessage(char *type, const char *format, ...)
+{
+   va_list argv;
+   char *buf1, *buf2;
+
+   buf1 = MMDAgent_strdup(type);
+
+   if (format == NULL) {
+      ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) NULL);
+      return;
+   }
+
+   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+
+   va_start(argv, format);
+   vsnprintf(buf2, MMDAGENT_MAXBUFLEN, format, argv);
+   va_end(argv);
+
+   ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) buf2);
 }
 
 /* MMDAgent::findModelAlias: find a model with the specified alias */
@@ -992,15 +1641,307 @@ void MMDAgent::procWindowSizeMessage(int x, int y)
    m_render->setSize(x, y);
 }
 
+/* MMDAgent::procKeyMessage: process key message */
+void MMDAgent::procKeyMessage(char c)
+{
+   sendEventMessage(MMDAGENT_EVENT_KEY, "%C", c);
+}
+
 /* MMDAgent::procCommandMessage: process command message */
 void MMDAgent::procCommandMessage(char *mes1, char *mes2)
 {
-   /* check command and free strings */
-   command(mes1, mes2);
-   if (mes1 != NULL)
-      free(mes1);
-   if (mes2 != NULL)
-      free(mes2);
+   static char command[MMDAGENT_MAXBUFLEN];
+   static char argv[MMDAGENT_MAXNCOMMAND][MMDAGENT_MAXBUFLEN]; /* static buffer */
+   int num = 0;
+
+   char *str1, *str2;
+   bool bool1, bool2, bool3, bool4;
+   float f;
+   btVector3 pos;
+   btQuaternion rot;
+   float fvec[3];
+
+   /* command */
+   strncpy(command, mes1, MMDAGENT_MAXBUFLEN - 1);
+   command[MMDAGENT_MAXBUFLEN - 1] = '\0';
+
+   /* divide string into arguments */
+   if (MMDAgent_strlen(mes2) <= 0) {
+      m_logger->log("<%s>", command);
+   } else {
+      m_logger->log("<%s|%s>", command, mes2);
+      for (str1 = MMDAgent_strtok(mes2, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
+         if (num >= MMDAGENT_MAXNCOMMAND) {
+            m_logger->log("! Error: too many argument in command %s: %s", command, mes2);
+            break;
+         }
+         strncpy(argv[num], str1, MMDAGENT_MAXBUFLEN - 1);
+         argv[num][MMDAGENT_MAXBUFLEN - 1] = '\0';
+         num++;
+      }
+   }
+
+   if(mes1 != NULL) free(mes1);
+   if(mes2 != NULL) free(mes2);
+
+   if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELADD)) {
+      str1 = NULL;
+      str2 = NULL;
+      if (num < 2 || num > 6) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (num >= 3) {
+         if (MMDAgent_str2pos(argv[2], &pos) == false) {
+            m_logger->log("! Error: %s: not a position string: %s", command, argv[2]);
+            return;
+         }
+      } else {
+         pos = btVector3(0.0, 0.0, 0.0);
+      }
+      if (num >= 4) {
+         if (MMDAgent_str2rot(argv[3], &rot) == false) {
+            m_logger->log("! Error: %s: not a rotation string: %s", command, argv[3]);
+            return;
+         }
+      } else {
+         rot.setEulerZYX(0.0, 0.0, 0.0);
+      }
+      if (num >= 5) {
+         str1 = argv[4];
+      }
+      if (num >= 6) {
+         str2 = argv[5];
+      }
+      addModel(argv[0], argv[1], &pos, &rot, str1, str2);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELCHANGE)) {
+      /* change model */
+      if (num != 2) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      changeModel(argv[0], argv[1]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELDELETE)) {
+      /* delete model */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      deleteModel(argv[0]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONADD)) {
+      /* add motion */
+      bool1 = true; /* full */
+      bool2 = true; /* once */
+      bool3 = true; /* enableSmooth */
+      bool4 = true; /* enableRePos */
+      if (num < 3 || num > 7) {
+         m_logger->log("! Error: %s: too few arguments", command);
+         return;
+      }
+      if (num >= 4) {
+         if (MMDAgent_strequal(argv[3], "FULL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[3], "PART")) {
+            bool1 = false;
+         } else {
+            m_logger->log("! Error: %s: 4th argument should be \"FULL\" or \"PART\"", command);
+            return;
+         }
+      }
+      if (num >= 5) {
+         if (MMDAgent_strequal(argv[4], "ONCE")) {
+            bool2 = true;
+         } else if (MMDAgent_strequal(argv[4], "LOOP")) {
+            bool2 = false;
+         } else {
+            m_logger->log("! Error: %s: 5th argument should be \"ONCE\" or \"LOOP\"", command);
+            return;
+         }
+      }
+      if (num >= 6) {
+         if (MMDAgent_strequal(argv[5], "ON")) {
+            bool3 = true;
+         } else if (MMDAgent_strequal(argv[5], "OFF")) {
+            bool3 = false;
+         } else {
+            m_logger->log("! Error: %s: 6th argument should be \"ON\" or \"OFF\"", command);
+            return;
+         }
+      }
+      if (num >= 7) {
+         if (MMDAgent_strequal(argv[6], "ON")) {
+            bool4 = true;
+         } else if (MMDAgent_strequal(argv[6], "OFF")) {
+            bool4 = false;
+         } else {
+            m_logger->log("! Error: %s: 7th argument should be \"ON\" or \"OFF\"", command);
+            return;
+         }
+      }
+      addMotion(argv[0], argv[1], argv[2], bool1, bool2, bool3, bool4);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONCHANGE)) {
+      /* change motion */
+      if (num != 3) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      changeMotion(argv[0], argv[1], argv[2]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONDELETE)) {
+      /* delete motion */
+      if (num != 2) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      deleteMotion(argv[0], argv[1]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVESTART)) {
+      /* start moving */
+      bool1 = false;
+      f = -1.0;
+      if (num < 2 || num > 4) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (MMDAgent_str2pos(argv[1], &pos) == false) {
+         m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
+         return;
+      }
+      if (num >= 3) {
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
+         } else {
+            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            return;
+         }
+      }
+      if (num >= 4)
+         f = MMDAgent_str2float(argv[3]);
+      startMove(argv[0], &pos, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVESTOP)) {
+      /* stop moving */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      stopMove(argv[0]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATESTART)) {
+      /* start rotation */
+      bool1 = false;
+      f = -1.0;
+      if (num < 2 || num > 4) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (MMDAgent_str2rot(argv[1], &rot) == false) {
+         m_logger->log("! Error: %s: not a rotation string: %s", command, argv[1]);
+         return;
+      }
+      if (num >= 3) {
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
+         } else {
+            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            return;
+         }
+      }
+      if (num >= 4)
+         f = MMDAgent_str2float(argv[3]);
+      startRotation(argv[0], &rot, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATESTOP)) {
+      /* stop rotation */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      stopRotation(argv[0]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURNSTART)) {
+      /* turn start */
+      bool1 = false;
+      f = -1.0;
+      if (num < 2 || num > 4) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (MMDAgent_str2pos(argv[1], &pos) == false) {
+         m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
+         return;
+      }
+      if (num >= 3) {
+         if (MMDAgent_strequal(argv[2], "LOCAL")) {
+            bool1 = true;
+         } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
+            bool1 = false;
+         } else {
+            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            return;
+         }
+      }
+      if (num >= 4)
+         f = MMDAgent_str2float(argv[3]);
+      startTurn(argv[0], &pos, bool1, f);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURNSTOP)) {
+      /* stop turn */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      stopTurn(argv[0]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_STAGE)) {
+      /* change stage */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      /* pmd or bitmap */
+      str1 = strstr(argv[0], ",");
+      if (str1 == NULL) {
+         setStage(argv[0]);
+      } else {
+         (*str1) = '\0';
+         str1++;
+         setFloor(argv[0]);
+         setBackground(str1);
+      }
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTCOLOR)) {
+      /* change light color */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
+         m_logger->log("! Error: %s: not \"R,G,B\" value: %s", command, argv[0]);
+         return;
+      }
+      changeLightColor(fvec[0], fvec[1], fvec[2]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTDIRECTION)) {
+      /* change light direction */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
+         m_logger->log("! Error: %s: not \"x,y,z\" value: %s", command, argv[0]);
+         return;
+      }
+      changeLightDirection(fvec[0], fvec[1], fvec[2]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTART)) {
+      /* start lip sync */
+      if (num != 2) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      startLipSync(argv[0], argv[1]);
+   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTOP)) {
+      /* stop lip sync */
+      if (num != 1) {
+         m_logger->log("! Error: %s: wrong number of arguments", command);
+         return;
+      }
+      stopLipSync(argv[0]);
+   }
 }
 
 /* MMDAgent::procEventMessage: process event message */
@@ -1017,6 +1958,108 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
       free(mes1);
    if (mes2 != NULL)
       free(mes2);
+}
+
+/* MMDAgent::procDropFileMessage: process file drops message */
+void MMDAgent::procDropFileMessage(char *file, int x, int y)
+{
+   int i;
+
+   int dropAllowedModelID;
+   int targetModelID;
+
+   /* for motion */
+   MotionPlayer *motionPlayer;
+
+   if(file == NULL) return;
+   sendEventMessage(MMDAGENT_EVENT_DRAGANDDROP, "%s|%d|%d", file, x, y);
+
+   if (MMDAgent_strtailmatch(file, ".vmd")) {
+      dropAllowedModelID = -1;
+      targetModelID = -1;
+      if (m_keyCtrl) {
+         /* if Ctrl-key, start motion on all models */
+         targetModelID = MMDAGENT_ALLMODEL;
+      } else if (m_doubleClicked && m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
+         targetModelID = m_selectedModel;
+      } else {
+         targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID); /* model ID in curpor position */
+         if (targetModelID == -1)
+            targetModelID = dropAllowedModelID;
+      }
+      if (targetModelID == -1) {
+         m_logger->log("Warning: vmd file dropped but no model exit at the point");
+      } else {
+         /* pause timer to skip file loading time */
+         m_timer->pause();
+         if (m_keyShift) { /* if Shift-key, insert motion */
+            if (targetModelID == MMDAGENT_ALLMODEL) {
+               /* all model */
+               for (i = 0; i < m_numModel; i++) {
+                  if (m_model[i].isEnable() && m_model[i].allowMotionFileDrop())
+                     addMotion(m_model[i].getAlias(), NULL, file, false, true, true, true);
+               }
+            } else {
+               /* target model */
+               addMotion(m_model[targetModelID].getAlias(), NULL, file, false, true, true, true);
+            }
+         } else {
+            /* change base motion */
+            if (targetModelID == MMDAGENT_ALLMODEL) {
+               /* all model */
+               for (i = 0; i < m_numModel; i++) {
+                  if (m_model[i].isEnable() && m_model[i].allowMotionFileDrop()) {
+                     for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+                        if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
+                           changeMotion(m_model[i].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
+                           break;
+                        }
+                     }
+                     if (!motionPlayer)
+                        addMotion(m_model[i].getAlias(), "base", file, true, false, true, true);
+                  }
+               }
+            } else {
+               /* target model */
+               for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+                  if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
+                     changeMotion(m_model[targetModelID].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
+                     break;
+                  }
+               }
+               if (!motionPlayer)
+                  addMotion(m_model[targetModelID].getAlias(), "base", file, true, false, true, true);
+            }
+         }
+         /* resume timer */
+         m_timer->resume();
+      }
+   } else if (MMDAgent_strtailmatch(file, ".xpmd")) {
+      /* load stage */
+      setStage(file);
+   } else if (MMDAgent_strtailmatch(file, ".pmd")) {
+      /* drop model */
+      if (m_keyCtrl) {
+         /* if Ctrl-key, add model */
+         addModel(NULL, file, NULL, NULL, NULL, NULL);
+      } else {
+         /* change model */
+         if (m_doubleClicked && m_selectedModel != -1) /* already selected */
+            targetModelID = m_selectedModel;
+         else
+            targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID);
+         if (targetModelID == -1) {
+            m_logger->log("Warning: pmd file dropped but no model at the point");
+         } else {
+            changeModel(m_model[targetModelID].getAlias(), file);
+         }
+      }
+   } else if (MMDAgent_strtailmatch(file, ".bmp") || MMDAgent_strtailmatch(file, ".tga") || MMDAgent_strtailmatch(file, ".png")) {
+      if (m_keyCtrl)
+         setFloor(file); /* change floor with Ctrl-key */
+      else
+         setBackground(file); /* change background without Ctrl-key */
+   }
 }
 
 /* MMDAgent::procPluginMessage: process plugin message */

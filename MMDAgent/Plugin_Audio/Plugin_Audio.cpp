@@ -69,7 +69,17 @@
 
 /* global variables */
 
+#define PLUGINAUDIO_COMMANDSTART "SOUND_START"
+#define PLUGINAUDIO_COMMANDSTOP  "SOUND_STOP"
+#define PLUGINAUDIO_EVENTSTART   "SOUND_EVENT_START"
+#define PLUGINAUDIO_EVENTSTOP    "SOUND_EVENT_STOP"
+
 Audio audio;
+
+bool MMDAgent_strequal(const char *, const char *);
+char *MMDAgent_strdup(const char *);
+char *MMDAgent_strtok(char *, const char *, char **);
+bool MMDAgent_strtailmatch(const char *, const char *);
 
 /* extAppStart: initialize audio */
 void __stdcall extAppStart(MMDAgent *m)
@@ -90,15 +100,13 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
       alias = audio.getFinishedAlias(wParam, lParam);
       if (alias) {
          audio.stop(alias);
-         mes1 = strdup(MMDAGENTCOMMAND_SOUNDEVENTSTOP);
-         mes2 = strdup(alias);
-         ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) mes1, (LPARAM) mes2);
+         ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTOP), (LPARAM) strdup(alias));
       }
    } else if(message == WM_MMDAGENT_COMMAND) {
       mes1 = (char *) wParam;
       mes2 = (char *) lParam;
       if(mes1 != NULL) {
-         if(strcmp(mes1, MMDAGENT_COMMAND_SOUND_START) == 0) {
+         if(strcmp(mes1, PLUGINAUDIO_COMMANDSTART) == 0) {
             /* audio start command */
             if(mes2 != NULL) {
                buf = _strdup(mes2);
@@ -111,15 +119,34 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
                if(i == 2) {
                   audio.stop(alias);
                   if(audio.play(alias, file) == true)
-                     ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(MMDAGENTCOMMAND_SOUNDEVENTSTART), (LPARAM) strdup(alias));
+                     ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) strdup(alias));
                }
                free(buf);
             }
-         } else if(strcmp(mes1, MMDAGENT_COMMAND_SOUND_STOP) == 0) {
+         } else if(strcmp(mes1, PLUGINAUDIO_COMMANDSTOP) == 0) {
             /* audio stop command */
             if(mes2 != NULL)
                audio.stop(mes2);
          }
+      }
+   } else if(message == WM_MMDAGENT_EVENT) {
+      mes1 = (char *) wParam;
+      mes2 = (char *) lParam;
+      if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_DRAGANDDROP)) {
+         buf = MMDAgent_strdup(mes2);
+         p = MMDAgent_strtok(buf, "|", &q);
+         if(MMDAgent_strtailmatch(p, ".vmd")) {
+            i = strlen(p);
+            p[i-4] = '.';
+            p[i-3] = 'm';
+            p[i-2] = 'p';
+            p[i-1] = '3';
+            audio.stop("audio");
+            if(audio.play("audio", p) == true)
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) strdup("audio"));
+         }
+         if(buf)
+            free(buf);
       }
    }
 }

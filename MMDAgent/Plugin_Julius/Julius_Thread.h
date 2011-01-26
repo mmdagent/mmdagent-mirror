@@ -44,7 +44,7 @@
 #define JULIUSTHREAD_NAME    "jconf.txt"
 #define JULIUSTHREAD_LOCALE  "Japanese_Japan.20932" /* EUC-JP */
 #define JULIUSTHREAD_LATENCY 50
-#define JULIUSTHREAD_WAITMS  100000                 /* 100 sec */
+#define JULIUSTHREAD_WAITMS  10000                  /* 10 sec */
 
 #define JULIUSTHREAD_EVENTSTART "RECOG_EVENT_START"
 #define JULIUSTHREAD_EVENTSTOP  "RECOG_EVENT_STOP"

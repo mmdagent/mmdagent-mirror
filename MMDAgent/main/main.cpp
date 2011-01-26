@@ -270,7 +270,7 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    }
    break;
    case WM_CHAR:
-      mmdagent.sendEventMessage(MMDAGENTCOMMAND_KEY, "%C", wParam);
+      mmdagent.procKeyMessage((char) wParam);
       break;
    case WM_MMDAGENT_COMMAND:
       mmdagent.procCommandMessage((char *) wParam, (char *) lParam);

@@ -39,8 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define COUNTDOWNTHREAD_WAITMS  100000 /* 100 sec */
-#define COUNTDOWNTHREAD_SLEEPMS 500    /* check per 0.5 sec */
+#define COUNTDOWNTHREAD_WAITMS  10000 /* 10 sec */
+#define COUNTDOWNTHREAD_SLEEPMS 500   /* check per 0.5 sec */
 
 #define COUNTDOWNTHREAD_TIMERSTARTEVENT "TIMER_EVENT_START"
 #define COUNTDOWNTHREAD_TIMERSTOPEVENT  "TIMER_EVENT_STOP"

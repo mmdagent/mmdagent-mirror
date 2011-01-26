@@ -117,7 +117,7 @@ void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM
                }
                enable = !enable;
             }
-         } else if(strcmp(mes1, MMDAGENTCOMMAND_MODELEVENTCHANGE) == 0 || strcmp(mes1, MMDAGENTCOMMAND_MODELEVENTADD) == 0) {
+         } else if(strcmp(mes1, MMDAGENT_EVENT_MODELCHANGE) == 0 || strcmp(mes1, MMDAGENT_EVENT_MODELADD) == 0) {
             if(mes2 != NULL) {
                buf = strdup(mes2);
                for(i = 0, p = strtok(buf, "|"); p; i++, p = strtok(NULL, "|")) {

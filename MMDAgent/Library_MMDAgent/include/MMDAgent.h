@@ -61,19 +61,56 @@ class MMDAgent;
 #include "Timer.h"
 #include "Plugin.h"
 #include "MotionStocker.h"
-#include "MMDAgent_command.h"
+
+/* defines */
+
+#define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
+#define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
 
 #define MMDAGENT_MAXNMODEL 10                 /* maximum number of model */
 #define MMDAGENT_ALLMODEL  MMDAGENT_MAXNMODEL /* alias for all model */
 
 #define MMDAGENT_MAXBUFLEN    1024
 #define MMDAGENT_DIRSEPARATOR '\\'
+#define MMDAGENT_MAXNCOMMAND  10
 
 #define MMDAGENT_SYSDATADIR "AppData"
 #define MMDAGENT_PLUGINDIR  "Plugins"
 
-#define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
-#define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
+#define MMDAGENT_COMMAND_MODELADD       "MODEL_ADD"
+#define MMDAGENT_COMMAND_MODELDELETE    "MODEL_DELETE"
+#define MMDAGENT_COMMAND_MODELCHANGE    "MODEL_CHANGE"
+#define MMDAGENT_COMMAND_MOTIONADD      "MOTION_ADD"
+#define MMDAGENT_COMMAND_MOTIONDELETE   "MOTION_DELETE"
+#define MMDAGENT_COMMAND_MOTIONCHANGE   "MOTION_CHANGE"
+#define MMDAGENT_COMMAND_MOVESTART      "MOVE_START"
+#define MMDAGENT_COMMAND_MOVESTOP       "MOVE_STOP"
+#define MMDAGENT_COMMAND_TURNSTART      "TURN_START"
+#define MMDAGENT_COMMAND_TURNSTOP       "TURN_STOP"
+#define MMDAGENT_COMMAND_ROTATESTART    "ROTATE_START"
+#define MMDAGENT_COMMAND_ROTATESTOP     "ROTATE_STOP"
+#define MMDAGENT_COMMAND_STAGE          "STAGE"
+#define MMDAGENT_COMMAND_LIGHTCOLOR     "LIGHTCOLOR"
+#define MMDAGENT_COMMAND_LIGHTDIRECTION "LIGHTDIRECTION"
+#define MMDAGENT_COMMAND_LIPSYNCSTART   "LIPSYNC_START"
+#define MMDAGENT_COMMAND_LIPSYNCSTOP    "LIPSYNC_STOP"
+
+#define MMDAGENT_EVENT_MODELADD     "MODEL_EVENT_ADD"
+#define MMDAGENT_EVENT_MODELDELETE  "MODEL_EVENT_DELETE"
+#define MMDAGENT_EVENT_MODELCHANGE  "MODEL_EVENT_CHANGE"
+#define MMDAGENT_EVENT_MOTIONADD    "MOTION_EVENT_ADD"
+#define MMDAGENT_EVENT_MOTIONDELETE "MOTION_EVENT_DELETE"
+#define MMDAGENT_EVENT_MOTIONCHANGE "MOTION_EVENT_CHANGE"
+#define MMDAGENT_EVENT_MOVESTART    "MOVE_EVENT_START"
+#define MMDAGENT_EVENT_MOVESTOP     "MOVE_EVENT_STOP"
+#define MMDAGENT_EVENT_TURNSTART    "TURN_EVENT_START"
+#define MMDAGENT_EVENT_TURNSTOP     "TURN_EVENT_STOP"
+#define MMDAGENT_EVENT_ROTATESTART  "ROTATE_EVENT_START"
+#define MMDAGENT_EVENT_ROTATESTOP   "ROTATE_EVENT_STOP"
+#define MMDAGENT_EVENT_LIPSYNCSTART "LIPSYNC_EVENT_START"
+#define MMDAGENT_EVENT_LIPSYNCSTOP  "LIPSYNC_EVENT_STOP"
+#define MMDAGENT_EVENT_DRAGANDDROP  "DRAGANDDROP"
+#define MMDAGENT_EVENT_KEY          "KEY"
 
 /* MMDAgent: MMDAgent class */
 class MMDAgent
@@ -128,6 +165,15 @@ private:
    /* updateLight: update light */
    void updateLight();
 
+   /* addModel: add model */
+   bool addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName);
+
+   /* changeModel: change model */
+   bool changeModel(char *modelAlias, char *fileName);
+
+   /* deleteModel: delete model */
+   bool deleteModel(char *modelAlias);
+
    /* addMotion: add motion */
    bool addMotion(char *modelAlias, char *motionAlias, char *fileName, bool full, bool once, bool enableSmooth, bool enableRePos);
 
@@ -137,14 +183,23 @@ private:
    /* deleteMotion: delete motion */
    bool deleteMotion(char *modelAlias, char *motionAlias);
 
-   /* addModel: add model */
-   bool addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName);
+   /* startMove: start moving */
+   bool startMove(char *modelAlias, btVector3 *pos, bool local, float speed);
 
-   /* changeModel: change model */
-   bool changeModel(char *modelAlias, char *fileName);
+   /* stopMove: stop moving */
+   bool stopMove(char *modelAlias);
 
-   /* deleteModel: delete model */
-   bool deleteModel(char *modelAlias);
+   /* startTurn: start turn */
+   bool startTurn(char *modelAlias, btVector3 *pos, bool local, float speed);
+
+   /* stopTurn: stop turn */
+   bool stopTurn(char *modelAlias);
+
+   /* startRotation: start rotation */
+   bool startRotation(char *modelAlias, btQuaternion *rot, bool local, float spped);
+
+   /* stopRotation: stop rotation */
+   bool stopRotation(char *modelAlias);
 
    /* setFloor: set floor image */
    bool setFloor(char *fileName);
@@ -155,38 +210,17 @@ private:
    /* setStage: set stage */
    bool setStage(char *fileName);
 
-   /* changeLightDirection: change light direction */
-   bool changeLightDirection(float x, float y, float z);
-
    /* changeLightColor: change light color */
    bool changeLightColor(float r, float g, float b);
 
-   /* startMove: start moving */
-   bool startMove(char *modelAlias, btVector3 *pos, bool local, float speed);
-
-   /* stopMove: stop moving */
-   bool stopMove(char *modelAlias);
-
-   /* startRotation: start rotation */
-   bool startRotation(char *modelAlias, btQuaternion *rot, bool local, float spped);
-
-   /* stopRotation: stop rotation */
-   bool stopRotation(char *modelAlias);
-
-   /* startTurn: start turn */
-   bool startTurn(char *modelAlias, btVector3 *pos, bool local, float speed);
-
-   /* stopTurn: stop turn */
-   bool stopTurn(char *modelAlias);
+   /* changeLightDirection: change light direction */
+   bool changeLightDirection(float x, float y, float z);
 
    /* startLipSync: start lip sync */
    bool startLipSync(char *modelAlias, char *seq);
 
    /* stopLipSync: stop lip sync */
    bool stopLipSync(char *modelAlias);
-
-   /* command: decode command string from client and call process */
-   bool command(char *command, char *str);
 
    /* initialize: initialize MMDAgent */
    void initialize();
@@ -202,6 +236,9 @@ public:
    /* ~MMDAgent: destructor */
    ~MMDAgent();
 
+   /* setup: initialize and setup MMDAgent */
+   HWND setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv);
+
    /* updateScene: update the whole scene */
    void updateScene();
 
@@ -214,8 +251,8 @@ public:
    /* sendEventMessage: send event message */
    void sendEventMessage(char *type, const char *format, ...);
 
-   /* setup: initialize and setup MMDAgent */
-   HWND setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv);
+   /* findModelAlias: find a model with the specified alias */
+   int findModelAlias(char *alias);
 
    /* getMoelList: get model list */
    PMDObject *getModelList();
@@ -237,9 +274,6 @@ public:
 
    /* getInstance: get application instance */
    HINSTANCE getInstance();
-
-   /* findModelAlias: find a model with the specified alias */
-   int findModelAlias(char *alias);
 
    /* getConfigFileName: get config file name for plugin */
    char *getConfigFileName();
@@ -325,17 +359,20 @@ public:
    /* procWindowSizeMessage: process window size message */
    void procWindowSizeMessage(int x, int y);
 
+   /* procKeyMessage: process key message */
+   void procKeyMessage(char c);
+
    /* procCommandMessage: process command message */
    void procCommandMessage(char *mes1, char *mes2);
 
    /* procEventMessage: process event message */
    void procEventMessage(char *mes1, char *mes2);
 
-   /* procPluginMessage: process plugin message */
-   void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
    /* procDropFileMessage: process file drops message */
    void procDropFileMessage(char *file, int x, int y);
+
+   /* procPluginMessage: process plugin message */
+   void procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 #endif /* __mmdagent_h__ */

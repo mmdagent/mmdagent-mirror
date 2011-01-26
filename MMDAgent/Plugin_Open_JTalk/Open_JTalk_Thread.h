@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define OPENJTALKTHREAD_WAITMS     100000              /* 100 sec */
+#define OPENJTALKTHREAD_WAITMS     10000               /* 10 sec */
 #define OPENJTALKTHREAD_EVENTSTART "SYNTH_EVENT_START"
 #define OPENJTALKTHREAD_EVENTSTOP  "SYNTH_EVENT_STOP"
 #define OPENJTALKTHREAD_COMMANDLIP "LIPSYNC_START"

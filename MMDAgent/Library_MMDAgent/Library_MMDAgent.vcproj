@@ -179,14 +179,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\MMDAgent_command.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\MMDAgent_dropfile.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\lib\MotionStocker.cpp"
 				>
 			</File>
@@ -250,10 +242,6 @@
 			</File>
 			<File
 				RelativePath=".\src\include\MMDAgent.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\include\MMDAgent_command.h"
 				>
 			</File>
 			<File
