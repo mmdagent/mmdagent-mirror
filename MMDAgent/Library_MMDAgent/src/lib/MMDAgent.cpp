@@ -71,15 +71,28 @@ int MMDAgent::getNewModelId()
 void MMDAgent::removeRelatedModels(int modelId)
 {
    int i;
+   MotionPlayer *motionPlayer;
 
    /* remove assigned accessories */
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() == true && m_model[i].getAssignedModel() == &(m_model[modelId]))
          removeRelatedModels(i);
 
+   /* remove motion */
+   for (motionPlayer = m_model[modelId].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      /* send event message */
+      if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
+         sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", m_model[modelId].getAlias());
+      else {
+         sendEventMessage(MMDAGENT_EVENT_MOTIONDELETE, "%s|%s", m_model[modelId].getAlias(), motionPlayer->name);
+      }
+      /* unload from motion stocker */
+      m_motion->unload(motionPlayer->vmd);
+   }
+
    /* remove model */
    sendEventMessage(MMDAGENT_EVENT_MODELDELETE, "%s", m_model[modelId].getAlias());
-   m_model[modelId].deleteModel();
+   m_model[modelId].release();
 }
 
 /* MMDAgent::updateLight: update light */
@@ -174,7 +187,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    /* add model */
    if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
       m_logger->log("Error: addModel: %s cannot be loaded.", fileName);
-      m_model[id].deleteModel();
+      m_model[id].release();
       free(name);
       return false;
    }
@@ -1018,6 +1031,8 @@ void MMDAgent::updateScene()
    double adjustFrame;
    MotionPlayer *motionPlayer;
 
+   if (!m_hWnd) return;
+
    /* get frame interval */
    intervalFrame = m_timer->getFrameInterval();
 
@@ -1226,6 +1241,8 @@ void MMDAgent::sendCommandMessage(char *type, const char *format, ...)
    va_list argv;
    char *buf1, *buf2;
 
+   if (!m_hWnd) return;
+
    buf1 = MMDAgent_strdup(type);
 
    if (format == NULL) {
@@ -1247,6 +1264,8 @@ void MMDAgent::sendEventMessage(char *type, const char *format, ...)
 {
    va_list argv;
    char *buf1, *buf2;
+
+   if (!m_hWnd) return;
 
    buf1 = MMDAgent_strdup(type);
 
@@ -1348,6 +1367,8 @@ void MMDAgent::procWindowDestroyMessage()
 /* MMDAgent::procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
 void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
 {
+   if (!m_hWnd) return;
+
    /* double click */
    m_mousepos.x = x;
    m_mousepos.y = y;
@@ -1361,6 +1382,8 @@ void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
 /* MMDAgent::procMouseLeftButtonDownMessage: process mouse left button down message */
 void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift)
 {
+   if (!m_hWnd) return;
+
    /* start hold */
    m_mousepos.x = x;
    m_mousepos.y = y;
@@ -1375,6 +1398,8 @@ void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool 
 /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
 void MMDAgent::procMouseLeftButtonUpMessage()
 {
+   if (!m_hWnd) return;
+
    /* if highlight, trun off */
    if (!m_doubleClicked)
       m_render->highlightModel(this, -1);
@@ -1386,6 +1411,8 @@ void MMDAgent::procMouseLeftButtonUpMessage()
 void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
 {
    float tmp1, tmp2;
+
+   if (!m_hWnd) return;
 
    /* zoom */
    tmp1 = m_option->getScaleStep();
@@ -1410,6 +1437,8 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
    LONG r2;
    btVector3 v;
    btMatrix3x3 bm;
+
+   if (!m_hWnd) return;
 
    /* store Ctrl-key and Shift-key state for drag and drop */
    m_keyCtrl = withCtrl;
@@ -1469,6 +1498,8 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
 /* MMDAgent::procMouseRightButtonDownMessage: process mouse right button down message */
 void MMDAgent::procMouseRightButtonDownMessage()
 {
+   if (!m_hWnd) return;
+
    m_screen->setMouseActiveTime(45.0f);
 }
 
@@ -1476,6 +1507,8 @@ void MMDAgent::procMouseRightButtonDownMessage()
 void MMDAgent::procFullScreenMessage()
 {
    RECT rc;
+
+   if (!m_hWnd) return;
 
    if (m_option->getFullScreen() == true) {
       m_screen->exitFullScreen(m_hWnd);
@@ -1492,6 +1525,8 @@ void MMDAgent::procFullScreenMessage()
 /* MMDAgent::procInfoStringMessage: process information string message */
 void MMDAgent::procInfoStringMessage()
 {
+   if (!m_hWnd) return;
+
    if(m_option->getShowFps() == true)
       m_option->setShowFps(false);
    else
@@ -1501,12 +1536,16 @@ void MMDAgent::procInfoStringMessage()
 /* MMDAgent::procVSyncMessage: process vsync message */
 void MMDAgent::procVSyncMessage()
 {
+   if (!m_hWnd) return;
+
    m_screen->toggleVSync();
 }
 
 /* MMDAgent::procShadowMappingMessage: process shadow mapping message */
 void MMDAgent::procShadowMappingMessage()
 {
+   if (!m_hWnd) return;
+
    if(m_option->getUseShadowMapping() == true) {
       m_option->setUseShadowMapping(false);
       m_render->setShadowMapping(false, m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
@@ -1519,6 +1558,8 @@ void MMDAgent::procShadowMappingMessage()
 /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
 void MMDAgent::procShadowMappingOrderMessage()
 {
+   if (!m_hWnd) return;
+
    if(m_option->getShadowMappingLightFirst() == true)
       m_option->setShadowMappingLightFirst(false);
    else
@@ -1528,6 +1569,8 @@ void MMDAgent::procShadowMappingOrderMessage()
 /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
 void MMDAgent::procDisplayRigidBodyMessage()
 {
+   if (!m_hWnd) return;
+
    m_dispBulletBodyFlag = !m_dispBulletBodyFlag;
 }
 
@@ -1535,6 +1578,8 @@ void MMDAgent::procDisplayRigidBodyMessage()
 void MMDAgent::procDisplayWireMessage()
 {
    GLint polygonMode[2];
+
+   if (!m_hWnd) return;
 
    glGetIntegerv(GL_POLYGON_MODE, polygonMode);
    if (polygonMode[1] == GL_LINE)
@@ -1546,6 +1591,8 @@ void MMDAgent::procDisplayWireMessage()
 /* MMDAgent::procDisplayBoneMessage: process display bone message */
 void MMDAgent::procDisplayBoneMessage()
 {
+   if (!m_hWnd) return;
+
    m_dispModelDebug = !m_dispModelDebug;
 }
 
@@ -1553,6 +1600,8 @@ void MMDAgent::procDisplayBoneMessage()
 void MMDAgent::procCartoonEdgeMessage(bool plus)
 {
    int i;
+
+   if (!m_hWnd) return;
 
    if(plus)
       m_option->setCartoonEdgeWidth(m_option->getCartoonEdgeWidth() * m_option->getCartoonEdgeStep());
@@ -1565,6 +1614,8 @@ void MMDAgent::procCartoonEdgeMessage(bool plus)
 /* MMDAgent::procTimeAdjustMessage: process time adjust message */
 void MMDAgent::procTimeAdjustMessage(bool plus)
 {
+   if (!m_hWnd) return;
+
    if(plus)
       m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() + 10); /* todo: 10 -> option */
    else
@@ -1576,6 +1627,8 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
 /* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
 void MMDAgent::procHorizontalRotateMessage(bool right)
 {
+   if (!m_hWnd) return;
+
    if(right)
       m_render->rotate(m_option->getRotateStep(), 0.0f, 0.0f);
    else
@@ -1585,6 +1638,8 @@ void MMDAgent::procHorizontalRotateMessage(bool right)
 /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
 void MMDAgent::procVerticalRotateMessage(bool up)
 {
+   if (!m_hWnd) return;
+
    if(up)
       m_render->rotate(0.0f, -m_option->getRotateStep(), 0.0f);
    else
@@ -1594,6 +1649,8 @@ void MMDAgent::procVerticalRotateMessage(bool up)
 /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
 void MMDAgent::procHorizontalMoveMessage(bool right)
 {
+   if (!m_hWnd) return;
+
    if(right)
       m_render->translate(m_option->getTranslateStep(), 0.0f, 0.0f);
    else
@@ -1603,6 +1660,8 @@ void MMDAgent::procHorizontalMoveMessage(bool right)
 /* MMDAgent::procVerticalMoveMessage: process vertical move message */
 void MMDAgent::procVerticalMoveMessage(bool up)
 {
+   if (!m_hWnd) return;
+
    if(up)
       m_render->translate(0.0f, m_option->getTranslateStep(), 0.0f);
    else
@@ -1612,6 +1671,8 @@ void MMDAgent::procVerticalMoveMessage(bool up)
 /* MMDAgent::procDeleteModelMessage: process delete model message */
 void MMDAgent::procDeleteModelMessage()
 {
+   if (!m_hWnd) return;
+
    if (m_doubleClicked) {
       deleteModel(m_model[m_selectedModel].getAlias());
       m_doubleClicked = false;
@@ -1623,6 +1684,8 @@ void MMDAgent::procPhysicsMessage()
 {
    int i;
 
+   if (!m_hWnd) return;
+
    m_enablePhysicsSimulation = !m_enablePhysicsSimulation;
    for (i = 0; i < m_numModel; i++)
       m_model[i].getPMDModel()->setPhysicsControl(m_enablePhysicsSimulation);
@@ -1631,18 +1694,24 @@ void MMDAgent::procPhysicsMessage()
 /* MMDAgent::procDisplayLogMessage: process display log message */
 void MMDAgent::procDisplayLogMessage()
 {
+   if (!m_hWnd) return;
+
    m_dispLog = !m_dispLog;
 }
 
 /* MMDAgent::procWindowSizeMessage: process window size message */
 void MMDAgent::procWindowSizeMessage(int x, int y)
 {
+   if (!m_hWnd) return;
+
    m_render->setSize(x, y);
 }
 
 /* MMDAgent::procKeyMessage: process key message */
 void MMDAgent::procKeyMessage(char c)
 {
+   if (!m_hWnd) return;
+
    sendEventMessage(MMDAGENT_EVENT_KEY, "%C", c);
 }
 
@@ -1659,6 +1728,14 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    btVector3 pos;
    btQuaternion rot;
    float fvec[3];
+
+   if (!m_hWnd) {
+      if(mes1 != NULL)
+         free(mes1);
+      if(mes2 != NULL)
+         free(mes2);
+      return;
+   }
 
    /* command */
    strncpy(command, mes1, MMDAGENT_MAXBUFLEN - 1);
@@ -1680,8 +1757,10 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       }
    }
 
-   if(mes1 != NULL) free(mes1);
-   if(mes2 != NULL) free(mes2);
+   if(mes1 != NULL)
+      free(mes1);
+   if(mes2 != NULL)
+      free(mes2);
 
    if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELADD)) {
       str1 = NULL;
@@ -1947,7 +2026,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
 void MMDAgent::procEventMessage(char *mes1, char *mes2)
 {
    /* free strings */
-   if (mes1 != NULL) {
+   if (m_hWnd && mes1 != NULL) {
       if (MMDAgent_strlen(mes2) > 0)
          m_logger->log("[%s|%s]", mes1, mes2);
       else
@@ -1969,6 +2048,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
 
    /* for motion */
    MotionPlayer *motionPlayer;
+
+   if (!m_hWnd) return;
 
    if(file == NULL) return;
    sendEventMessage(MMDAGENT_EVENT_DRAGANDDROP, "%s|%d|%d", file, x, y);
@@ -2071,6 +2152,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
 /* MMDAgent::procPluginMessage: process plugin message */
 void MMDAgent::procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+   if (!m_hWnd) return;
+
    if(m_plugin)
       m_plugin->execWindowProc(this, hWnd, message, wParam, lParam);
 }

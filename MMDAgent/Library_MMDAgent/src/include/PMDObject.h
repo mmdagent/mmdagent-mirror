@@ -129,9 +129,6 @@ public:
    /* startDisppear: set disapper timer */
    void startDisappear();
 
-   /* deleteModel: disable model */
-   void deleteModel();
-
    /* setLightForToon: set light direction for ton shading */
    void setLightForToon(btVector3 *v);
 
