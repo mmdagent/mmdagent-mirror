@@ -184,7 +184,7 @@ void LogText::render(TextRenderer *text)
       j = m_textLine + i;
       if (j >= m_textHeight)
          j -= m_textHeight;
-      if (strlen(m_textList[j]) > 0) {
+      if (MMDAgent_strlen(m_textList[j]) > 0) {
          glColor4f(LOGTEXT_COLOR);
          glPushMatrix();
          if (m_updated[j]) {

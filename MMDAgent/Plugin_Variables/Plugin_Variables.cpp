@@ -74,10 +74,10 @@
 
 CountDown_Thread countdown_thread;
 
-/* extWindowCreate: load models and start thread */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+/* extAppStart: load models and start thread */
+void __stdcall extAppStart(MMDAgent *m)
 {
-   countdown_thread.loadAndStart(hWnd, WM_MMDAGENT_EVENT);
+   countdown_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
 }
 
 /* extWindowProc: catch message */

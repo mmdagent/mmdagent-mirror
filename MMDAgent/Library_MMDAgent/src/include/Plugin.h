@@ -50,7 +50,6 @@ typedef struct _Plugin {
 
    void (__stdcall *appStart)(MMDAgent *mmdagent);
    void (__stdcall *appEnd)(MMDAgent *mmdagent);
-   void (__stdcall *windowCreate)(MMDAgent *mmdagent, HWND hWnd);
    void (__stdcall *windowProc)(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
    void (__stdcall *update)(MMDAgent *mmdagent, double deltaFrame);
    void (__stdcall *render)(MMDAgent *mmdagent);
@@ -98,9 +97,6 @@ public:
 
    /* execAppEnd: run when application is end */
    void execAppEnd(MMDAgent *mmdagent);
-
-   /* execWindowCreate: run when window is created */
-   void execWindowCreate(MMDAgent *mmdagent, HWND hWnd);
 
    /* execWindowProc: receive window message */
    void execWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

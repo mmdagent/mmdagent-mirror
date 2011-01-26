@@ -98,6 +98,15 @@ bool MMDAgent_strtailmatch(const char *str1, const char *str2)
       return false;
 }
 
+/* MMDAgent_strlen: strlen */
+int MMDAgent_strlen(const char *str)
+{
+   if(str == NULL)
+      return 0;
+   else
+      return strlen(str);
+}
+
 /* MMDAgent_strdup: strdup */
 char *MMDAgent_strdup(const char *str)
 {

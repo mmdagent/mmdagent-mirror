@@ -1,5 +1,5 @@
 LIBRARY	"Plugin_LookAt"
 EXPORTS
-	extWindowCreate
+	extAppStart
 	extWindowProc
 	extUpdate

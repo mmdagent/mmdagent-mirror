@@ -73,8 +73,8 @@
 
 VIManager_Thread vimanager_thread;
 
-/* extWindowCreate: load FST and start thread */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+/* extAppStart: load FST and start thread */
+void __stdcall extAppStart(MMDAgent *m)
 {
    char *buf;
    int len;
@@ -88,7 +88,7 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
       buf[len-3] = 'f';
       buf[len-2] = 's';
       buf[len-1] = 't';
-      vimanager_thread.loadAndStart(hWnd, WM_MMDAGENT_COMMAND, buf);
+      vimanager_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_COMMAND, buf);
    }
    free(buf);
 }

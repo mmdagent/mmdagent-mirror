@@ -53,7 +53,6 @@ void Plugin_initialize(Plugin *p)
 
    p->appStart = NULL;
    p->appEnd = NULL;
-   p->windowCreate = NULL;
    p->windowProc = NULL;
    p->update = NULL;
    p->render = NULL;
@@ -77,10 +76,11 @@ bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
 {
    char *buf;
 
+   if(p == NULL || dllDirName == NULL || dllFileName == NULL) return false;
    Plugin_clear(p);
 
    /* open DLL */
-   buf = (char *) malloc(sizeof(char) * (strlen(dllDirName) + 1 + strlen(dllFileName) + 1));
+   buf = (char *) malloc(sizeof(char) * (MMDAgent_strlen(dllDirName) + 1 + MMDAgent_strlen(dllFileName) + 1));
    sprintf(buf, "%s\\%s", dllDirName, dllFileName);
    p->handle = ::LoadLibraryExA(buf, NULL, 0);
    free(buf);
@@ -90,12 +90,11 @@ bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
    /* set function pointers */
    p->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppStart");
    p->appEnd = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppEnd");
-   p->windowCreate = (void (__stdcall *)(MMDAgent *, HWND)) ::GetProcAddress(p->handle, "extWindowCreate");
    p->windowProc = (void (__stdcall *)(MMDAgent *, HWND, UINT, WPARAM, LPARAM)) ::GetProcAddress(p->handle, "extWindowProc");
    p->update = (void (__stdcall *)(MMDAgent *, double)) ::GetProcAddress(p->handle, "extUpdate");
    p->render = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extRender");
 
-   if (p->appStart || p->appEnd || p->windowCreate || p->windowProc || p->update || p->render) {
+   if (p->appStart || p->appEnd || p->windowProc || p->update || p->render) {
       /* save file name */
       p->name = MMDAgent_strdup(dllFileName);
       p->enable = true;
@@ -149,7 +148,8 @@ bool PluginList::load(const char *dir)
    bool ret = false;
    Plugin *p;
 
-   buf = (char *) malloc(sizeof(char) * (strlen(dir) + 1 + strlen(PLUGIN_DYNAMICLIBS) + 1));
+   if(dir == NULL) return false;
+   buf = (char *) malloc(sizeof(char) * (MMDAgent_strlen(dir) + 1 + MMDAgent_strlen(PLUGIN_DYNAMICLIBS) + 1));
    sprintf(buf, "%s%c%s", dir, PLUGIN_DIRSEPARATOR, PLUGIN_DYNAMICLIBS);
 
    /* search file */
@@ -201,16 +201,6 @@ void PluginList::execAppEnd(MMDAgent *mmdagent)
    for (p = m_head; p; p = p->next)
       if (p->enable && p->appEnd)
          p->appEnd(mmdagent);
-}
-
-/* PluginList:execWindowCreate: run when window is created */
-void PluginList::execWindowCreate(MMDAgent *mmdagent, HWND hWnd)
-{
-   Plugin *p;
-
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->windowCreate)
-         p->windowCreate(mmdagent, hWnd);
 }
 
 /* PluginList::execWindowProc: receive window message */

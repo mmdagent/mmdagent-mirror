@@ -368,7 +368,7 @@ void MMDAgent::renderScene(HWND hWnd)
          _snprintf(buff, MMDAGENT_MAXBUFLEN, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
       }
    }
-   if (strlen(buff) > 0) {
+   if (MMDAgent_strlen(buff) > 0) {
       glDisable(GL_LIGHTING);
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
@@ -468,7 +468,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    char *binaryFileName;
    char *binaryDirName;
 
-   if(argc < 1 || strlen(argv[0]) <= 0)
+   if(argc < 1 || MMDAgent_strlen(argv[0]) <= 0)
       return 0;
 
    /* get binary file name */
@@ -485,7 +485,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    /* get application directory */
    if(m_appDirName)
       free(m_appDirName);
-   m_appDirName = (char *) malloc(sizeof(char) * (strlen(binaryDirName) + 1 + strlen(MMDAGENT_SYSDATADIR) + 1));
+   m_appDirName = (char *) malloc(sizeof(char) * (MMDAgent_strlen(binaryDirName) + 1 + MMDAgent_strlen(MMDAGENT_SYSDATADIR) + 1));
    sprintf(m_appDirName, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_SYSDATADIR);
 
    /* initialize Option */
@@ -493,7 +493,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* get default config file name */
    strcpy(buff, binaryFileName);
-   len = strlen(buff);
+   len = MMDAgent_strlen(buff);
    if (len > 4) {
       buff[len-4] = '.';
       buff[len-3] = 'm';
@@ -537,7 +537,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_plugin = new PluginList();
    sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
    m_plugin->load(buff);
-   m_plugin->execAppStart(this);
 
    /* create window */
    m_screen = new Screen();
@@ -608,6 +607,8 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    updateLight();
 
    SetCurrentDirectoryA(m_configDirName);
+
+   m_plugin->execAppStart(this);
 
    free(binaryFileName);
    free(binaryDirName);
@@ -685,13 +686,6 @@ char *MMDAgent::getConfigDirName()
 char *MMDAgent::getAppDirName()
 {
    return m_appDirName;
-}
-
-/* MMDAgent::procWindowCreateMessage: process window create message */
-void MMDAgent::procWindowCreateMessage(HWND hWnd)
-{
-   if(m_plugin)
-      m_plugin->execWindowCreate(this, hWnd);
 }
 
 /* MMDAgent::procWindowDestroyMessage: process window destroy message */
@@ -1014,7 +1008,7 @@ void MMDAgent::procEventMessage(char *mes1, char *mes2)
 {
    /* free strings */
    if (mes1 != NULL) {
-      if (mes2 != NULL && strlen(mes2) > 0)
+      if (MMDAgent_strlen(mes2) > 0)
          m_logger->log("[%s|%s]", mes1, mes2);
       else
          m_logger->log("[%s]", mes1);

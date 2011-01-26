@@ -124,7 +124,6 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 
    switch (message) {
    case WM_CREATE:
-      mmdagent.procWindowCreateMessage(hWnd);
       break;
    case WM_LBUTTONDBLCLK:
       mmdagent.procMouseLeftButtonDoubleClickMessage(LOWORD(lParam), HIWORD(lParam));

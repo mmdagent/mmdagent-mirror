@@ -121,7 +121,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             }
          }
          /* check mp3 */
-         len = strlen(file);
+         len = MMDAgent_strlen(file);
          if (len >= 5) {
             buf = MMDAgent_strdup(file);
             buf[len-3] = 'm';
@@ -133,7 +133,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                fclose(fp);
                sendCommandMessage(MMDAGENT_COMMAND_SOUND_START, "%s|%s", "audio", buf);
             }
-            free(buf);
+            if(buf)
+               free(buf);
          }
          /* resume timer */
          m_timer->resume();

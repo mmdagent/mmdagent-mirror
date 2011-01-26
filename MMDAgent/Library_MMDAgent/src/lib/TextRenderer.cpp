@@ -146,10 +146,12 @@ void TextRenderer::setup(HDC hDC)
 /* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap) */
 void TextRenderer::drawAsciiStringBitmap(char *str)
 {
-   GLsizei size = strlen(str);
+   GLsizei size = MMDAgent_strlen(str);
 
-   glListBase(m_bitmapFontID);
-   glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) str);
+   if(size > 0) {
+      glListBase(m_bitmapFontID);
+      glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) str);
+   }
 }
 
 /* TextRenderer::getDisplayListArrayOfString: get array of display list indices Draw any string (outline, slow) */
@@ -159,7 +161,7 @@ int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, i
    int n = 0;
    unsigned int id;
    int j;
-   size_t len = strlen(str);
+   size_t len = MMDAgent_strlen(str);
    GLYPHMETRICSFLOAT gmf;
    HGDIOBJ oldfont;
    unsigned char c1;

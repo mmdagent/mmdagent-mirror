@@ -77,8 +77,8 @@
 
 Julius_Thread julius_thread;
 
-/* extWindowCreate: load models and start thread */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+/* extAppStart: load models and start thread */
+void __stdcall extAppStart(MMDAgent *m)
 {
    char buff[JULIUSTHREAD_MAXBUFLEN];
    char current_dir[JULIUSTHREAD_MAXBUFLEN];
@@ -89,7 +89,7 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
    SetCurrentDirectoryA(buff);
 
    /* load models and start thread */
-   julius_thread.loadAndStart(hWnd, WM_MMDAGENT_EVENT);
+   julius_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
 
    /* move directory */
    SetCurrentDirectoryA(current_dir);

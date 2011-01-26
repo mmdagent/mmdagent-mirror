@@ -117,6 +117,7 @@ bool Option::load(char *file)
 {
    FILE *fp;
    char buf[OPTION_MAXBUFLEN];
+   int len;
    char *p1;
 
    int ivec2[2];
@@ -128,7 +129,9 @@ bool Option::load(char *file)
       return false;
 
    while (fgets(buf, OPTION_MAXBUFLEN, fp)) {
-      p1 = &(buf[strlen(buf)-1]);
+      len = MMDAgent_strlen(buf);
+      if(len <= 0) continue;
+      p1 = &(buf[len-1]);
       while (p1 >= &(buf[0]) && (*p1 == '\n' || *p1 == '\r' || *p1 == '\t' || *p1 == ' ')) {
          *p1 = L'\0';
          p1--;

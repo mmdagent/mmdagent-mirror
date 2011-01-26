@@ -250,9 +250,6 @@ public:
    /* getAppDirName: get application directory name for plugin */
    char *getAppDirName();
 
-   /* procWindowCreateMessage: process window create message */
-   void procWindowCreateMessage(HWND hWnd);
-
    /* procWindowDestroyMessage: process window destroy message */
    void procWindowDestroyMessage();
 

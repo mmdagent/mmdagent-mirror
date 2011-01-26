@@ -63,7 +63,7 @@ bool MMDAgent::command(char *command, char *str)
    float fvec[3];
 
    /* divide string into arguments */
-   if (str == NULL || strlen(str) <= 0) {
+   if (MMDAgent_strlen(str) <= 0) {
       m_logger->log("<%s>", command);
       num = 0;
    } else {
@@ -370,7 +370,7 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
    }
 
    /* alias */
-   if (motionAlias && strlen(motionAlias) > 0) {
+   if (MMDAgent_strlen(motionAlias) > 0) {
       /* check the same alias */
       name = MMDAgent_strdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
@@ -536,7 +536,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    }
 
    /* determine name */
-   if (modelAlias && strlen(modelAlias) > 0) {
+   if (MMDAgent_strlen(modelAlias) > 0) {
       /* check the same alias */
       name = MMDAgent_strdup(modelAlias);
       if (findModelAlias(name) >= 0) {

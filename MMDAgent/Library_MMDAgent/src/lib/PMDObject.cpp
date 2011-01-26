@@ -170,11 +170,11 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
       delete m_localLipSync;
    m_localLipSync = NULL;
    lip = new LipSync();
-   buf = MMDAgent_strdup(fileName);
-   len = strlen(fileName);
+   len = MMDAgent_strlen(fileName);
    if(len < 5) {
       delete lip;
    } else {
+      buf = MMDAgent_strdup(fileName);
       buf[len-4] = '.';
       buf[len-3] = 'l';
       buf[len-2] = 'i';
@@ -183,8 +183,9 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
          m_localLipSync = lip;
       } else
          delete lip;
+      if(buf)
+         free(buf);
    }
-   free(buf);
 
    /* set alias */
    setAlias(alias);
@@ -452,7 +453,7 @@ char *PMDObject::getAlias()
 /* PMDObject::setAlias: set alias name */
 void PMDObject::setAlias(char *alias)
 {
-   if(alias && strlen(alias) > 0 && m_alias != alias) {
+   if(MMDAgent_strlen(alias) > 0 && m_alias != alias) {
       if(m_alias)
          free(m_alias);
       m_alias = MMDAgent_strdup(alias);
@@ -673,7 +674,7 @@ void PMDObject::renderError(TextRenderer * text)
    char *p, *save;
 
    m_pmd.getErrorTextureList(buf, PMDOBJECT_MAXBUFLEN);
-   if (strlen(buf) <= 0)
+   if (MMDAgent_strlen(buf) <= 0)
       return;
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();

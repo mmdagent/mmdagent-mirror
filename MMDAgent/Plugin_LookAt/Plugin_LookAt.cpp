@@ -82,8 +82,8 @@ static void setEyeController(BoneController *controller, PMDModel *model)
    controller->setup(model, bone, 2, 0.180f, 0.008f, 0.0f, 0.0f, 1.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-/* extWindowCreate: initialize controller */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+/* extAppStart: initialize controller */
+void __stdcall extAppStart(MMDAgent *m)
 {
    enable = false;
 }

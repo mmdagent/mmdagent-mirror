@@ -71,10 +71,10 @@
 
 Audio audio;
 
-/* extWindowCreate: initialize audio */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+/* extAppStart: initialize audio */
+void __stdcall extAppStart(MMDAgent *m)
 {
-   audio.setup(hWnd);
+   audio.setup(m->getWindowHandler());
 }
 
 /* extWindowProc: process message */

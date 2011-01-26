@@ -94,14 +94,16 @@
 int open_jtalk_thread_index;
 Open_JTalk_Thread open_jtalk_thread_list[PLUGINOPENJTALK_NTHREAD];
 
-/* extWindowCreate: load models and start thread */
-void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
+char *MMDAgent_strdup(const char *);
+int MMDAgent_strlen(const char *);
+
+/* extAppStart: load models and start thread */
+void __stdcall extAppStart(MMDAgent *m)
 {
    int i;
    size_t size;
    char dic_dir[OPENJTALK_MAXBUFLEN];
    char *config;
-   char current_dir[OPENJTALK_MAXBUFLEN];
 
    open_jtalk_thread_index = 0;
 
@@ -109,12 +111,8 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
    sprintf(dic_dir, "%s%c%s", m->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
 
    /* get config file */
-   config = strdup(m->getConfigFileName());
-   size = strlen(config);
-
-   /* save current directory and move directory */
-   GetCurrentDirectoryA(OPENJTALK_MAXBUFLEN, current_dir);
-   SetCurrentDirectoryA(m->getConfigDirName());
+   config = MMDAgent_strdup(m->getConfigFileName());
+   size = MMDAgent_strlen(config);
 
    /* load */
    if (size > 4) {
@@ -123,13 +121,11 @@ void __stdcall extWindowCreate(MMDAgent *m, HWND hWnd)
       config[size-2] = 'j';
       config[size-1] = 't';
       for (i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
-         open_jtalk_thread_list[i].loadAndStart(hWnd, WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
+         open_jtalk_thread_list[i].loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
    }
 
-   /* move directory */
-   SetCurrentDirectoryA(current_dir);
-
-   free(config);
+   if(config)
+      free(config);
 }
 
 /* extWindowProc: catch message */
