@@ -1444,13 +1444,12 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
          m_render->translate(tmp1, tmp2, tmp3);
       } else if (withCtrl) {
          /* if Ctrl-key, move model */
-         if (m_selectedModel != -1) {
+         if (m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
             m_render->highlightModel(this, m_selectedModel);
-            btVector3 pos;
-            m_model[m_selectedModel].getPosition(pos);
-            pos.setX(pos.x() + r1 / 20.0f);
-            pos.setZ(pos.z() + r2 / 20.0f);
-            m_model[m_selectedModel].setPosition(pos);
+            m_model[m_selectedModel].getPosition(v);
+            v.setX(v.x() + r1 / 20.0f);
+            v.setZ(v.z() + r2 / 20.0f);
+            m_model[m_selectedModel].setPosition(v);
             m_model[m_selectedModel].setMoveSpeed(-1.0f);
          }
       } else {
@@ -2001,7 +2000,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                }
             } else {
                /* target model */
-               addMotion(m_model[targetModelID].getAlias(), NULL, file, false, true, true, true);
+               if (m_model[targetModelID].isEnable() && m_model[targetModelID].allowMotionFileDrop())
+                  addMotion(m_model[targetModelID].getAlias(), NULL, file, false, true, true, true);
             }
          } else {
             /* change base motion */
@@ -2021,14 +2021,16 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                }
             } else {
                /* target model */
-               for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-                  if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
-                     changeMotion(m_model[targetModelID].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
-                     break;
+               if(m_model[targetModelID].isEnable() && m_model[targetModelID].allowMotionFileDrop()) {
+                  for (motionPlayer = m_model[targetModelID].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+                     if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, "base")) {
+                        changeMotion(m_model[targetModelID].getAlias(), "base", file); /* if 'base' motion is already used, change motion */
+                        break;
+                     }
                   }
+                  if (!motionPlayer)
+                     addMotion(m_model[targetModelID].getAlias(), "base", file, true, false, true, true);
                }
-               if (!motionPlayer)
-                  addMotion(m_model[targetModelID].getAlias(), "base", file, true, false, true, true);
             }
          }
          /* resume timer */
