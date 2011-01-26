@@ -197,6 +197,7 @@ static PortAudioStream *stream;		///< Stream information
 #else
 static PaStream *stream;		///< Stream information
 #endif
+static int srate;			///< Smapling rate
 
 /** 
  * Device initialization: check device capability and open for recording.
@@ -209,6 +210,15 @@ static PaStream *stream;		///< Stream information
 boolean
 adin_mic_standby(int sfreq, void *dummy)
 {
+  /* store required sampling rate for checking after opening device */
+  srate = sfreq;
+  return TRUE;
+}
+
+static boolean
+adin_portaudio_open()
+{
+  int sfreq = srate;
   PaError err;
 #ifdef OLDVER
   int frames_per_buffer;
@@ -404,6 +414,10 @@ adin_mic_begin(char *pathname)
 {
   PaError err;
 
+  /* open the device */
+  if (adin_portaudio_open() == FALSE) {
+    return FALSE;
+  }
   /* start stream */
   err = Pa_StartStream(stream);
   if (err != paNoError) {
@@ -428,6 +442,13 @@ adin_mic_end()
   err = Pa_StopStream(stream);
   if (err != paNoError) {
     jlog("Error: adin_portaudio: failed to stop stream: %s\n", Pa_GetErrorText(err));
+    return(FALSE);
+  }
+
+  /* terminate library */
+  err = Pa_Terminate();
+  if (err != paNoError) {
+    jlog("Error: adin_portaudio: failed to terminate PortAudio library: %s\n", Pa_GetErrorText(err));
     return(FALSE);
   }
   
