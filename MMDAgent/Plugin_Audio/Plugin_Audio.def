@@ -2,3 +2,4 @@ LIBRARY	"Plugin_Audio"
 EXPORTS
 	extAppStart
 	extWindowProc
+	extAppEnd

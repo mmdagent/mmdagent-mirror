@@ -151,6 +151,12 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
    }
 }
 
+/* extAppEnd: release audio */
+void __stdcall extAppEnd(MMDAgent *m)
+{
+   audio.release();
+}
+
 /* DllMain: main for DLL */
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
 {

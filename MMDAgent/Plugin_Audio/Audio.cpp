@@ -55,7 +55,7 @@ void Audio::initialize()
    m_needToClose = false;
 
    for (i = 0; i < AUDIO_MAXNSOUND; i++) {
-      m_fileName[i][0] = L'\0';
+      m_fileName[i][0] = '\0';
       m_id[i] = -1;
    }
    m_current = 0;
@@ -65,9 +65,10 @@ void Audio::initialize()
 void Audio::clear()
 {
    if (m_needToClose) {
-      mciSendStringA("stop all", NULL, 0, NULL);
-      mciSendStringA("close all", NULL, 0, NULL);
+      mciSendStringA("stop all wait", NULL, 0, NULL);
+      mciSendStringA("close all wait", NULL, 0, NULL);
    }
+
    initialize();
 }
 
@@ -87,6 +88,12 @@ Audio::~Audio()
 void Audio::setup(HWND hWnd)
 {
    m_window = hWnd;
+}
+
+/* Audio::release: free audio */
+void Audio::release()
+{
+   clear();
 }
 
 /* Audio::play: play audio */

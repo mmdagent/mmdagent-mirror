@@ -71,6 +71,9 @@ public:
    /* setup: initialize audio with window handle */
    void setup(HWND hWnd);
 
+   /* release: free audio */
+   void release();
+
    /* play: play audio */
    bool play(char *alias, char *file);
 
