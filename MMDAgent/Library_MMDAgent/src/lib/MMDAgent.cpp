@@ -126,7 +126,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    if (baseModelAlias) {
       baseID = findModelAlias(baseModelAlias);
       if (baseID < 0) {
-         m_logger->log("!Error: addModel: model alias \"%s\" is not found", baseModelAlias);
+         m_logger->log("Error: addModel: %s is not found.", baseModelAlias);
          return false;
       }
       if (baseBoneName) {
@@ -136,9 +136,9 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
       }
       if (assignBone == NULL) {
          if (baseBoneName)
-            m_logger->log("!Error: addModel: bone \"%s\" is not exist on %s.", baseBoneName, baseModelAlias);
+            m_logger->log("Error: addModel: %s is not exist on %s.", baseBoneName, baseModelAlias);
          else
-            m_logger->log("!Error: addModel: cannot assign to bone of %s.", baseModelAlias);
+            m_logger->log("Error: addModel: %s don't have center bone.", baseModelAlias);
          return false;
       }
       assignObject = &m_model[baseID];
@@ -147,7 +147,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
    /* ID */
    id = getNewModelId();
    if (id == -1) {
-      m_logger->log("! Error: addModel: too many models.");
+      m_logger->log("Error: addModel: number of models exceed the limit.");
       return false;
    }
 
@@ -156,7 +156,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
       /* check the same alias */
       name = MMDAgent_strdup(modelAlias);
       if (findModelAlias(name) >= 0) {
-         m_logger->log("! Error: addModel: model alias \"%s\" is already used.", name);
+         m_logger->log("Error: addModel: model alias \"%s\" is already used.", name);
          free(name);
          return false;
       }
@@ -173,7 +173,7 @@ bool MMDAgent::addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuat
 
    /* add model */
    if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
-      m_logger->log("! Error: addModel: failed to load %s.", fileName);
+      m_logger->log("Error: addModel: %s cannot be loaded.", fileName);
       m_model[id].deleteModel();
       free(name);
       return false;
@@ -202,13 +202,13 @@ bool MMDAgent::changeModel(char *modelAlias, char *fileName)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: changeModel: not found %s.", modelAlias);
+      m_logger->log("Error: changeModel: %s is not found.", modelAlias);
       return false;
    }
 
    /* load model */
    if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
-      m_logger->log("! Error: changeModel: failed to load model %s.", fileName);
+      m_logger->log("Error: changeModel: %s cannot be loaded.", fileName);
       return false;
    }
 
@@ -245,7 +245,7 @@ bool MMDAgent::deleteModel(char *modelAlias)
    id = findModelAlias(modelAlias);
    if (id < 0) {
       /* wrong alias */
-      m_logger->log("Error: deleteModel: not found %s.", modelAlias);
+      m_logger->log("Error: deleteModel: %s is not found.", modelAlias);
       return false;
    }
 
@@ -274,14 +274,14 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
    /* motion file */
    vmd = m_motion->loadFromFile(fileName);
    if (vmd == NULL) {
-      m_logger->log("! Error: addMotion: failed to load %s.", fileName);
+      m_logger->log("Error: addMotion: %s cannot be loaded.", fileName);
       return false;
    }
 
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: addMotion: not found %s.", modelAlias);
+      m_logger->log("Error: addMotion: %s is not found.", modelAlias);
       return false;
    }
 
@@ -291,7 +291,7 @@ bool MMDAgent::addMotion(char *modelAlias, char *motionAlias, char *fileName, bo
       name = MMDAgent_strdup(motionAlias);
       for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
          if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, name)) {
-            m_logger->log("! Error: addMotion: motion alias \"%s\" is already used.", name);
+            m_logger->log("Error: addMotion: motion alias \"%s\" is already used.", name);
             free(name);
             return false;
          }
@@ -334,20 +334,20 @@ bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: changeMotion: not found %s.", modelAlias);
+      m_logger->log("Error: changeMotion: %s is not found.", modelAlias);
       return false;
    }
 
    /* check */
    if (!motionAlias) {
-      m_logger->log("! Error: changeMotion: not specified %s.", motionAlias);
+      m_logger->log("Error: changeMotion: not specified %s.", motionAlias);
       return false;
    }
 
    /* motion file */
    vmd = m_motion->loadFromFile(fileName);
    if (vmd == NULL) {
-      m_logger->log("! Error: changeMotion: failed to load %s.", fileName);
+      m_logger->log("Error: changeMotion: %s cannot be loaded.", fileName);
       return false;
    }
 
@@ -359,14 +359,14 @@ bool MMDAgent::changeMotion(char *modelAlias, char *motionAlias, char *fileName)
       }
    }
    if(old == NULL) {
-      m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_logger->log("Error: changeMotion: %s is not found.", motionAlias);
       m_motion->unload(vmd);
       return false;
    }
 
    /* change motion */
    if (m_model[id].swapMotion(vmd, motionAlias) == false) {
-      m_logger->log("! Error: changeMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_logger->log("Error: changeMotion: %s is not found.", motionAlias);
       m_motion->unload(vmd);
       return false;
    }
@@ -387,13 +387,13 @@ bool MMDAgent::deleteMotion(char *modelAlias, char *motionAlias)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: deleteMotion: not found %s.", modelAlias);
+      m_logger->log("Error: deleteMotion: %s is not found.", modelAlias);
       return false;
    }
 
    /* delete motion */
    if (m_model[id].getMotionManager()->deleteMotion(motionAlias) == false) {
-      m_logger->log("! Error: deleteMotion: motion alias \"%s\"is not found.", motionAlias);
+      m_logger->log("Error: deleteMotion: %s is not found.", motionAlias);
       return false;
    }
 
@@ -413,7 +413,7 @@ bool MMDAgent::startMove(char *modelAlias, btVector3 *pos, bool local, float spe
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: startMove: not found %s.", modelAlias);
+      m_logger->log("Error: startMove: %s is not found.", modelAlias);
       return false;
    }
 
@@ -448,7 +448,7 @@ bool MMDAgent::stopMove(char *modelAlias)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: stopMove: not found %s.", modelAlias);
+      m_logger->log("Error: stopMove: %s is not found.", modelAlias);
       return false;
    }
 
@@ -481,7 +481,7 @@ bool MMDAgent::startTurn(char *modelAlias, btVector3 *pos, bool local, float spe
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: startTurn: not found %s.", modelAlias);
+      m_logger->log("Error: startTurn: %s is not found.", modelAlias);
       return false;
    }
 
@@ -528,7 +528,7 @@ bool MMDAgent::stopTurn(char *modelAlias)
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: stopTurn: not found %s.", modelAlias);
+      m_logger->log("Error: stopTurn: %s is not found.", modelAlias);
       return false;
    }
 
@@ -558,7 +558,7 @@ bool MMDAgent::startRotation(char *modelAlias, btQuaternion *rot, bool local, fl
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: startRotation: not found %s", modelAlias);
+      m_logger->log("Error: startRotation: %s is not found.", modelAlias);
       return false;
    }
 
@@ -589,7 +589,7 @@ bool MMDAgent::stopRotation(char *modelAlias)
 
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: stopRotation: not found %s", modelAlias);
+      m_logger->log("Error: stopRotation: %s is not found.", modelAlias);
       return false;
    }
 
@@ -611,7 +611,7 @@ bool MMDAgent::setFloor(char *fileName)
 {
    /* load floor */
    if (m_stage->loadFloor(fileName, m_bullet) == false) {
-      m_logger->log("Error: setFloor: cannot set floor %s.", fileName);
+      m_logger->log("Error: setFloor: %s cannot be set for floor.", fileName);
       return false;
    }
 
@@ -624,7 +624,7 @@ bool MMDAgent::setBackground(char *fileName)
 {
    /* load background */
    if (m_stage->loadBackground(fileName, m_bullet) == false) {
-      m_logger->log("Error: setBackground: cannot set background %s.", fileName);
+      m_logger->log("Error: setBackground: %s cannot be set for background.", fileName);
       return false;
    }
 
@@ -636,7 +636,7 @@ bool MMDAgent::setBackground(char *fileName)
 bool MMDAgent::setStage(char *fileName)
 {
    if (m_stage->loadStagePMD(fileName, m_bullet, m_systex) == false) {
-      m_logger->log("Error: setStage: cannot set stage %s.", fileName);
+      m_logger->log("Error: setStage: %s cannot be set for stage.", fileName);
       return false;
    }
 
@@ -688,13 +688,13 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: startLipSync not found %s.", modelAlias);
+      m_logger->log("Error: startLipSync: %s is not found.", modelAlias);
       return false;
    }
 
    /* create motion */
    if(m_model[id].createLipSyncMotion(seq, &vmdData, &vmdSize) == false) {
-      m_logger->log("! Error: startLipSync: cannot create lip motion.");
+      m_logger->log("Error: startLipSync: cannot create lip motion.");
       return false;
    }
    vmd = m_motion->loadFromData(vmdData, vmdSize);
@@ -711,14 +711,14 @@ bool MMDAgent::startLipSync(char *modelAlias, char *seq)
    /* start lip sync */
    if(find == true) {
       if (m_model[id].swapMotion(vmd, LIPSYNC_MOTIONNAME) == false) {
-         m_logger->log("! Error: startLipSync: cannot start lip sync.");
+         m_logger->log("Error: startLipSync: lip sync cannot be started.");
          m_motion->unload(vmd);
          return false;
       }
       sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", modelAlias);
    } else {
       if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true) == false) {
-         m_logger->log("! Error: startLipSync: cannot start lip sync.");
+         m_logger->log("Error: startLipSync: lip sync cannot be started.");
          m_motion->unload(vmd);
          return false;
       }
@@ -737,13 +737,13 @@ bool MMDAgent::stopLipSync(char *modelAlias)
    /* ID */
    id = findModelAlias(modelAlias);
    if (id < 0) {
-      m_logger->log("! Error: stopLipSync: not found %s.", modelAlias);
+      m_logger->log("Error: stopLipSync: %s is not found.", modelAlias);
       return false;
    }
 
    /* stop lip sync */
    if (m_model[id].getMotionManager()->deleteMotion(LIPSYNC_MOTIONNAME) == false) {
-      m_logger->log("! Error: stopLipSync: lipsync motion not found");
+      m_logger->log("Error: stopLipSync: lipsync motion is not found.");
       return false;
    }
 
@@ -1671,7 +1671,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       m_logger->log("<%s|%s>", command, mes2);
       for (str1 = MMDAgent_strtok(mes2, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
          if (num >= MMDAGENT_MAXNCOMMAND) {
-            m_logger->log("! Error: too many argument in command %s: %s", command, mes2);
+            m_logger->log("Error: %s: number of arguments exceed the limit.", command);
             break;
          }
          strncpy(argv[num], str1, MMDAGENT_MAXBUFLEN - 1);
@@ -1687,12 +1687,12 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       str1 = NULL;
       str2 = NULL;
       if (num < 2 || num > 6) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2-6.", command);
          return;
       }
       if (num >= 3) {
          if (MMDAgent_str2pos(argv[2], &pos) == false) {
-            m_logger->log("! Error: %s: not a position string: %s", command, argv[2]);
+            m_logger->log("Error: %s: %s is not a position string.", command, argv[2]);
             return;
          }
       } else {
@@ -1700,7 +1700,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       }
       if (num >= 4) {
          if (MMDAgent_str2rot(argv[3], &rot) == false) {
-            m_logger->log("! Error: %s: not a rotation string: %s", command, argv[3]);
+            m_logger->log("Error: %s: %s is not a rotation string.", command, argv[3]);
             return;
          }
       } else {
@@ -1716,14 +1716,14 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELCHANGE)) {
       /* change model */
       if (num != 2) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", command);
          return;
       }
       changeModel(argv[0], argv[1]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELDELETE)) {
       /* delete model */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       deleteModel(argv[0]);
@@ -1734,7 +1734,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       bool3 = true; /* enableSmooth */
       bool4 = true; /* enableRePos */
       if (num < 3 || num > 7) {
-         m_logger->log("! Error: %s: too few arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 4-6.", command);
          return;
       }
       if (num >= 4) {
@@ -1743,7 +1743,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[3], "PART")) {
             bool1 = false;
          } else {
-            m_logger->log("! Error: %s: 4th argument should be \"FULL\" or \"PART\"", command);
+            m_logger->log("Error: %s: 4th argument should be \"FULL\" or \"PART\".", command);
             return;
          }
       }
@@ -1753,7 +1753,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[4], "LOOP")) {
             bool2 = false;
          } else {
-            m_logger->log("! Error: %s: 5th argument should be \"ONCE\" or \"LOOP\"", command);
+            m_logger->log("Error: %s: 5th argument should be \"ONCE\" or \"LOOP\".", command);
             return;
          }
       }
@@ -1763,7 +1763,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[5], "OFF")) {
             bool3 = false;
          } else {
-            m_logger->log("! Error: %s: 6th argument should be \"ON\" or \"OFF\"", command);
+            m_logger->log("Error: %s: 6th argument should be \"ON\" or \"OFF\".", command);
             return;
          }
       }
@@ -1773,7 +1773,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[6], "OFF")) {
             bool4 = false;
          } else {
-            m_logger->log("! Error: %s: 7th argument should be \"ON\" or \"OFF\"", command);
+            m_logger->log("Error: %s: 7th argument should be \"ON\" or \"OFF\".", command);
             return;
          }
       }
@@ -1781,14 +1781,14 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONCHANGE)) {
       /* change motion */
       if (num != 3) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 3.", command);
          return;
       }
       changeMotion(argv[0], argv[1], argv[2]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONDELETE)) {
       /* delete motion */
       if (num != 2) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", command);
          return;
       }
       deleteMotion(argv[0], argv[1]);
@@ -1797,11 +1797,11 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
          return;
       }
       if (MMDAgent_str2pos(argv[1], &pos) == false) {
-         m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a position string.", command, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -1810,7 +1810,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
             return;
          }
       }
@@ -1820,7 +1820,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVESTOP)) {
       /* stop moving */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       stopMove(argv[0]);
@@ -1829,11 +1829,11 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
          return;
       }
       if (MMDAgent_str2rot(argv[1], &rot) == false) {
-         m_logger->log("! Error: %s: not a rotation string: %s", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a rotation string.", command, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -1842,7 +1842,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
             return;
          }
       }
@@ -1852,7 +1852,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATESTOP)) {
       /* stop rotation */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       stopRotation(argv[0]);
@@ -1861,11 +1861,11 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
          return;
       }
       if (MMDAgent_str2pos(argv[1], &pos) == false) {
-         m_logger->log("! Error: %s: not a position string: %s", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a position string.", command, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -1874,7 +1874,7 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("! Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\"", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
             return;
          }
       }
@@ -1884,14 +1884,14 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURNSTOP)) {
       /* stop turn */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       stopTurn(argv[0]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_STAGE)) {
       /* change stage */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       /* pmd or bitmap */
@@ -1907,36 +1907,36 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTCOLOR)) {
       /* change light color */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
-         m_logger->log("! Error: %s: not \"R,G,B\" value: %s", command, argv[0]);
+         m_logger->log("Error: %s: \"%s\" is not RGB value.", command, argv[0]);
          return;
       }
       changeLightColor(fvec[0], fvec[1], fvec[2]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTDIRECTION)) {
       /* change light direction */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
-         m_logger->log("! Error: %s: not \"x,y,z\" value: %s", command, argv[0]);
+         m_logger->log("Error: %s: \"%s\" is not XYZ value.", command, argv[0]);
          return;
       }
       changeLightDirection(fvec[0], fvec[1], fvec[2]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTART)) {
       /* start lip sync */
       if (num != 2) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", command);
          return;
       }
       startLipSync(argv[0], argv[1]);
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTOP)) {
       /* stop lip sync */
       if (num != 1) {
-         m_logger->log("! Error: %s: wrong number of arguments", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", command);
          return;
       }
       stopLipSync(argv[0]);
@@ -1987,7 +1987,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             targetModelID = dropAllowedModelID;
       }
       if (targetModelID == -1) {
-         m_logger->log("Warning: vmd file dropped but no model exit at the point");
+         m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
       } else {
          /* pause timer to skip file loading time */
          m_timer->pause();
@@ -2002,6 +2002,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                /* target model */
                if (m_model[targetModelID].isEnable() && m_model[targetModelID].allowMotionFileDrop())
                   addMotion(m_model[targetModelID].getAlias(), NULL, file, false, true, true, true);
+               else
+                  m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
             }
          } else {
             /* change base motion */
@@ -2030,6 +2032,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
                   }
                   if (!motionPlayer)
                      addMotion(m_model[targetModelID].getAlias(), "base", file, true, false, true, true);
+               } else {
+                  m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
                }
             }
          }
@@ -2051,7 +2055,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          else
             targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID);
          if (targetModelID == -1) {
-            m_logger->log("Warning: pmd file dropped but no model at the point");
+            m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
          } else {
             changeModel(m_model[targetModelID].getAlias(), file);
          }
