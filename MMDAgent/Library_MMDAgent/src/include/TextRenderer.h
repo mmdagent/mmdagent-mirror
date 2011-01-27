@@ -39,12 +39,15 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define TEXTRENDERER_MAXBUFLEN 1024
-
-#define TEXTRENDERER_FONT     "Arial Unicode MS"
-#define TEXTRENDERER_MAXNCHAR 1024               /* maxium number of character stored in display list without ASCII */
-
+#define TEXTRENDERER_FONT      "Arial Unicode MS"
 #define TEXTRENDERER_ASCIISIZE 256
+
+/* CharDispList: display list for character */
+typedef struct _CharDispList {
+   unsigned long c;
+   unsigned int id;
+   struct _CharDispList *next;
+} CharDispList;
 
 /* TextRenderer: text renderer */
 class TextRenderer
@@ -56,11 +59,10 @@ private:
    unsigned int m_outlineFontID; /* first 256 ID in ASCII font (outline) */
    unsigned int m_bitmapFontID;  /* first 256 ID in ASCII font (bitmatp) */
 
-   unsigned long m_charList[TEXTRENDERER_MAXNCHAR]; /* 32 bit (sjis) code list without ASCII */
-   unsigned int m_idList[TEXTRENDERER_MAXNCHAR];    /* IDs */
+   CharDispList *m_list;
 
-   int m_idNum;   /* number of stored characters */
-   int m_current; /* current pointer (point next Character) */
+   /* getID: get display list of character */
+   bool getID(unsigned long mbc, unsigned int *id);
 
    /* initialize: initialize text renderer */
    void initialize();
