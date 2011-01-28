@@ -39,7 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define OPENJTALK_MAXBUFLEN     32768
+/* definitions */
+
+#define OPENJTALK_MAXBUFLEN     2048
 #define OPENJTALK_MINLF0VAL     log(10.0)
 
 #define OPENJTALK_GAMMA         0
@@ -51,9 +53,14 @@
 #define OPENJTALK_VOLUME        1.0
 #define OPENJTALK_AUDIOBUFFSIZE 4800
 
-#ifdef OPENJTALK_DEBUG
-void dprint(char *str);
-#endif
+#define OPENJTALK_MAXFPERIOD  48000
+#define OPENJTALK_MINFPERIOD  1
+#define OPENJTALK_MAXHALFTONE 24.0
+#define OPENJTALK_MINHALFTONE -24.0
+#define OPENJTALK_MAXALPHA    1.0
+#define OPENJTALK_MINALPHA    0.0
+#define OPENJTALK_MAXVOLUME   10.0
+#define OPENJTALK_MINVOLUME   0.0
 
 /* Open_JTalk: Japanese TTS system */
 class Open_JTalk

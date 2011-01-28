@@ -39,7 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define MOTIONSTOCKER_NCACHE    10   /* number of cache VMD files */
+/* definitions */
+
+#define MOTIONSTOCKER_NCACHE 10 /* number of cache VMD files */
 
 /* VMDList: VMD list */
 typedef struct _VMDList {

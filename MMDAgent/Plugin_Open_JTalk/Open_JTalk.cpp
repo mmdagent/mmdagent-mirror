@@ -41,7 +41,7 @@
 
 /* headers */
 
-#include <math.h>
+#include "MMDAgent.h"
 
 #include "mecab.h"
 #include "njd.h"
@@ -149,48 +149,48 @@ bool Open_JTalk::load(char *dicDir, char **modelDir, int numModels, double *styl
    fn_ms_gvm = (char **) calloc(m_numModels, sizeof(char *));
    fn_ms_gvl = (char **) calloc(m_numModels, sizeof(char *));
 
-   dn_mecab = _strdup(dicDir);
+   dn_mecab = MMDAgent_strdup(dicDir);
    sprintf(buff, "%s\\%s", modelDir[0], "mgc.win1");
-   fn_ws_mcp[0] = _strdup(buff);
+   fn_ws_mcp[0] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "mgc.win2");
-   fn_ws_mcp[1] = _strdup(buff);
+   fn_ws_mcp[1] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "mgc.win3");
-   fn_ws_mcp[2] = _strdup(buff);
+   fn_ws_mcp[2] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "lf0.win1");
-   fn_ws_lf0[0] = _strdup(buff);
+   fn_ws_lf0[0] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "lf0.win2");
-   fn_ws_lf0[1] = _strdup(buff);
+   fn_ws_lf0[1] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "lf0.win3");
-   fn_ws_lf0[2] = _strdup(buff);
+   fn_ws_lf0[2] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "lpf.win1");
-   fn_ws_lpf[0] = _strdup(buff);
+   fn_ws_lpf[0] = MMDAgent_strdup(buff);
    sprintf(buff, "%s\\%s", modelDir[0], "gv-switch.inf");
-   fn_gv_switch = _strdup(buff);
+   fn_gv_switch = MMDAgent_strdup(buff);
    for (i = 0; i < m_numModels; i++) {
       sprintf(buff, "%s\\%s", modelDir[i], "tree-dur.inf");
-      fn_ts_dur[i] = _strdup(buff);
+      fn_ts_dur[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "tree-mgc.inf");
-      fn_ts_mcp[i] = _strdup(buff);
+      fn_ts_mcp[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "tree-lf0.inf");
-      fn_ts_lf0[i] = _strdup(buff);
+      fn_ts_lf0[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "tree-lpf.inf");
-      fn_ts_lpf[i] = _strdup(buff);
+      fn_ts_lpf[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "dur.pdf");
-      fn_ms_dur[i] = _strdup(buff);
+      fn_ms_dur[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "mgc.pdf");
-      fn_ms_mcp[i] = _strdup(buff);
+      fn_ms_mcp[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "lf0.pdf");
-      fn_ms_lf0[i] = _strdup(buff);
+      fn_ms_lf0[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "lpf.pdf");
-      fn_ms_lpf[i] = _strdup(buff);
+      fn_ms_lpf[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "tree-gv-mgc.inf");
-      fn_ts_gvm[i] = _strdup(buff);
+      fn_ts_gvm[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "tree-gv-lf0.inf");
-      fn_ts_gvl[i] = _strdup(buff);
+      fn_ts_gvl[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "gv-mgc.pdf");
-      fn_ms_gvm[i] = _strdup(buff);
+      fn_ms_gvm[i] = MMDAgent_strdup(buff);
       sprintf(buff, "%s\\%s", modelDir[i], "gv-lf0.pdf");
-      fn_ms_gvl[i] = _strdup(buff);
+      fn_ms_gvl[i] = MMDAgent_strdup(buff);
    }
 
    /* load */
@@ -390,26 +390,39 @@ bool Open_JTalk::setStyle(int val)
 
    /* speed */
    f = OPENJTALK_FPERIOD / m_styleWeights[index + m_numModels * 3 + 0];
-   if (f < 1.0) f = 1.0;
-   if (f > 48000.0) f = 48000.0;
-   HTS_Engine_set_fperiod(&m_engine, (int) f);
+   if(f > OPENJTALK_MAXFPERIOD)
+      HTS_Engine_set_fperiod(&m_engine, OPENJTALK_MAXFPERIOD);
+   else if(f < OPENJTALK_MINFPERIOD)
+      HTS_Engine_set_fperiod(&m_engine, OPENJTALK_MINFPERIOD);
+   else
+      HTS_Engine_set_fperiod(&m_engine, (int) f);
 
    /* pitch */
    f = m_styleWeights[index + m_numModels * 3 + 1];
-   if (f < -24.0) f = -24.0;
-   if (f > 24.0)  f = 24.0;
-   m_f0Shift = f;
+   if(f > OPENJTALK_MAXHALFTONE)
+      m_f0Shift = OPENJTALK_MAXHALFTONE;
+   else if(f < OPENJTALK_MINHALFTONE)
+      m_f0Shift = OPENJTALK_MINHALFTONE;
+   else
+      m_f0Shift = f;
 
    /* alpha */
    f = m_styleWeights[index + m_numModels * 3 + 2];
-   if (f < 0.0) f = 0.0;
-   if (f > 1.0) f = 1.0;
-   HTS_Engine_set_alpha(&m_engine, f);
+   if(f > OPENJTALK_MAXALPHA)
+      HTS_Engine_set_alpha(&m_engine, OPENJTALK_MAXALPHA);
+   else if(f < OPENJTALK_MINALPHA)
+      HTS_Engine_set_alpha(&m_engine, OPENJTALK_MINALPHA);
+   else
+      HTS_Engine_set_alpha(&m_engine, f);
 
    /* volume */
    f = m_styleWeights[index + m_numModels * 3 + 3];
-   if (f < 0.0) f = 0.0;
-   HTS_Engine_set_volume(&m_engine, f);
+   if(f > OPENJTALK_MAXVOLUME)
+      HTS_Engine_set_volume(&m_engine, OPENJTALK_MAXVOLUME);
+   else if(f < OPENJTALK_MINVOLUME)
+      HTS_Engine_set_volume(&m_engine, OPENJTALK_MINVOLUME);
+   else
+      HTS_Engine_set_volume(&m_engine, f);
 
    return true;
 }

@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* TileTexture::resetDisplayList: reset display list */
 void TileTexture::resetDisplayList()

@@ -179,6 +179,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\MMDAgent_utils.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\MotionStocker.cpp"
 				>
 			</File>
@@ -218,10 +222,6 @@
 				RelativePath=".\src\lib\Timer.cpp"
 				>
 			</File>
-			<File
-				RelativePath=".\src\lib\utils.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="header"
@@ -242,6 +242,10 @@
 			</File>
 			<File
 				RelativePath=".\src\include\MMDAgent.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\include\MMDAgent_utils.h"
 				>
 			</File>
 			<File
@@ -282,10 +286,6 @@
 			</File>
 			<File
 				RelativePath=".\src\include\Timer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\lib\utils.h"
 				>
 			</File>
 		</Filter>

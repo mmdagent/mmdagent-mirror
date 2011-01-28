@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* Option::initialize: initialize options */
 void Option::initialize()

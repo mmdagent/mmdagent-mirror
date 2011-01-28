@@ -39,40 +39,12 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define OPENJTALKTHREAD_WAITMS     10000               /* 10 sec */
 #define OPENJTALKTHREAD_EVENTSTART "SYNTH_EVENT_START"
 #define OPENJTALKTHREAD_EVENTSTOP  "SYNTH_EVENT_STOP"
 #define OPENJTALKTHREAD_COMMANDLIP "LIPSYNC_START"
-
-/* Open_JTalk_Event: input message buffer */
-typedef struct _Open_JTalk_Event {
-   char *event;
-   struct _Open_JTalk_Event *next;
-} Open_JTalk_Event;
-
-/* Open_JTalk_Event_initialize: initialize input message buffer */
-void Open_JTalk_Event_initialize(Open_JTalk_Event *e, char *str);
-
-/* Open_JTalk_Event_clear: free input message buffer */
-void Open_JTalk_Event_clear(Open_JTalk_Event *e);
-
-/* Open_JTalk_EventQueue: queue of Open_JTalk_Event */
-typedef struct _Open_JTalk_EventQueue {
-   Open_JTalk_Event *head;
-   Open_JTalk_Event *tail;
-} Open_JTalk_EventQueue;
-
-/* Open_JTalk_EventQueue_initialize: initialize queue */
-void Open_JTalk_EventQueue_initialize(Open_JTalk_EventQueue *q);
-
-/* Open_JTalk_EventQueue_clear: free queue */
-void Open_JTalk_EventQueue_clear(Open_JTalk_EventQueue *q);
-
-/* Open_JTalk_EventQueue_enqueue: enqueue */
-void Open_JTalk_EventQueue_enqueue(Open_JTalk_EventQueue *q, char *str);
-
-/* Open_JTalk_EventQueue_dequeue: dequeue */
-int Open_JTalk_EventQueue_dequeue(Open_JTalk_EventQueue *q, char *str);
 
 /* Open_JTalk_Thread: thread for Open JTalk */
 class Open_JTalk_Thread
@@ -89,9 +61,12 @@ private:
    HANDLE m_bufferMutex;  /* mutex for buffer */
    HANDLE m_synthEvent;   /* event for synthesis */
 
-   bool m_stop;
+   bool m_speaking;
+   bool m_kill;
 
-   Open_JTalk_EventQueue m_bufferQueue; /* buffer for synthesis (chara|style|text) */
+   char *m_charaBuff;
+   char *m_styleBuff;
+   char *m_textBuff;
 
    int m_numModels;     /* number of models */
    char **m_modelNames; /* model names */
@@ -113,21 +88,27 @@ public:
    ~Open_JTalk_Thread();
 
    /* loadAndStart: load models and start thread */
-   void loadAndStart(HWND param1, UINT param2, UINT param3, char *dicDir, char *config);
-
-   /* isRunning: check running */
-   bool isRunning();
+   void loadAndStart(HWND window, UINT event, UINT command, char *dicDir, char *config);
 
    /* stopAndRelease: stop thread and free Open JTalk */
    void stopAndRelease();
 
-   /* set_synth_parameter: set buffer for synthesis (chara|style|text) */
-   void setSynthParameter(char *str);
+   /* start: main thread loop for TTS */
+   void start();
 
-   /* synthesis: thread loop for TTS */
-   void synthesis();
+   /* isRunning: check running */
+   bool isRunning();
 
-   /* stop: barge-in function */
+   /* isSpeaking: check speaking */
+   bool isSpeaking();
+
+   /* checkCharacter: check speaking character */
+   bool checkCharacter(char *chara);
+
+   /* synthesis: start synthesis */
+   void synthesis(char *chara, char *style, char *text);
+
+   /* stop: stop synthesis */
    void stop();
 
    /* sendStartEventMessage: send start event message to MMDAgent */

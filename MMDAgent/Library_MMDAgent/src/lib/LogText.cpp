@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* LogText::initialize: initialize logger */
 void LogText::initialize()

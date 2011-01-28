@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* PMDObject::initialize: initialize PMDObject */
 void PMDObject::initialize()

@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* TextRenderer::getID: get display list of character */
 bool TextRenderer::getID(unsigned long mbc, unsigned int *id)

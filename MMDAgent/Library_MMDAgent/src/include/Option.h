@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define OPTION_MAXBUFLEN 1024
 
 #define OPTION_USECARTOONRENDERING_STR "use_cartoon_rendering"

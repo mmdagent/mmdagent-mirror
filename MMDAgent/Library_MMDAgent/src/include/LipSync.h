@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define LIPSYNC_CONFIGFILE          "lip.txt"
 #define LIPSYNC_MAXBUFLEN           1024
 #define LIPSYNC_MOTIONNAME          "LipSync" /* motion name of lip sync */

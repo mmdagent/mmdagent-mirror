@@ -46,7 +46,6 @@
 #include <shellapi.h>
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* MMDAgent::getNewModelId: return new model ID */
 int MMDAgent::getNewModelId()

@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define PLUGIN_DIRSEPARATOR '\\'
 #define PLUGIN_DYNAMICLIBS  "*.dll"
 

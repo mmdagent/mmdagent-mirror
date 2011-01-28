@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define BONECONTROLLER_MINLENGTH 0.0000001f
 
 /* BoneController: control bone */

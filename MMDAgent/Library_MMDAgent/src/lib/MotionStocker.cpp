@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* MotionStocker::initialize: initialize MotionStocker */
 void MotionStocker::initialize()

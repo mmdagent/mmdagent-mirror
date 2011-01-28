@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define SHADOW_PCF                   /* use hardware PCF for shadow mapping */
 #define SHADOW_AUTO_VIEW             /* automatically define depth frustum */
 #define SHADOW_AUTO_VIEW_ANGLE 15.0f /* view angle for automatic depth frustum */

@@ -81,76 +81,61 @@
 
 #include "Open_JTalk.h"
 #include "Open_JTalk_Thread.h"
+#include "Open_JTalk_Manager.h"
 
-/* global variables */
+/* definitions */
 
 #define PLUGINOPENJTALK_NAME         "Open_JTalk"
 #define PLUGINOPENJTALK_DIRSEPARATOR '\\'
-#define PLUGINOPENJTALK_NTHREAD      2
 
 #define PLUGINOPENJTALK_STARTCOMMAND "SYNTH_START"
 #define PLUGINOPENJTALK_STOPCOMMAND  "SYNTH_STOP"
 
-int open_jtalk_thread_index;
-Open_JTalk_Thread open_jtalk_thread_list[PLUGINOPENJTALK_NTHREAD];
+/* global variables */
 
-char *MMDAgent_strdup(const char *);
-int MMDAgent_strlen(const char *);
+Open_JTalk_Manager open_jtalk_manager;
 
 /* extAppStart: load models and start thread */
 void __stdcall extAppStart(MMDAgent *m)
 {
-   int i;
-   size_t size;
+   int len;
    char dic_dir[OPENJTALK_MAXBUFLEN];
    char *config;
-
-   open_jtalk_thread_index = 0;
 
    /* get dictionary directory name */
    sprintf(dic_dir, "%s%c%s", m->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
 
    /* get config file */
    config = MMDAgent_strdup(m->getConfigFileName());
-   size = MMDAgent_strlen(config);
+   len = MMDAgent_strlen(config);
 
    /* load */
-   if (size > 4) {
-      config[size-4] = '.';
-      config[size-3] = 'o';
-      config[size-2] = 'j';
-      config[size-1] = 't';
-      for (i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
-         open_jtalk_thread_list[i].loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
+   if (len > 4) {
+      config[len-4] = '.';
+      config[len-3] = 'o';
+      config[len-2] = 'j';
+      config[len-1] = 't';
+      open_jtalk_manager.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
    }
 
    if(config)
       free(config);
 }
 
-/* extWindowProc: catch message */
+/* extWindowProc: process message */
 void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   int i;
-   char *buf1;
-   char *buf2;
+   char *mes1;
+   char *mes2;
 
-   if (open_jtalk_thread_list[open_jtalk_thread_index].isRunning()) {
+   if (open_jtalk_manager.isRunning()) {
       if (message == WM_MMDAGENT_COMMAND) {
-         buf1 = (char *) wParam;
-         buf2 = (char *) lParam;
-         if (buf1 != NULL) {
-            if (strcmp(buf1, PLUGINOPENJTALK_STARTCOMMAND) == 0 && buf2 != NULL) {
-               /* SYNTH_START command */
-               open_jtalk_thread_list[open_jtalk_thread_index].setSynthParameter(buf2);
-               open_jtalk_thread_index++;
-               if (open_jtalk_thread_index >= PLUGINOPENJTALK_NTHREAD)
-                  open_jtalk_thread_index = 0;
-            } else if (strcmp(buf1, PLUGINOPENJTALK_STOPCOMMAND) == 0) {
-               /* SYNTH_STOP command */
-               for (i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
-                  open_jtalk_thread_list[i].stop();
-            }
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
+         if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STARTCOMMAND)) {
+            open_jtalk_manager.synthesis(mes2);
+         } else if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STOPCOMMAND)) {
+            open_jtalk_manager.stop(mes2);
          }
       }
    }
@@ -159,10 +144,7 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
 /* extAppEnd: stop and free thread */
 void __stdcall extAppEnd(MMDAgent *m)
 {
-   int i;
-
-   for(i = 0; i < PLUGINOPENJTALK_NTHREAD; i++)
-      open_jtalk_thread_list[i].stopAndRelease();
+   open_jtalk_manager.stopAndRelease();
 }
 
 /* DllMain: main for DLL */

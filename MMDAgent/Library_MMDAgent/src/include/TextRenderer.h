@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define TEXTRENDERER_FONT      "Arial Unicode MS"
 #define TEXTRENDERER_ASCIISIZE 256
 

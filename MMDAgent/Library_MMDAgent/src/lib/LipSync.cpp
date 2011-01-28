@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* LipSync::initialize: initialize lipsync */
 void LipSync::initialize()

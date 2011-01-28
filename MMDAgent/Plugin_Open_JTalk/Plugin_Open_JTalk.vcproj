@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Open_JTalk_Manager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Open_JTalk_Thread.cpp"
 				>
 			</File>
@@ -208,6 +212,10 @@
 			>
 			<File
 				RelativePath=".\Open_JTalk.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Open_JTalk_Manager.h"
 				>
 			</File>
 			<File

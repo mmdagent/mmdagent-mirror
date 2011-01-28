@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* Plugin_initialize: initialize Plugin */
 void Plugin_initialize(Plugin *p)

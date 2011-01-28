@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include "utils.h"
 
 /* Stage::makeFloorBody: create a rigid body for floor */
 void Stage::makeFloorBody(float width, float depth)

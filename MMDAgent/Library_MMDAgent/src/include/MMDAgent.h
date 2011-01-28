@@ -62,7 +62,9 @@ class MMDAgent;
 #include "Plugin.h"
 #include "MotionStocker.h"
 
-/* defines */
+#include "MMDAgent_utils.h"
+
+/* definitions */
 
 #define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
 #define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */

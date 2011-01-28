@@ -39,6 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
 #define PMDOBJECT_MAXBUFLEN 1024
 
 #define PMDOBJECT_ALPHAFRAME    15.0   /* number of frames for appear/disappear alpha blending */
