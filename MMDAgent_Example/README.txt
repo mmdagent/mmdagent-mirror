@@ -1,5 +1,5 @@
 ===============================================================================
-                         MMDAgent Example version Beta
+                     MMDAgent "Sample Script" version Beta
                            release January 31, 2011
 
 

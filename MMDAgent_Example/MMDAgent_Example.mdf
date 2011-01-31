@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------- #
-#           MMDAgent Scenario Example                               #
+#           MMDAgent "Sample Script"                                #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
