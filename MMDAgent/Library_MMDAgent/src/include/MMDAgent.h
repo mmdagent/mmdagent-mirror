@@ -145,6 +145,7 @@ private:
    bool m_keyCtrl;           /* true if Ctrl-key is on */
    bool m_keyShift;          /* true if Shift-key is on */
    int m_selectedModel;      /* model ID selected by mouse */
+   int m_highLightingModel;
    bool m_doubleClicked;     /* true if double clicked */
    POINT m_mousepos;
    bool m_leftButtonPressed;
@@ -166,6 +167,9 @@ private:
 
    /* updateLight: update light */
    void updateLight();
+
+   /* setHighLight: set high-light of selected model */
+   void setHighLight(int modelId);
 
    /* addModel: add model */
    bool addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName);
@@ -245,7 +249,7 @@ public:
    void updateScene();
 
    /* renderScene: render the whole scene */
-   void renderScene(HWND hWnd);
+   void renderScene();
 
    /* sendCommandMessage: send command message */
    void sendCommandMessage(char *type, const char *format, ...);
@@ -262,14 +266,8 @@ public:
    /* getNumModel: get number of models */
    short getNumModel();
 
-   /* getOption: get option */
-   Option *getOption();
-
-   /* getRender: get render */
-   Render *getRender();
-
-   /* getStage: get stage */
-   Stage *getStage();
+   /* getScreenPointPosition: convert screen position to object position */
+   void getScreenPointPosition(btVector3 *dst, btVector3 *src);
 
    /* getWindowHandler: get window handle */
    HWND getWindowHandler();

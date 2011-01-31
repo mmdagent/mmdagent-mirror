@@ -113,10 +113,10 @@ void PMDModel::initialize()
    m_edgeOffset = 0.03f;
    m_selfShadowDrawing = false;
    m_selfShadowDensityCoef = 0.0f;
-   m_edgeColor[0] = 0.0f;
-   m_edgeColor[1] = 0.0f;
-   m_edgeColor[2] = 0.0f;
-   m_edgeColor[3] = 1.0f;
+   m_edgeColor[0] = PMDMODEL_EDGECOLORR;
+   m_edgeColor[1] = PMDMODEL_EDGECOLORG;
+   m_edgeColor[2] = PMDMODEL_EDGECOLORB;
+   m_edgeColor[3] = PMDMODEL_EDGECOLORA;
    m_rootBone.reset();
 }
 
@@ -412,12 +412,14 @@ void PMDModel::setSelfShadowDrawing(bool flag)
 }
 
 /* PMDModel::setEdgeColor: set edge color */
-void PMDModel::setEdgeColor(float col[4])
+void PMDModel::setEdgeColor(float *color)
 {
    int i;
 
-   for (i = 0; i < 4; i++)
-      m_edgeColor[i] = col[i];
+   if(color == NULL)
+      return;
+   for(i = 0; i < 4; i++)
+      m_edgeColor[i] = color[i];
 }
 
 /* PMDModel::setGlobalAlpha: set global alpha value */

@@ -59,12 +59,39 @@
 #define OPTION_CARTOONEDGESTEP_MAX 10.0f
 #define OPTION_CARTOONEDGESTEP_MIN 1.0f
 
-#define OPTION_STAGESIZE_STR "stage_size"
+#define OPTION_CARTOONEDGESELECTEDCOLOR_STR  "cartoon_edge_selected_color"
+#define OPTION_CARTOONEDGESELECTEDCOLORR_DEF 1.0f
+#define OPTION_CARTOONEDGESELECTEDCOLORG_DEF 0.0f
+#define OPTION_CARTOONEDGESELECTEDCOLORB_DEF 0.0f
+#define OPTION_CARTOONEDGESELECTEDCOLORA_DEF 1.0f
+#define OPTION_CARTOONEDGESELECTEDCOLOR_MAX  1.0f
+#define OPTION_CARTOONEDGESELECTEDCOLOR_MIN  0.0f
+
+#define OPTION_RENDERINGROTATION_STR  "rendering_rotation"
+#define OPTION_RENDERINGROTATIONX_DEF 0.0f
+#define OPTION_RENDERINGROTATIONY_DEF 0.0f
+#define OPTION_RENDERINGROTATIONZ_DEF 0.0f
+#define OPTION_RENDERINGROTATION_MAX  1000.0f
+#define OPTION_RENDERINGROTATION_MIN  -1000.0f
+
+#define OPTION_RENDERINGTRANSITION_STR  "rendering_transition"
+#define OPTION_RENDERINGTRANSITIONX_DEF 0.0f
+#define OPTION_RENDERINGTRANSITIONY_DEF 0.0f
+#define OPTION_RENDERINGTRANSITIONZ_DEF 0.0f
+#define OPTION_RENDERINGTRANSITION_MAX  1000.0f
+#define OPTION_RENDERINGTRANSITION_MIN  0.001f
+
+#define OPTION_RENDERINGSCALE_STR "rendering_scale"
+#define OPTION_RENDERINGSCALE_DEF 1.0f
+#define OPTION_RENDERINGSCALE_MAX 1000.0f
+#define OPTION_RENDERINGSCALE_MIN 0.001f
+
+#define OPTION_STAGESIZE_STR  "stage_size"
 #define OPTION_STAGESIZEW_DEF 25.0f
 #define OPTION_STAGESIZED_DEF 25.0f
 #define OPTION_STAGESIZEH_DEF 40.0f
-#define OPTION_STAGESIZE_MAX 1000.0f
-#define OPTION_STAGESIZE_MIN 0.001f
+#define OPTION_STAGESIZE_MAX  1000.0f
+#define OPTION_STAGESIZE_MIN  0.001f
 
 #define OPTION_SHOWFPS_STR "show_fps"
 #define OPTION_SHOWFPS_DEF true
@@ -77,8 +104,8 @@
 #define OPTION_WINDOWSIZE_STR "window_size"
 #define OPTION_WINDOWSIZEW_DEF 600
 #define OPTION_WINDOWSIZEH_DEF 600
-#define OPTION_WINDOWSIZE_MAX 4096
-#define OPTION_WINDOWSIZE_MIN 1
+#define OPTION_WINDOWSIZE_MAX  4096
+#define OPTION_WINDOWSIZE_MIN  1
 
 #define OPTION_TOPMOST_STR "top_most"
 #define OPTION_TOPMOST_DEF false
@@ -86,13 +113,13 @@
 #define OPTION_FULLSCREEN_STR "full_screen"
 #define OPTION_FULLSCREEN_DEF false
 
-#define OPTION_LOGSIZE_STR "log_size"
+#define OPTION_LOGSIZE_STR  "log_size"
 #define OPTION_LOGSIZEW_DEF 80
 #define OPTION_LOGSIZEH_DEF 30
-#define OPTION_LOGSIZE_MAX 4096
-#define OPTION_LOGSIZE_MIN 1
+#define OPTION_LOGSIZE_MAX  4096
+#define OPTION_LOGSIZE_MIN  1
 
-#define OPTION_LOGPOSITION_STR "log_position"
+#define OPTION_LOGPOSITION_STR  "log_position"
 #define OPTION_LOGPOSITIONX_DEF -17.5f
 #define OPTION_LOGPOSITIONY_DEF 3.0f
 #define OPTION_LOGPOSITIONZ_DEF -15.0f
@@ -102,7 +129,7 @@
 #define OPTION_LOGSCALE_MAX 1000.0f
 #define OPTION_LOGSCALE_MIN 0.001f
 
-#define OPTION_LIGHTDIRECTION_STR "light_direction"
+#define OPTION_LIGHTDIRECTION_STR  "light_direction"
 #define OPTION_LIGHTDIRECTIONX_DEF 0.5f
 #define OPTION_LIGHTDIRECTIONY_DEF 1.0f
 #define OPTION_LIGHTDIRECTIONZ_DEF 0.5f
@@ -113,19 +140,19 @@
 #define OPTION_LIGHTINTENSITY_MAX 1.0f
 #define OPTION_LIGHTINTENSITY_MIN 0.0f
 
-#define OPTION_LIGHTCOLOR_STR "light_color"
+#define OPTION_LIGHTCOLOR_STR  "light_color"
 #define OPTION_LIGHTCOLORR_DEF 1.0f
 #define OPTION_LIGHTCOLORG_DEF 1.0f
 #define OPTION_LIGHTCOLORB_DEF 1.0f
-#define OPTION_LIGHTCOLOR_MAX 1.0f
-#define OPTION_LIGHTCOLOR_MIN 0.0f
+#define OPTION_LIGHTCOLOR_MAX  1.0f
+#define OPTION_LIGHTCOLOR_MIN  0.0f
 
-#define OPTION_CAMPUSCOLOR_STR "campus_color"
+#define OPTION_CAMPUSCOLOR_STR  "campus_color"
 #define OPTION_CAMPUSCOLORR_DEF 0.0f
 #define OPTION_CAMPUSCOLORG_DEF 0.0f
 #define OPTION_CAMPUSCOLORB_DEF 0.2f
-#define OPTION_CAMPUSCOLOR_MAX 1.0f
-#define OPTION_CAMPUSCOLOR_MIN 0.0f
+#define OPTION_CAMPUSCOLOR_MAX  1.0f
+#define OPTION_CAMPUSCOLOR_MIN  0.0f
 
 #define OPTION_MAXMULTISAMPLING_STR "max_multi_sampling"
 #define OPTION_MAXMULTISAMPLING_DEF 4
@@ -196,6 +223,12 @@ private:
    bool m_useMMDLikeCartoon;
    float m_cartoonEdgeWidth;
    float m_cartoonEdgeStep;
+   float m_cartoonEdgeSelectedColor[4];
+
+   /* rendering size */
+   float m_renderingRotation[3];
+   float m_renderingTransition[3];
+   float m_renderingScale;
 
    /* stage */
    float m_stageSize[3];
@@ -281,6 +314,30 @@ public:
 
    /* setCartoonEdgeStep: set cartoon edge step */
    void setCartoonEdgeStep(float f);
+
+   /* getCartoonEdgeSelectedColor: get cartoon edge seleceted color */
+   float *getCartoonEdgeSelectedColor();
+
+   /* setCartoonEdgeSelectedColor: set cartoon edge seleceted color */
+   void setCartoonEdgeSelectedColor(float *f);
+
+   /* getRenderingRotation: get rendering rotation */
+   float *getRenderingRotation();
+
+   /* setRenderingRotation: set rendering rotation */
+   void setRenderingRotation(float *f);
+
+   /* getRenderingTransition: get rendering transition */
+   float *getRenderingTransition();
+
+   /* setRenderingTransition: set rendering transition */
+   void setRenderingTransition(float *f);
+
+   /* getRenderingScale: get rendering scale */
+   float getRenderingScale();
+
+   /* setRenderingScale: set rendering scale */
+   void setRenderingScale(float f);
 
    /* getStageSize: get stage size */
    float *getStageSize();

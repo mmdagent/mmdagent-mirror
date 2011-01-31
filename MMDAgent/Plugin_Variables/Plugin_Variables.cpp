@@ -94,7 +94,7 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
       if (mes1 != NULL) {
          if (strcmp(mes1, PLUGINVARIABLES_TIMERSTARTCOMMAND) == 0 && mes2 != NULL) {
             /* TIMER_START command */
-            buff = strdup(mes2);
+            buff = MMDAgent_strdup(mes2);
             p = strchr(buff, '|');
             if(p == NULL) {
                free(buff);

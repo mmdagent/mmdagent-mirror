@@ -81,8 +81,8 @@ void __stdcall extAppStart(MMDAgent *m)
 
    setlocale(LC_CTYPE, "japanese");
 
-   buf = strdup(m->getConfigFileName());
-   len = strlen(buf);
+   buf = MMDAgent_strdup(m->getConfigFileName());
+   len = MMDAgent_strlen(buf);
    if (len > 4) {
       buf[len-4] = '.';
       buf[len-3] = 'f';
@@ -90,7 +90,8 @@ void __stdcall extAppStart(MMDAgent *m)
       buf[len-1] = 't';
       vimanager_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_COMMAND, buf);
    }
-   free(buf);
+   if(buf)
+      free(buf);
 }
 
 /* extWindowProc: catch dialog message */

@@ -76,11 +76,6 @@
 
 Audio audio;
 
-bool MMDAgent_strequal(const char *, const char *);
-char *MMDAgent_strdup(const char *);
-char *MMDAgent_strtok(char *, const char *, char **);
-bool MMDAgent_strtailmatch(const char *, const char *);
-
 /* extAppStart: initialize audio */
 void __stdcall extAppStart(MMDAgent *m)
 {
@@ -100,7 +95,7 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
       alias = audio.getFinishedAlias(wParam, lParam);
       if (alias) {
          audio.stop(alias);
-         ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTOP), (LPARAM) strdup(alias));
+         ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTOP), (LPARAM) MMDAgent_strdup(alias));
       }
    } else if(message == WM_MMDAGENT_COMMAND) {
       mes1 = (char *) wParam;
@@ -108,21 +103,20 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
       if(mes1 != NULL) {
          if(strcmp(mes1, PLUGINAUDIO_COMMANDSTART) == 0) {
             /* audio start command */
-            if(mes2 != NULL) {
-               buf = _strdup(mes2);
-               for(i = 0, p = strtok_s(buf, "|", &q); p; i++, p = strtok_s(NULL, "|", &q)) {
-                  if(i == 0)
-                     alias = p;
-                  else if(i == 1)
-                     file = p;
-               }
-               if(i == 2) {
-                  audio.stop(alias);
-                  if(audio.play(alias, file) == true)
-                     ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) strdup(alias));
-               }
-               free(buf);
+            buf = MMDAgent_strdup(mes2);
+            for(i = 0, p = MMDAgent_strtok(buf, "|", &q); p; i++, p = MMDAgent_strtok(NULL, "|", &q)) {
+               if(i == 0)
+                  alias = p;
+               else if(i == 1)
+                  file = p;
             }
+            if(i == 2) {
+               audio.stop(alias);
+               if(audio.play(alias, file) == true)
+                  ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) MMDAgent_strdup(alias));
+            }
+            if(mes2 != NULL)
+               free(buf);
          } else if(strcmp(mes1, PLUGINAUDIO_COMMANDSTOP) == 0) {
             /* audio stop command */
             if(mes2 != NULL)
@@ -136,14 +130,14 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
          buf = MMDAgent_strdup(mes2);
          p = MMDAgent_strtok(buf, "|", &q);
          if(MMDAgent_strtailmatch(p, ".vmd")) {
-            i = strlen(p);
+            i = MMDAgent_strlen(p);
             p[i-4] = '.';
             p[i-3] = 'm';
             p[i-2] = 'p';
             p[i-1] = '3';
             audio.stop("audio");
             if(audio.play("audio", p) == true)
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) strdup("audio"));
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) MMDAgent_strdup("audio"));
          }
          if(buf)
             free(buf);

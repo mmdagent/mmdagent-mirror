@@ -94,7 +94,7 @@ void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM
    int i;
    int id;
    char *mes1, *mes2;
-   char *p, *buf;
+   char *p, *buf, *save;
    PMDObject *objs;
 
    if(message == WM_MMDAGENT_EVENT) {
@@ -118,19 +118,18 @@ void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM
                enable = !enable;
             }
          } else if(strcmp(mes1, MMDAGENT_EVENT_MODELCHANGE) == 0 || strcmp(mes1, MMDAGENT_EVENT_MODELADD) == 0) {
-            if(mes2 != NULL) {
-               buf = strdup(mes2);
-               for(i = 0, p = strtok(buf, "|"); p; i++, p = strtok(NULL, "|")) {
-                  if(i == 0) {
-                     id = mmdagent->findModelAlias(p);
-                     if(id != -1) {
-                        setNeckController(&neckController[id], objs[id].getPMDModel());
-                        setEyeController(&eyeController[id], objs[id].getPMDModel());
-                     }
+            buf = MMDAgent_strdup(mes2);
+            for(i = 0, p = MMDAgent_strtok(buf, "|", &save); p; i++, p = MMDAgent_strtok(NULL, "|", &save)) {
+               if(i == 0) {
+                  id = mmdagent->findModelAlias(p);
+                  if(id != -1) {
+                     setNeckController(&neckController[id], objs[id].getPMDModel());
+                     setEyeController(&eyeController[id], objs[id].getPMDModel());
                   }
                }
-               free(buf);
             }
+            if(mes2 != NULL)
+               free(buf);
          }
       }
    }
@@ -154,7 +153,7 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    pos.y -= (rc.top + rc.bottom) / 2;
    rate = 100.0f / (float)(rc.right - rc.left);
    pointPos.setValue(pos.x * rate, -pos.y * rate, 0.0f);
-   mmdagent->getRender()->getScreenPointPosition(&targetPos, &pointPos);
+   mmdagent->getScreenPointPosition(&targetPos, &pointPos);
 
    /* calculate direction of all controlled bones */
    objs = mmdagent->getModelList();

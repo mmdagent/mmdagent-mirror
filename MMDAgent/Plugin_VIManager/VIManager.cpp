@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MMDAgent.h"
 #include "VIManager.h"
 
 /* get_token_from_string: get token from string */
@@ -97,14 +98,6 @@ static int get_arg_from_string(char *str, int *index, char *buff)
    return i;
 }
 
-/* copy_string: copy string instead of strdup */
-static char *copy_string(const char *str)
-{
-   char *buff = (char *) calloc(strlen(str) + 1, sizeof(char));
-   strcpy(buff, str);
-   return buff;
-}
-
 /* get_args: get event arguments */
 static int get_args(char *str, char ***args, int *argc)
 {
@@ -117,7 +110,7 @@ static int get_args(char *str, char ***args, int *argc)
       return 0;
    }
 
-   len = strlen(str);
+   len = MMDAgent_strlen(str);
    if (len <= 0) {
       (*argc) = 0;
       (*args) = NULL;
@@ -151,24 +144,24 @@ void VIManager_Arc_initialize(VIManager_Arc * a, char *input_event_type, char **
    if (input_event_type == NULL)
       a->input_event_type = NULL;
    else
-      a->input_event_type = copy_string(input_event_type);
+      a->input_event_type = MMDAgent_strdup(input_event_type);
    if (input_event_argc <= 0) {
       a->input_event_args = NULL;
       a->input_event_argc = 0;
    } else {
       a->input_event_args = (char **) calloc(input_event_argc, sizeof(char *));
       for (i = 0; i < input_event_argc; i++)
-         a->input_event_args[i] = copy_string(input_event_args[i]);
+         a->input_event_args[i] = MMDAgent_strdup(input_event_args[i]);
       a->input_event_argc = input_event_argc;
    }
    if (output_command_type == NULL)
       a->output_command_type = NULL;
    else
-      a->output_command_type = copy_string(output_command_type);
+      a->output_command_type = MMDAgent_strdup(output_command_type);
    if (output_command_args == NULL)
       a->output_command_args = NULL;
    else
-      a->output_command_args = copy_string(output_command_args);
+      a->output_command_args = MMDAgent_strdup(output_command_args);
    a->next_state = next_state;
    a->next = NULL;
 }
@@ -395,7 +388,7 @@ int VIManager::load(char *fn)
 
    while (fgets(buff, VIMANAGER_MAXBUFLEN - 3, fp) != NULL) { /* string + \r + \n + \0 */
       /* remove final \n and \r */
-      len = strlen(buff);
+      len = MMDAgent_strlen(buff);
       while (len > 0 && (buff[len-1] == '\n' || buff[len-1] == '\r'))
          buff[--len] = '\0';
 

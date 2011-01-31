@@ -50,6 +50,8 @@ class LogText
 {
 private:
 
+   TextRenderer *m_textRenderer; /* link of text renderer */
+
    int m_textHeight;
    int m_textWidth;
    float m_textX;
@@ -78,11 +80,11 @@ public:
    ~LogText();
 
    /* setup: initialize and setup logger with args */
-   void setup(int *size, float *position, float scale);
+   void setup(TextRenderer *text, int *size, float *position, float scale);
 
    /* log: store log text */
    void log(const char *format, ...);
 
    /* render: render text area */
-   void render(TextRenderer *text);
+   void render();
 };

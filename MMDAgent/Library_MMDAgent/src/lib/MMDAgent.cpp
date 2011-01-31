@@ -102,7 +102,7 @@ void MMDAgent::updateLight()
    btVector3 l;
 
    /* udpate OpenGL light */
-   m_render->updateLighting(m_option->getUseCartoonRendering(), m_option->getUseMMDLikeCartoon(), m_option->getLightDirection(), m_option->getLightIntensity(), m_option->getLightColor());
+   m_render->updateLight(m_option->getUseMMDLikeCartoon(), m_option->getUseCartoonRendering(), m_option->getLightIntensity(), m_option->getLightDirection(), m_option->getLightColor());
    /* update shadow matrix */
    f = m_option->getLightDirection();
    m_stage->updateShadowMatrix(f);
@@ -111,6 +111,29 @@ void MMDAgent::updateLight()
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() == true)
          m_model[i].setLightForToon(&l);
+}
+
+/* MMDAgent::setHighLight: set high-light of selected model */
+void MMDAgent::setHighLight(int modelId)
+{
+   float color[4];
+
+   if (m_highLightingModel == modelId) return;
+
+   if (m_highLightingModel != -1) {
+      /* reset current highlighted model */
+      color[0] = PMDMODEL_EDGECOLORR;
+      color[1] = PMDMODEL_EDGECOLORG;
+      color[2] = PMDMODEL_EDGECOLORB;
+      color[3] = PMDMODEL_EDGECOLORA;
+      m_model[m_highLightingModel].getPMDModel()->setEdgeColor(color);
+   }
+   if (modelId != -1) {
+      /* set highlight to the specified model */
+      m_model[modelId].getPMDModel()->setEdgeColor(m_option->getCartoonEdgeSelectedColor());
+   }
+
+   m_highLightingModel = modelId;
 }
 
 /* MMDAgent::addModel: add model */
@@ -794,6 +817,7 @@ void MMDAgent::initialize()
    m_keyCtrl = false;
    m_keyShift = false;
    m_selectedModel = -1;
+   m_highLightingModel = -1;
    m_doubleClicked = false;
    m_mousepos.x = 0;
    m_mousepos.y = 0;
@@ -971,7 +995,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* setup render */
    m_render = new Render();
-   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst()) == false) {
+   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getRenderingRotation(), m_option->getRenderingTransition(), m_option->getRenderingScale(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst()) == false) {
       clear();
       return false;
    }
@@ -986,7 +1010,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* setup logger */
    m_logger = new LogText();
-   m_logger->setup(m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
+   m_logger->setup(m_text, m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
 
    /* setup models */
    m_model = new PMDObject[MMDAGENT_MAXNMODEL];
@@ -1113,7 +1137,7 @@ void MMDAgent::updateScene()
 }
 
 /* MMDAgent::renderScene: render the whole scene */
-void MMDAgent::renderScene(HWND hWnd)
+void MMDAgent::renderScene()
 {
    int i;
    char buff[MMDAGENT_MAXBUFLEN];
@@ -1140,7 +1164,7 @@ void MMDAgent::renderScene(HWND hWnd)
    }
 
    /* render scene */
-   m_render->render(this);
+   m_render->render(m_model, m_numModel, m_stage, m_option->getUseMMDLikeCartoon(), m_option->getUseCartoonRendering(), m_option->getLightIntensity(), m_option->getLightDirection(), m_option->getLightColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getShadowMappingSelfDensity(), m_option->getShadowMappingFloorDensity());
 
    /* show debug display */
    if (m_dispModelDebug)
@@ -1154,7 +1178,7 @@ void MMDAgent::renderScene(HWND hWnd)
 
    /* show log window */
    if (m_dispLog)
-      m_logger->render(m_text);
+      m_logger->render();
 
    /* count fps */
    m_timer->countFrame();
@@ -1307,22 +1331,10 @@ short MMDAgent::getNumModel()
    return m_numModel;
 }
 
-/* MMDAgent::getOption: get option */
-Option *MMDAgent::getOption()
+/* MMDAgent::getScreenPointPosition: convert screen position to object position */
+void MMDAgent::getScreenPointPosition(btVector3 *dst, btVector3 *src)
 {
-   return m_option;
-}
-
-/* MMDAgent::getRender: get render */
-Render *MMDAgent::getRender()
-{
-   return m_render;
-}
-
-/* MMDAgent::getStage: get stage */
-Stage *MMDAgent::getStage()
-{
-   return m_stage;
+   m_render->getScreenPointPosition(dst, src);
 }
 
 /* MMDAgent::getWindowHandler: get window handle */
@@ -1372,9 +1384,9 @@ void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
    m_mousepos.x = x;
    m_mousepos.y = y;
    /* store model ID */
-   m_selectedModel = m_render->pickModel(this, x, y, NULL);
+   m_selectedModel = m_render->pickModel(m_model, m_numModel, x, y, NULL);
    /* make model highlight */
-   m_render->highlightModel(this, m_selectedModel);
+   setHighLight(m_selectedModel);
    m_doubleClicked = true;
 }
 
@@ -1389,9 +1401,9 @@ void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool 
    m_leftButtonPressed = true;
    m_doubleClicked = false;
    /* store model ID */
-   m_selectedModel = m_render->pickModel(this, x, y, NULL);
+   m_selectedModel = m_render->pickModel(m_model, m_numModel, x, y, NULL);
    if (withCtrl == true && withShift == false) /* with Ctrl-key */
-      m_render->highlightModel(this, m_selectedModel);
+      setHighLight(m_selectedModel);
 }
 
 /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
@@ -1401,7 +1413,7 @@ void MMDAgent::procMouseLeftButtonUpMessage()
 
    /* if highlight, trun off */
    if (!m_doubleClicked)
-      m_render->highlightModel(this, -1);
+      setHighLight(-1);
    /* end of hold */
    m_leftButtonPressed = false;
 }
@@ -1464,8 +1476,8 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
          tmp1 = r1 / (float) m_render->getWidth();
          tmp2 = - r2 / (float) m_render->getHeight();
          tmp3 = 20.0f;
-         tmp1 = (float) (tmp1 * (tmp3 - RENDER_VIEWPOINT_CAMERA_Z) / RENDER_VIEWPOINT_FRUSTUM_NEAR);
-         tmp2 = (float) (tmp2 * (tmp3 - RENDER_VIEWPOINT_CAMERA_Z) / RENDER_VIEWPOINT_FRUSTUM_NEAR);
+         tmp1 = (float) (tmp1 * (tmp3 - RENDER_VIEWPOINTCAMERAZ) / RENDER_VIEWPOINTFRUSTUMNEAR);
+         tmp2 = (float) (tmp2 * (tmp3 - RENDER_VIEWPOINTCAMERAZ) / RENDER_VIEWPOINTFRUSTUMNEAR);
          tmp1 /= m_render->getScale();
          tmp2 /= m_render->getScale();
          tmp3 = 0.0f;
@@ -1473,7 +1485,7 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
       } else if (withCtrl) {
          /* if Ctrl-key, move model */
          if (m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
-            m_render->highlightModel(this, m_selectedModel);
+            setHighLight(m_selectedModel);
             m_model[m_selectedModel].getPosition(v);
             v.setX(v.x() + r1 / 20.0f);
             v.setZ(v.z() + r2 / 20.0f);
@@ -1547,11 +1559,10 @@ void MMDAgent::procShadowMappingMessage()
 
    if(m_option->getUseShadowMapping() == true) {
       m_option->setUseShadowMapping(false);
-      m_render->setShadowMapping(false, m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
    } else {
       m_option->setUseShadowMapping(true);
-      m_render->setShadowMapping(true, m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
    }
+   m_render->setShadowMapping(m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
 }
 
 /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
@@ -2062,7 +2073,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
       } else if (m_doubleClicked && m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
          targetModelID = m_selectedModel;
       } else {
-         targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID); /* model ID in curpor position */
+         targetModelID = m_render->pickModel(m_model, m_numModel, x, y, &dropAllowedModelID); /* model ID in curpor position */
          if (targetModelID == -1)
             targetModelID = dropAllowedModelID;
       }
@@ -2133,7 +2144,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          if (m_doubleClicked && m_selectedModel != -1) /* already selected */
             targetModelID = m_selectedModel;
          else
-            targetModelID = m_render->pickModel(this, x, y, &dropAllowedModelID);
+            targetModelID = m_render->pickModel(m_model, m_numModel, x, y, &dropAllowedModelID);
          if (targetModelID == -1) {
             m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
          } else {

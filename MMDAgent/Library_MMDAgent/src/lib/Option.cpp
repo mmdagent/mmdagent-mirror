@@ -50,6 +50,18 @@ void Option::initialize()
    m_useMMDLikeCartoon = OPTION_USEMMDLIKECARTOON_DEF;
    m_cartoonEdgeWidth = OPTION_CARTOONEDGEWIDTH_DEF;
    m_cartoonEdgeStep = OPTION_CARTOONEDGESTEP_DEF;
+   m_cartoonEdgeSelectedColor[0] = OPTION_CARTOONEDGESELECTEDCOLORR_DEF;
+   m_cartoonEdgeSelectedColor[1] = OPTION_CARTOONEDGESELECTEDCOLORG_DEF;
+   m_cartoonEdgeSelectedColor[2] = OPTION_CARTOONEDGESELECTEDCOLORB_DEF;
+   m_cartoonEdgeSelectedColor[3] = OPTION_CARTOONEDGESELECTEDCOLORA_DEF;
+
+   m_renderingRotation[0] = OPTION_RENDERINGROTATIONX_DEF;
+   m_renderingRotation[1] = OPTION_RENDERINGROTATIONY_DEF;
+   m_renderingRotation[2] = OPTION_RENDERINGROTATIONZ_DEF;
+   m_renderingTransition[0] = OPTION_RENDERINGTRANSITIONX_DEF;
+   m_renderingTransition[1] = OPTION_RENDERINGTRANSITIONY_DEF;
+   m_renderingTransition[2] = OPTION_RENDERINGTRANSITIONZ_DEF;
+   m_renderingScale = OPTION_RENDERINGSCALE_DEF;
 
    m_stageSize[0] = OPTION_STAGESIZEW_DEF;
    m_stageSize[1] = OPTION_STAGESIZED_DEF;
@@ -151,6 +163,17 @@ bool Option::load(char *file)
          setCartoonEdgeWidth(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_CARTOONEDGESTEP_STR)) {
          setCartoonEdgeStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_CARTOONEDGESELECTEDCOLOR_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec4, 4))
+            setCartoonEdgeSelectedColor(fvec4);
+      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGROTATION_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
+            setRenderingRotation(fvec3);
+      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGTRANSITION_STR)) {
+         if(MMDAgent_str2fvec(p1, fvec3, 3))
+            setRenderingTransition(fvec3);
+      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGSCALE_STR)) {
+         setRenderingScale(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_STAGESIZE_STR)) {
          if(MMDAgent_str2fvec(p1, fvec3, 3))
             setStageSize(fvec3);
@@ -274,6 +297,123 @@ void Option::setCartoonEdgeStep(float f)
       m_cartoonEdgeStep = OPTION_CARTOONEDGESTEP_MIN;
    else
       m_cartoonEdgeStep = f;
+}
+
+/* Option::getCartoonEdgeSelectedColor: get cartoon edge selected color */
+float *Option::getCartoonEdgeSelectedColor()
+{
+   return m_cartoonEdgeSelectedColor;
+}
+
+/* Option::setCartoonEdgeSelectedColor: set cartoon edge selected color */
+void Option::setCartoonEdgeSelectedColor(float *f)
+{
+   if(OPTION_CARTOONEDGESELECTEDCOLOR_MAX < f[0])
+      m_cartoonEdgeSelectedColor[0] = OPTION_CARTOONEDGESELECTEDCOLOR_MAX;
+   else if(OPTION_CARTOONEDGESELECTEDCOLOR_MIN > f[0])
+      m_cartoonEdgeSelectedColor[0] = OPTION_CARTOONEDGESELECTEDCOLOR_MIN;
+   else
+      m_cartoonEdgeSelectedColor[0] = f[0];
+
+   if(OPTION_CARTOONEDGESELECTEDCOLOR_MAX < f[1])
+      m_cartoonEdgeSelectedColor[1] = OPTION_CARTOONEDGESELECTEDCOLOR_MAX;
+   else if(OPTION_CARTOONEDGESELECTEDCOLOR_MIN > f[1])
+      m_cartoonEdgeSelectedColor[1] = OPTION_CARTOONEDGESELECTEDCOLOR_MIN;
+   else
+      m_cartoonEdgeSelectedColor[1] = f[1];
+
+   if(OPTION_CARTOONEDGESELECTEDCOLOR_MAX < f[2])
+      m_cartoonEdgeSelectedColor[2] = OPTION_CARTOONEDGESELECTEDCOLOR_MAX;
+   else if(OPTION_CARTOONEDGESELECTEDCOLOR_MIN > f[2])
+      m_cartoonEdgeSelectedColor[2] = OPTION_CARTOONEDGESELECTEDCOLOR_MIN;
+   else
+      m_cartoonEdgeSelectedColor[2] = f[2];
+
+   if(OPTION_CARTOONEDGESELECTEDCOLOR_MAX < f[3])
+      m_cartoonEdgeSelectedColor[3] = OPTION_CARTOONEDGESELECTEDCOLOR_MAX;
+   else if(OPTION_CARTOONEDGESELECTEDCOLOR_MIN > f[3])
+      m_cartoonEdgeSelectedColor[3] = OPTION_CARTOONEDGESELECTEDCOLOR_MIN;
+   else
+      m_cartoonEdgeSelectedColor[3] = f[3];
+}
+
+/* Option::getRenderingRotation: get rendering rotation */
+float *Option::getRenderingRotation()
+{
+   return m_renderingRotation;
+}
+
+/* Option::setRenderingRotation: set rendering rotation */
+void Option::setRenderingRotation(float *f)
+{
+   if(OPTION_RENDERINGROTATION_MAX < f[0])
+      m_renderingRotation[0] = OPTION_RENDERINGROTATION_MAX;
+   else if(OPTION_RENDERINGROTATION_MIN > f[0])
+      m_renderingRotation[0] = OPTION_RENDERINGROTATION_MIN;
+   else
+      m_renderingRotation[0] = f[0];
+
+   if(OPTION_RENDERINGROTATION_MAX < f[1])
+      m_renderingRotation[1] = OPTION_RENDERINGROTATION_MAX;
+   else if(OPTION_RENDERINGROTATION_MIN > f[1])
+      m_renderingRotation[1] = OPTION_RENDERINGROTATION_MIN;
+   else
+      m_renderingRotation[1] = f[1];
+
+   if(OPTION_RENDERINGROTATION_MAX < f[2])
+      m_renderingRotation[2] = OPTION_RENDERINGROTATION_MAX;
+   else if(OPTION_RENDERINGROTATION_MIN > f[2])
+      m_renderingRotation[2] = OPTION_RENDERINGROTATION_MIN;
+   else
+      m_renderingRotation[2] = f[2];
+}
+
+/* Option::getRenderingTransition: get rendering transition */
+float *Option::getRenderingTransition()
+{
+   return m_renderingTransition;
+}
+
+/* Option::setRenderingTransition: set rendering transition */
+void Option::setRenderingTransition(float *f)
+{
+   if(OPTION_RENDERINGTRANSITION_MAX < f[0])
+      m_renderingTransition[0] = OPTION_RENDERINGTRANSITION_MAX;
+   else if(OPTION_RENDERINGTRANSITION_MIN > f[0])
+      m_renderingTransition[0] = OPTION_RENDERINGTRANSITION_MIN;
+   else
+      m_renderingTransition[0] = f[0];
+
+   if(OPTION_RENDERINGTRANSITION_MAX < f[1])
+      m_renderingTransition[1] = OPTION_RENDERINGTRANSITION_MAX;
+   else if(OPTION_RENDERINGTRANSITION_MIN > f[1])
+      m_renderingTransition[1] = OPTION_RENDERINGTRANSITION_MIN;
+   else
+      m_renderingTransition[1] = f[1];
+
+   if(OPTION_RENDERINGTRANSITION_MAX < f[2])
+      m_renderingTransition[2] = OPTION_RENDERINGTRANSITION_MAX;
+   else if(OPTION_RENDERINGTRANSITION_MIN > f[2])
+      m_renderingTransition[2] = OPTION_RENDERINGTRANSITION_MIN;
+   else
+      m_renderingTransition[2] = f[2];
+}
+
+/* Option::getRenderingScale: get rendering scale */
+float Option::getRenderingScale()
+{
+   return m_renderingScale;
+}
+
+/* Option::setRenderingScale: set rendering scale */
+void Option::setRenderingScale(float f)
+{
+   if(OPTION_RENDERINGSCALE_MAX < f)
+      m_renderingScale = OPTION_RENDERINGSCALE_MAX;
+   else if(OPTION_RENDERINGSCALE_MIN > f)
+      m_renderingScale = OPTION_RENDERINGSCALE_MIN;
+   else
+      m_renderingScale = f;
 }
 
 /* Option::getStageSize: get stage size */

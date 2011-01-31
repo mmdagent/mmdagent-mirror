@@ -46,6 +46,8 @@
 /* LogText::initialize: initialize logger */
 void LogText::initialize()
 {
+   m_textRenderer = NULL;
+
    m_textWidth = 0;
    m_textHeight = 0;
    m_textX = 0.0;
@@ -94,13 +96,15 @@ LogText::~LogText()
 }
 
 /* LogText::setup: initialize and setup logger with args */
-void LogText::setup(int *size, float *position, float scale)
+void LogText::setup(TextRenderer *text, int *size, float *position, float scale)
 {
    int i;
 
-   if (size[0] <= 0 || size[1] <= 0 || scale <= 0.0) return;
+   if (text == NULL || size[0] <= 0 || size[1] <= 0 || scale <= 0.0) return;
 
    clear();
+
+   m_textRenderer = text;
 
    m_textWidth = size[0];
    m_textHeight = size[1];
@@ -137,7 +141,7 @@ void LogText::log(const char *format, ...)
    char buff[LOGTEXT_MAXBUFLEN];
    va_list args;
 
-   if (!m_textList) return;
+   if (m_textList == NULL) return;
 
    va_start(args, format);
    vsprintf(buff, format, args);
@@ -152,12 +156,12 @@ void LogText::log(const char *format, ...)
 }
 
 /* LogText::render: render log text */
-void LogText::render(TextRenderer *text)
+void LogText::render()
 {
    int i, j;
    float x, y, z, w, h;
 
-   if (!m_textList) return;
+   if (m_textList == NULL) return;
 
    x = m_textX;
    y = m_textY;
@@ -188,11 +192,11 @@ void LogText::render(TextRenderer *text)
          glPushMatrix();
          if (m_updated[j]) {
             /* cache display list array */
-            m_length[j] = text->getDisplayListArrayOfString(m_textList[j], m_displayList[j], m_textWidth);
+            m_length[j] = m_textRenderer->getDisplayListArrayOfString(m_textList[j], m_displayList[j], m_textWidth);
             m_updated[j] = false;
          }
          if (m_length[j] >= 0)
-            text->renderDisplayListArrayOfString(m_displayList[j], m_length[j]);
+            m_textRenderer->renderDisplayListArrayOfString(m_displayList[j], m_length[j]);
          glPopMatrix();
       }
    }

@@ -45,6 +45,7 @@
 #include <process.h>
 #include <time.h>
 
+#include "MMDAgent.h"
 #include "CountDown_Thread.h"
 
 /* main_thread: main thread */
@@ -196,7 +197,7 @@ void CountDown_Thread::set(char *alias, int sec)
    CountDown *countDown;
    int now;
 
-   if(alias == NULL || strlen(alias) <= 0) return;
+   if(alias == NULL || MMDAgent_strlen(alias) <= 0) return;
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
@@ -214,7 +215,7 @@ void CountDown_Thread::set(char *alias, int sec)
 
    /* push timer */
    countDown = (CountDown *) malloc(sizeof(CountDown));
-   countDown->name = strdup(alias);
+   countDown->name = MMDAgent_strdup(alias);
    countDown->goal = now + sec;
    countDown->next = NULL;
    if(m_tail == NULL) {
@@ -273,28 +274,17 @@ void CountDown_Thread::unset(char *alias)
 /* CountDown_Thread::sendStartEventMessage: send start event message to MMDAgent */
 void CountDown_Thread::sendStartEventMessage(char *str)
 {
-   char *mes1;
-   char *mes2;
-
    if(str == NULL)
       return;
 
-   mes1 = strdup(COUNTDOWNTHREAD_TIMERSTARTEVENT);
-   mes2 = strdup(str);
-   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
+   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(COUNTDOWNTHREAD_TIMERSTARTEVENT), (LPARAM) MMDAgent_strdup(str));
 }
 
 /* CountDown_Thread::sendStopEventMessage: send stop event message to MMDAgent */
 void CountDown_Thread::sendStopEventMessage(char *str)
 {
-   char *mes1;
-   char *mes2;
-
    if(str == NULL)
       return;
 
-   mes1 = strdup(COUNTDOWNTHREAD_TIMERSTOPEVENT);
-   mes2 = strdup(str);
-
-   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
+   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(COUNTDOWNTHREAD_TIMERSTOPEVENT), (LPARAM) MMDAgent_strdup(str));
 }

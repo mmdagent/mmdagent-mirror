@@ -268,7 +268,7 @@ void Open_JTalk::prepare(char *str)
 
    /* text analysis */
    HTS_Engine_set_stop_flag(&m_engine, false);
-   buff = (char *) calloc(2 * strlen(str) + 1, sizeof(char));
+   buff = (char *) calloc(2 * MMDAgent_strlen(str) + 1, sizeof(char));
    text2mecab(buff, str);
    Mecab_analysis(&m_mecab, buff);
    free(buff);

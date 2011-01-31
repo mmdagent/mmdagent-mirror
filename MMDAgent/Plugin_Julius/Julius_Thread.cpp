@@ -44,6 +44,7 @@
 #include <process.h>
 #include <locale.h>
 
+#include "MMDAgent.h"
 #include "julius/juliuslib.h"
 #include "Julius_Thread.h"
 
@@ -85,7 +86,7 @@ static void callback_result_final(Recog *recog, void *data)
    strcpy(str, "");
    first = 1;
    for (i = 0; i < word_num; i++) {
-      if (strlen(r->lm->winfo->woutput[word[i]]) > 0) {
+      if (MMDAgent_strlen(r->lm->winfo->woutput[word[i]]) > 0) {
          if (first == 0)
             strcat(str, ",");
          strncat(str, r->lm->winfo->woutput[word[i]], JULIUSTHREAD_MAXBUFLEN);

@@ -52,7 +52,7 @@ void Render::initialize()
    m_scale = 1.0f;
    m_trans = btVector3(0.0f, 0.0f, 0.0f);
    m_rot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
-   m_cameraTrans = btVector3(0.0f, RENDER_VIEWPOINT_Y_OFFSET, RENDER_VIEWPOINT_CAMERA_Z);
+   m_cameraTrans = btVector3(0.0f, RENDER_VIEWPOINTCAMERAY, RENDER_VIEWPOINTCAMERAZ);
 
    m_scaleCurrent = m_scale;
    m_transCurrent = m_trans;
@@ -60,9 +60,7 @@ void Render::initialize()
 
    m_transMatrix.setIdentity();
    updateModelViewMatrix();
-   m_highlightingModel = -1;
 
-   m_enableShadowMapping = false;
    m_shadowMapInitialized = false;
    m_lightVec = btVector3(0.0f, 0.0f, 0.0f);
    m_shadowMapAutoViewEyePoint = btVector3(0.0f, 0.0f, 0.0f);
@@ -88,10 +86,17 @@ Render::~Render()
 }
 
 /* setup: initialize and setup Render */
-bool Render::setup(int *size, float *campusColor, bool useShadowMapping, int shadowMapTextureSize, bool shadowMapLightFirst)
+bool Render::setup(int *size, float *color, float *rot, float *trans, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst)
 {
+   if(size == NULL || color == NULL || rot == NULL || trans == NULL)
+      return false;
+
+   m_rot = btQuaternion(rot[0], rot[1], rot[2], 1.0f);
+   m_trans = btVector3(trans[0], trans[1], trans[2]);
+   m_scale = scale;
+
    /* set clear color */
-   glClearColor(campusColor[0], campusColor[1], campusColor[2], 0.0f);
+   glClearColor(color[0], color[1], color[2], 0.0f);
    glClearStencil(0);
 
    /* enable depth test */
@@ -118,8 +123,7 @@ bool Render::setup(int *size, float *campusColor, bool useShadowMapping, int sha
    glEnable(GL_LIGHTING);
 
    /* initialization for shadow mapping */
-   if (useShadowMapping)
-      setShadowMapping(true, shadowMapTextureSize, shadowMapLightFirst);
+   setShadowMapping(useShadowMapping, shadowMappingTextureSize, shadowMappingLightFirst);
 
    setSize(size[0], size[1]);
 
@@ -169,7 +173,7 @@ void Render::translate(float x, float y, float z)
 }
 
 /* Render::initializeShadowMap: initialize OpenGL for shadow mapping */
-void Render::initializeShadowMap(int shadowMapTextureSize)
+void Render::initializeShadowMap(int textureSize)
 {
    static const GLdouble genfunc[][4] = {
       { 1.0, 0.0, 0.0, 0.0 },
@@ -190,7 +194,7 @@ void Render::initializeShadowMap(int shadowMapTextureSize)
    glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
 
    /* assign depth component to the texture */
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapTextureSize, shadowMapTextureSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, textureSize, textureSize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
 
    /* set texture parameters for shadow mapping */
 #ifdef SHADOW_PCF
@@ -249,21 +253,19 @@ void Render::initializeShadowMap(int shadowMapTextureSize)
 }
 
 /* Render::setShadowMapping: switch shadow mapping */
-void Render::setShadowMapping(bool flag, int shadowMapTextureSize, bool shadowMapLightFirst)
+void Render::setShadowMapping(bool useShadowMapping, int textureSize, bool shadowMappingLightFirst)
 {
-   m_enableShadowMapping = flag;
-
-   if (m_enableShadowMapping) {
+   if(useShadowMapping) {
       /* enabled */
-      if (! m_shadowMapInitialized) {
+      if (!m_shadowMapInitialized) {
          /* initialize now */
-         initializeShadowMap(shadowMapTextureSize);
+         initializeShadowMap(textureSize);
          m_shadowMapInitialized = true;
       }
       /* set how to set the comparison result value of R coordinates and texture (depth) value */
       glActiveTextureARB(GL_TEXTURE3_ARB);
       glBindTexture(GL_TEXTURE_2D, m_depthTextureID);
-      if (shadowMapLightFirst) {
+      if (shadowMappingLightFirst) {
          /* when rendering order is light(full) - dark(shadow part), OpenGL should set the shadow part as true */
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_GEQUAL);
       } else {
@@ -284,13 +286,12 @@ void Render::setShadowMapping(bool flag, int shadowMapTextureSize, bool shadowMa
 }
 
 /* Render::renderSceneShadowMap: shadow mapping */
-void Render::renderSceneShadowMap(MMDAgent *mmdagent)
+void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
 {
    short i;
    GLint viewport[4]; /* store viewport */
    GLdouble modelview[16]; /* store model view transform */
    GLdouble projection[16]; /* store projection transform */
-   PMDObject *objList = mmdagent->getModelList();
 
 #ifdef SHADOW_AUTO_VIEW
    float fovy;
@@ -316,7 +317,7 @@ void Render::renderSceneShadowMap(MMDAgent *mmdagent)
    glClear(GL_DEPTH_BUFFER_BIT);
 
    /* set the viewport to the required texture size */
-   glViewport(0, 0, mmdagent->getOption()->getShadowMappingTextureSize(), mmdagent->getOption()->getShadowMappingTextureSize());
+   glViewport(0, 0, shadowMappingTextureSize, shadowMappingTextureSize);
 
    /* reset the projection matrix */
    glMatrixMode(GL_PROJECTION);
@@ -370,12 +371,12 @@ void Render::renderSceneShadowMap(MMDAgent *mmdagent)
 
    /* render objects for depth */
    /* only objects that wants to drop shadow should be rendered here */
-   for (i = 0; i < mmdagent->getNumModel(); i++) {
-      if (objList[i].isEnable() == false)
-         continue;
-      glPushMatrix();
-      objList[i].getPMDModel()->renderForShadow();
-      glPopMatrix();
+   for (i = 0; i < num; i++) {
+      if (objs[i].isEnable() == true) {
+         glPushMatrix();
+         objs[i].getPMDModel()->renderForShadow();
+         glPopMatrix();
+      }
    }
 
    /* reset the polygon offset */
@@ -403,57 +404,52 @@ void Render::renderSceneShadowMap(MMDAgent *mmdagent)
    glMultMatrixf(m_rotMatrix);
 
    /* render the whole scene */
-   if (mmdagent->getOption()->getShadowMappingLightFirst()) {
+   if (shadowMappingLightFirst) {
       /* render light setting, later render only the shadow part with dark setting */
-      mmdagent->getStage()->renderBackground();
-      mmdagent->getStage()->renderFloor();
-      for (i = 0; i < mmdagent->getNumModel(); i++) {
-         if (objList[i].isEnable() == false)
-            continue;
-         objList[i].getPMDModel()->renderModel();
-         objList[i].getPMDModel()->renderEdge();
+      stage->renderBackground();
+      stage->renderFloor();
+      for (i = 0; i < num; i++) {
+         if (objs[i].isEnable() == true) {
+            objs[i].getPMDModel()->renderModel();
+            objs[i].getPMDModel()->renderEdge();
+         }
       }
    } else {
       /* render in dark setting, later render only the non-shadow part with light setting */
       /* light setting for non-toon objects */
-      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * mmdagent->getOption()->getShadowMappingSelfDensity();
+      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * shadowMappingSelfDensity;
       glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdim);
       glLightfv(GL_LIGHT0, GL_AMBIENT, lightdim);
       glLightfv(GL_LIGHT0, GL_SPECULAR, lightblk);
 
       /* render the non-toon objects (back, floor, non-toon models) */
-      mmdagent->getStage()->renderBackground();
-      mmdagent->getStage()->renderFloor();
-      for (i = 0; i < mmdagent->getNumModel(); i++) {
-         if (objList[i].isEnable() == false)
-            continue;
-         if (objList[i].getPMDModel()->getToonFlag() == true)
-            continue;
-         objList[i].getPMDModel()->renderModel();
+      stage->renderBackground();
+      stage->renderFloor();
+      for (i = 0; i < num; i++) {
+         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == false)
+            objs[i].getPMDModel()->renderModel();
       }
 
       /* for toon objects, they should apply the model-defined toon texture color at texture coordinates (0, 0) for shadow rendering */
       /* so restore the light setting */
-      if (mmdagent->getOption()->getUseCartoonRendering() == true)
-         updateLighting(true, mmdagent->getOption()->getUseMMDLikeCartoon(), mmdagent->getOption()->getLightDirection(), mmdagent->getOption()->getLightIntensity(), mmdagent->getOption()->getLightColor());
+      if (useCartoonRendering == true)
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
       /* render the toon objects */
-      for (i = 0; i < mmdagent->getNumModel(); i++) {
-         if (objList[i].isEnable() == false)
-            continue;
-         if (objList[i].getPMDModel()->getToonFlag() == false)
-            continue;
-         /* set texture coordinates for shadow mapping */
-         objList[i].getPMDModel()->updateShadowColorTexCoord(mmdagent->getOption()->getShadowMappingSelfDensity());
-         /* tell model to render with the shadow corrdinates */
-         objList[i].getPMDModel()->setSelfShadowDrawing(true);
-         /* render model and edge */
-         objList[i].getPMDModel()->renderModel();
-         objList[i].getPMDModel()->renderEdge();
-         /* disable shadow rendering */
-         objList[i].getPMDModel()->setSelfShadowDrawing(false);
+      for (i = 0; i < num; i++) {
+         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == true) {
+            /* set texture coordinates for shadow mapping */
+            objs[i].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
+            /* tell model to render with the shadow corrdinates */
+            objs[i].getPMDModel()->setSelfShadowDrawing(true);
+            /* render model and edge */
+            objs[i].getPMDModel()->renderModel();
+            objs[i].getPMDModel()->renderEdge();
+            /* disable shadow rendering */
+            objs[i].getPMDModel()->setSelfShadowDrawing(false);
+         }
       }
-      if (mmdagent->getOption()->getUseCartoonRendering() == false)
-         updateLighting(false, mmdagent->getOption()->getUseMMDLikeCartoon(), mmdagent->getOption()->getLightDirection(), mmdagent->getOption()->getLightIntensity(), mmdagent->getOption()->getLightColor());
+      if (useCartoonRendering == false)
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
    }
 
    /* render the part clipped by the depth texture */
@@ -490,57 +486,51 @@ void Render::renderSceneShadowMap(MMDAgent *mmdagent)
    /* set depth func to allow overwrite for the same surface in the following rendering */
    glDepthFunc(GL_LEQUAL);
 
-   if (mmdagent->getOption()->getShadowMappingLightFirst()) {
+   if (shadowMappingLightFirst) {
       /* the area clipped by depth texture by alpha test is dark part */
       glAlphaFunc(GL_GEQUAL, 0.1f);
 
       /* light setting for non-toon objects */
-      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * mmdagent->getOption()->getShadowMappingSelfDensity();
+      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * shadowMappingSelfDensity;
       glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdim);
       glLightfv(GL_LIGHT0, GL_AMBIENT, lightdim);
       glLightfv(GL_LIGHT0, GL_SPECULAR, lightblk);
 
       /* render the non-toon objects (back, floor, non-toon models) */
-      mmdagent->getStage()->renderBackground();
-      mmdagent->getStage()->renderFloor();
-      for (i = 0; i < mmdagent->getNumModel(); i++) {
-         if (objList[i].isEnable() == false)
-            continue;
-         if (objList[i].getPMDModel()->getToonFlag() == true)
-            continue;
-         objList[i].getPMDModel()->renderModel();
+      stage->renderBackground();
+      stage->renderFloor();
+      for (i = 0; i < num; i++) {
+         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == false)
+            objs[i].getPMDModel()->renderModel();
       }
 
       /* for toon objects, they should apply the model-defined toon texture color at texture coordinates (0, 0) for shadow rendering */
       /* so restore the light setting */
-      if (mmdagent->getOption()->getUseCartoonRendering() == true)
-         updateLighting(true, mmdagent->getOption()->getUseMMDLikeCartoon(), mmdagent->getOption()->getLightDirection(), mmdagent->getOption()->getLightIntensity(), mmdagent->getOption()->getLightColor());
+      if (useCartoonRendering == true)
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
       /* render the toon objects */
-      for (i = 0; i < mmdagent->getNumModel(); i++) {
-         if (objList[i].isEnable() == false)
-            continue;
-         if (objList[i].getPMDModel()->getToonFlag() == false)
-            continue;
-         /* set texture coordinates for shadow mapping */
-         objList[i].getPMDModel()->updateShadowColorTexCoord(mmdagent->getOption()->getShadowMappingSelfDensity());
-         /* tell model to render with the shadow corrdinates */
-         objList[i].getPMDModel()->setSelfShadowDrawing(true);
-         /* render model and edge */
-         objList[i].getPMDModel()->renderModel();
-         /* disable shadow rendering */
-         objList[i].getPMDModel()->setSelfShadowDrawing(false);
+      for (i = 0; i < num; i++) {
+         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == true) {
+            /* set texture coordinates for shadow mapping */
+            objs[i].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
+            /* tell model to render with the shadow corrdinates */
+            objs[i].getPMDModel()->setSelfShadowDrawing(true);
+            /* render model and edge */
+            objs[i].getPMDModel()->renderModel();
+            /* disable shadow rendering */
+            objs[i].getPMDModel()->setSelfShadowDrawing(false);
+         }
       }
-      if (mmdagent->getOption()->getUseCartoonRendering() == false)
-         updateLighting(false, mmdagent->getOption()->getUseMMDLikeCartoon(), mmdagent->getOption()->getLightDirection(), mmdagent->getOption()->getLightIntensity(), mmdagent->getOption()->getLightColor());
+      if (useCartoonRendering == false)
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
    } else {
       /* the area clipped by depth texture by alpha test is light part */
       glAlphaFunc(GL_GEQUAL, 0.001f);
-      mmdagent->getStage()->renderBackground();
-      mmdagent->getStage()->renderFloor();
-      for (i = 0; i < mmdagent->getNumModel(); i++)
-         if (objList[i].isEnable() == false)
-            continue;
-      objList[i].getPMDModel()->renderModel();
+      stage->renderBackground();
+      stage->renderFloor();
+      for (i = 0; i < num; i++)
+         if (objs[i].isEnable() == true)
+            objs[i].getPMDModel()->renderModel();
    }
 
    /* reset settings */
@@ -557,10 +547,9 @@ void Render::renderSceneShadowMap(MMDAgent *mmdagent)
 }
 
 /* Render::renderScene: render scene */
-void Render::renderScene(MMDAgent *mmdagent)
+void Render::renderScene(PMDObject *objs, int num, Stage *stage, float shadowMappingFloorDensity)
 {
    short i;
-   PMDObject *objList;
 
    /* clear rendering buffer */
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -575,14 +564,14 @@ void Render::renderScene(MMDAgent *mmdagent)
    /* stage and shadhow */
    glPushMatrix();
    /* background */
-   mmdagent->getStage()->renderBackground();
+   stage->renderBackground();
    /* enable stencil */
    glEnable(GL_STENCIL_TEST);
    glStencilFunc(GL_ALWAYS, 1, ~0);
    /* make stencil tag true */
    glStencilOp(GL_KEEP, GL_KEEP , GL_REPLACE);
    /* render floor */
-   mmdagent->getStage()->renderFloor();
+   stage->renderFloor();
    /* render shadow stencil */
    glColorMask(0, 0, 0, 0) ;
    glDepthMask(0);
@@ -592,13 +581,13 @@ void Render::renderScene(MMDAgent *mmdagent)
    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
    /* render moodel */
    glDisable(GL_DEPTH_TEST);
-   for (i = 0; i < mmdagent->getNumModel(); i++) {
-      if (mmdagent->getModelList()[i].isEnable() == false)
-         continue;
-      glPushMatrix();
-      glMultMatrixf(mmdagent->getStage()->getShadowMatrix());
-      mmdagent->getModelList()[i].getPMDModel()->renderForShadow();
-      glPopMatrix();
+   for (i = 0; i < num; i++) {
+      if (objs[i].isEnable() == true) {
+         glPushMatrix();
+         glMultMatrixf(stage->getShadowMatrix());
+         objs[i].getPMDModel()->renderForShadow();
+         glPopMatrix();
+      }
    }
    glEnable(GL_DEPTH_TEST);
    glColorMask(1, 1, 1, 1);
@@ -606,46 +595,44 @@ void Render::renderScene(MMDAgent *mmdagent)
    /* if stencil is 2, render shadow with blend on */
    glStencilFunc(GL_EQUAL, 2, ~0);
    glDisable(GL_LIGHTING);
-   glColor4f(0.1f, 0.1f, 0.1f, mmdagent->getOption()->getShadowMappingFloorDensity());
+   glColor4f(0.1f, 0.1f, 0.1f, shadowMappingFloorDensity);
    glDisable(GL_DEPTH_TEST);
-   mmdagent->getStage()->renderFloor();
+   stage->renderFloor();
    glEnable(GL_DEPTH_TEST);
    glDisable(GL_STENCIL_TEST);
    glEnable(GL_LIGHTING);
    glPopMatrix();
 
    /* render model */
-   objList = mmdagent->getModelList();
-   for (i = 0; i < mmdagent->getNumModel(); i++) {
-      if (objList[i].isEnable() == false)
-         continue;
-      objList[i].getPMDModel()->renderModel();
-      objList[i].getPMDModel()->renderEdge();
+   for (i = 0; i < num; i++) {
+      if (objs[i].isEnable() == true) {
+         objs[i].getPMDModel()->renderModel();
+         objs[i].getPMDModel()->renderEdge();
+      }
    }
 }
 
 /* Render::render: render all */
-void Render::render(MMDAgent *mmdagent)
+void Render::render(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity)
 {
    /* update scale */
    updateScale();
    /* update trans and rotation matrix */
    updateTransRotMatrix();
 
-   if (m_enableShadowMapping)
-      renderSceneShadowMap(mmdagent);
+   if (useShadowMapping)
+      renderSceneShadowMap(objs, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);
    else
-      renderScene(mmdagent);
+      renderScene(objs, num, stage, shadowMappingFloorDensity);
 }
 
 /* Render::pickModel: pick up a model at the screen position */
-int Render::pickModel(MMDAgent *mmdagent, int x, int y, int *allowDropPicked)
+int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPicked)
 {
    int i;
 
    GLuint selectionBuffer[512];
    GLint viewport[4];
-   PMDObject *obj;
 
    GLint hits;
    GLuint *data;
@@ -675,12 +662,11 @@ int Render::pickModel(MMDAgent *mmdagent, int x, int y, int *allowDropPicked)
    glInitNames();
    glPushName(0);
    /* draw models with selection names */
-   obj = mmdagent->getModelList();
-   for (i = 0; i < mmdagent->getNumModel(); i++) {
-      if (obj[i].isEnable() == false)
-         continue;
-      glLoadName(i);
-      obj[i].getPMDModel()->renderForShadow();
+   for (i = 0; i < num; i++) {
+      if (objs[i].isEnable() == true) {
+         glLoadName(i);
+         objs[i].getPMDModel()->renderForShadow();
+      }
    }
 
    /* restore projection matrix */
@@ -701,7 +687,7 @@ int Render::pickModel(MMDAgent *mmdagent, int x, int y, int *allowDropPicked)
          minDepth = depth;
          minID = id;
       }
-      if (allowDropPicked && obj[id].allowMotionFileDrop()) {
+      if (allowDropPicked && objs[id].allowMotionFileDrop()) {
          if (minIDAllowDrop == -1 || minDepthAllowDrop > depth) {
             minDepthAllowDrop = depth;
             minIDAllowDrop = id;
@@ -714,40 +700,6 @@ int Render::pickModel(MMDAgent *mmdagent, int x, int y, int *allowDropPicked)
 
    return minID;
 }
-
-/* Render::hilightModel: highlight selected model */
-void Render::highlightModel(MMDAgent *mmdagent, int id)
-{
-   float col[4];
-   PMDObject *obj;
-
-   if (m_highlightingModel == id) return;
-
-   obj = mmdagent->getModelList();
-   if (m_highlightingModel != -1) {
-      /* reset current highlighted model */
-      col[0] = col[1] = col[2] = 0.0f;
-      col[3] = 1.0f;
-      obj[m_highlightingModel].getPMDModel()->setEdgeColor(col);
-   }
-   if (id != -1) {
-      /* set highlight to the specified model */
-      col[0] = 1.0f;
-      col[1] = col[2] = 0.0f;
-      col[3] = 1.0f;
-      obj[id].getPMDModel()->setEdgeColor(col);
-   }
-
-   m_highlightingModel = id;
-}
-
-/* Render::getShadowMapping: return true if shadow mapping frag */
-/*
-bool Render::getShadowMapping()
-{
-   return m_enableShadowMapping;
-}
-*/
 
 /* Render::update: update scale */
 void Render::updateScale()
@@ -809,8 +761,8 @@ void Render::getScreenPointPosition(btVector3 *dst, btVector3 *src)
    *dst = m_transMatrixInv * (*src);
 }
 
-/* Render::updateLigithing: update light */
-void Render::updateLighting(bool useCartoonRendering, bool useMMDLikeCartoon, float *lightDirection, float lightIntensy, float *lightColor)
+/* Render::updateLight: update light */
+void Render::updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor)
 {
    float fLightDif[4];
    float fLightSpc[4];
@@ -821,16 +773,16 @@ void Render::updateLighting(bool useCartoonRendering, bool useMMDLikeCartoon, fl
    if (useMMDLikeCartoon == false) {
       /* MMDAgent original cartoon */
       d = 0.2f;
-      a = lightIntensy * 2.0f;
+      a = lightIntensity * 2.0f;
       s = 0.4f;
    } else if (useCartoonRendering) {
       /* like MikuMikuDance */
       d = 0.0f;
-      a = lightIntensy * 2.0f;
-      s = lightIntensy;
+      a = lightIntensity * 2.0f;
+      s = lightIntensity;
    } else {
       /* no toon */
-      d = lightIntensy;
+      d = lightIntensity;
       a = 1.0f;
       s = 1.0f; /* OpenGL default */
    }
@@ -874,7 +826,7 @@ void Render::applyProjectionMatrix()
    double aspect = (double) m_height / (double) m_width;
    double ratio = (m_scaleCurrent == 0.0f) ? 1.0 : 1.0 / m_scaleCurrent;
 
-   glFrustum(- ratio, ratio, - aspect * ratio, aspect * ratio, RENDER_VIEWPOINT_FRUSTUM_NEAR, RENDER_VIEWPOINT_FRUSTUM_FAR);
+   glFrustum(- ratio, ratio, - aspect * ratio, aspect * ratio, RENDER_VIEWPOINTFRUSTUMNEAR, RENDER_VIEWPOINTFRUSTUMFAR);
 }
 
 /* Render::updateModelViewMatrix: update model view matrix */

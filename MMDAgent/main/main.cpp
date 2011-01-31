@@ -239,7 +239,7 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       }
       break;
    case WM_PAINT:
-      mmdagent.renderScene(hWnd);
+      mmdagent.renderScene();
       ValidateRect(hWnd, NULL);
       break;
    case WM_SIZE: {
