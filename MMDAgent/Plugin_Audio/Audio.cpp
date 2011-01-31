@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -44,6 +44,7 @@
 #include <stdio.h>
 #include <windows.h>
 
+#include "MMDAgent.h"
 #include "Audio.h"
 
 /* Audio::initialize: initialize audio */
@@ -111,7 +112,7 @@ bool Audio::play(char *alias, char *file)
    for (i = 0, j = -1; i < AUDIO_MAXNSOUND; i++) {
       if (m_fileName[i][0] == '\0' && j == -1)
          j = i;
-      if (strcmp(m_fileName[i], alias) == 0) {
+      if (MMDAgent_strequal(m_fileName[i], alias)) {
          m_id[i] = mciGetDeviceID(alias);
          break;
       }
@@ -157,7 +158,7 @@ void Audio::stop(char *alias)
 
    /* remove file name */
    for (i = 0; i < AUDIO_MAXNSOUND; i++) {
-      if (strcmp(m_fileName[i], alias) == 0) {
+      if (MMDAgent_strequal(m_fileName[i], alias)) {
          m_fileName[i][0] = '\0';
          break;
       }

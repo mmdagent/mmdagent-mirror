@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -101,7 +101,7 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
       mes1 = (char *) wParam;
       mes2 = (char *) lParam;
       if(mes1 != NULL) {
-         if(strcmp(mes1, PLUGINAUDIO_COMMANDSTART) == 0) {
+         if(MMDAgent_strequal(mes1, PLUGINAUDIO_COMMANDSTART)) {
             /* audio start command */
             buf = MMDAgent_strdup(mes2);
             for(i = 0, p = MMDAgent_strtok(buf, "|", &q); p; i++, p = MMDAgent_strtok(NULL, "|", &q)) {
@@ -117,7 +117,7 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
             }
             if(mes2 != NULL)
                free(buf);
-         } else if(strcmp(mes1, PLUGINAUDIO_COMMANDSTOP) == 0) {
+         } else if(MMDAgent_strequal(mes1, PLUGINAUDIO_COMMANDSTOP)) {
             /* audio stop command */
             if(mes2 != NULL)
                audio.stop(mes2);

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -448,13 +448,13 @@ int VIManager::transition(char *itype, char *iargs, char *otype, char *oargs)
 
    /* matching */
    for (arc = arc_list->head; arc != NULL; arc = arc->next) {
-      if (strcmp(itype, arc->input_event_type) == 0) {
-         if (strcmp(itype, VIMANAGER_RECOG_EVENT_STOP) == 0) {
+      if (MMDAgent_strequal(itype, arc->input_event_type)) {
+         if (MMDAgent_strequal(itype, VIMANAGER_RECOG_EVENT_STOP)) {
             /* for recognition event */
             for (i = 0; i < arc->input_event_argc; i++) {
                jumped = 0;
                for (j = 0; j < argc; j++) {
-                  if (strcmp(arc->input_event_args[i], args[j]) == 0) {
+                  if (MMDAgent_strequal(arc->input_event_args[i], args[j])) {
                      jumped = 1;
                      break;
                   }
@@ -466,7 +466,7 @@ int VIManager::transition(char *itype, char *iargs, char *otype, char *oargs)
             /* for others */
             jumped = 1;
             for (i = 0; i < argc; i++) {
-               if (strcmp(args[i], arc->input_event_args[i]) != 0) {
+               if (MMDAgent_strequal(args[i], arc->input_event_args[i]) == false) {
                   jumped = 0;
                   break;
                }

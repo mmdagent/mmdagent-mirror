@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -207,7 +207,7 @@ void CountDown_Thread::set(char *alias, int sec)
 
    /* check the same alias */
    for(countDown = m_head; countDown; countDown = countDown->next) {
-      if(strcmp(countDown->name, alias) == 0) {
+      if(MMDAgent_strequal(countDown->name, alias)) {
          countDown->goal = now + sec;
          return;
       }
@@ -244,7 +244,7 @@ void CountDown_Thread::unset(char *alias)
 
    for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
       tmp2 = tmp1->next;
-      if(strcmp(tmp1->name, alias) == 0) {
+      if(MMDAgent_strequal(tmp1->name, alias)) {
          if(tmp1 == m_head) {
             if(tmp1 == m_tail) {
             } else {

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -233,11 +233,11 @@ void Julius_Thread::sendMessage(char * str1, char * str2)
    if(str1 == NULL)
       return;
 
-   mes1 = strdup(str1);
+   mes1 = MMDAgent_strdup(str1);
    if(str2 != NULL)
-      mes2 = strdup(str2);
+      mes2 = MMDAgent_strdup(str2);
    else
-      mes2 = strdup("");
+      mes2 = MMDAgent_strdup("");
 
    ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
 }

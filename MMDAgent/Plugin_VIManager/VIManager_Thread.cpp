@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -44,6 +44,7 @@
 #include <windows.h>
 #include <process.h>
 
+#include "MMDAgent.h"
 #include "VIManager.h"
 #include "VIManager_Thread.h"
 
@@ -51,11 +52,11 @@
 void VIManager_Event_initialize(VIManager_Event *e, char *type, char *args)
 {
    if (type != NULL)
-      e->type = _strdup(type);
+      e->type = MMDAgent_strdup(type);
    else
       e->type = NULL;
    if (args != NULL)
-      e->args = _strdup(args);
+      e->args = MMDAgent_strdup(args);
    else
       e->args = NULL;
    e->next = NULL;
@@ -263,7 +264,7 @@ void VIManager_Thread::stateTransition()
 
    /* first epsilon step */
    while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
-      if (strcmp(otype, VIMANAGER_EPSILON) != 0)
+      if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
          sendMessage(otype, oargs);
    }
 
@@ -288,12 +289,12 @@ void VIManager_Thread::stateTransition()
 
          /* state transition with input symbol */
          m_vim.transition(itype, iargs, otype, oargs);
-         if (strcmp(otype, VIMANAGER_EPSILON) != 0)
+         if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
             sendMessage(otype, oargs);
 
          /* state transition with epsilon */
          while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
-            if (strcmp(otype, VIMANAGER_EPSILON) != 0)
+            if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
                sendMessage(otype, oargs);
          }
       } while (remain);
@@ -308,11 +309,11 @@ void VIManager_Thread::sendMessage(char *str1, char *str2)
    if(str1 == NULL)
       return;
 
-   mes1 = strdup(str1);
+   mes1 = MMDAgent_strdup(str1);
    if(str2 != NULL)
-      mes2 = strdup(str2);
+      mes2 = MMDAgent_strdup(str2);
    else
-      mes2 = strdup("");
+      mes2 = MMDAgent_strdup("");
 
    ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
 }

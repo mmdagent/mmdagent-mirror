@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2010  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -102,8 +102,8 @@ void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM
       mes1 = (char *) wParam;
       mes2 = (char *) lParam;
       if(mes1 != NULL) {
-         if(strcmp(mes1, "KEY") == 0) {
-            if(mes2 != NULL && strcmp(mes2, "L") == 0) {
+         if(MMDAgent_strequal(mes1, "KEY")) {
+            if(mes2 != NULL && MMDAgent_strequal(mes2, "L")) {
                for(i = 0; i < mmdagent->getNumModel(); i++) {
                   if(objs[i].isEnable() == true) {
                      if(enable == true) {
@@ -117,7 +117,7 @@ void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM
                }
                enable = !enable;
             }
-         } else if(strcmp(mes1, MMDAGENT_EVENT_MODELCHANGE) == 0 || strcmp(mes1, MMDAGENT_EVENT_MODELADD) == 0) {
+         } else if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELADD)) {
             buf = MMDAgent_strdup(mes2);
             for(i = 0, p = MMDAgent_strtok(buf, "|", &save); p; i++, p = MMDAgent_strtok(NULL, "|", &save)) {
                if(i == 0) {
