@@ -1,0 +1,10 @@
+Version Beta:
+ * support lipsync definition per model.
+ * redesign the parameter set which can be defined in the MDF file.
+ * show motion aliases in the debug mode.
+ * add TIMER command and event.
+ * add Drag and Drop events.
+ * fix many bugs.
+
+Version Alpha:
+ * the first release.
