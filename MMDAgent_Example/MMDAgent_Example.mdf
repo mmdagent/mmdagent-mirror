@@ -52,7 +52,7 @@ cartoon_edge_selected_color=1.0,0.0,0.0,1.0
 
 rendering_rotation=0.0,0.0,0.0
 rendering_transition=0.0,0.0,0.0
-rendering_scale=1.0
+rendering_scale=1.2
 
 # Stage
 
@@ -72,7 +72,7 @@ full_screen=false
 # Log
 
 log_size=80,30
-log_position_x=-17.5,3.0,-15.0
+log_position=-17.5,3.0,-20.0
 log_scale=1.0
 
 # Light

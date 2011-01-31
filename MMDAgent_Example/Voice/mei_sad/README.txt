@@ -1,6 +1,6 @@
 ===============================================================================
-                      HTS Voice "Mei (Sad)" version Alpha
-                           release December 25, 2010
+                      HTS Voice "Mei (Sad)" version Beta
+                           release January 31, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
@@ -15,7 +15,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2010  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2011  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #

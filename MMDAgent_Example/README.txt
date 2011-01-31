@@ -1,6 +1,6 @@
 ===============================================================================
-                        MMDAgent Example version Alpha
-                           release December 25, 2010
+                         MMDAgent Example version Beta
+                           release January 31, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).

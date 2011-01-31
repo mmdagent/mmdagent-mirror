@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Guide of Mei"                          #
+#           MMDAgent Accessory "NIT Map"                            #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #

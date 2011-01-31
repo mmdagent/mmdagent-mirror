@@ -1,5 +1,16 @@
+===============================================================================
+                   MMDAgent Accessory "NIT Map" version Beta
+                           release January 31, 2011
+
+
+The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
+
+*******************************************************************************
+                                    Copying
+*******************************************************************************
+
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Guide of Mei"                          #
+#           MMDAgent Accessory "NIT Map"                            #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
@@ -39,3 +50,29 @@
 #                                                                   #
 # See http://creativecommons.org/ for details.                      #
 # ----------------------------------------------------------------- #
+
+See also "COPYRIGHT.txt" file in the current directory for details.
+
+*******************************************************************************
+                               Acknowledgements
+*******************************************************************************
+
+Keiichi Tokuda
+Akinobu Lee
+Keiichiro Oura
+
+*******************************************************************************
+                                  Who we are
+*******************************************************************************
+
+The MMDAgent project team is a voluntary group for developing the Toolkit for
+Building Voice Interaction System. Current members are
+
+ Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
+ Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
+ Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
+
+and the members are dynamically changing. The current formal contact address of
+MMDAgent project team and a mailing list for MMDAgent users can be found at
+http://www.mmdagent.jp/
+===============================================================================
