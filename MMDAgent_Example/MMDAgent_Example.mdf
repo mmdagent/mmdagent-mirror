@@ -46,6 +46,13 @@ use_cartoon_rendering=true
 use_mmd_like_cartoon=true
 cartoon_edge_width=0.35
 cartoon_edge_step=1.2
+cartoon_edge_selected_color=1.0,0.0,0.0,1.0
+
+# Rendering size
+
+rendering_rotation=0.0,0.0,0.0
+rendering_transition=0.0,0.0,0.0
+rendering_scale=1.0
 
 # Stage
 
