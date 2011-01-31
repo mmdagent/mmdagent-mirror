@@ -1432,11 +1432,13 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
       tmp1 = (tmp1 - 1.0f) * 5.0f + 1.0f;
    else if (withShift) /* slower */
       tmp1 = (tmp1 - 1.0f) * 0.2f + 1.0f;
-   if (zoomup)
-      tmp2 *= tmp1;
-   else
-      tmp2 /= tmp1;
-   m_render->setScale(tmp2);
+   if(tmp1 != 0.0) {
+      if (zoomup)
+         tmp2 *= tmp1;
+      else
+         tmp2 /= tmp1;
+      m_render->setScale(tmp2);
+   }
 }
 
 /* MMDAgent::procMouseMoveMessage: process mouse move message */
