@@ -1,0 +1,6 @@
+Version Beta:
+ * add guide task.
+ * add listening motion.
+
+Version Alpha:
+ * the first release.

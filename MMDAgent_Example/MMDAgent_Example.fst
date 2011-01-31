@@ -170,7 +170,7 @@
 41  42  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART
 42  2   SYNTH_EVENT_STOP|メイ     <eps>
 
-# 0051-0070 Information (key 5)
+# 0051-0070 Guide (key 5)
 
 2   51  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
 2   51  KEY|5                   MODEL_DELETE|メニュー
