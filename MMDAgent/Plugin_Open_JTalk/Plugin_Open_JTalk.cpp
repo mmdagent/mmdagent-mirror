@@ -93,7 +93,8 @@
 
 /* global variables */
 
-Open_JTalk_Manager open_jtalk_manager;
+static Open_JTalk_Manager open_jtalk_manager;
+static bool enable;
 
 /* extAppStart: load models and start thread */
 void __stdcall extAppStart(MMDAgent *m)
@@ -120,6 +121,9 @@ void __stdcall extAppStart(MMDAgent *m)
 
    if(config)
       free(config);
+
+   enable = true;
+   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
 }
 
 /* extWindowProc: process message */
@@ -128,14 +132,32 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
    char *mes1;
    char *mes2;
 
-   if (open_jtalk_manager.isRunning()) {
-      if (message == WM_MMDAGENT_COMMAND) {
+   if(enable == true) {
+      if(message == WM_MMDAGENT_COMMAND) {
          mes1 = (char *) wParam;
          mes2 = (char *) lParam;
-         if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STARTCOMMAND)) {
-            open_jtalk_manager.synthesis(mes2);
-         } else if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STOPCOMMAND)) {
-            open_jtalk_manager.stop(mes2);
+         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+            if(MMDAgent_strequal(mes2, PLUGINOPENJTALK_NAME)) {
+               enable = false;
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+            }
+         } else if (open_jtalk_manager.isRunning()) {
+            if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STARTCOMMAND)) {
+               open_jtalk_manager.synthesis(mes2);
+            } else if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STOPCOMMAND)) {
+               open_jtalk_manager.stop(mes2);
+            }
+         }
+      }
+   } else {
+      if(message == WM_MMDAGENT_COMMAND) {
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
+         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
+            if(MMDAgent_strequal(mes2, PLUGINOPENJTALK_NAME)) {
+               enable = true;
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+            }
          }
       }
    }

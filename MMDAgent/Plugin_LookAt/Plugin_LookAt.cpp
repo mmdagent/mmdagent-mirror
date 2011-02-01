@@ -64,22 +64,51 @@
 #include "MMDAgent.h"
 #include "BoneController.h"
 
+/* definitions */
+
+#define PLUGINLOOKAT_NAME "LookAt"
+
 /* global variables */
 
-bool enable;
-BoneController neckController[MMDAGENT_MAXNMODEL];
-BoneController eyeController[MMDAGENT_MAXNMODEL];
+static BoneController headController[MMDAGENT_MAXNMODEL];
+static BoneController eyeController[MMDAGENT_MAXNMODEL];
+static bool enable;
 
-static void setNeckController(BoneController *controller, PMDModel *model)
+/* setHeadController: set bone controller to head */
+static void setHeadController(BoneController *controller, PMDModel *model)
 {
    char *bone[] = {"“ª"};
    controller->setup(model, bone, 1, 0.150f, 0.008f, 0.0f, 0.0f, 1.0f, 20.0f, 60.0f, 0.0f, -45.0f, -60.0f, 0.0f, 0.0f, -1.0f, 0.0f);
 }
 
+/* setEyeController: set eye controller to eyes */
 static void setEyeController(BoneController *controller, PMDModel *model)
 {
    char *bone[] = {"‰E–Ú", "¶–Ú"};
    controller->setup(model, bone, 2, 0.180f, 0.008f, 0.0f, 0.0f, 1.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+/* changeLookAt: switch LookAt */
+static void changeLookAt(PMDObject *objs, const int num, HWND hWnd)
+{
+   int i;
+
+   for(i = 0; i < num; i++) {
+      if(objs[i].isEnable() == true) {
+         if(enable == true) {
+            headController[i].setEnableFlag(false);
+            eyeController[i].setEnableFlag(false);
+         } else {
+            headController[i].setEnableFlag(true);
+            eyeController[i].setEnableFlag(true);
+         }
+      }
+   }
+   enable = !enable;
+   if(enable)
+      ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINLOOKAT_NAME));
+   else
+      ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINLOOKAT_NAME));
 }
 
 /* extAppStart: initialize controller */
@@ -91,46 +120,42 @@ void __stdcall extAppStart(MMDAgent *m)
 /* extWindowProc: process message */
 void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   int i;
    int id;
    char *mes1, *mes2;
    char *p, *buf, *save;
    PMDObject *objs;
 
-   if(message == WM_MMDAGENT_EVENT) {
+   if(message == WM_MMDAGENT_COMMAND) {
       objs = mmdagent->getModelList();
       mes1 = (char *) wParam;
       mes2 = (char *) lParam;
-      if(mes1 != NULL) {
-         if(MMDAgent_strequal(mes1, "KEY")) {
-            if(mes2 != NULL && MMDAgent_strequal(mes2, "L")) {
-               for(i = 0; i < mmdagent->getNumModel(); i++) {
-                  if(objs[i].isEnable() == true) {
-                     if(enable == true) {
-                        neckController[i].setEnableFlag(false);
-                        eyeController[i].setEnableFlag(false);
-                     } else {
-                        neckController[i].setEnableFlag(true);
-                        eyeController[i].setEnableFlag(true);
-                     }
-                  }
-               }
-               enable = !enable;
-            }
-         } else if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELADD)) {
-            buf = MMDAgent_strdup(mes2);
-            for(i = 0, p = MMDAgent_strtok(buf, "|", &save); p; i++, p = MMDAgent_strtok(NULL, "|", &save)) {
-               if(i == 0) {
-                  id = mmdagent->findModelAlias(p);
-                  if(id != -1) {
-                     setNeckController(&neckController[id], objs[id].getPMDModel());
-                     setEyeController(&eyeController[id], objs[id].getPMDModel());
-                  }
-               }
-            }
-            if(mes2 != NULL)
-               free(buf);
+      if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(mes2, PLUGINLOOKAT_NAME) && enable == false)
+            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
+      } else if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(mes2, PLUGINLOOKAT_NAME) && enable == true)
+            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
+      }
+   } else if(message == WM_MMDAGENT_EVENT) {
+      objs = mmdagent->getModelList();
+      mes1 = (char *) wParam;
+      mes2 = (char *) lParam;
+      if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_KEY)) {
+         if(mes2 != NULL && MMDAgent_strequal(mes2, "L")) {
+            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
          }
+      } else if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELADD)) {
+         buf = MMDAgent_strdup(mes2);
+         p = MMDAgent_strtok(buf, "|", &save);
+         if(p) {
+            id = mmdagent->findModelAlias(p);
+            if(id != -1) {
+               setHeadController(&headController[id], objs[id].getPMDModel());
+               setEyeController(&eyeController[id], objs[id].getPMDModel());
+            }
+         }
+         if(buf != NULL)
+            free(buf);
       }
    }
 }
@@ -142,11 +167,11 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    float rate;
    PMDObject *objs;
    btVector3 targetPos, pointPos;
-
-   /* set target position */
    HWND hWnd = mmdagent->getWindowHandler();
    RECT rc;
    POINT pos;
+
+   /* set target position */
    if (!GetWindowRect(hWnd, &rc)) return;
    if (!GetCursorPos(&pos)) return;
    pos.x -= (rc.left + rc.right) / 2;
@@ -159,7 +184,7 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    objs = mmdagent->getModelList();
    for (i = 0; i < mmdagent->getNumModel(); i++) {
       if (objs[i].isEnable() == true) {
-         neckController[i].update(&targetPos, (float) deltaFrame);
+         headController[i].update(&targetPos, (float) deltaFrame);
          eyeController[i].update(&targetPos, (float) deltaFrame);
       }
    }

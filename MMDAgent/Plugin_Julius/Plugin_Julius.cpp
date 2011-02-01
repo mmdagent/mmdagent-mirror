@@ -65,17 +65,18 @@
 #include <locale.h>
 
 #include "julius/juliuslib.h"
-
 #include "Julius_Thread.h"
-
 #include "MMDAgent.h"
+
+/* definitions */
 
 #define PLUGINJULIUS_NAME         "Julius"
 #define PLUGINJULIUS_DIRSEPARATOR '\\'
 
 /* global variables */
 
-Julius_Thread julius_thread;
+static Julius_Thread julius_thread;
+static bool enable;
 
 /* extAppStart: load models and start thread */
 void __stdcall extAppStart(MMDAgent *m)
@@ -93,12 +94,40 @@ void __stdcall extAppStart(MMDAgent *m)
 
    /* move directory */
    SetCurrentDirectoryA(current_dir);
+
+   enable = true;
+   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+}
+
+/* extWindowProc: process window message */
+void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+   char *mes1, *mes2;
+
+   if(message == WM_MMDAGENT_COMMAND) {
+      mes1 = (char *) wParam;
+      mes2 = (char *) lParam;
+      if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(mes2, PLUGINJULIUS_NAME) && enable == true) {
+            julius_thread.pause();
+            enable = false;
+            ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+         }
+      } else if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(mes2, PLUGINJULIUS_NAME) && enable == false) {
+            julius_thread.resume();
+            enable = true;
+            ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+         }
+      }
+   }
 }
 
 /* extAppEnd: stop thread and free julius */
 void __stdcall extAppEnd(MMDAgent *m)
 {
    julius_thread.stopAndRelease();
+   enable = false;
 }
 
 /* DllMain: main for DLL */

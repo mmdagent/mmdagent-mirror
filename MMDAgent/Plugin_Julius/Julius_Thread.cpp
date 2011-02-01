@@ -225,6 +225,20 @@ void Julius_Thread::stopAndRelease()
    clear();
 }
 
+/* Julius_Thread::pause: pause recognition process */
+void Julius_Thread::pause()
+{
+   if(m_recog != NULL)
+      j_request_pause(m_recog);
+}
+
+/* Julius_Thread::resume: resume recognition process */
+void Julius_Thread::resume()
+{
+   if(m_recog != NULL)
+      j_request_resume(m_recog);
+}
+
 /* Julius_Thread::sendMessage: send message to MMDAgent */
 void Julius_Thread::sendMessage(char * str1, char * str2)
 {

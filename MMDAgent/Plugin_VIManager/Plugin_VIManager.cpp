@@ -64,14 +64,18 @@
 #include <windows.h>
 #include <locale.h>
 
+#include "MMDAgent.h"
 #include "VIManager.h"
 #include "VIManager_Thread.h"
 
-#include "MMDAgent.h"
+/* definitions */
+
+#define PLUGINVIMANAGER_NAME "VIManager"
 
 /* global variance */
 
-VIManager_Thread vimanager_thread;
+static VIManager_Thread vimanager_thread;
+static bool enable;
 
 /* extAppStart: load FST and start thread */
 void __stdcall extAppStart(MMDAgent *m)
@@ -92,6 +96,9 @@ void __stdcall extAppStart(MMDAgent *m)
    }
    if(buf)
       free(buf);
+
+   enable = true;
+   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
 }
 
 /* extWindowProc: catch dialog message */
@@ -100,12 +107,34 @@ void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam
    char *mes1;
    char *mes2;
 
-   if (vimanager_thread.isRunning()) {
-      if (message == WM_MMDAGENT_EVENT) {
+   if(enable == true) {
+      if(message == WM_MMDAGENT_COMMAND) {
          mes1 = (char *) wParam;
          mes2 = (char *) lParam;
-         if (mes1 != NULL) {
-            vimanager_thread.enqueueBuffer(mes1, mes2); /* enqueue */
+         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+            if(MMDAgent_strequal(mes2, PLUGINVIMANAGER_NAME)) {
+               enable = false;
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+            }
+         }
+      } else if (message == WM_MMDAGENT_EVENT) {
+         if (vimanager_thread.isRunning()) {
+            mes1 = (char *) wParam;
+            mes2 = (char *) lParam;
+            if (mes1 != NULL) {
+               vimanager_thread.enqueueBuffer(mes1, mes2); /* enqueue */
+            }
+         }
+      }
+   } else {
+      if(message == WM_MMDAGENT_COMMAND) {
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
+         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
+            if(MMDAgent_strequal(mes2, PLUGINVIMANAGER_NAME)) {
+               enable = true;
+               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+            }
          }
       }
    }

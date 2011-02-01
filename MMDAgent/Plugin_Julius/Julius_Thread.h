@@ -82,6 +82,12 @@ public :
    /* stopAndRlease: stop thread and release julius */
    void stopAndRelease();
 
+   /* pause: pause recognition process */
+   void pause();
+
+   /* resume: resume recognition process */
+   void resume();
+
    /* sendMessage: send message to MMDAgent */
    void sendMessage(char *str1, char *str2);
 };
