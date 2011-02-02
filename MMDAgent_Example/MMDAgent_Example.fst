@@ -140,9 +140,9 @@
 
 # 0021-0030 Idle behavior
 
-2   21  <eps>                  TIMER_START|idle1|10
-21  22  <eps>                  TIMER_START|idle2|20
-22  1   <eps>                  TIMER_START|idle3|30
+2   21  <eps>                  TIMER_START|idle1|20
+21  22  <eps>                  TIMER_START|idle2|40
+22  1   <eps>                  TIMER_START|idle3|60
 1   1   RECOG_EVENT_START      MOTION_ADD|メイ|反応|Expression\mei_listen\mei_listen.vmd|PART|ONCE
 1   1   TIMER_EVENT_STOP|idle1 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_boredom.vmd|PART|ONCE
 1   1   TIMER_EVENT_STOP|idle2 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_touch_clothes.vmd|PART|ONCE
