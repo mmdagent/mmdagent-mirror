@@ -149,6 +149,8 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
          if(id != -1) {
             setHeadController(&headController[id], objs[id].getPMDModel());
             setEyeController(&eyeController[id], objs[id].getPMDModel());
+            headController[id].setEnableFlag(enable);
+            eyeController[id].setEnableFlag(enable);
          }
       }
       if(buf != NULL)
