@@ -157,13 +157,13 @@ void BoneController::setEnableFlag(bool b)
 {
    int i;
 
-   m_enable = b;
    if(b == true) {
       for(i = 0; i < m_numBone; i++)
          m_rotList[i] = (*(m_boneList[i]->getCurrentRotation()));
-   } else {
+   } else if(m_enable == true) {
       m_fadingRate = 1.0f;
    }
+   m_enable = b;
 }
 
 /* BoneController::update: update motions */
