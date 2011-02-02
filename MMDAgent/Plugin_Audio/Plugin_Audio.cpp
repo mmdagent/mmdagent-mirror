@@ -61,83 +61,59 @@
 
 /* headers */
 
-#include <windows.h>
-#include <MMSystem.h>
-
 #include "MMDAgent.h"
-#include "Audio.h"
+
+#include "Audio_Thread.h"
+#include "Audio_Manager.h"
 
 /* definitions */
 
-#define PLUGINAUDIO_NAME "Audio"
-
-#define PLUGINAUDIO_COMMANDSTART "SOUND_START"
-#define PLUGINAUDIO_COMMANDSTOP  "SOUND_STOP"
-#define PLUGINAUDIO_EVENTSTART   "SOUND_EVENT_START"
-#define PLUGINAUDIO_EVENTSTOP    "SOUND_EVENT_STOP"
-
+#define PLUGINAUDIO_NAME         "Audio"
 #define PLUGINAUDIO_DEFAULTALIAS "audio"
+
+#define PLUGINAUDIO_STARTCOMMAND "SOUND_START"
+#define PLUGINAUDIO_STOPCOMMAND  "SOUND_STOP"
 
 /* global variables */
 
-static Audio audio;
+static Audio_Manager audio_manager;
 static bool enable;
 
-/* extAppStart: initialize audio */
+/* extAppStart: setup and start thread */
 void __stdcall extAppStart(MMDAgent *m)
 {
-   audio.setup(m->getWindowHandler());
+   audio_manager.setupAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
+
    enable = true;
    ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
 }
 
 /* extWindowProc: process message */
-void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    int i;
    char *mes1, *mes2;
    char *buf, *p, *q;
-   char *alias, *file;
 
-   if(message == MM_MCINOTIFY) {
-      /* audio stop event */
-      alias = audio.getFinishedAlias(wParam, lParam);
-      if (alias) {
-         audio.stop(alias);
-         ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTOP), (LPARAM) MMDAgent_strdup(alias));
-      }
-   } else if (enable == true) {
-      /* enable */
-      mes1 = (char *) wParam;
-      mes2 = (char *) lParam;
+   if(enable == true) {
       if(message == WM_MMDAGENT_COMMAND) {
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
          if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
             if(MMDAgent_strequal(mes2, PLUGINAUDIO_NAME)) {
                enable = false;
                ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
             }
-         } else if(MMDAgent_strequal(mes1, PLUGINAUDIO_COMMANDSTART)) {
-            /* audio start command */
-            buf = MMDAgent_strdup(mes2);
-            for(i = 0, p = MMDAgent_strtok(buf, "|", &q); p; i++, p = MMDAgent_strtok(NULL, "|", &q)) {
-               if(i == 0)
-                  alias = p;
-               else if(i == 1)
-                  file = p;
+         } else if (audio_manager.isRunning()) {
+            if (MMDAgent_strequal(mes1, PLUGINAUDIO_STARTCOMMAND)) {
+               audio_manager.play(mes2);
+            } else if (MMDAgent_strequal(mes1, PLUGINAUDIO_STOPCOMMAND)) {
+               audio_manager.stop(mes2);
             }
-            if(i == 2) {
-               audio.stop(alias);
-               if(audio.play(alias, file) == true)
-                  ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) MMDAgent_strdup(alias));
-            }
-            if(buf != NULL)
-               free(buf);
-         } else if(MMDAgent_strequal(mes1, PLUGINAUDIO_COMMANDSTOP)) {
-            /* audio stop command */
-            if(mes2 != NULL)
-               audio.stop(mes2);
          }
       } else if(message == WM_MMDAGENT_EVENT) {
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
          if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_DRAGANDDROP)) {
             buf = MMDAgent_strdup(mes2);
             p = MMDAgent_strtok(buf, "|", &q);
@@ -147,19 +123,20 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
                p[i-3] = 'm';
                p[i-2] = 'p';
                p[i-1] = '3';
-               audio.stop(PLUGINAUDIO_DEFAULTALIAS);
-               if(audio.play(PLUGINAUDIO_DEFAULTALIAS, p) == true)
-                  ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(PLUGINAUDIO_EVENTSTART), (LPARAM) MMDAgent_strdup("audio"));
+               audio_manager.stop(PLUGINAUDIO_DEFAULTALIAS);
+               q = (char *) malloc(sizeof(char) * (strlen(PLUGINAUDIO_DEFAULTALIAS) + 1 + strlen(p) + 1));
+               sprintf(q, "%s|%s", PLUGINAUDIO_DEFAULTALIAS, p);
+               audio_manager.play(q);
+               free(q);
             }
             if(buf)
                free(buf);
          }
       }
    } else {
-      /* disable */
-      mes1 = (char *) wParam;
-      mes2 = (char *) lParam;
       if(message == WM_MMDAGENT_COMMAND) {
+         mes1 = (char *) wParam;
+         mes2 = (char *) lParam;
          if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
             if(MMDAgent_strequal(mes2, PLUGINAUDIO_NAME)) {
                enable = true;
@@ -170,10 +147,10 @@ void __stdcall extWindowProc(MMDAgent * m, HWND hWnd, UINT message, WPARAM wPara
    }
 }
 
-/* extAppEnd: release audio */
+/* extAppEnd: stop and free thread */
 void __stdcall extAppEnd(MMDAgent *m)
 {
-   audio.release();
+   audio_manager.stopAndRelease();
 }
 
 /* DllMain: main for DLL */

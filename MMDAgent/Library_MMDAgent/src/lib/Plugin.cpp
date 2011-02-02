@@ -43,109 +43,110 @@
 
 #include "MMDAgent.h"
 
-/* Plugin_initialize: initialize Plugin */
-void Plugin_initialize(Plugin *p)
+/* Dl_initialize: initialize dll */
+void Dll_initialize(Dll *d)
 {
-   p->name = NULL;
-   p->handle = NULL;
-   p->enable = false;
+   d->name = NULL;
+   d->handle = NULL;
+   d->enable = false;
 
-   p->appStart = NULL;
-   p->appEnd = NULL;
-   p->windowProc = NULL;
-   p->update = NULL;
-   p->render = NULL;
+   d->appStart = NULL;
+   d->appEnd = NULL;
+   d->windowProc = NULL;
+   d->update = NULL;
+   d->render = NULL;
 
-   p->next = NULL;
+   d->next = NULL;
 }
 
-/* Plugin_clear: free Plugin */
-void Plugin_clear(Plugin *p)
+/* Dll_clear: free dll */
+void Dll_clear(Dll *d)
 {
-   if (p->handle)
-      ::FreeLibrary(p->handle);
-   if (p->name)
-      free(p->name);
+   if (d->handle)
+      ::FreeLibrary(d->handle);
+   if (d->name)
+      free(d->name);
 
-   Plugin_initialize(p);
+   Dll_initialize(d);
 }
 
-/* Plugin_load: load DLL */
-bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName)
+/* Dll_load: load dll */
+bool Dll_load(Dll *d, const char *dir, const char *file)
 {
    char *buf;
 
-   if(p == NULL || dllDirName == NULL || dllFileName == NULL) return false;
-   Plugin_clear(p);
+   if(d == NULL || dir == NULL || file == NULL) return false;
+   Dll_clear(d);
 
-   /* open DLL */
-   buf = (char *) malloc(sizeof(char) * (MMDAgent_strlen(dllDirName) + 1 + MMDAgent_strlen(dllFileName) + 1));
-   sprintf(buf, "%s\\%s", dllDirName, dllFileName);
-   p->handle = ::LoadLibraryExA(buf, NULL, 0);
+   /* open */
+   buf = (char *) malloc(sizeof(char) * (MMDAgent_strlen(dir) + 1 + MMDAgent_strlen(file) + 1));
+   sprintf(buf, "%s%c%s", dir, PLUGIN_DIRSEPARATOR, file);
+   d->handle = ::LoadLibraryExA(buf, NULL, 0);
    free(buf);
-   if (!p->handle)
+   if (!d->handle)
       return false;
 
    /* set function pointers */
-   p->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppStart");
-   p->appEnd = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extAppEnd");
-   p->windowProc = (void (__stdcall *)(MMDAgent *, HWND, UINT, WPARAM, LPARAM)) ::GetProcAddress(p->handle, "extWindowProc");
-   p->update = (void (__stdcall *)(MMDAgent *, double)) ::GetProcAddress(p->handle, "extUpdate");
-   p->render = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(p->handle, "extRender");
+   d->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extAppStart");
+   d->appEnd = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extAppEnd");
+   d->windowProc = (void (__stdcall *)(MMDAgent *, HWND, UINT, WPARAM, LPARAM)) ::GetProcAddress(d->handle, "extWindowProc");
+   d->update = (void (__stdcall *)(MMDAgent *, double)) ::GetProcAddress(d->handle, "extUpdate");
+   d->render = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extRender");
 
-   if (p->appStart || p->appEnd || p->windowProc || p->update || p->render) {
+   if (d->appStart || d->appEnd || d->windowProc || d->update || d->render) {
       /* save file name */
-      p->name = MMDAgent_strdup(dllFileName);
-      p->enable = true;
+      d->name = MMDAgent_strdup(file);
+      d->enable = true;
       return true;
    } else {
       /* if none, exit */
-      Plugin_clear(p);
+      Dll_clear(d);
       return false;
    }
 }
 
-/* PluginList::initialize: initialize plugin list */
-void PluginList::initialize()
+/* Plugin::initialize: initialize plugin list */
+void Plugin::initialize()
 {
    m_head = NULL;
    m_tail = NULL;
    m_numPlugin = 0;
 }
 
-/* PluginList::clear: free plugin list */
-void PluginList::clear()
+/* Plugin::clear: free plugin list */
+void Plugin::clear()
 {
-   Plugin *p1, *p2;
+   Dll *d1, *d2;
 
-   for (p1 = m_head; p1; p1 = p2) {
-      p2 = p1->next;
-      Plugin_clear(p1);
-      free(p1);
+   for (d1 = m_head; d1; d1 = d2) {
+      d2 = d1->next;
+      Dll_clear(d1);
+      free(d1);
    }
+
    initialize();
 }
 
-/* PluginList::PluginList: constructor */
-PluginList::PluginList()
+/* Plugin::Plugin: constructor */
+Plugin::Plugin()
 {
    initialize();
 }
 
-/* PluginList::~PluginList: destructor */
-PluginList::~PluginList()
+/* Plugin::~Plugin: destructor */
+Plugin::~Plugin()
 {
    clear();
 }
 
-/* PluginList::load: load all DLLs in a directory */
-bool PluginList::load(const char *dir)
+/* Plugin::load: load all DLLs in a directory */
+bool Plugin::load(const char *dir)
 {
    WIN32_FIND_DATAA findData;
    HANDLE hFind;
    char *buf;
    bool ret = false;
-   Plugin *p;
+   Dll *d;
 
    if(dir == NULL) return false;
    buf = (char *) malloc(sizeof(char) * (MMDAgent_strlen(dir) + 1 + MMDAgent_strlen(PLUGIN_DYNAMICLIBS) + 1));
@@ -158,18 +159,18 @@ bool PluginList::load(const char *dir)
       return ret;
    }
 
-   /* add DLL */
+   /* add */
    do {
-      p = (Plugin *) malloc(sizeof(Plugin));
-      Plugin_initialize(p);
-      if (Plugin_load(p, dir, findData.cFileName) == false) {
-         free(p);
+      d = (Dll *) malloc(sizeof(Dll));
+      Dll_initialize(d);
+      if (Dll_load(d, dir, findData.cFileName) == false) {
+         free(d);
       } else {
          if (m_tail == NULL)
-            m_head = p;
+            m_head = d;
          else
-            m_tail->next = p;
-         m_tail = p;
+            m_tail->next = d;
+         m_tail = d;
          m_numPlugin++;
          ret = true;
       }
@@ -182,52 +183,52 @@ bool PluginList::load(const char *dir)
    return ret;
 }
 
-/* PluginList::execAppStart: run when application is start */
-void PluginList::execAppStart(MMDAgent *mmdagent)
+/* Plugin::execAppStart: run when application is start */
+void Plugin::execAppStart(MMDAgent *mmdagent)
 {
-   Plugin *p;
+   Dll *d;
 
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->appStart)
-         p->appStart(mmdagent);
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->appStart)
+         d->appStart(mmdagent);
 }
 
-/* PluginList::execAppEnd: run when application is end */
-void PluginList::execAppEnd(MMDAgent *mmdagent)
+/* Plugin::execAppEnd: run when application is end */
+void Plugin::execAppEnd(MMDAgent *mmdagent)
 {
-   Plugin *p;
+   Dll *d;
 
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->appEnd)
-         p->appEnd(mmdagent);
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->appEnd)
+         d->appEnd(mmdagent);
 }
 
-/* PluginList::execWindowProc: receive window message */
-void PluginList::execWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* Plugin::execWindowProc: receive window message */
+void Plugin::execWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   Plugin *p;
+   Dll *d;
 
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->windowProc)
-         p->windowProc(mmdagent, hWnd, message, wParam, lParam);
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->windowProc)
+         d->windowProc(mmdagent, hWnd, message, wParam, lParam);
 }
 
-/* PluginList::execUpdate: */
-void PluginList::execUpdate(MMDAgent *mmdagent, double deltaFrame)
+/* Plugin::execUpdate: */
+void Plugin::execUpdate(MMDAgent *mmdagent, double deltaFrame)
 {
-   Plugin *p;
+   Dll *d;
 
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->update)
-         p->update(mmdagent, deltaFrame);
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->update)
+         d->update(mmdagent, deltaFrame);
 }
 
-/* PluginList::execRender: */
-void PluginList::execRender(MMDAgent *mmdagent)
+/* Plugin::execRender: */
+void Plugin::execRender(MMDAgent *mmdagent)
 {
-   Plugin *p;
+   Dll *d;
 
-   for (p = m_head; p; p = p->next)
-      if (p->enable && p->render)
-         p->render(mmdagent);
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->render)
+         d->render(mmdagent);
 }

@@ -113,6 +113,6 @@ public:
    /* synthesis: start synthesis */
    void synthesis(char *str);
 
-   /* synthesis: stop synthesis */
+   /* stop: stop synthesis */
    void stop(char *str);
 };

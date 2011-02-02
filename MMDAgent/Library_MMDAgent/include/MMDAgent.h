@@ -132,7 +132,7 @@ private:
 
    Option *m_option;        /* user options */
    BulletPhysics *m_bullet; /* Bullet Physics */
-   PluginList *m_plugin;    /* plugins */
+   Plugin *m_plugin;        /* plugins */
    Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
    SystemTexture *m_systex; /* system texture */

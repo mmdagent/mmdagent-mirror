@@ -191,6 +191,10 @@
 				RelativePath=".\Plugin_Variables.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Plugin_Variables.def"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="header"

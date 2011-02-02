@@ -44,8 +44,8 @@
 #define PLUGIN_DIRSEPARATOR '\\'
 #define PLUGIN_DYNAMICLIBS  "*.dll"
 
-/* Plugin: plugin for MMDAgent */
-typedef struct _Plugin {
+/* Dll: dll for MMDAgent */
+typedef struct _Dll {
    char *name;
    HINSTANCE handle;
    bool enable;
@@ -56,25 +56,25 @@ typedef struct _Plugin {
    void (__stdcall *update)(MMDAgent *mmdagent, double deltaFrame);
    void (__stdcall *render)(MMDAgent *mmdagent);
 
-   struct _Plugin *next;
-} Plugin;
+   struct _Dll *next;
+} Dll;
 
-/* Plugin_initialize: initialize plugin */
-void Plugin_initialize(Plugin *p);
+/* Dll_initialize: initialize dll */
+void Dll_initialize(Dll *d);
 
-/* Plugin_clear: free plugin */
-void Plugin_clear(Plugin *p);
+/* Dll_clear: free plugin */
+void Dll_clear(Dll *d);
 
-/* Plugin_load: load DLL */
-bool Plugin_load(Plugin *p, const char *dllDirName, const char *dllFileName);
+/* Dll_load: load dll */
+bool Dll_load(Dll *d, const char *dir, const char *file);
 
-/* PluginList: plugin list */
-class PluginList
+/* Plugin: plugin list */
+class Plugin
 {
 private:
 
-   Plugin *m_head;
-   Plugin *m_tail;
+   Dll *m_head;
+   Dll *m_tail;
    int m_numPlugin;
 
    /* initialize: initialize plugin list */
@@ -85,11 +85,11 @@ private:
 
 public:
 
-   /* PluginList: constructor */
-   PluginList();
+   /* Plugin: constructor */
+   Plugin();
 
-   /* ~PluginList: destructor */
-   ~PluginList();
+   /* ~Plugin: destructor */
+   ~Plugin();
 
    /* load: load all DLLs in a directory */
    bool load(const char *dir);

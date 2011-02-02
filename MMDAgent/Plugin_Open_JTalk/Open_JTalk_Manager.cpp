@@ -185,7 +185,7 @@ void Open_JTalk_Manager::clear()
       delete tmp1;
    }
 
-   /* stop to wait */
+   /* wait */
    if(m_synthEvent)
       SetEvent(m_synthEvent);
 
@@ -255,10 +255,8 @@ void Open_JTalk_Manager::start()
 {
    int i;
    Open_JTalk_Link *link;
-   char *p, *save;
-   char *buff;
+   char *buff, *save;
    char *chara, *style, *text;
-   bool remain = true;
 
    /* check */
    if(m_threadHandle == 0 || m_bufferMutex != 0 || m_synthEvent != 0) return;
@@ -294,7 +292,6 @@ void Open_JTalk_Manager::start()
       ResetEvent(m_synthEvent);
 
       while(m_kill == false) {
-
          /* wait buffer mutex */
          if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
             MessageBoxA(NULL, "Error: cannot wait buffer mutex.", "Error", MB_OK);
@@ -306,12 +303,10 @@ void Open_JTalk_Manager::start()
 
          if(buff == NULL) break;
 
-         chara = style = text = NULL;
-         for(i = 0, p = MMDAgent_strtok(buff, "|", &save); p; i++, p = MMDAgent_strtok(NULL, "|", &save)) {
-            if(i == 0) chara = p;
-            else if(i == 1) style = p;
-            else if(i == 2) text = p;
-         }
+         chara = MMDAgent_strtok(buff, "|", &save);
+         style = MMDAgent_strtok(NULL, "|", &save);
+         text = MMDAgent_strtok(NULL, "|", &save);
+
          if(chara != NULL && style != NULL || text != NULL) {
             /* check character */
             for(i = 0, link = m_list; link; link = link->next, i++)
@@ -371,7 +366,7 @@ void Open_JTalk_Manager::synthesis(char *str)
    SetEvent(m_synthEvent);
 }
 
-/* Open_JTalk_Manager::synthesis: stop synthesis */
+/* Open_JTalk_Manager::stop: stop synthesis */
 void Open_JTalk_Manager::stop(char *str)
 {
    Open_JTalk_Link *link;

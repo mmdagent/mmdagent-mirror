@@ -961,7 +961,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
    m_bullet->setup(m_option->getBulletFps());
 
    /* load and start plugins */
-   m_plugin = new PluginList();
+   m_plugin = new Plugin();
    sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
    m_plugin->load(buff);
 

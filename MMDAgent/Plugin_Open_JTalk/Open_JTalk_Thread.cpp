@@ -108,7 +108,7 @@ void Open_JTalk_Thread::clear()
    stop();
    m_kill = true;
 
-   /* stop to wait */
+   /* wait */
    if (m_synthEvent)
       SetEvent(m_synthEvent);
 
@@ -314,7 +314,8 @@ void Open_JTalk_Thread::start()
          }
          chara = MMDAgent_strdup(m_charaBuff);
          style = MMDAgent_strdup(m_styleBuff);
-         text  = MMDAgent_strdup(m_textBuff);
+         text = MMDAgent_strdup(m_textBuff);
+         m_speaking = true;
          ReleaseMutex(m_bufferMutex);
 
          /* search style index */
@@ -324,7 +325,7 @@ void Open_JTalk_Thread::start()
          if (index >= m_numStyles) /* unknown style */
             index = 0;
 
-         /* send SYNTH_EVENT_STOP */
+         /* send SYNTH_EVENT_START */
          sendStartEventMessage(chara);
 
          /* synthesize */
@@ -339,11 +340,11 @@ void Open_JTalk_Thread::start()
          /* send SYNTH_EVENT_STOP */
          sendStopEventMessage(chara);
 
-         free(chara);
-         free(style);
-         free(text);
+         if(chara) free(chara);
+         if(style) free(style);
+         if(text) free(text);
+         m_speaking = false;
       }
-      m_speaking = false;
    }
 }
 
@@ -407,7 +408,6 @@ void Open_JTalk_Thread::synthesis(char *chara, char *style, char *text)
    m_charaBuff = MMDAgent_strdup(chara);
    m_styleBuff = MMDAgent_strdup(style);
    m_textBuff = MMDAgent_strdup(text);
-   m_speaking = true;
 
    /* release buffer mutex */
    ReleaseMutex(m_bufferMutex);
