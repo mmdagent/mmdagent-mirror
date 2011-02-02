@@ -1,6 +1,6 @@
 ===============================================================================
                       HTS Voice "Mei (Sad)" version Beta
-                           release January 31, 2011
+                           release February 3, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
