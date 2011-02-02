@@ -207,25 +207,26 @@ void CountDown_Thread::set(const char *alias, int sec)
 
    /* check the same alias */
    for(countDown = m_head; countDown; countDown = countDown->next) {
-      if(MMDAgent_strequal(countDown->name, alias)) {
-         countDown->goal = now + sec;
-         return;
-      }
+      if(MMDAgent_strequal(countDown->name, alias))
+         break;
    }
 
    /* push timer */
-   countDown = (CountDown *) malloc(sizeof(CountDown));
-   countDown->name = MMDAgent_strdup(alias);
-   countDown->goal = now + sec;
-   countDown->next = NULL;
-   if(m_tail == NULL) {
-      m_head = countDown;
-      countDown->prev = NULL;
-   } else {
-      m_tail->next = countDown;
-      countDown->prev = m_tail;
+   if(countDown == NULL) {
+      countDown = (CountDown *) malloc(sizeof(CountDown));
+      countDown->name = MMDAgent_strdup(alias);
+      countDown->next = NULL;
+      if(m_tail == NULL) {
+         m_head = countDown;
+         countDown->prev = NULL;
+      } else {
+         m_tail->next = countDown;
+         countDown->prev = m_tail;
+      }
+      m_tail = countDown;
    }
-   m_tail = countDown;
+   /* overwrite */
+   countDown->goal = now + sec;
 
    sendStartEventMessage(countDown->name); /* send message */
 
