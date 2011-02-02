@@ -52,21 +52,13 @@ typedef struct _Dll {
 
    void (__stdcall *appStart)(MMDAgent *mmdagent);
    void (__stdcall *appEnd)(MMDAgent *mmdagent);
-   void (__stdcall *windowProc)(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+   void (__stdcall *procCommand)(MMDAgent *mmdagent, const char *type, const char *args);
+   void (__stdcall *procEvent)(MMDAgent *mmdagent, const char *type, const char *args);
    void (__stdcall *update)(MMDAgent *mmdagent, double deltaFrame);
    void (__stdcall *render)(MMDAgent *mmdagent);
 
    struct _Dll *next;
 } Dll;
-
-/* Dll_initialize: initialize dll */
-void Dll_initialize(Dll *d);
-
-/* Dll_clear: free plugin */
-void Dll_clear(Dll *d);
-
-/* Dll_load: load dll */
-bool Dll_load(Dll *d, const char *dir, const char *file);
 
 /* Plugin: plugin list */
 class Plugin
@@ -75,7 +67,6 @@ private:
 
    Dll *m_head;
    Dll *m_tail;
-   int m_numPlugin;
 
    /* initialize: initialize plugin list */
    void initialize();
@@ -100,12 +91,15 @@ public:
    /* execAppEnd: run when application is end */
    void execAppEnd(MMDAgent *mmdagent);
 
-   /* execWindowProc: receive window message */
-   void execWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+   /* execProcCommand: process command message */
+   void execProcCommand(MMDAgent *mmdagent, const char *type, const char *args);
 
-   /* execUpdate: */
+   /* execProcEvent: process event message */
+   void execProcEvent(MMDAgent *mmdagent, const char *type, const char *args);
+
+   /* execUpdate: run when motion is updated */
    void execUpdate(MMDAgent *mmdagent, double deltaFrame);
 
-   /* execRender: */
+   /* execRender: run when scene is rendered */
    void execRender(MMDAgent *mmdagent);
 };

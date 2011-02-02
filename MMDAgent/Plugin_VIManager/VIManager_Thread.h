@@ -48,29 +48,11 @@ typedef struct _VIManager_Event {
    struct _VIManager_Event *next;
 } VIManager_Event;
 
-/* VIManager_Event_initialize: initialize input message buffer */
-void VIManager_Event_initialize(VIManager_Event *e, char *type, char *args);
-
-/* VIManager_Event_clear: free input message buffer */
-void VIManager_Event_clear(VIManager_Event *e);
-
 /* VIManager_EventQueue: queue of VIManager_Event */
 typedef struct _VIManager_EventQueue {
    VIManager_Event *head;
    VIManager_Event *tail;
 } VIManager_EventQueue;
-
-/* VIManager_EventQueue_initialize: initialize queue */
-void VIManager_EventQueue_initialize(VIManager_EventQueue *q);
-
-/* VIManager_EventQueue_clear: free queue */
-void VIManager_EventQueue_clear(VIManager_EventQueue *q);
-
-/* VIManager_EventQueue_enqueue: enqueue */
-void VIManager_EventQueue_enqueue(VIManager_EventQueue *q, char *type, char *args);
-
-/* VIManager_EventQueue_dequeue: dequeue */
-int VIManager_EventQueue_dequeue(VIManager_EventQueue *q, char *type, char *args);
 
 /* VIManager_Thread: thread of VIManager */
 class VIManager_Thread
@@ -104,7 +86,7 @@ public:
    ~VIManager_Thread();
 
    /* loadAndStart: load FST and start thread */
-   void loadAndStart(HWND window, UINT command, char *fn);
+   void loadAndStart(HWND window, UINT command, const char *file);
 
    /* isRunning: check running */
    bool isRunning();
@@ -113,11 +95,11 @@ public:
    void stopAndRelease();
 
    /* enqueueBuffer: enqueue buffer to check */
-   void enqueueBuffer(char *type, char *args);
+   void enqueueBuffer(const char *type, const char *args);
 
    /* stateTransition: thread loop for VIManager */
    void stateTransition();
 
    /* sendMessage: send event message to MMDAgent */
-   void sendMessage(char *str1, char *str2);
+   void sendMessage(const char *str1, const char *str2);
 };

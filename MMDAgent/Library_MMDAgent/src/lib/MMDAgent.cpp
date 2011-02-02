@@ -1749,6 +1749,10 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
       return;
    }
 
+   /* plugin */
+   if(m_plugin)
+      m_plugin->execProcCommand(this, mes1, mes2);
+
    /* command */
    strncpy(command, mes1, MMDAGENT_MAXBUFLEN - 1);
    command[MMDAGENT_MAXBUFLEN - 1] = '\0';
@@ -2037,6 +2041,10 @@ void MMDAgent::procCommandMessage(char *mes1, char *mes2)
 /* MMDAgent::procEventMessage: process event message */
 void MMDAgent::procEventMessage(char *mes1, char *mes2)
 {
+   /* plugin */
+   if(m_plugin)
+      m_plugin->execProcEvent(this, mes1, mes2);
+
    /* free strings */
    if (m_hWnd && mes1 != NULL) {
       if (MMDAgent_strlen(mes2) > 0)
@@ -2159,13 +2167,4 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
       else
          setBackground(file); /* change background without Ctrl-key */
    }
-}
-
-/* MMDAgent::procPluginMessage: process plugin message */
-void MMDAgent::procPluginMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-   if (!m_hWnd) return;
-
-   if(m_plugin)
-      m_plugin->execWindowProc(this, hWnd, message, wParam, lParam);
 }

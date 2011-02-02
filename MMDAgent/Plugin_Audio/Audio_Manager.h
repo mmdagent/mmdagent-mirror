@@ -107,8 +107,8 @@ public:
    bool isRunning();
 
    /* play: start playing */
-   void play(char *str);
+   void play(const char *str);
 
    /* stop: stop playing */
-   void stop(char *str);
+   void stop(const char *str);
 };

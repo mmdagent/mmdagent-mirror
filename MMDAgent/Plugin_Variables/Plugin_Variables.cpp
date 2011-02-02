@@ -79,57 +79,43 @@ static CountDown_Thread countdown_thread;
 static bool enable;
 
 /* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
-   countdown_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
+   countdown_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
    enable = true;
-   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
+   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
 }
 
-/* extWindowProc: catch message */
-void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i;
-   char *mes1;
-   char *mes2;
-   char *buff, *p;
+   char *buff, *p, *q, *save;
 
    if(enable == true) {
-      if (message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_PLUGINDISABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINVARIABLES_NAME)) {
-               enable = false;
-               ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
-            }
-         } else if (MMDAgent_strequal(mes1, PLUGINVARIABLES_TIMERSTARTCOMMAND) && mes2 != NULL) {
-            /* TIMER_START command */
-            buff = MMDAgent_strdup(mes2);
-            p = strchr(buff, '|');
-            if(p == NULL) {
-               free(buff);
-               return;
-            }
-            (*p) = '\0';
-            p++;
-            i = atoi(p);
-            if(i > 0)
-               countdown_thread.set(buff, i);
-            free(buff);
-         } else if (MMDAgent_strequal(mes1, PLUGINVARIABLES_TIMERSTOPCOMMAND) && mes2 != NULL) {
-            countdown_thread.unset(mes2);
+      if(MMDAgent_strequal(type, MMDAGENT_EVENT_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
+            enable = false;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
          }
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_TIMERSTARTCOMMAND)) {
+         /* TIMER_START command */
+         buff = MMDAgent_strdup(args);
+         p = MMDAgent_strtok(buff, "|", &save);
+         q = MMDAgent_strtok(NULL, "|", &save);
+         i = MMDAgent_str2int(q);
+         if(i > 0)
+            countdown_thread.set(p, i);
+         if(buff)
+            free(buff);
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_TIMERSTOPCOMMAND)) {
+         countdown_thread.unset(args);
       }
    } else {
-      if (message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_PLUGINENABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINVARIABLES_NAME)) {
-               enable = true;
-               ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_EVENT_PLUGINENABLE)) {
+         if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
+            enable = true;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
          }
       }
    }

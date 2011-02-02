@@ -112,51 +112,47 @@ static void changeLookAt(PMDObject *objs, const int num, HWND hWnd)
 }
 
 /* extAppStart: initialize controller */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
    enable = false;
 }
 
-/* extWindowProc: process message */
-void __stdcall extWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+{
+   if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == false)
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent->getWindowHandler());
+   } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == true)
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent->getWindowHandler());
+   }
+}
+
+/* extProcEvent: process event message */
+void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int id;
-   char *mes1, *mes2;
    char *p, *buf, *save;
    PMDObject *objs;
 
-   if(message == WM_MMDAGENT_COMMAND) {
-      objs = mmdagent->getModelList();
-      mes1 = (char *) wParam;
-      mes2 = (char *) lParam;
-      if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
-         if(MMDAgent_strequal(mes2, PLUGINLOOKAT_NAME) && enable == false)
-            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
-      } else if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-         if(MMDAgent_strequal(mes2, PLUGINLOOKAT_NAME) && enable == true)
-            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
+   objs = mmdagent->getModelList();
+   if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
+      if(MMDAgent_strequal(args, "L")) {
+         changeLookAt(objs, mmdagent->getNumModel(), mmdagent->getWindowHandler());
       }
-   } else if(message == WM_MMDAGENT_EVENT) {
-      objs = mmdagent->getModelList();
-      mes1 = (char *) wParam;
-      mes2 = (char *) lParam;
-      if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_KEY)) {
-         if(mes2 != NULL && MMDAgent_strequal(mes2, "L")) {
-            changeLookAt(objs, mmdagent->getNumModel(), hWnd);
+   } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(type, MMDAGENT_EVENT_MODELADD)) {
+      buf = MMDAgent_strdup(args);
+      p = MMDAgent_strtok(buf, "|", &save);
+      if(p) {
+         id = mmdagent->findModelAlias(p);
+         if(id != -1) {
+            setHeadController(&headController[id], objs[id].getPMDModel());
+            setEyeController(&eyeController[id], objs[id].getPMDModel());
          }
-      } else if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(mes1, MMDAGENT_EVENT_MODELADD)) {
-         buf = MMDAgent_strdup(mes2);
-         p = MMDAgent_strtok(buf, "|", &save);
-         if(p) {
-            id = mmdagent->findModelAlias(p);
-            if(id != -1) {
-               setHeadController(&headController[id], objs[id].getPMDModel());
-               setEyeController(&eyeController[id], objs[id].getPMDModel());
-            }
-         }
-         if(buf != NULL)
-            free(buf);
       }
+      if(buf != NULL)
+         free(buf);
    }
 }
 

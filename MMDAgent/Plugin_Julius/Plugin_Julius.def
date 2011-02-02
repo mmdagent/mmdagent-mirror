@@ -1,5 +1,5 @@
 LIBRARY	"Plugin_Julius"
 EXPORTS
 	extAppStart
-	extWindowProc
+	extProcCommand
 	extAppEnd

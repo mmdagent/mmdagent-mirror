@@ -88,7 +88,7 @@ public:
    ~Open_JTalk_Thread();
 
    /* loadAndStart: load models and start thread */
-   void loadAndStart(HWND window, UINT event, UINT command, char *dicDir, char *config);
+   void loadAndStart(HWND window, UINT event, UINT command, const char *dicDir, const char *config);
 
    /* stopAndRelease: stop thread and free Open JTalk */
    void stopAndRelease();
@@ -103,20 +103,20 @@ public:
    bool isSpeaking();
 
    /* checkCharacter: check speaking character */
-   bool checkCharacter(char *chara);
+   bool checkCharacter(const char *chara);
 
    /* synthesis: start synthesis */
-   void synthesis(char *chara, char *style, char *text);
+   void synthesis(const char *chara, const char *style, const char *text);
 
    /* stop: stop synthesis */
    void stop();
 
    /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(char *str);
+   void sendStartEventMessage(const char *str);
 
    /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(char *str);
+   void sendStopEventMessage(const char *str);
 
    /* sendLipCommandMessage: send lipsync command message to MMDAgent */
-   void sendLipCommandMessage(char *chara, char *lip);
+   void sendLipCommandMessage(const char *chara, const char *lip);
 };

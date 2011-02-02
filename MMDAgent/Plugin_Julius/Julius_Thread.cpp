@@ -111,7 +111,7 @@ static void callback_result_final(Recog *recog, void *data)
 }
 
 /* main_thread: main thread */
-unsigned __stdcall main_thread(void *param)
+static unsigned __stdcall main_thread(void *param)
 {
    Recog *recog;
    int ret;
@@ -240,7 +240,7 @@ void Julius_Thread::resume()
 }
 
 /* Julius_Thread::sendMessage: send message to MMDAgent */
-void Julius_Thread::sendMessage(char * str1, char * str2)
+void Julius_Thread::sendMessage(const char *str1, const char *str2)
 {
    char *mes1, *mes2;
 

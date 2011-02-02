@@ -79,52 +79,46 @@ static Julius_Thread julius_thread;
 static bool enable;
 
 /* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
    char buff[JULIUSTHREAD_MAXBUFLEN];
    char current_dir[JULIUSTHREAD_MAXBUFLEN];
 
    /* save current directory and move directory */
    GetCurrentDirectoryA(JULIUSTHREAD_MAXBUFLEN, current_dir);
-   sprintf(buff, "%s%c%s", m->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME);
+   sprintf(buff, "%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME);
    SetCurrentDirectoryA(buff);
 
    /* load models and start thread */
-   julius_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
+   julius_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
 
    /* move directory */
    SetCurrentDirectoryA(current_dir);
 
    enable = true;
-   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
 }
 
-/* extWindowProc: process window message */
-void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   char *mes1, *mes2;
-
-   if(message == WM_MMDAGENT_COMMAND) {
-      mes1 = (char *) wParam;
-      mes2 = (char *) lParam;
-      if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-         if(MMDAgent_strequal(mes2, PLUGINJULIUS_NAME) && enable == true) {
-            julius_thread.pause();
-            enable = false;
-            ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
-         }
-      } else if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
-         if(MMDAgent_strequal(mes2, PLUGINJULIUS_NAME) && enable == false) {
-            julius_thread.resume();
-            enable = true;
-            ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
-         }
+   if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+      if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == true) {
+         julius_thread.pause();
+         enable = false;
+         ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+      }
+   } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+      if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == false) {
+         julius_thread.resume();
+         enable = true;
+         ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
       }
    }
 }
 
 /* extAppEnd: stop thread and free julius */
-void __stdcall extAppEnd(MMDAgent *m)
+void __stdcall extAppEnd(MMDAgent *mmdagent)
 {
    julius_thread.stopAndRelease();
    enable = false;

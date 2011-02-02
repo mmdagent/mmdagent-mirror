@@ -89,5 +89,5 @@ public :
    void resume();
 
    /* sendMessage: send message to MMDAgent */
-   void sendMessage(char *str1, char *str2);
+   void sendMessage(const char *str1, const char *str2);
 };

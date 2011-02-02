@@ -114,7 +114,7 @@ Open_JTalk::~Open_JTalk()
 }
 
 /* Open_JTalk::load: load dictionary and models */
-bool Open_JTalk::load(char *dicDir, char **modelDir, int numModels, double *styleWeights, int numStyles)
+bool Open_JTalk::load(const char *dicDir, char **modelDir, int numModels, double *styleWeights, int numStyles)
 {
    int i, j;
 
@@ -255,7 +255,7 @@ bool Open_JTalk::load(char *dicDir, char **modelDir, int numModels, double *styl
 }
 
 /* Open_JTalk::prepare: text analysis, decision of state durations, and parameter generation */
-void Open_JTalk::prepare(char *str)
+void Open_JTalk::prepare(const char *str)
 {
    char *buff;
    char **label_feature = NULL;

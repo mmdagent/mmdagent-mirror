@@ -66,7 +66,7 @@
 #include "Open_JTalk_Manager.h"
 
 /* Open_JTalk_Event_initialize: initialize input message buffer */
-static void Open_JTalk_Event_initialize(Open_JTalk_Event *e, char *str)
+static void Open_JTalk_Event_initialize(Open_JTalk_Event *e, const char *str)
 {
    if (str != NULL)
       e->event = MMDAgent_strdup(str);
@@ -104,7 +104,7 @@ static void Open_JTalk_EventQueue_clear(Open_JTalk_EventQueue *q)
 }
 
 /* Open_JTalk_EventQueue_enqueue: enqueue */
-static void Open_JTalk_EventQueue_enqueue(Open_JTalk_EventQueue *q, char *str)
+static void Open_JTalk_EventQueue_enqueue(Open_JTalk_EventQueue *q, const char *str)
 {
    if(MMDAgent_strlen(str) <= 0)
       return;
@@ -222,7 +222,7 @@ Open_JTalk_Manager::~Open_JTalk_Manager()
 }
 
 /* Open_JTalk_Manager::loadAndStart: load and start thread */
-void Open_JTalk_Manager::loadAndStart(HWND hWnd, UINT event, UINT command, char *dicDir, char *config)
+void Open_JTalk_Manager::loadAndStart(HWND hWnd, UINT event, UINT command, const char *dicDir, const char *config)
 {
    clear();
 
@@ -344,7 +344,7 @@ bool Open_JTalk_Manager::isRunning()
 }
 
 /* Open_JTalk_Manager::synthesis: start synthesis */
-void Open_JTalk_Manager::synthesis(char *str)
+void Open_JTalk_Manager::synthesis(const char *str)
 {
    /* check */
    if(MMDAgent_strlen(str) <= 0 || m_bufferMutex == 0 || m_synthEvent == 0)
@@ -367,7 +367,7 @@ void Open_JTalk_Manager::synthesis(char *str)
 }
 
 /* Open_JTalk_Manager::stop: stop synthesis */
-void Open_JTalk_Manager::stop(char *str)
+void Open_JTalk_Manager::stop(const char *str)
 {
    Open_JTalk_Link *link;
 

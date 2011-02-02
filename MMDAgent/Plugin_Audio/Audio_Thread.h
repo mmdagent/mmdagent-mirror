@@ -97,17 +97,17 @@ public:
    bool isPlaying();
 
    /* checkAlias: check playing alias */
-   bool checkAlias(char *alias);
+   bool checkAlias(const char *alias);
 
    /* play: start playing */
-   void play(char *alias, char *file);
+   void play(const char *alias, const char *file);
 
    /* stop: stop playing */
    void stop();
 
    /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(char *str);
+   void sendStartEventMessage(const char *str);
 
    /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(char *str);
+   void sendStopEventMessage(const char *str);
 };

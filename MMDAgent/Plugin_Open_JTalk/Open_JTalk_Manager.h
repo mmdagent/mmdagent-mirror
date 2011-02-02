@@ -99,7 +99,7 @@ public:
    ~Open_JTalk_Manager();
 
    /* loadAndStart: load and start thread */
-   void loadAndStart(HWND hWnd, UINT event, UINT command, char *dicDir, char *config);
+   void loadAndStart(HWND hWnd, UINT event, UINT command, const char *dicDir, const char *config);
 
    /* stopAndRelease: stop and release thread */
    void stopAndRelease();
@@ -111,8 +111,8 @@ public:
    bool isRunning();
 
    /* synthesis: start synthesis */
-   void synthesis(char *str);
+   void synthesis(const char *str);
 
    /* stop: stop synthesis */
-   void stop(char *str);
+   void stop(const char *str);
 };

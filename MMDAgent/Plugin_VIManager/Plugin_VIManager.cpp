@@ -78,70 +78,63 @@ static VIManager_Thread vimanager_thread;
 static bool enable;
 
 /* extAppStart: load FST and start thread */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
    char *buf;
    int len;
 
    setlocale(LC_CTYPE, "japanese");
 
-   buf = MMDAgent_strdup(m->getConfigFileName());
+   buf = MMDAgent_strdup(mmdagent->getConfigFileName());
    len = MMDAgent_strlen(buf);
    if (len > 4) {
       buf[len-4] = '.';
       buf[len-3] = 'f';
       buf[len-2] = 's';
       buf[len-1] = 't';
-      vimanager_thread.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_COMMAND, buf);
+      vimanager_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_COMMAND, buf);
    }
    if(buf)
       free(buf);
 
    enable = true;
-   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
 }
 
-/* extWindowProc: catch dialog message */
-void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   char *mes1;
-   char *mes2;
-
    if(enable == true) {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINVIMANAGER_NAME)) {
-               enable = false;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
-            }
-         }
-      } else if (message == WM_MMDAGENT_EVENT) {
-         if (vimanager_thread.isRunning()) {
-            mes1 = (char *) wParam;
-            mes2 = (char *) lParam;
-            if (mes1 != NULL) {
-               vimanager_thread.enqueueBuffer(mes1, mes2); /* enqueue */
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
+            enable = false;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
          }
       }
    } else {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINVIMANAGER_NAME)) {
-               enable = true;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
+            enable = true;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+         }
+      }
+   }
+}
+
+/* extProcEvent: process event message */
+void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+{
+   if(enable == true) {
+      if (vimanager_thread.isRunning()) {
+         if (type != NULL) {
+            vimanager_thread.enqueueBuffer(type, args); /* enqueue */
          }
       }
    }
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *m)
+void __stdcall extAppEnd(MMDAgent *mmdagent)
 {
    vimanager_thread.stopAndRelease();
 }

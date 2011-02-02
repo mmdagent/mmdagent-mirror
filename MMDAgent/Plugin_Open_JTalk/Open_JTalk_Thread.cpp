@@ -156,7 +156,7 @@ Open_JTalk_Thread::~Open_JTalk_Thread()
 }
 
 /* Open_JTalk_Thread::loadAndStart: load models and start thread */
-void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, char *dicDir, char *config)
+void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, const char *dicDir, const char *config)
 {
    int i, j, k;
    char buff[OPENJTALK_MAXBUFLEN];
@@ -363,7 +363,7 @@ bool Open_JTalk_Thread::isSpeaking()
 }
 
 /* checkCharacter: check speaking character */
-bool Open_JTalk_Thread::checkCharacter(char *chara)
+bool Open_JTalk_Thread::checkCharacter(const char *chara)
 {
    bool ret;
 
@@ -387,7 +387,7 @@ bool Open_JTalk_Thread::checkCharacter(char *chara)
 }
 
 /* Open_JTalk_Thread::synthesis: start synthesis */
-void Open_JTalk_Thread::synthesis(char *chara, char *style, char *text)
+void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const char *text)
 {
    /* check */
    if(isRunning() == false || m_bufferMutex == 0 || m_synthEvent == 0)
@@ -424,19 +424,19 @@ void Open_JTalk_Thread::stop()
 }
 
 /* Open_JTalk_Thread::sendStartEventMessage: send start event message to MMDAgent */
-void Open_JTalk_Thread::sendStartEventMessage(char *str)
+void Open_JTalk_Thread::sendStartEventMessage(const char *str)
 {
    ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(OPENJTALKTHREAD_EVENTSTART), (LPARAM) MMDAgent_strdup(str));
 }
 
 /* Open_JTalk_Thread::sendStopEventMessage: send stop event message to MMDAgent */
-void Open_JTalk_Thread::sendStopEventMessage(char *str)
+void Open_JTalk_Thread::sendStopEventMessage(const char *str)
 {
    ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(OPENJTALKTHREAD_EVENTSTOP), (LPARAM) MMDAgent_strdup(str));
 }
 
 /* Open_JTalk_Thread::sendLipCommandMessage: send lipsync command message to MMDAgent */
-void Open_JTalk_Thread::sendLipCommandMessage(char *chara, char *lip)
+void Open_JTalk_Thread::sendLipCommandMessage(const char *chara, const char *lip)
 {
    char *mes1;
    char *mes2;

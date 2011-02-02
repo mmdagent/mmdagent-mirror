@@ -97,17 +97,17 @@ static Open_JTalk_Manager open_jtalk_manager;
 static bool enable;
 
 /* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
    int len;
    char dic_dir[OPENJTALK_MAXBUFLEN];
    char *config;
 
    /* get dictionary directory name */
-   sprintf(dic_dir, "%s%c%s", m->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
+   sprintf(dic_dir, "%s%c%s", mmdagent->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
 
    /* get config file */
-   config = MMDAgent_strdup(m->getConfigFileName());
+   config = MMDAgent_strdup(mmdagent->getConfigFileName());
    len = MMDAgent_strlen(config);
 
    /* load */
@@ -116,55 +116,44 @@ void __stdcall extAppStart(MMDAgent *m)
       config[len-3] = 'o';
       config[len-2] = 'j';
       config[len-1] = 't';
-      open_jtalk_manager.loadAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
+      open_jtalk_manager.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
    }
 
    if(config)
       free(config);
 
    enable = true;
-   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
 }
 
-/* extWindowProc: process message */
-void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   char *mes1;
-   char *mes2;
-
    if(enable == true) {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINOPENJTALK_NAME)) {
-               enable = false;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
-            }
-         } else if (open_jtalk_manager.isRunning()) {
-            if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STARTCOMMAND)) {
-               open_jtalk_manager.synthesis(mes2);
-            } else if (MMDAgent_strequal(mes1, PLUGINOPENJTALK_STOPCOMMAND)) {
-               open_jtalk_manager.stop(mes2);
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
+            enable = false;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+         }
+      } else if (open_jtalk_manager.isRunning()) {
+         if (MMDAgent_strequal(type, PLUGINOPENJTALK_STARTCOMMAND)) {
+            open_jtalk_manager.synthesis(args);
+         } else if (MMDAgent_strequal(type, PLUGINOPENJTALK_STOPCOMMAND)) {
+            open_jtalk_manager.stop(args);
          }
       }
    } else {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINOPENJTALK_NAME)) {
-               enable = true;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
+            enable = true;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
          }
       }
    }
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *m)
+void __stdcall extAppEnd(MMDAgent *mmdagent)
 {
    open_jtalk_manager.stopAndRelease();
 }

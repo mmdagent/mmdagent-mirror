@@ -192,7 +192,7 @@ void CountDown_Thread::stopAndRelease()
 }
 
 /* CountDown_Thread::set: set timer */
-void CountDown_Thread::set(char *alias, int sec)
+void CountDown_Thread::set(const char *alias, int sec)
 {
    CountDown *countDown;
    int now;
@@ -234,7 +234,7 @@ void CountDown_Thread::set(char *alias, int sec)
 }
 
 /* CountDown_Thread::unset: unset timer */
-void CountDown_Thread::unset(char *alias)
+void CountDown_Thread::unset(const char *alias)
 {
    CountDown *tmp1, *tmp2;
 
@@ -272,7 +272,7 @@ void CountDown_Thread::unset(char *alias)
 }
 
 /* CountDown_Thread::sendStartEventMessage: send start event message to MMDAgent */
-void CountDown_Thread::sendStartEventMessage(char *str)
+void CountDown_Thread::sendStartEventMessage(const char *str)
 {
    if(str == NULL)
       return;
@@ -281,7 +281,7 @@ void CountDown_Thread::sendStartEventMessage(char *str)
 }
 
 /* CountDown_Thread::sendStopEventMessage: send stop event message to MMDAgent */
-void CountDown_Thread::sendStopEventMessage(char *str)
+void CountDown_Thread::sendStopEventMessage(const char *str)
 {
    if(str == NULL)
       return;

@@ -48,7 +48,7 @@
 #include "Audio_Manager.h"
 
 /* Audio_Event_initialize: initialize input message buffer */
-static void Audio_Event_initialize(Audio_Event *e, char *str)
+static void Audio_Event_initialize(Audio_Event *e, const char *str)
 {
    if (str != NULL)
       e->event = MMDAgent_strdup(str);
@@ -86,7 +86,7 @@ static void Audio_EventQueue_clear(Audio_EventQueue *q)
 }
 
 /* Audio_EventQueue_enqueue: enqueue */
-static void Audio_EventQueue_enqueue(Audio_EventQueue *q, char *str)
+static void Audio_EventQueue_enqueue(Audio_EventQueue *q, const char *str)
 {
    if(MMDAgent_strlen(str) <= 0)
       return;
@@ -313,7 +313,7 @@ bool Audio_Manager::isRunning()
 }
 
 /* Audio_Manager::play: start playing */
-void Audio_Manager::play(char *str)
+void Audio_Manager::play(const char *str)
 {
    /* check */
    if(MMDAgent_strlen(str) <= 0 || m_bufferMutex == 0 || m_playingEvent == 0)
@@ -336,7 +336,7 @@ void Audio_Manager::play(char *str)
 }
 
 /* Audio_Manager::stop: stop playing */
-void Audio_Manager::stop(char *str)
+void Audio_Manager::stop(const char *str)
 {
    Audio_Link *link;
 

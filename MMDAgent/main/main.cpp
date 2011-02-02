@@ -120,8 +120,6 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    bool hit = true;
 
    /* process message for MMDAgent */
-   mmdagent.procPluginMessage(hWnd, message, wParam, lParam);
-
    switch (message) {
    case WM_CREATE:
       break;

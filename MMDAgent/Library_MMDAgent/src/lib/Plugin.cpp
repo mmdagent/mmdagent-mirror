@@ -52,7 +52,8 @@ void Dll_initialize(Dll *d)
 
    d->appStart = NULL;
    d->appEnd = NULL;
-   d->windowProc = NULL;
+   d->procCommand = NULL;
+   d->procEvent = NULL;
    d->update = NULL;
    d->render = NULL;
 
@@ -89,11 +90,12 @@ bool Dll_load(Dll *d, const char *dir, const char *file)
    /* set function pointers */
    d->appStart = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extAppStart");
    d->appEnd = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extAppEnd");
-   d->windowProc = (void (__stdcall *)(MMDAgent *, HWND, UINT, WPARAM, LPARAM)) ::GetProcAddress(d->handle, "extWindowProc");
+   d->procCommand = (void (__stdcall *)(MMDAgent *, const char *, const char *)) ::GetProcAddress(d->handle, "extProcCommand");
+   d->procEvent = (void (__stdcall *)(MMDAgent *, const char *, const char *)) ::GetProcAddress(d->handle, "extProcEvent");
    d->update = (void (__stdcall *)(MMDAgent *, double)) ::GetProcAddress(d->handle, "extUpdate");
    d->render = (void (__stdcall *)(MMDAgent *)) ::GetProcAddress(d->handle, "extRender");
 
-   if (d->appStart || d->appEnd || d->windowProc || d->update || d->render) {
+   if (d->appStart || d->appEnd || d->procCommand || d->procEvent || d->update || d->render) {
       /* save file name */
       d->name = MMDAgent_strdup(file);
       d->enable = true;
@@ -110,7 +112,6 @@ void Plugin::initialize()
 {
    m_head = NULL;
    m_tail = NULL;
-   m_numPlugin = 0;
 }
 
 /* Plugin::clear: free plugin list */
@@ -171,7 +172,6 @@ bool Plugin::load(const char *dir)
          else
             m_tail->next = d;
          m_tail = d;
-         m_numPlugin++;
          ret = true;
       }
    } while (FindNextFileA(hFind, &findData));
@@ -203,17 +203,27 @@ void Plugin::execAppEnd(MMDAgent *mmdagent)
          d->appEnd(mmdagent);
 }
 
-/* Plugin::execWindowProc: receive window message */
-void Plugin::execWindowProc(MMDAgent *mmdagent, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* Plugin::execProcCommand: process command message */
+void Plugin::execProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    Dll *d;
 
    for (d = m_head; d; d = d->next)
-      if (d->enable && d->windowProc)
-         d->windowProc(mmdagent, hWnd, message, wParam, lParam);
+      if (d->enable && d->procCommand)
+         d->procCommand(mmdagent, type, args);
 }
 
-/* Plugin::execUpdate: */
+/* Plugin::execProcEvent: process event message */
+void Plugin::execProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+{
+   Dll *d;
+
+   for (d = m_head; d; d = d->next)
+      if (d->enable && d->procEvent)
+         d->procEvent(mmdagent, type, args);
+}
+
+/* Plugin::execUpdate: run when motion is updated */
 void Plugin::execUpdate(MMDAgent *mmdagent, double deltaFrame)
 {
    Dll *d;
@@ -223,7 +233,7 @@ void Plugin::execUpdate(MMDAgent *mmdagent, double deltaFrame)
          d->update(mmdagent, deltaFrame);
 }
 
-/* Plugin::execRender: */
+/* Plugin::execRender: run when scene is rendered */
 void Plugin::execRender(MMDAgent *mmdagent)
 {
    Dll *d;

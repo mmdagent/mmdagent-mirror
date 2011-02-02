@@ -252,7 +252,7 @@ bool Audio_Thread::isPlaying()
 }
 
 /* checkAlias: check playing alias */
-bool Audio_Thread::checkAlias(char *alias)
+bool Audio_Thread::checkAlias(const char *alias)
 {
    bool ret;
 
@@ -276,7 +276,7 @@ bool Audio_Thread::checkAlias(char *alias)
 }
 
 /* Audio_Thread::play: start playing */
-void Audio_Thread::play(char *alias, char *file)
+void Audio_Thread::play(const char *alias, const char *file)
 {
    /* check */
    if(isRunning() == false || m_bufferMutex == 0 || m_playingEvent == 0)
@@ -311,13 +311,13 @@ void Audio_Thread::stop()
 }
 
 /* Audio_Thread::sendStartEventMessage: send start event message to MMDAgent */
-void Audio_Thread::sendStartEventMessage(char *str)
+void Audio_Thread::sendStartEventMessage(const char *str)
 {
    ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(AUDIOTHREAD_EVENTSTART), (LPARAM) MMDAgent_strdup(str));
 }
 
 /* Audio_Thread::sendStopEventMessage: send stop event message to MMDAgent */
-void Audio_Thread::sendStopEventMessage(char *str)
+void Audio_Thread::sendStopEventMessage(const char *str)
 {
    ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(AUDIOTHREAD_EVENTSTOP), (LPARAM) MMDAgent_strdup(str));
 }

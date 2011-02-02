@@ -228,11 +228,13 @@ char *MMDAgent_strtok(char *str, const char *pat, char **save)
             *e = '\0';
             *save = p;
             return s;
-         } else if(*p == '\0') {
-            *save = p;
-            return s;
          }
       }
+   }
+
+   if(step == 1) {
+      *save = p;
+      return s;
    }
 
    *save = p;

@@ -58,22 +58,10 @@ typedef struct _VIManager_Arc {
    struct _VIManager_Arc *next;
 } VIManager_Arc;
 
-/* VIManager_Arc_initialize: initialize arc */
-void VIManager_Arc_initialize(VIManager_Arc * a, char *input_event_type, char **input_event_args, int input_event_argc, char *output_command_type, char *output_command_args, struct _VIManager_State * next_state);
-
-/* VIManager_Arc_clear: free arc */
-void VIManager_Arc_clear(VIManager_Arc * a);
-
 /* VIManager_ALis: arc list */
 typedef struct _VIManager_AList {
    VIManager_Arc *head;
 } VIManager_AList;
-
-/* VIManager_AList_initialize: initialize arc list */
-void VIManager_AList_initialize(VIManager_AList * l);
-
-/* VIManager_AList_clear: free arc list */
-void VIManager_AList_clear(VIManager_AList * l);
 
 /* VIManager_State: state */
 typedef struct _VIManager_State {
@@ -82,28 +70,10 @@ typedef struct _VIManager_State {
    struct _VIManager_State *next;
 } VIManager_State;
 
-/* VIManager_State_initialize: initialize state */
-void VIManager_State_initialize(VIManager_State * s, unsigned int number, VIManager_State * next);
-
-/* VIManager_State_clear: free state */
-void VIManager_State_clear(VIManager_State * s);
-
 /* VIManager_SList: state list */
 typedef struct _VIManager_SList {
    VIManager_State *head;
 } VIManager_SList;
-
-/* VIManager_SList_initialize: initialize state list */
-void VIManager_SList_initialize(VIManager_SList * l);
-
-/* VIManager_SList_clear: free state list */
-void VIManager_SList_clear(VIManager_SList * l);
-
-/* VIManager_SList_search_state: search state pointer */
-VIManager_State *VIManager_SList_search_state(VIManager_SList * l, unsigned int n);
-
-/* VIManager_SList_add_arc: add arc */
-void VIManager_SList_add_arc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol);
 
 /* VIManager: Voice Interaction Manager */
 class VIManager
@@ -128,8 +98,8 @@ public:
    ~VIManager();
 
    /* load: load FST */
-   int load(char *fn);
+   int load(const char *file);
 
    /* transition: state transition (if jumped, return 1) */
-   int transition(char *itype, char* iargs, char *otype, char *oargs);
+   int transition(const char *itype, const char* iargs, char *otype, char *oargs);
 };

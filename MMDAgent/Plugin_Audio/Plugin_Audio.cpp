@@ -80,75 +80,70 @@ static Audio_Manager audio_manager;
 static bool enable;
 
 /* extAppStart: setup and start thread */
-void __stdcall extAppStart(MMDAgent *m)
+void __stdcall extAppStart(MMDAgent *mmdagent)
 {
-   audio_manager.setupAndStart(m->getWindowHandler(), WM_MMDAGENT_EVENT);
+   audio_manager.setupAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
 
    enable = true;
-   ::PostMessage(m->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
+   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
 }
 
-/* extWindowProc: process message */
-void __stdcall extWindowProc(MMDAgent *m, HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* extProcCommand: process command message */
+void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   int i;
-   char *mes1, *mes2;
-   char *buf, *p, *q;
-
    if(enable == true) {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINAUDIO_NAME)) {
-               enable = false;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
-            }
-         } else if (audio_manager.isRunning()) {
-            if (MMDAgent_strequal(mes1, PLUGINAUDIO_STARTCOMMAND)) {
-               audio_manager.play(mes2);
-            } else if (MMDAgent_strequal(mes1, PLUGINAUDIO_STOPCOMMAND)) {
-               audio_manager.stop(mes2);
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
+            enable = false;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
          }
-      } else if(message == WM_MMDAGENT_EVENT) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_EVENT_DRAGANDDROP)) {
-            buf = MMDAgent_strdup(mes2);
-            p = MMDAgent_strtok(buf, "|", &q);
-            if(MMDAgent_strtailmatch(p, ".vmd")) {
-               i = MMDAgent_strlen(p);
-               p[i-4] = '.';
-               p[i-3] = 'm';
-               p[i-2] = 'p';
-               p[i-1] = '3';
-               audio_manager.stop(PLUGINAUDIO_DEFAULTALIAS);
-               q = (char *) malloc(sizeof(char) * (strlen(PLUGINAUDIO_DEFAULTALIAS) + 1 + strlen(p) + 1));
-               sprintf(q, "%s|%s", PLUGINAUDIO_DEFAULTALIAS, p);
-               audio_manager.play(q);
-               free(q);
-            }
-            if(buf)
-               free(buf);
+      } else if (audio_manager.isRunning()) {
+         if (MMDAgent_strequal(type, PLUGINAUDIO_STARTCOMMAND)) {
+            audio_manager.play(args);
+         } else if (MMDAgent_strequal(type, PLUGINAUDIO_STOPCOMMAND)) {
+            audio_manager.stop(args);
          }
       }
    } else {
-      if(message == WM_MMDAGENT_COMMAND) {
-         mes1 = (char *) wParam;
-         mes2 = (char *) lParam;
-         if(MMDAgent_strequal(mes1, MMDAGENT_COMMAND_PLUGINENABLE)) {
-            if(MMDAgent_strequal(mes2, PLUGINAUDIO_NAME)) {
-               enable = true;
-               ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
-            }
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
+            enable = true;
+            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
          }
       }
    }
 }
 
+/* extProcEvent: process event message */
+void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+{
+   int i;
+   char *buf, *p, *q;
+
+   if(enable == true) {
+      if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
+         buf = MMDAgent_strdup(args);
+         p = MMDAgent_strtok(buf, "|", &q);
+         if(MMDAgent_strtailmatch(p, ".vmd")) {
+            i = MMDAgent_strlen(p);
+            p[i-4] = '.';
+            p[i-3] = 'm';
+            p[i-2] = 'p';
+            p[i-1] = '3';
+            audio_manager.stop(PLUGINAUDIO_DEFAULTALIAS);
+            q = (char *) malloc(sizeof(char) * (strlen(PLUGINAUDIO_DEFAULTALIAS) + 1 + strlen(p) + 1));
+            sprintf(q, "%s|%s", PLUGINAUDIO_DEFAULTALIAS, p);
+            audio_manager.play(q);
+            free(q);
+         }
+         if(buf)
+            free(buf);
+      }
+   }
+}
+
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *m)
+void __stdcall extAppEnd(MMDAgent *mmdagent)
 {
    audio_manager.stopAndRelease();
 }

@@ -73,7 +73,7 @@ static int get_token_from_string(char *str, int *index, char *buff)
 }
 
 /* get_arg_from_string: get argument from string using separators */
-static int get_arg_from_string(char *str, int *index, char *buff)
+static int get_arg_from_string(const char *str, int *index, char *buff)
 {
    char c;
    int i = 0;
@@ -99,7 +99,7 @@ static int get_arg_from_string(char *str, int *index, char *buff)
 }
 
 /* get_args: get event arguments */
-static int get_args(char *str, char ***args, int *argc)
+static int get_args(const char *str, char ***args, int *argc)
 {
    int i, j, len, idx = 0;
    char buff[VIMANAGER_MAXBUFLEN];
@@ -137,7 +137,7 @@ static int get_args(char *str, char ***args, int *argc)
 }
 
 /* VIManager_Arc_initialize: initialize arc */
-void VIManager_Arc_initialize(VIManager_Arc * a, char *input_event_type, char **input_event_args, int input_event_argc, char *output_command_type, char *output_command_args, VIManager_State * next_state)
+static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, char **input_event_args, int input_event_argc, char *output_command_type, char *output_command_args, VIManager_State *next_state)
 {
    int i;
 
@@ -167,7 +167,7 @@ void VIManager_Arc_initialize(VIManager_Arc * a, char *input_event_type, char **
 }
 
 /* VIManager_Arc_clear: free arc */
-void VIManager_Arc_clear(VIManager_Arc * a)
+static void VIManager_Arc_clear(VIManager_Arc * a)
 {
    int i;
 
@@ -186,13 +186,13 @@ void VIManager_Arc_clear(VIManager_Arc * a)
 }
 
 /* VIManager_AList_initialize: initialize arc list */
-void VIManager_AList_initialize(VIManager_AList * l)
+static void VIManager_AList_initialize(VIManager_AList *l)
 {
    l->head = NULL;
 }
 
 /* VIManager_AList_clear: free arc list */
-void VIManager_AList_clear(VIManager_AList * l)
+static void VIManager_AList_clear(VIManager_AList *l)
 {
    VIManager_Arc *tmp1, *tmp2;
 
@@ -205,7 +205,7 @@ void VIManager_AList_clear(VIManager_AList * l)
 }
 
 /* VIManager_State_initialize: initialize state */
-void VIManager_State_initialize(VIManager_State * s, unsigned int number, VIManager_State * next)
+static void VIManager_State_initialize(VIManager_State *s, unsigned int number, VIManager_State * next)
 {
    s->number = number;
    VIManager_AList_initialize(&s->arc_list);
@@ -213,20 +213,20 @@ void VIManager_State_initialize(VIManager_State * s, unsigned int number, VIMana
 }
 
 /* VIManager_State_clear: free state */
-void VIManager_State_clear(VIManager_State * s)
+static void VIManager_State_clear(VIManager_State *s)
 {
    VIManager_AList_clear(&s->arc_list);
    VIManager_State_initialize(s, 0, NULL);
 }
 
 /* VIManager_SList_initialize: initialize state list */
-void VIManager_SList_initialize(VIManager_SList * l)
+static void VIManager_SList_initialize(VIManager_SList *l)
 {
    l->head = NULL;
 }
 
 /* VIManager_SList_clear: free state list */
-void VIManager_SList_clear(VIManager_SList * l)
+static void VIManager_SList_clear(VIManager_SList *l)
 {
    VIManager_State *tmp1, *tmp2;
 
@@ -239,7 +239,7 @@ void VIManager_SList_clear(VIManager_SList * l)
 }
 
 /* VIManager_SList_search_state: search state pointer */
-VIManager_State *VIManager_SList_search_state(VIManager_SList * l, unsigned int n)
+static VIManager_State *VIManager_SList_search_state(VIManager_SList *l, unsigned int n)
 {
    VIManager_State *tmp1, *tmp2, *result = NULL;
 
@@ -277,7 +277,7 @@ VIManager_State *VIManager_SList_search_state(VIManager_SList * l, unsigned int 
 }
 
 /* VIManager_SList_add_arc: add arc */
-void VIManager_SList_add_arc(VIManager_SList * l, int index_s1, int index_s2, char *isymbol, char *osymbol)
+static void VIManager_SList_add_arc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol)
 {
    int i, idx;
    VIManager_State *s1, *s2;
@@ -355,7 +355,7 @@ VIManager::~VIManager()
 }
 
 /* VIManager::load: load FST */
-int VIManager::load(char *fn)
+int VIManager::load(const char *file)
 {
    FILE *fp;
    char buff[VIMANAGER_MAXBUFLEN];
@@ -378,7 +378,7 @@ int VIManager::load(char *fn)
    unsigned int index_s2;
 
    /* open */
-   fp = fopen(fn, "r");
+   fp = fopen(file, "r");
    if (fp == NULL)
       return 0;
 
@@ -420,7 +420,7 @@ int VIManager::load(char *fn)
 }
 
 /* VIManager::transition: state transition (if jumped, return 1) */
-int VIManager::transition(char *itype, char *iargs, char *otype, char *oargs)
+int VIManager::transition(const char *itype, const char *iargs, char *otype, char *oargs)
 {
    int i, j;
    int jumped = 0;

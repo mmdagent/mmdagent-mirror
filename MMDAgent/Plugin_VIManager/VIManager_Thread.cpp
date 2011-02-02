@@ -49,7 +49,7 @@
 #include "VIManager_Thread.h"
 
 /* VIManager_Event_initialize: initialize input message buffer */
-void VIManager_Event_initialize(VIManager_Event *e, char *type, char *args)
+static void VIManager_Event_initialize(VIManager_Event *e, const char *type, const char *args)
 {
    if (type != NULL)
       e->type = MMDAgent_strdup(type);
@@ -63,7 +63,7 @@ void VIManager_Event_initialize(VIManager_Event *e, char *type, char *args)
 }
 
 /* VIManager_Event_clear: free input message buffer */
-void VIManager_Event_clear(VIManager_Event *e)
+static void VIManager_Event_clear(VIManager_Event *e)
 {
    if (e->type != NULL)
       free(e->type);
@@ -73,14 +73,14 @@ void VIManager_Event_clear(VIManager_Event *e)
 }
 
 /* VIManager_EventQueue_initialize: initialize queue */
-void VIManager_EventQueue_initialize(VIManager_EventQueue *q)
+static void VIManager_EventQueue_initialize(VIManager_EventQueue *q)
 {
    q->head = NULL;
    q->tail = NULL;
 }
 
 /* VIManager_EventQueue_clear: free queue */
-void VIManager_EventQueue_clear(VIManager_EventQueue *q)
+static void VIManager_EventQueue_clear(VIManager_EventQueue *q)
 {
    VIManager_Event *tmp1, *tmp2;
 
@@ -93,7 +93,7 @@ void VIManager_EventQueue_clear(VIManager_EventQueue *q)
 }
 
 /* VIManager_EventQueue_enqueue: enqueue */
-void VIManager_EventQueue_enqueue(VIManager_EventQueue *q, char *type, char *args)
+static void VIManager_EventQueue_enqueue(VIManager_EventQueue *q, const char *type, const char *args)
 {
    if (q->tail == NULL) {
       q->tail = (VIManager_Event *) calloc(1, sizeof (VIManager_Event));
@@ -107,7 +107,7 @@ void VIManager_EventQueue_enqueue(VIManager_EventQueue *q, char *type, char *arg
 }
 
 /* VIManager_EventQueue_dequeue: dequeue */
-int VIManager_EventQueue_dequeue(VIManager_EventQueue *q, char *type, char *args)
+static int VIManager_EventQueue_dequeue(VIManager_EventQueue *q, char *type, char *args)
 {
    VIManager_Event *tmp;
 
@@ -193,10 +193,10 @@ VIManager_Thread::~VIManager_Thread()
 }
 
 /* VIManager_Thread::loadAndStart: load FST and start thread */
-void VIManager_Thread::loadAndStart(HWND window, UINT command, char *fn)
+void VIManager_Thread::loadAndStart(HWND window, UINT command, const char *file)
 {
    /* load FST for VIManager */
-   if (m_vim.load(fn) == 0)
+   if (m_vim.load(file) == 0)
       return;
 
    m_window = window;
@@ -237,7 +237,7 @@ void VIManager_Thread::stopAndRelease()
 }
 
 /* VIManager_Thread::enqueueBuffer: enqueue buffer to check */
-void VIManager_Thread::enqueueBuffer(char *type, char *args)
+void VIManager_Thread::enqueueBuffer(const char *type, const char *args)
 {
    /* wait buffer */
    if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
@@ -302,7 +302,7 @@ void VIManager_Thread::stateTransition()
 }
 
 /* VIManager_Thread::sendMessage: send message to MMDAgent */
-void VIManager_Thread::sendMessage(char *str1, char *str2)
+void VIManager_Thread::sendMessage(const char *str1, const char *str2)
 {
    char *mes1, *mes2;
 

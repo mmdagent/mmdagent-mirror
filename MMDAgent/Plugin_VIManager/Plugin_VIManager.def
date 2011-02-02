@@ -1,5 +1,6 @@
 LIBRARY	"Plugin_VIManager"
 EXPORTS
 	extAppStart
-	extWindowProc
+	extProcCommand
+	extProcEvent
 	extAppEnd

@@ -93,10 +93,10 @@ public:
    ~Open_JTalk();
 
    /* load: load dictionary and models */
-   bool load(char *dicDir, char **modelDir, int numModels, double *styleWeights, int numStyles);
+   bool load(const char *dicDir, char **modelDir, int numModels, double *styleWeights, int numStyles);
 
    /* prepare: text analysis, decision of state durations, and parameter generation */
-   void prepare(char *str);
+   void prepare(const char *str);
 
    /* getPhonemeSequence: get phoneme sequence */
    void getPhonemeSequence(char *str);

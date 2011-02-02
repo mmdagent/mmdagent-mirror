@@ -51,7 +51,7 @@
 
 TEXT2MECAB_H_START;
 
-void text2mecab(char *output, char *input);
+void text2mecab(char *output, const char *input);
 
 TEXT2MECAB_H_END;
 

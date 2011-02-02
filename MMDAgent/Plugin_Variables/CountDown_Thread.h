@@ -96,14 +96,14 @@ public:
    void stopAndRelease();
 
    /* set: set timer */
-   void set(char *alias, int sec);
+   void set(const char *alias, int sec);
 
    /* unset: unset timer */
-   void unset(char *alias);
+   void unset(const char *alias);
 
    /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(char *str);
+   void sendStartEventMessage(const char *str);
 
    /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(char *str);
+   void sendStopEventMessage(const char *str);
 };
