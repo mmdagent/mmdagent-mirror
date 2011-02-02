@@ -85,7 +85,7 @@ void CountDown_Thread::clear()
    /* wait end of thread */
    if(m_threadHandle != 0) {
       if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot wait thread end.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot stop count down thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
 
@@ -121,14 +121,14 @@ void CountDown_Thread::loadAndStart(HWND param1, UINT param2)
 
    m_mutex = CreateMutex(NULL, false, NULL);
    if(m_mutex == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create buffer mutex for count down.", "Error", MB_OK);
       return;
    }
 
    /* thread start */
    m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot start CountDown thread.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start count down thread.", "Error", MB_OK);
       return;
    }
 }
@@ -141,7 +141,7 @@ void CountDown_Thread::check()
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "ERROR: Cannot wait count down.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
 
    now = clock() / CLOCKS_PER_SEC;
 
@@ -201,7 +201,7 @@ void CountDown_Thread::set(const char *alias, int sec)
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "ERROR: Cannot wait count down.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
 
    now = (clock() / CLOCKS_PER_SEC);
 
@@ -240,7 +240,7 @@ void CountDown_Thread::unset(const char *alias)
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "ERROR: Cannot wait count down.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
 
    for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
       tmp2 = tmp1->next;

@@ -166,7 +166,7 @@ void VIManager_Thread::clear()
    /* stop thread & close mutex */
    if (m_threadHandle != 0) {
       if (WaitForSingleObject(m_threadHandle, VIMANAGERTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot stop VIManager thread.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot stop VIManager thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_queueMutex)
@@ -205,19 +205,19 @@ void VIManager_Thread::loadAndStart(HWND window, UINT command, const char *file)
    /* create mutex */
    m_queueMutex = CreateMutex(NULL, false, NULL);
    if (m_queueMutex == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create buffer mutex for VIManager.", "Error", MB_OK);
       return;
    }
    m_transEvent = CreateEvent(NULL, true, false, NULL);
    if (m_transEvent == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create event.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create transition event for VIManager.", "Error", MB_OK);
       return;
    }
 
    /* thread start */
    m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot start VIManager thread.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start VIManager thread.", "Error", MB_OK);
       return;
    }
 }
@@ -241,7 +241,7 @@ void VIManager_Thread::enqueueBuffer(const char *type, const char *args)
 {
    /* wait buffer */
    if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for VIManager.", "Error", MB_OK);
 
    /* save event */
    VIManager_EventQueue_enqueue(&eventQueue, type, args);
@@ -271,14 +271,14 @@ void VIManager_Thread::stateTransition()
    while(m_stop == false) {
       /* wait transition event */
       if (WaitForSingleObject(m_transEvent, INFINITE) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot wait event.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot wait transition event for VIManager.", "Error", MB_OK);
       if(m_stop) return;
       ResetEvent(m_transEvent);
 
       do {
          /* wait queue access */
          if (WaitForSingleObject(m_queueMutex, INFINITE) != WAIT_OBJECT_0)
-            MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+            MessageBoxA(NULL, "Error: cannot wait buffer mutex for VIManager.", "Error", MB_OK);
          if(m_stop) return;
          /* load input message */
          remain = VIManager_EventQueue_dequeue(&eventQueue, itype, iargs);

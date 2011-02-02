@@ -239,7 +239,7 @@ void Open_JTalk_Manager::loadAndStart(HWND hWnd, UINT event, UINT command, const
 
    m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if(m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: Open_JTalk_Manager cannot be started", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start Open JTalk thread.", "Error", MB_OK);
       clear();
    }
 }
@@ -264,14 +264,14 @@ void Open_JTalk_Manager::start()
    /* create buffer mutex */
    m_bufferMutex = CreateMutex(NULL, false, NULL);
    if(m_bufferMutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create buffer mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create buffer mutex for Open JTalk.", "Error", MB_OK);
       return;
    }
 
    /* create synthesis event */
    m_synthEvent = CreateEvent(NULL, true, false, NULL);
    if(m_synthEvent == 0) {
-      MessageBoxA(NULL, "Error: cannot create synthesis event.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create synthesis event for Open JTalk.", "Error", MB_OK);
       return;
    }
 
@@ -286,7 +286,7 @@ void Open_JTalk_Manager::start()
    while(m_kill == false) {
       /* wait synthesis event */
       if(WaitForSingleObject(m_synthEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait synthesis event.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot wait synthesis event for Open JTalk.", "Error", MB_OK);
          return;
       }
       ResetEvent(m_synthEvent);
@@ -294,7 +294,7 @@ void Open_JTalk_Manager::start()
       while(m_kill == false) {
          /* wait buffer mutex */
          if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "Error: cannot wait buffer mutex.", "Error", MB_OK);
+            MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
             ReleaseMutex(m_bufferMutex);
             return;
          }
@@ -352,7 +352,7 @@ void Open_JTalk_Manager::synthesis(const char *str)
 
    /* wait buffer mutex */
    if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
       return;
    }
 

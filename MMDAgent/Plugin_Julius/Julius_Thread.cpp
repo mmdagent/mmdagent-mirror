@@ -141,7 +141,7 @@ void Julius_Thread::clear()
       if(m_recog)
          j_close_stream(m_recog);
       if(WaitForSingleObject(m_threadHandle, JULIUSTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot stop Julius thread.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot stop Julius thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_recog) {
@@ -190,7 +190,7 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
    /* create instance */
    m_recog = j_create_instance_from_jconf(m_jconf);
    if (m_recog == NULL) {
-      MessageBoxA(NULL, "ERROR: Cannot create Julius instance.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create Julius instance.", "Error", MB_OK);
       return false;
    }
 
@@ -201,7 +201,7 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
       return false;
 
    if (j_open_stream(m_recog, NULL) != 0) {
-      MessageBoxA(NULL, "ERROR: Cannot open recognition stream.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot open recognition stream.", "Error", MB_OK);
       return false;
    }
 
@@ -212,7 +212,7 @@ bool Julius_Thread::loadAndStart(HWND param1, UINT param2)
    m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, m_recog, 0, NULL);
    if (m_threadHandle == 0) {
       j_close_stream(m_recog);
-      MessageBoxA(NULL, "ERROR: Cannot start Julius thread.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start Julius thread.", "Error", MB_OK);
       return false;
    }
 

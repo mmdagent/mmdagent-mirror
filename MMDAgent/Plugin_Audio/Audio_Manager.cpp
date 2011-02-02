@@ -149,7 +149,7 @@ void Audio_Manager::initialize()
    Audio_EventQueue_initialize(&m_bufferQueue);
 }
 
-/* Audio_Manager::clear clear */
+/* Audio_Manager::clear: clear */
 void Audio_Manager::clear()
 {
    Audio_Link *tmp1, *tmp2;
@@ -209,7 +209,7 @@ void Audio_Manager::setupAndStart(HWND hWnd, UINT event)
 
    m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if(m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: Audio_Manager cannot be started", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start audio thread.", "Error", MB_OK);
       clear();
    }
 }
@@ -234,14 +234,14 @@ void Audio_Manager::start()
    /* create buffer mutex */
    m_bufferMutex = CreateMutex(NULL, false, NULL);
    if(m_bufferMutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create buffer mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create buffer mutex for audio.", "Error", MB_OK);
       return;
    }
 
    /* create playing event */
    m_playingEvent = CreateEvent(NULL, true, false, NULL);
    if(m_playingEvent == 0) {
-      MessageBoxA(NULL, "Error: cannot create playing event.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create playing event for audio.", "Error", MB_OK);
       return;
    }
 
@@ -256,7 +256,7 @@ void Audio_Manager::start()
    while(m_kill == false) {
       /* wait playing event */
       if(WaitForSingleObject(m_playingEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait playing event.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot wait playing event for audio.", "Error", MB_OK);
          return;
       }
       ResetEvent(m_playingEvent);
@@ -264,7 +264,7 @@ void Audio_Manager::start()
       while(m_kill == false) {
          /* wait buffer mutex */
          if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "Error: cannot wait buffer mutex.", "Error", MB_OK);
+            MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
             ReleaseMutex(m_bufferMutex);
             return;
          }
@@ -321,7 +321,7 @@ void Audio_Manager::play(const char *str)
 
    /* wait buffer mutex */
    if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
       return;
    }
 

@@ -87,7 +87,7 @@ void Audio_Thread::clear()
 
    if(m_threadHandle != 0) {
       if (WaitForSingleObject(m_threadHandle, AUDIOTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot stop Audio thread.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot stop audio thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_bufferMutex)
@@ -122,7 +122,7 @@ void Audio_Thread::setupAndStart(HWND window, UINT event)
    /* create mutex */
    m_bufferMutex = CreateMutex(NULL, false, NULL);
    if (m_bufferMutex == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create buffer mutex for audio.", "Error", MB_OK);
       clear();
       return;
    }
@@ -130,7 +130,7 @@ void Audio_Thread::setupAndStart(HWND window, UINT event)
    /* create event */
    m_playingEvent = CreateEvent(NULL, true, false, NULL);
    if (m_playingEvent == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create event.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create playing event for audio.", "Error", MB_OK);
       clear();
       return;
    }
@@ -138,7 +138,7 @@ void Audio_Thread::setupAndStart(HWND window, UINT event)
    /* thread start */
    m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot start Open JTalk thread.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start audio thread.", "Error", MB_OK);
       clear();
       return;
    }
@@ -164,7 +164,7 @@ void Audio_Thread::start()
    while (m_kill == false) {
       /* wait event */
       if (WaitForSingleObject(m_playingEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "ERROR: Cannot wait event.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot wait playing event for audio.", "Error", MB_OK);
          return;
       }
       ResetEvent(m_playingEvent);
@@ -172,7 +172,7 @@ void Audio_Thread::start()
       if(m_kill == false) {
          /* wait text */
          if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+            MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
             return;
          }
          alias = MMDAgent_strdup(m_alias);
@@ -262,7 +262,7 @@ bool Audio_Thread::checkAlias(const char *alias)
 
    /* wait buffer mutex */
    if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
       return false;
    }
 
@@ -286,7 +286,7 @@ void Audio_Thread::play(const char *alias, const char *file)
 
    /* wait buffer mutex */
    if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
       return;
    }
 

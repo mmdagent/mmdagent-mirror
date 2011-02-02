@@ -114,7 +114,7 @@ void Open_JTalk_Thread::clear()
 
    if(m_threadHandle != 0) {
       if (WaitForSingleObject(m_threadHandle, OPENJTALKTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "ERROR: Cannot stop Open JTalk thread.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot stop Open JTalk thread.", "Error", MB_OK);
       CloseHandle(m_threadHandle);
    }
    if (m_bufferMutex)
@@ -173,14 +173,14 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    /* number of speakers */
    i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
-      MessageBoxA(NULL, "ERROR: Cannot load the number of models in config file of Open JTalk.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot load the number of models in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
       return;
    }
    m_numModels = MMDAgent_str2int(buff);
    if (m_numModels <= 0) {
-      MessageBoxA(NULL, "ERROR: The number of models must be positive value.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: the number of models must be positive value.", "Error", MB_OK);
       fclose(fp);
       clear();
       return;
@@ -195,7 +195,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
       m_modelNames[i] = MMDAgent_strdup(buff);
    }
    if (err) {
-      MessageBoxA(NULL, "ERROR: Cannot load model directory names in config file of Open JTalk.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot load model directory names in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
       return;
@@ -204,14 +204,14 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    /* number of speaking styles */
    i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
-      MessageBoxA(NULL, "ERROR: Cannot load the number of speaking styles in config file of Open JTalk.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot load the number of speaking styles in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
       return;
    }
    m_numStyles = MMDAgent_str2int(buff);
    if (m_numStyles <= 0) {
-      MessageBoxA(NULL, "ERROR: The number of speaking styles must be positive value.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: the number of speaking styles must be positive value.", "Error", MB_OK);
       m_numStyles = 0;
       fclose(fp);
       clear();
@@ -235,7 +235,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    }
    fclose(fp);
    if(err) {
-      MessageBoxA(NULL, "ERROR: Cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
       free(weights);
       clear();
       return;
@@ -243,7 +243,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
 
    /* load models for TTS */
    if (m_openJTalk.load(dicDir, m_modelNames, m_numModels, weights, m_numStyles) != true) {
-      MessageBoxA(NULL, "ERROR: Cannot initialize Open JTalk.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot initialize Open JTalk.", "Error", MB_OK);
       free(weights);
       clear();
       return;
@@ -259,7 +259,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    /* create mutex */
    m_bufferMutex = CreateMutex(NULL, false, NULL);
    if (m_bufferMutex == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create mutex.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create muffer mutex for Open JTalk.", "Error", MB_OK);
       clear();
       return;
    }
@@ -267,7 +267,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    /* create event */
    m_synthEvent = CreateEvent(NULL, true, false, NULL);
    if (m_synthEvent == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot create event.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot create synthesis event for Open JTalk.", "Error", MB_OK);
       clear();
       return;
    }
@@ -275,7 +275,7 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    /* thread start */
    m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, main_thread, this, 0, NULL);
    if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "ERROR: Cannot start Open JTalk thread.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot start Open JTalk thread.", "Error", MB_OK);
       clear();
       return;
    }
@@ -301,7 +301,7 @@ void Open_JTalk_Thread::start()
    while (m_kill == false) {
       /* wait event */
       if (WaitForSingleObject(m_synthEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "ERROR: Cannot wait event.", "Error", MB_OK);
+         MessageBoxA(NULL, "Error: cannot wait synthesis event for Open JTalk.", "Error", MB_OK);
          return;
       }
       ResetEvent(m_synthEvent);
@@ -309,7 +309,7 @@ void Open_JTalk_Thread::start()
       if(m_kill == false) {
          /* wait text */
          if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+            MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
             return;
          }
          chara = MMDAgent_strdup(m_charaBuff);
@@ -373,7 +373,7 @@ bool Open_JTalk_Thread::checkCharacter(const char *chara)
 
    /* wait buffer mutex */
    if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
       return false;
    }
 
@@ -397,7 +397,7 @@ void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const ch
 
    /* wait buffer mutex */
    if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "ERROR: Cannot wait buffer.", "Error", MB_OK);
+      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
       return;
    }
 
