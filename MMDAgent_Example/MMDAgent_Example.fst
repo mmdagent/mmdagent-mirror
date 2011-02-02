@@ -114,76 +114,94 @@
 # LIPSYNC_EVENT_START|モデルエイリアス
 # LIPSYNC_EVENT_STOP|モデルエイリアス
 #
-# その他
-# KEY|キー
+# 変数
 # TIMER_START|カウントダウンエイリアス|値
 # TIMER_STOP|カウントダウンエイリアス
 # TIMER_EVENT_START|カウントダウンエイリアス
 # TIMER_EVENT_STOP|カウントダウンエイリアス
+#
+# プラグイン
+# PLUGIN_ENABLE|プラグイン
+# PLUGIN_DISABLE|プラグイン
+# PLUGIN_EVENT_ENABLE|プラグイン
+# PLUGIN_EVENT_DISABLE|プラグイン
+#
+# その他
+# DRAGANDDROP|ファイル
+# KEY|キー
 
-# 0000-0010 Initialize
+# 0011-0020 Initialization
 
-0   1   <eps>             MODEL_ADD|メイ|Model\mei\mei.pmd|0.0,0.0,-14.0
-1   3   <eps>             MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
-3   4   <eps>             MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
-4   5   <eps>             STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
-5   2   <eps>             MOTION_ADD|メイ|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
-2   2   RECOG_EVENT_START MOTION_ADD|メイ|反応|Expression\mei_listen\mei_listen.vmd|PART|ONCE
+0   11  <eps> MODEL_ADD|メイ|Model\mei\mei.pmd|0.0,0.0,-14.0
+11  12  <eps> MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
+12  13  <eps> MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+13  14  <eps> STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
+14  2   <eps> MOTION_ADD|メイ|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
 
-# 0011-0020 Hello (key 1)
+# 0021-0030 Idle behavior
 
-2   11  RECOG_EVENT_STOP|こんにちは SYNTH_START|メイ|メイ（普）|こんにちは。
-2   11  RECOG_EVENT_STOP|こんにちわ SYNTH_START|メイ|メイ（普）|こんにちは。
-2   11  KEY|1                       SYNTH_START|メイ|メイ（普）|こんにちは。
-11  12  <eps>                       MOTION_ADD|メイ|挨拶|Motion\mei_greeting\mei_greeting.vmd|PART
-12  2   SYNTH_EVENT_STOP|メイ       <eps>
+2   21  <eps>                  TIMER_START|idle1|10
+21  22  <eps>                  TIMER_START|idle2|20
+22  1   <eps>                  TIMER_START|idle3|30
+1   1   RECOG_EVENT_START      MOTION_ADD|メイ|反応|Expression\mei_listen\mei_listen.vmd|PART|ONCE
+1   1   TIMER_EVENT_STOP|idle1 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_boredom.vmd|PART|ONCE
+1   1   TIMER_EVENT_STOP|idle2 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_touch_clothes.vmd|PART|ONCE
+1   2   TIMER_EVENT_STOP|idle3 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_think.vmd|PART|ONCE
 
-# 0021-0030 Self introduction (key 2)
+# 0031-0040 Hello (key 1)
 
-2   21  RECOG_EVENT_STOP|自己紹介  SYNTH_START|メイ|メイ（普）|メイと言います。
-2   21  RECOG_EVENT_STOP|あなた,誰 SYNTH_START|メイ|メイ（普）|メイと言います。
-2   21  RECOG_EVENT_STOP|君,誰     SYNTH_START|メイ|メイ（普）|メイと言います。
-2   21  KEY|2                      SYNTH_START|メイ|メイ（普）|メイと言います。
-21  22  <eps>                      MOTION_ADD|メイ|挨拶|Motion\mei_self_introduction\mei_self_introduction.vmd|PART
-22  23  SYNTH_EVENT_STOP|メイ      SYNTH_START|メイ|メイ（普）|よろしくお願いします。
-23  2   SYNTH_EVENT_STOP|メイ      <eps>
+1   31  RECOG_EVENT_STOP|こんにちは SYNTH_START|メイ|メイ（普）|こんにちは。
+1   31  RECOG_EVENT_STOP|こんにちわ SYNTH_START|メイ|メイ（普）|こんにちは。
+1   31  KEY|1                       SYNTH_START|メイ|メイ（普）|こんにちは。
+31  32  <eps>                       MOTION_ADD|メイ|挨拶|Motion\mei_greeting\mei_greeting.vmd|PART|ONCE
+32  2   SYNTH_EVENT_STOP|メイ       <eps>
 
-# 0031-0040 Thank you (key 3)
+# 0041-0050 Self introduction (key 2)
 
-2   31  RECOG_EVENT_STOP|ありがと   SYNTH_START|メイ|メイ（普）|どういたしまして。
-2   31  RECOG_EVENT_STOP|ありがとう SYNTH_START|メイ|メイ（普）|どういたしまして。
-2   31  RECOG_EVENT_STOP|有難う     SYNTH_START|メイ|メイ（普）|どういたしまして。
-2   31  RECOG_EVENT_STOP|有り難う   SYNTH_START|メイ|メイ（普）|どういたしまして。
-2   31  KEY|3                       SYNTH_START|メイ|メイ（普）|どういたしまして。
-31  32  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART
-32  33  SYNTH_EVENT_STOP|メイ       SYNTH_START|メイ|メイ（喜）|いつでも、話しかけてくださいね。
-33  34  <eps>                       MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
-34  2   SYNTH_EVENT_STOP|メイ       MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
+1   41  RECOG_EVENT_STOP|自己紹介  SYNTH_START|メイ|メイ（普）|メイと言います。
+1   41  RECOG_EVENT_STOP|あなた,誰 SYNTH_START|メイ|メイ（普）|メイと言います。
+1   41  RECOG_EVENT_STOP|君,誰     SYNTH_START|メイ|メイ（普）|メイと言います。
+1   41  KEY|2                      SYNTH_START|メイ|メイ（普）|メイと言います。
+41  42  <eps>                      MOTION_ADD|メイ|挨拶|Motion\mei_self_introduction\mei_self_introduction.vmd|PART|ONCE
+42  43  SYNTH_EVENT_STOP|メイ      SYNTH_START|メイ|メイ（普）|よろしくお願いします。
+43  2   SYNTH_EVENT_STOP|メイ      <eps>
 
-# 0041-0050 Positive comments (key 4)
+# 0051-0060 Thank you (key 3)
 
-2   41  RECOG_EVENT_STOP|可愛い   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-2   41  RECOG_EVENT_STOP|かわいい SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-2   41  RECOG_EVENT_STOP|綺麗     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-2   41  RECOG_EVENT_STOP|きれい   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-2   41  KEY|4                     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-41  42  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART
-42  2   SYNTH_EVENT_STOP|メイ     <eps>
+1   51  RECOG_EVENT_STOP|ありがと   SYNTH_START|メイ|メイ（普）|どういたしまして。
+1   51  RECOG_EVENT_STOP|ありがとう SYNTH_START|メイ|メイ（普）|どういたしまして。
+1   51  RECOG_EVENT_STOP|有難う     SYNTH_START|メイ|メイ（普）|どういたしまして。
+1   51  RECOG_EVENT_STOP|有り難う   SYNTH_START|メイ|メイ（普）|どういたしまして。
+1   51  KEY|3                       SYNTH_START|メイ|メイ（普）|どういたしまして。
+51  52  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART|ONCE
+52  53  SYNTH_EVENT_STOP|メイ       SYNTH_START|メイ|メイ（喜）|いつでも、話しかけてくださいね。
+53  54  <eps>                       MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
+54  2   SYNTH_EVENT_STOP|メイ       MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
 
-# 0051-0070 Guide (key 5)
+# 0061-0070 Positive comments (key 4)
 
-2   51  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
-2   51  KEY|5                   MODEL_DELETE|メニュー
-51  52  <eps>                   MODEL_ADD|パネル|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
-52  53  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
-53  54  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_normal.vmd
-54  55  <eps>                   SYNTH_START|メイ|メイ（普）|図書館は，正面から見ると，右前の方向にあります．
-55  56  SYNTH_EVENT_STOP|メイ   MOTION_ADD|メイ|視線|Motion\mei_look\mei_look_down.vmd|PART|ONCE
-56  57  <eps>                   SYNTH_START|メイ|メイ（普）|キャンパスマップでは，こちらになります．
-57  58  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
-58  59  SYNTH_EVENT_STOP|メイ   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
-59  60  <eps>                   SYNTH_START|メイ|メイ（普）|お解りになりますか？
-60  61  SYNTH_EVENT_STOP|メイ   MODEL_DELETE|パネル
-61  62  <eps>                   MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
-62  63  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
-63  2   <eps>                   MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+1   61  RECOG_EVENT_STOP|可愛い   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
+1   61  RECOG_EVENT_STOP|かわいい SYNTH_START|メイ|メイ（照）|恥ずかしいです。
+1   61  RECOG_EVENT_STOP|綺麗     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
+1   61  RECOG_EVENT_STOP|きれい   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
+1   61  KEY|4                     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
+61  62  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART|ONCE
+62  2   SYNTH_EVENT_STOP|メイ     <eps>
+
+# 0071-0090 Guide (key 5)
+
+1   71  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
+1   71  KEY|5                   MODEL_DELETE|メニュー
+71  72  <eps>                   MODEL_ADD|パネル|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
+72  73  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
+73  74  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_normal.vmd
+74  75  <eps>                   SYNTH_START|メイ|メイ（普）|図書館は、正面から見ると、右前の方向にあります。
+75  76  SYNTH_EVENT_STOP|メイ   MOTION_ADD|メイ|視線|Motion\mei_look\mei_look_down.vmd|PART|ONCE
+76  77  <eps>                   SYNTH_START|メイ|メイ（普）|キャンパスマップでは、こちらになります。
+77  78  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
+78  79  SYNTH_EVENT_STOP|メイ   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
+79  80  <eps>                   SYNTH_START|メイ|メイ（普）|お解りになりますか？
+80  81  SYNTH_EVENT_STOP|メイ   MODEL_DELETE|パネル
+81  82  <eps>                   MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
+82  83  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
+83  2   <eps>                   MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF

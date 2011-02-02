@@ -1,6 +1,8 @@
 Version Beta:
  * add guide task.
  * add listening motion.
+ * add idle motions.
+ * re-define state number.
 
 Version Alpha:
  * the first release.
