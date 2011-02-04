@@ -320,50 +320,40 @@ PMDFace *PMDModel::getFace(char *name)
 }
 
 /* PMDModel::getChildBoneList: return list of child bones, in decent order */
-int PMDModel::getChildBoneList(PMDBone **bone, unsigned short boneNum, PMDBone **childBoneList, unsigned short childBoneNumMax)
+int PMDModel::getChildBoneList(PMDBone **bone, unsigned short numBone, PMDBone **childBoneList)
 {
-   unsigned short i, j;
-   PMDBone *b;
-   int n, k, l;
-   bool updated;
-   int iFrom, iTo;
+   int i, j, k;
+   PMDBone *b1, *b2;
+   bool find;
+   int n = 0;
 
-   for (i = 0, n = 0; i < boneNum; i++) {
-      b = bone[i];
-      for (j = 0; j < m_numBone; j++) {
-         if (m_boneList[j].getParentBone() == b) {
-            if (n >= childBoneNumMax)
-               return -1;
-            childBoneList[n] = &(m_boneList[j]);
-            n++;
-         }
+   for(i = 0; i < numBone; i++) {
+      b1 = bone[i];
+      for(j = 0; j < m_numBone; j++) {
+         b2 = &(m_boneList[j]);
+         if(b2->getParentBone() == b1)
+            childBoneList[n++] = b2;
       }
    }
 
-   updated = true;
-   iFrom = 0;
-   iTo = n;
-   while (updated) {
-      updated = false;
-      for (k = iFrom; k < iTo; k++) {
-         b = childBoneList[k];
-         for (j = 0; j < m_numBone; j++) {
-            if (m_boneList[j].getParentBone() == b) {
-               for (l = 0; l < n; l++)
-                  if (childBoneList[l] == &(m_boneList[j]))
-                     break;
-               if (l < n)
-                  continue;
-               if (n >= childBoneNumMax)
-                  return -1;
-               childBoneList[n] = &(m_boneList[j]);
-               n++;
-               updated = true;
+   for(i = 0; i < n; i++) {
+      b1 = childBoneList[i];
+      for(j = 0; j < m_numBone; j++) {
+         b2 = &(m_boneList[j]);
+         if(b2->getParentBone() == b1) {
+            /* check which child is already found */
+            find = false;
+            for(k = 0; k < n; k++) {
+               if(childBoneList[k] == b2) {
+                  find = true;
+                  break;
+               }
             }
+            /* add */
+            if(find == false)
+               childBoneList[n++] = b2;
          }
       }
-      iFrom = iTo;
-      iTo = n;
    }
 
    return n;

@@ -97,7 +97,7 @@ void BoneController::setup(PMDModel *model, char **boneName, int numBone, float 
                            float lowerAngLimitX, float lowerAngLimitY, float lowerAngLimitZ,
                            float adjustPosX, float adjustPosY, float adjustPosZ)
 {
-   int i, j, k;
+   int i, j;
    PMDBone **tmpBoneList;
 
    /* check */
@@ -136,17 +136,11 @@ void BoneController::setup(PMDModel *model, char **boneName, int numBone, float 
    /* set child bones */
    if(model->getNumBone() > 0) {
       tmpBoneList = (PMDBone **) malloc(sizeof(PMDBone *) * model->getNumBone());
-      k = model->getChildBoneList(m_boneList, m_numBone, tmpBoneList, model->getNumBone());
-      for(i = 0, j = 0; i < k; i++) {
-         if(tmpBoneList[i]->isSimulated() == true)
-            j++;
-      }
-      if(j > 0) {
-         m_numChildBone = j;
+      m_numChildBone = model->getChildBoneList(m_boneList, m_numBone, tmpBoneList);
+      if(m_numChildBone > 0) {
          m_childBoneList = (PMDBone **) malloc(sizeof(PMDBone *) * m_numChildBone);
-         for(i = 0, j = 0; i < k; i++)
-            if(tmpBoneList[i]->isSimulated() == true)
-               m_childBoneList[j++] = tmpBoneList[i];
+         for(i = 0; i < m_numChildBone; i++)
+            m_childBoneList[i] = tmpBoneList[i];
       }
       free(tmpBoneList);
    }
@@ -176,6 +170,8 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
    btQuaternion targetRot;
    btScalar x, y, z;
    btMatrix3x3 mat;
+
+   if(m_numBone <= 0) return;
 
    if(m_enable) {
       /* increase rate */
@@ -238,3 +234,4 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
       }
    }
 }
+

@@ -162,7 +162,7 @@ public:
    PMDFace *getFace(char *name);
 
    /* getChildBoneList: return list of child bones, in decent order */
-   int getChildBoneList(PMDBone **bone, unsigned short boneNum, PMDBone **childBoneList, unsigned short childBoneNumMax);
+   int getChildBoneList(PMDBone **bone, unsigned short numBone, PMDBone **childBoneList);
 
    /* setPhysicsControl switch bone control by physics simulation */
    void setPhysicsControl(bool flag);
