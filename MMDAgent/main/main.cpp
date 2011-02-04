@@ -41,6 +41,7 @@
 
 /* headers */
 
+#include <locale.h>
 #include <windows.h>
 
 #include "resource.h"
@@ -293,10 +294,12 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 /* WinMain: main function */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+   setlocale(LC_CTYPE, "japanese");
+
    MSG msg;
    HACCEL hAccelTable;
-   TCHAR szTitle[MAIN_MAXBUFLEN];
-   TCHAR szWindowClass[MAIN_MAXBUFLEN];
+   char szTitle[MAIN_MAXBUFLEN];
+   char szWindowClass[MAIN_MAXBUFLEN];
 
    int i;
    size_t len;
@@ -304,14 +307,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    wchar_t **wargv;
    char **argv;
 
-   WNDCLASSEX wcex;
+   WNDCLASSEXA wcex;
    HWND hWnd;
 
    UNREFERENCED_PARAMETER(hPrevInstance);
    UNREFERENCED_PARAMETER(lpCmdLine);
 
-   LoadString(hInstance, IDS_APP_TITLE, szTitle, MAIN_MAXBUFLEN);
-   LoadString(hInstance, IDC_MMDAGENT, szWindowClass, MAIN_MAXBUFLEN);
+   LoadStringA(hInstance, IDS_APP_TITLE, szTitle, MAIN_MAXBUFLEN);
+   LoadStringA(hInstance, IDC_MMDAGENT, szWindowClass, MAIN_MAXBUFLEN);
 
    /* register window */
    wcex.cbSize = sizeof(WNDCLASSEX);
@@ -326,7 +329,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    wcex.lpszMenuName = 0;
    wcex.lpszClassName = szWindowClass;
    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-   RegisterClassEx(&wcex);
+   RegisterClassExA(&wcex);
 
    /* create window */
    wargv = CommandLineToArgvW(GetCommandLineW(), &argc);

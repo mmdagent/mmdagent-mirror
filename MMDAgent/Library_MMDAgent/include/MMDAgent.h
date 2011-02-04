@@ -247,7 +247,7 @@ public:
    ~MMDAgent();
 
    /* setup: initialize and setup MMDAgent */
-   HWND setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv);
+   HWND setup(HINSTANCE hInstance, char *title, char *windowName, int argc, char **argv);
 
    /* updateScene: update the whole scene */
    void updateScene();

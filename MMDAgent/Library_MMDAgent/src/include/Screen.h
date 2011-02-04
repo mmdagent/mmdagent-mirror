@@ -97,7 +97,7 @@ public:
    ~Screen();
 
    /* createWindow: create window */
-   HWND createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int max_sample_num, int max_sample_col_num, bool topMost);
+   HWND createWindow(int *size, HINSTANCE hInstance, char *title, char *windowName, int max_sample_num, int max_sample_col_num, bool topMost);
 
    /* swapBuffers: swap buffers */
    void swapBuffers();

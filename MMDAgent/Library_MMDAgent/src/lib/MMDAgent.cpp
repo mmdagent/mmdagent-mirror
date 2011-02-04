@@ -886,7 +886,7 @@ MMDAgent::~MMDAgent()
 }
 
 /* MMDAgent::setup: initialize and setup MMDAgent */
-HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int argc, char **argv)
+HWND MMDAgent::setup(HINSTANCE hInstance, char *title, char *windowName, int argc, char **argv)
 {
    int i;
    size_t len;
@@ -967,7 +967,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, 
 
    /* create window */
    m_screen = new Screen();
-   m_hWnd = m_screen->createWindow(m_option->getWindowSize(), hInstance, szTitle, szWindowClass, m_option->getMaxMultiSampling(), m_option->getMaxMultiSamplingColor(), m_option->getTopMost());
+   m_hWnd = m_screen->createWindow(m_option->getWindowSize(), hInstance, title, windowName, m_option->getMaxMultiSampling(), m_option->getMaxMultiSamplingColor(), m_option->getTopMost());
    if (!m_hWnd) {
       clear();
       return m_hWnd;

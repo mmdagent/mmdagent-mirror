@@ -308,7 +308,7 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int 
 }
 
 /* Screen::createWindow: create window */
-HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR *szWindowClass, int max_sample_num, int max_sample_col_num, bool topMost)
+HWND Screen::createWindow(int *size, HINSTANCE hInstance, char *title, char *windowName, int max_sample_num, int max_sample_col_num, bool topMost)
 {
    HWND hWnd;
    int currentPixelFormat;
@@ -319,8 +319,8 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR 
    /* make dummy window */
    hWnd = CreateWindowExA(
              (topMost ? WS_EX_TOPMOST : 0),
-             max_sample_num > 0 ? DUMMY_CLASS_NAME : szWindowClass,
-             szTitle,
+             max_sample_num > 0 ? DUMMY_CLASS_NAME : windowName,
+             title,
              WS_VISIBLE | WS_OVERLAPPEDWINDOW,
              CW_USEDEFAULT,
              0,
@@ -349,8 +349,8 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, TCHAR *szTitle, TCHAR 
       /* re-make window */
       hWnd = CreateWindowExA(
                 (topMost ? WS_EX_TOPMOST : 0),
-                szWindowClass,
-                szTitle,
+                windowName,
+                title,
                 WS_VISIBLE | WS_OVERLAPPEDWINDOW,
                 CW_USEDEFAULT,
                 0,
