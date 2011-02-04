@@ -53,11 +53,15 @@ bool TextRenderer::getID(unsigned long mbc, unsigned int *id)
    /* return cache one */
    for(tmp1 = m_list; tmp1; tmp1 = tmp1->next) {
       if(tmp1->c == mbc) {
-         if(tmp2)
-            tmp2->next = tmp1->next;
-         tmp1->next = m_list;
-         m_list = tmp1;
-         *id = tmp1->id;
+         if(tmp1 == m_list) {
+            *id = tmp1->id;
+         } else {
+            if(tmp2)
+               tmp2->next = tmp1->next;
+            tmp1->next = m_list;
+            m_list = tmp1;
+            *id = tmp1->id;
+         }
          return true;
       }
       tmp2 = tmp1;
