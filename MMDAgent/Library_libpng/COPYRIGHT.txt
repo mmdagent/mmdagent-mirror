@@ -1,13 +1,3 @@
-
-This copy of the libpng notices is provided for your convenience.  In case of
-any discrepancy between this copy and the notices in the file png.h that is
-included in the libpng distribution, the latter shall prevail.
-
-COPYRIGHT NOTICE, DISCLAIMER, and LICENSE:
-
-If you modify libpng you may insert additional notices immediately following
-this sentence.
-
 This code is released under the libpng license.
 
 libpng versions 1.2.6, August 15, 2004, through 1.4.4, September 23, 2010, are
@@ -93,19 +83,3 @@ fee, and encourage the use of this source code as a component to
 supporting the PNG file format in commercial products.  If you use this
 source code in a product, acknowledgment is not required but would be
 appreciated.
-
-
-A "png_get_copyright" function is available, for convenient use in "about"
-boxes and the like:
-
-   printf("%s",png_get_copyright(NULL));
-
-Also, the PNG logo (in PNG format, of course) is supplied in the
-files "pngbar.png" and "pngbar.jpg (88x31) and "pngnow.png" (98x31).
-
-Libpng is OSI Certified Open Source Software.  OSI Certified Open Source is a
-certification mark of the Open Source Initiative.
-
-Glenn Randers-Pehrson
-glennrp at users.sourceforge.net
-September 23, 2010
