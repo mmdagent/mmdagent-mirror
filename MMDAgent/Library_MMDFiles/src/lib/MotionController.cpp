@@ -405,7 +405,7 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
          m_boneCtrlList[m_numBoneCtrl].bone = b;
          m_boneCtrlList[m_numBoneCtrl].motion = bm;
          m_numBoneCtrl++;
-         if (bm->numKeyFrame > 1 && strcmp(bm->name, MOTIONCONTROLLER_CENTERBONENAME) == 0) {
+         if (bm->numKeyFrame > 1 && MMDFiles_strequal(bm->name, MOTIONCONTROLLER_CENTERBONENAME) == true) {
             /* This motion has more than 1 key frames for Center Bone, so need re-location */
             m_hasCenterBoneMotion = true;
          }

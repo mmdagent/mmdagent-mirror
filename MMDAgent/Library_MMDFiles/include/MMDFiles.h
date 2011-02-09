@@ -56,6 +56,8 @@
 
 #include "GLee.h"
 
+#include "MMDFiles_utils.h"
+
 #include "BulletPhysics.h"
 
 #include "PMDFile.h"

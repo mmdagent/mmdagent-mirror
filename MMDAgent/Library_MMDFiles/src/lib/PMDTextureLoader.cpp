@@ -49,10 +49,11 @@ static void PMDTextureLoader_strcat(char *buf, int size, char *str)
    int i, j, len1, len2;
    char c;
 
-   if(buf == NULL || size <= 0 || str == NULL) return;
+   len1 = MMDFiles_strlen(buf);
+   len2 = MMDFiles_strlen(str);
 
-   len1 = strlen(buf);
-   len2 = strlen(str);
+   if(len1 <= 0 || size <= 0 || len2 <= 0)
+      return;
 
    for(i = 0, j = len1; i < len2; i++, j++) {
       c = str[i];
@@ -68,7 +69,7 @@ PMDTexture *PMDTextureLoader::lookup(char *fileName, bool *alreadyFailRet)
    TextureLink *tmp = m_root;
 
    while (tmp) {
-      if (strcmp(tmp->name, fileName) == 0) {
+      if (MMDFiles_strequal(tmp->name, fileName) == true) {
          /* if exist but texture is NULL, it has been failed */
          *alreadyFailRet = (tmp->texture == NULL) ? true : false;
          return tmp->texture;
@@ -85,7 +86,7 @@ void PMDTextureLoader::store(PMDTexture *tex, char *fileName)
 {
    TextureLink *newLink = new TextureLink;
 
-   newLink->name = strdup(fileName);
+   newLink->name = MMDFiles_strdup(fileName);
    newLink->texture = tex;
    newLink->next = m_root;
    m_root = newLink;

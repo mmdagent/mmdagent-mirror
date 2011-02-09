@@ -43,79 +43,34 @@
 
 #include "MMDAgent.h"
 
-/* MMDAgent_charsize: number of character byte */
-static const unsigned char MMDAgent_charsize[] = {
-   1, 0x01, 0x7F, /* control and ASCII */
-   1, 0xA1, 0xDF, /* 1 byte char */
-   2, 0x81, 0x9F, /* 2 byte char */
-   2, 0xE0, 0xEF, /* 2 byte char */
-   -1, -1, -1
-};
-
 /* MMDAgent_getcharsize: get character size */
 char MMDAgent_getcharsize(const char *str)
 {
-   char i, size = -1;
-
-   if(str == NULL || *str == '\0')
-      return 0;
-   for(i = 0; MMDAgent_charsize[i] > 0; i += 3)
-      if((char) MMDAgent_charsize[i+1] <= *str && *str <= (char) MMDAgent_charsize[i+2])
-         return MMDAgent_charsize[i];
-   return 0;
+   return MMDFiles_getcharsize(str);
 }
 
 /* MMDAgent_strequal: string matching */
 bool MMDAgent_strequal(const char *str1, const char *str2)
 {
-   if(str1 == NULL || str2 == NULL)
-      return false;
-   else if(str1 == str2)
-      return true;
-   else if(strcmp(str1, str2) == 0)
-      return true;
-   else
-      return false;
+   return MMDFiles_strequal(str1, str2);
 }
 
 /* MMDAgent_strtailmatch: match tail string */
 bool MMDAgent_strtailmatch(const char *str1, const char *str2)
 {
-   int len1, len2;
-
-   if(str1 == NULL || str2 == NULL)
-      return false;
-   if(str1 == str2)
-      return true;
-   len1 = strlen(str1);
-   len2 = strlen(str2);
-   if(len1 < len2)
-      return false;
-   if(strcmp(&str1[len1-len2], str2) == 0)
-      return true;
-   else
-      return false;
+   return MMDFiles_strtailmatch(str1, str2);
 }
 
 /* MMDAgent_strlen: strlen */
 int MMDAgent_strlen(const char *str)
 {
-   if(str == NULL)
-      return 0;
-   else
-      return strlen(str);
+   return MMDFiles_strlen(str);
 }
 
 /* MMDAgent_strdup: strdup */
 char *MMDAgent_strdup(const char *str)
 {
-   char *buf;
-
-   if(str == NULL)
-      return NULL;
-   buf = (char *) malloc(sizeof(char) * (strlen(str) + 1));
-   strcpy(buf, str);
-   return buf;
+   return MMDFiles_strdup(str);
 }
 
 /* MMDAgent_intdup: integer type strdup */
@@ -146,26 +101,7 @@ char *MMDAgent_intdup(const int digit)
 /* MMDAgent_dirdup: get directory from file path */
 char *MMDAgent_dirdup(const char *file)
 {
-   int i, len;
-   char *buf;
-
-   if (file == NULL)
-      return NULL;
-   len = strlen(file);
-   if (len <= 0)
-      return NULL;
-
-   for (i = len - 1; i >= 0; i--) {
-      if(file[i] == UTILS_DIRSEPARATOR)
-         break;
-   }
-   if(i < 0) return NULL;
-
-   buf = (char *) malloc(sizeof(char) * (i + 1));
-   strncpy(buf, file, i);
-   buf[i] = '\0';
-
-   return buf;
+   return MMDFiles_dirdup(file);
 }
 
 /* MMDAgent_strtok: strtok */

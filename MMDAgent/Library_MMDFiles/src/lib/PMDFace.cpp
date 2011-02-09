@@ -87,7 +87,7 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
    /* name */
    strncpy(name, face->name, 20);
    name[20] = '\0';
-   m_name = strdup(name);
+   m_name = MMDFiles_strdup(name);
 
    /* type */
    m_type = face->type;

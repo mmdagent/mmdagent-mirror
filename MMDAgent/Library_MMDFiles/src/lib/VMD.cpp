@@ -84,7 +84,7 @@ void VMD::addBoneMotion(char *name)
 
    link = (BoneMotionLink *) malloc(sizeof(BoneMotionLink));
    bmNew = &(link->boneMotion);
-   bmNew->name = strdup(name);
+   bmNew->name = MMDFiles_strdup(name);
    bmNew->numKeyFrame = 1;
    bmNew->keyFrameList = NULL;
 
@@ -92,7 +92,7 @@ void VMD::addBoneMotion(char *name)
    m_boneLink = link;
 
    bmMatch = (BoneMotion *) m_name2bone.findNearest(name);
-   if (!bmMatch || strcmp(bmMatch->name, name) != 0)
+   if (!bmMatch || MMDFiles_strequal(bmMatch->name, name) == false)
       m_name2bone.add(name, bmNew, (bmMatch) ? bmMatch->name : NULL);
 }
 
@@ -107,7 +107,7 @@ void VMD::addFaceMotion(char *name)
 
    link = (FaceMotionLink *) malloc(sizeof(FaceMotionLink));
    fmNew = &(link->faceMotion);
-   fmNew->name = strdup(name);
+   fmNew->name = MMDFiles_strdup(name);
    fmNew->numKeyFrame = 1;
    fmNew->keyFrameList = NULL;
 
@@ -115,7 +115,7 @@ void VMD::addFaceMotion(char *name)
    m_faceLink = link;
 
    fmMatch = (FaceMotion *) m_name2face.findNearest(name);
-   if (!fmMatch || strcmp(fmMatch->name, name) != 0)
+   if (!fmMatch || MMDFiles_strequal(fmMatch->name, name) == false)
       m_name2face.add(name, fmNew, (fmMatch) ? fmMatch->name : NULL);
 }
 
@@ -128,7 +128,7 @@ BoneMotion* VMD::getBoneMotion(char *name)
       return NULL;
 
    bm = (BoneMotion *) m_name2bone.findNearest(name);
-   if (bm && strcmp(bm->name, name) == 0)
+   if (bm && MMDFiles_strequal(bm->name, name) == true)
       return bm;
 
    return NULL;
@@ -143,7 +143,7 @@ FaceMotion* VMD::getFaceMotion(char *name)
       return NULL;
 
    fm = (FaceMotion *) m_name2face.findNearest(name);
-   if (fm && strcmp(fm->name, name) == 0)
+   if (fm && MMDFiles_strequal(fm->name, name) == true)
       return fm;
 
    return NULL;

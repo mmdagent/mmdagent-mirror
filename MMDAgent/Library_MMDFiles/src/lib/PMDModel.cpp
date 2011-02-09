@@ -43,36 +43,6 @@
 
 #include "MMDFiles.h"
 
-/* getDirectory: get directory from file path */
-static bool getDirectory(const char *file, char *dir)
-{
-
-   int i, len;
-   bool found = false;
-   char ch;
-
-   if (file == NULL)
-      return false;
-   len = strlen(file);
-   if (len <= 0)
-      return false;
-
-   for (i = len; i >= 0; i--) {
-      ch = file[i];
-      if (found == true) {
-         dir[i] = ch;
-      } else {
-         if (ch == MMDFILES_DIRSEPARATOR)
-            found = true;
-         dir[i] = '\0';
-      }
-   }
-
-   if (dir[0] == '\0')
-      strcpy(dir, ".");
-   return true;
-}
-
 /* PMDModel::initialize: initialize PMDModel */
 void PMDModel::initialize()
 {
@@ -260,13 +230,14 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
    char *dir;
    bool ret;
 
-   if(file == NULL || bullet == NULL || systex == NULL) return false;
-   len = strlen(file);
-   if(len <= 0) return false;
+   if(bullet == NULL || systex == NULL)
+      return false;
+   len = MMDFiles_strlen(file);
+   if(len <= 0)
+      return false;
 
    /* get model directory */
-   dir = (char *) malloc(sizeof(char) * (len + 1));
-   getDirectory(file, dir);
+   dir = MMDFiles_dirdup(file);
 
    /* open file */
    fp = fopen(file, "rb");
@@ -302,7 +273,7 @@ PMDBone *PMDModel::getBone(char *name)
 {
    PMDBone *match = (PMDBone *) m_name2bone.findNearest(name);
 
-   if (match && strcmp(match->getName(), name) == 0)
+   if (match && MMDFiles_strequal(match->getName(), name) == true)
       return match;
    else
       return NULL;
@@ -313,7 +284,7 @@ PMDFace *PMDModel::getFace(char *name)
 {
    PMDFace *match = (PMDFace *) m_name2face.findNearest(name);
 
-   if (match && strcmp(match->getName(), name) == 0)
+   if (match && MMDFiles_strequal(match->getName(), name) == true)
       return match;
    else
       return NULL;

@@ -118,7 +118,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, ch
    /* load model texture */
    strncpy(name, m->textureFile, 20);
    name[20] = '\0';
-   if (strlen(name) > 0) {
+   if (MMDFiles_strlen(name) > 0) {
       p = strchr(name, '*');
       if (p) {
          /* has extra sphere map */

@@ -101,7 +101,7 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
    /* name */
    strncpy(name, b->name, 20);
    name[20] = '\0';
-   m_name = strdup(name);
+   m_name = MMDFiles_strdup(name);
 
    /* mark if this bone should be treated as angle-constrained bone in IK process */
    if (strstr(m_name, PMDBONE_KNEENAME))
@@ -204,7 +204,7 @@ void PMDBone::setMotionIndependency()
 
    /* some models has additional model root bone or offset bones, they should be treated specially */
    for (i = 0; i < PMDBONE_NADDITIONALROOTNAME; i++) {
-      if (strcmp(m_parentBone->m_name, names[i]) == 0) {
+      if (MMDFiles_strequal(m_parentBone->m_name, names[i]) == true) {
          m_motionIndependent = true;
          return;
       }

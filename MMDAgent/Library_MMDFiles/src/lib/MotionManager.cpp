@@ -149,7 +149,7 @@ bool MotionManager::startMotion(VMD * vmd, char *name, bool full, bool once, boo
    m = new MotionPlayer;
    MotionPlayer_initialize(m);
 
-   m->name = strdup(name);
+   m->name = MMDFiles_strdup(name);
    m->onEnd = once ? 2 : 1; /* if loop is not specified, this motion will be deleted */
    m->ignoreStatic = full ? false : true;
    m->enableSmooth = enableSmooth;
@@ -253,7 +253,7 @@ bool MotionManager::swapMotion(VMD * vmd, char * name)
 
    /* find the motion player to change */
    for (m = m_playerList; m; m = m->next)
-      if (strcmp(m->name, name) == 0)
+      if (MMDFiles_strequal(m->name, name) == true)
          break;
    if (!m)
       return false; /* not found */
@@ -275,7 +275,7 @@ bool MotionManager::deleteMotion(char *name)
    if(name == NULL) return false;
 
    for (m = m_playerList; m; m = m->next) {
-      if (m->active && strcmp(m->name, name) == 0) {
+      if (m->active && MMDFiles_strequal(m->name, name) == true) {
          /* enter the ending status, gradually decreasing the blend rate */
          m->endingBoneBlend = m->endingBoneBlendFrames;
          m->endingFaceBlend = m->endingFaceBlendFrames;

@@ -74,8 +74,8 @@ static int getDiffPoint(char *str1, char *str2)
    while (str1[p] == str2[p])
       p++;
    bitloc = p * 8;
-   slen1 = strlen( str1 );
-   slen2 = strlen( str2 );
+   slen1 = MMDFiles_strlen( str1 );
+   slen2 = MMDFiles_strlen( str2 );
    while (testBit( str1, slen1, bitloc) == testBit(str2, slen2, bitloc))
       bitloc++;
 
@@ -156,7 +156,7 @@ void PTree::add(char *str, void *data, char *matchstr)
       m_root = newNode();
       m_root->value.data = data;
    } else {
-      slen = strlen(str);
+      slen = MMDFiles_strlen(str);
       bitloc = getDiffPoint(str, matchstr);
 
       p = &m_root;
@@ -196,7 +196,7 @@ void * PTree::findNearest(char *str)
 
    n = m_root;
    branch = NULL;
-   maxbitplace = strlen(str) * 8 + 8;
+   maxbitplace = MMDFiles_strlen(str) * 8 + 8;
    while (n->left0 != NULL || n->right1 != NULL) {
       branch = n;
       if (testBitMax(str, n->value.thres_bit, maxbitplace) != 0)

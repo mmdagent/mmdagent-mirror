@@ -83,7 +83,7 @@ bool SystemTexture::load(char *dir)
    char buff[MMDFILES_MAXBUFLEN];
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++) {
-      if (dir != NULL && strlen(dir) > 0)
+      if (MMDFiles_strlen(dir) > 0)
          sprintf(buff, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, files[i]);
       else
          strcpy(buff, files[i]);

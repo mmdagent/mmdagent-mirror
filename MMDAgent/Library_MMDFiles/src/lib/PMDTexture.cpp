@@ -44,28 +44,6 @@
 #include "png.h"
 #include "MMDFiles.h"
 
-static bool checkExtension(const char *fn, const char *ext)
-{
-   int len1, len2;
-   const char *c;
-
-   if (fn == NULL || ext == NULL)
-      return false;
-
-   len1 = strlen(fn);
-   len2 = strlen(ext);
-
-   if (len1 < len2 || len1 <= 0 || len2 <= 0)
-      return false;
-
-   c = &fn[len1-len2];
-
-   if (strcmp(c, ext) == 0)
-      return true;
-   else
-      return false;
-}
-
 /* PMDTexture::loadBMP: load BMP texture */
 bool PMDTexture::loadBMP(char *fileName)
 {
@@ -471,28 +449,28 @@ bool PMDTexture::load(char *fileName)
    float priority;
 
    clear();
-   if (fileName == NULL) return false;
-   len = strlen(fileName);
-   if (len <= 0) return false;
+   len = MMDFiles_strlen(fileName);
+   if (len <= 0)
+      return false;
 
    /* read texture bitmap from the file into textureData */
-   if (checkExtension(fileName, "sph") || checkExtension(fileName, "SPH")) {
+   if (MMDFiles_strtailmatch(fileName, ".sph") || MMDFiles_strtailmatch(fileName, ".SPH")) {
       if ((ret = loadBMP(fileName))) {
          m_isSphereMap = true;
          m_isSphereMapAdd = false;
       }
-   } else if (checkExtension(fileName, "spa") || checkExtension(fileName, "SPA")) {
+   } else if (MMDFiles_strtailmatch(fileName, ".spa") || MMDFiles_strtailmatch(fileName, ".SPA")) {
       if ((ret = loadBMP(fileName))) {
          m_isSphereMap = true;
          m_isSphereMapAdd = true;
       }
-   } else if (checkExtension(fileName, "bmp") || checkExtension(fileName, "BMP")) {
+   } else if (MMDFiles_strtailmatch(fileName, ".bmp") || MMDFiles_strtailmatch(fileName, ".BMP")) {
       ret = loadBMP(fileName);
-   } else if (checkExtension(fileName, "tga") || checkExtension(fileName, "TGA")) {
+   } else if (MMDFiles_strtailmatch(fileName, ".tga") || MMDFiles_strtailmatch(fileName, ".TGA")) {
       ret = loadTGA(fileName);
-   } else if (checkExtension(fileName, "png") || checkExtension(fileName, "PNG")) {
+   } else if (MMDFiles_strtailmatch(fileName, ".png") || MMDFiles_strtailmatch(fileName, ".PNG")) {
       ret = loadPNG(fileName);
-   } else if (checkExtension(fileName, "jpg") || checkExtension(fileName, "JPG") || checkExtension(fileName, "jpeg") || checkExtension(fileName, "JPEG")) {
+   } else if (MMDFiles_strtailmatch(fileName, ".jpg") || MMDFiles_strtailmatch(fileName, ".JPG") || MMDFiles_strtailmatch(fileName, ".jpeg") || MMDFiles_strtailmatch(fileName, ".JPEG")) {
       ret = loadJPG(fileName);
    } else {
       /* unknown file suffix */

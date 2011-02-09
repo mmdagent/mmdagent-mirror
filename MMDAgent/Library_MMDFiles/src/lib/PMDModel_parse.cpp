@@ -109,7 +109,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    strncpy(m_name, fileHeader->name, 20);
    m_name[20] = '\0';
    /* directory */
-   m_modelDir = strdup(dir);
+   m_modelDir = MMDFiles_strdup(dir);
    /* comment */
    m_comment = (char *) malloc(sizeof(char) * (256 + 1));
    strncpy(m_comment, fileHeader->comment, 256);
@@ -167,7 +167,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    for (i = 0; i < m_numBone; i++) {
       if (!m_boneList[i].setup(&(fileBone[i]), m_boneList, m_numBone, &m_rootBone))
          ret = false;
-      if (strcmp(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME) == 0)
+      if (MMDFiles_strequal(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME) == true)
          m_centerBone = &(m_boneList[i]);
    }
    if (!m_centerBone && m_numBone >= 1) {
@@ -416,13 +416,13 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    for (j = 0; j < m_numBone; j++) {
       name = m_boneList[j].getName();
       bMatch = (PMDBone *) m_name2bone.findNearest(name);
-      if (bMatch == NULL || strcmp(bMatch->getName(), name) != 0)
+      if (bMatch == NULL || MMDFiles_strequal(bMatch->getName(), name) == false)
          m_name2bone.add(name, &(m_boneList[j]), (bMatch) ? bMatch->getName() : NULL); /* add */
    }
    for (j = 0; j < m_numFace; j++) {
       name = m_faceList[j].getName();
       fMatch = (PMDFace *) m_name2face.findNearest(name);
-      if (fMatch == NULL || strcmp(fMatch->getName(), name) != 0)
+      if (fMatch == NULL || MMDFiles_strequal(fMatch->getName(), name) == false)
          m_name2face.add(name, &(m_faceList[j]), (fMatch) ? fMatch->getName() : NULL); /* add */
    }
 

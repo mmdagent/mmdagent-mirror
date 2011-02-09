@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\MMDFiles_utils.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\MotionController.cpp"
 				>
 			</File>
@@ -262,6 +266,10 @@
 			</File>
 			<File
 				RelativePath=".\src\include\MMDFiles.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\include\MMDFiles_utils.h"
 				>
 			</File>
 			<File
