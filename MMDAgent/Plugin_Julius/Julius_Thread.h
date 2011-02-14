@@ -41,7 +41,6 @@
 
 #define JULIUSTHREAD_MAXBUFLEN 2048
 
-#define JULIUSTHREAD_NAME    "jconf.txt"
 #define JULIUSTHREAD_LOCALE  "Japanese_Japan.20932" /* EUC-JP */
 #define JULIUSTHREAD_LATENCY 50
 #define JULIUSTHREAD_WAITMS  10000                  /* 10 sec */
@@ -62,6 +61,15 @@ private :
 
    HANDLE m_threadHandle; /* thread handle */
 
+   char *m_languageModel;
+   char *m_dictionary;
+   char *m_acousticModel;
+   char *m_triphoneList;
+   char *m_configFile;
+   char *m_userDictionary;
+
+   Julius_Logger m_logger;
+
    /* initialize: initialize thread */
    void initialize();
 
@@ -77,10 +85,13 @@ public :
    ~Julius_Thread();
 
    /* loadAndStart: load models and start thread */
-   bool loadAndStart(HWND param1, UINT param2);
+   void loadAndStart(HWND window, UINT event, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary);
 
    /* stopAndRlease: stop thread and release julius */
    void stopAndRelease();
+
+   /* start: main loop */
+   void start();
 
    /* pause: pause recognition process */
    void pause();
@@ -90,4 +101,16 @@ public :
 
    /* sendMessage: send message to MMDAgent */
    void sendMessage(const char *str1, const char *str2);
+
+   /* getLogActiveFlag: get active flag of logger */
+   bool getLogActiveFlag();
+
+   /* setLogActiveFlag: set active flag of logger */
+   void setLogActiveFlag(bool b);
+
+   /* updateLog: update log view per step */
+   void updateLog(double deltaFrame);
+
+   /* renderLog: render log view */
+   void renderLog();
 };

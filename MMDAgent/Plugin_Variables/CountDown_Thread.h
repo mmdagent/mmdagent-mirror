@@ -53,7 +53,7 @@ typedef struct _CountDown {
    struct _CountDown *next;
 } CountDown;
 
-/* CountDown_Thead: thread for CountDown */
+/* CountDown_Thread: thread for CountDown */
 class CountDown_Thread
 {
 private:
@@ -96,7 +96,7 @@ public:
    void stopAndRelease();
 
    /* set: set timer */
-   void set(const char *alias, int sec);
+   void set(const char *alias, const char *str);
 
    /* unset: unset timer */
    void unset(const char *alias);

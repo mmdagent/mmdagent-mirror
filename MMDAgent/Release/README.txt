@@ -85,18 +85,13 @@ See also "COPYRIGHT.txt" files as follows for details.
 Double click MMDAgent.exe file.
 
 *******************************************************************************
-                                     Note
-*******************************************************************************
-
-Currently MMDAgent does not support JPEG texture in PMD. Please use BMP/TGA/PNG
-format instead.
-
-*******************************************************************************
                             Key and mouse bindings
 *******************************************************************************
 
 Key                       Action
 -------------------------------------------------------------------------------
+ALT + /                   show copyright
+
 arrow keys                rotate viewpoint
 SHIFT + arrow keys        translate viewpoint
 +, -                      zoom in, zoom out
@@ -113,6 +108,7 @@ S                         show/hide FPS
 D                         show/hide log
 B                         show/hide bones
 SHIFT + W                 show/hide rigid bodies
+J                         show/hide log of speech recognition
 
 SHIFT + V                 enable/disable synchronization with VSync
 SHIFT + X                 change rendering order of self-shadowing

@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Sun Sep 02 19:44:37 2007
  *
- * $Revision: 1.2 $
+ * $Revision: 1.3 $
  * 
  */
 /*
@@ -138,6 +138,9 @@ j_add_option(char *fmt, int argnum, int reqargnum, char *desc, boolean (*func)(J
     jlog("ERROR: j_add_option: number of required argument (%d) larger than total (%d)\n", reqargnum, argnum);
     return FALSE;
   }
+
+  /* if this is first time, register free function at app exit */
+  if (useropt_root == NULL) atexit(useropt_free_all);
 
   /* allocate new */
   new = useropt_new();

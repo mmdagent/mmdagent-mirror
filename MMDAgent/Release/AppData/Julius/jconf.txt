@@ -1,7 +1,3 @@
--d           lang_m/web.60k.8-8.bingramv4.gz
--v           lang_m/web.60k.htkdic
--h           phone_m/clustered.mmf.16mix.all.julius.gz
--hlist       phone_m/tri_tied.list
 -lmp         12 -9
 -lmp2        12 -5
 -b           800

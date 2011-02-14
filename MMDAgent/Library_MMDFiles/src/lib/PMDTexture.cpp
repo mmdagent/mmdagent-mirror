@@ -43,6 +43,7 @@
 
 #include "png.h"
 #include "MMDFiles.h"
+#include "jpeglib.h"
 
 /* PMDTexture::loadBMP: load BMP texture */
 bool PMDTexture::loadBMP(char *fileName)
@@ -395,10 +396,74 @@ bool PMDTexture::loadPNG(char *fileName)
    return true;
 }
 
+/* jpeg_dummy_mgr: dummy for jpeg_error_mgr */
+struct jpeg_dummy_mgr {
+   struct jpeg_error_mgr err;
+   jmp_buf jump;
+};
+
+/* jpeg_error_catcher: error catcher for JPEG */
+void jpeg_error_catcher(j_common_ptr jpegDecompressor)
+{
+   jpeg_dummy_mgr *myerr = (jpeg_dummy_mgr *) jpegDecompressor->err;
+   longjmp(myerr->jump, 1);
+}
+
 /* PMDTexture::loadJPG: load JPG texture */
 bool PMDTexture::loadJPG(char *fileName)
 {
-   return false;
+   FILE *fp;
+
+   struct jpeg_decompress_struct jpegDecompressor;
+   struct jpeg_dummy_mgr jpegError;
+
+   int i;
+   JSAMPROW buff;
+
+   fp = fopen(fileName, "rb");
+   if(fp == NULL)
+      return false;
+
+   /* for error */
+   jpegDecompressor.err = jpeg_std_error(&jpegError.err);
+   jpegError.err.error_exit = jpeg_error_catcher;
+   if (setjmp(jpegError.jump)) {
+      jpeg_destroy_decompress(&jpegDecompressor);
+      return false;
+   }
+
+   /* initialize decompressor */
+   jpeg_create_decompress(&jpegDecompressor);
+
+   /* file open */
+   jpeg_stdio_src(&jpegDecompressor, fp);
+
+   /* read header */
+   jpeg_read_header(&jpegDecompressor, true);
+
+   /* load */
+   jpeg_start_decompress(&jpegDecompressor);
+   buff = (JSAMPROW) malloc(jpegDecompressor.output_width * jpegDecompressor.output_components);
+   m_textureData = (unsigned char *) malloc(jpegDecompressor.output_height * jpegDecompressor.output_width * jpegDecompressor.output_components);
+   for (i = 0; jpegDecompressor.output_scanline < jpegDecompressor.output_height; i++) {
+      jpeg_read_scanlines(&jpegDecompressor, &buff, 1);
+      memcpy(&m_textureData[i * jpegDecompressor.output_width * jpegDecompressor.output_components], buff, jpegDecompressor.output_width * jpegDecompressor.output_components);
+   }
+   free(buff);
+   jpeg_finish_decompress(&jpegDecompressor);
+
+   /* save */
+   m_width = jpegDecompressor.output_width;
+   m_height = jpegDecompressor.output_height;
+   m_components = 3;
+
+   /* free decompressor */
+   jpeg_destroy_decompress(&jpegDecompressor);
+
+   /* close file */
+   fclose(fp);
+
+   return true;
 }
 
 /* PMDTexture::initialize: initialize texture */

@@ -29,7 +29,7 @@
  * @author Akinobu LEE
  * @date   Sat Feb 19 12:53:54 2005
  *
- * $Revision: 1.1 $
+ * $Revision: 1.2 $
  * 
  */
 

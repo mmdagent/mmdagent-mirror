@@ -2074,7 +2074,7 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
    if(file == NULL) return;
    sendEventMessage(MMDAGENT_EVENT_DRAGANDDROP, "%s|%d|%d", file, x, y);
 
-   if (MMDAgent_strtailmatch(file, ".vmd")) {
+   if (MMDAgent_strtailmatch(file, ".vmd") || MMDAgent_strtailmatch(file, ".VMD")) {
       dropAllowedModelID = -1;
       targetModelID = -1;
       if (m_keyCtrl) {
@@ -2141,10 +2141,10 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
          /* resume timer */
          m_timer->resume();
       }
-   } else if (MMDAgent_strtailmatch(file, ".xpmd")) {
+   } else if (MMDAgent_strtailmatch(file, ".xpmd") || MMDAgent_strtailmatch(file, ".XPMD")) {
       /* load stage */
       setStage(file);
-   } else if (MMDAgent_strtailmatch(file, ".pmd")) {
+   } else if (MMDAgent_strtailmatch(file, ".pmd") || MMDAgent_strtailmatch(file, ".PMD")) {
       /* drop model */
       if (m_keyCtrl) {
          /* if Ctrl-key, add model */
@@ -2161,7 +2161,8 @@ void MMDAgent::procDropFileMessage(char *file, int x, int y)
             changeModel(m_model[targetModelID].getAlias(), file);
          }
       }
-   } else if (MMDAgent_strtailmatch(file, ".bmp") || MMDAgent_strtailmatch(file, ".tga") || MMDAgent_strtailmatch(file, ".png")) {
+   } else if (MMDAgent_strtailmatch(file, ".bmp") || MMDAgent_strtailmatch(file, ".tga") || MMDAgent_strtailmatch(file, ".png") || MMDAgent_strtailmatch(file, ".jpg") || MMDAgent_strtailmatch(file, ".jpeg") ||
+              MMDAgent_strtailmatch(file, ".BMP") || MMDAgent_strtailmatch(file, ".TGA") || MMDAgent_strtailmatch(file, ".PNG") || MMDAgent_strtailmatch(file, ".JPG") || MMDAgent_strtailmatch(file, ".JPEG")) {
       if (m_keyCtrl)
          setFloor(file); /* change floor with Ctrl-key */
       else

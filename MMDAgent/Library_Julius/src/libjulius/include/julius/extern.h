@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Mon Mar  7 23:19:14 2005
  *
- * $Revision: 1.16 $
+ * $Revision: 1.17 $
  * 
  */
 /*
@@ -171,6 +171,7 @@ boolean opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf);
 void opt_release(Jconf *jconf);
 /* m_jconf.c */
 void get_dirname(char *path);
+boolean config_string_parse(char *str, Jconf *jconf);
 boolean config_file_parse(char *conffile, Jconf *jconf);
 /* m_chkparam.c */
 boolean checkpath(char *filename);

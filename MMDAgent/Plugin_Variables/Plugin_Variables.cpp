@@ -64,6 +64,7 @@
 #include <windows.h>
 
 #include "MMDAgent.h"
+#include "Variables.h"
 #include "CountDown_Thread.h"
 
 /* definitions */
@@ -73,14 +74,20 @@
 #define PLUGINVARIABLES_TIMERSTARTCOMMAND "TIMER_START"
 #define PLUGINVARIABLES_TIMERSTOPCOMMAND  "TIMER_STOP"
 
+#define PLUGINVARIABLES_VALUESETCOMMAND   "VALUE_SET"
+#define PLUGINVARIABLES_VALUEUNSETCOMMAND "VALUE_UNSET"
+#define PLUGINVARIABLES_VALUEEVALCOMMAND  "VALUE_EVAL"
+
 /* global variables */
 
+static Variables variables;
 static CountDown_Thread countdown_thread;
 static bool enable;
 
 /* extAppStart: load models and start thread */
 void __stdcall extAppStart(MMDAgent *mmdagent)
 {
+   variables.setup(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
    countdown_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
    enable = true;
    ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
@@ -89,8 +96,7 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
 /* extProcCommand: process command message */
 void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   int i;
-   char *buff, *p, *q, *save;
+   char *buff, *p1, *p2, *p3, *save;
 
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_EVENT_PLUGINDISABLE)) {
@@ -98,17 +104,36 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
             enable = false;
             ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
          }
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUESETCOMMAND)) {
+         /* VALUE_SET command */
+         buff = MMDAgent_strdup(args);
+         p1 = MMDAgent_strtok(buff, "|", &save);
+         p2 = MMDAgent_strtok(NULL, "|", &save);
+         variables.set(p1, p2);
+         if(buff)
+            free(buff);
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUEUNSETCOMMAND)) {
+         /* VALUE_UNSET command */
+         variables.unset(args);
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUEEVALCOMMAND)) {
+         /* VALUE_EVAL command */
+         buff = MMDAgent_strdup(args);
+         p1 = MMDAgent_strtok(buff, "|", &save);
+         p2 = MMDAgent_strtok(NULL, "|", &save);
+         p3 = MMDAgent_strtok(NULL, "|", &save);
+         variables.evaluate(p1, p2, p3);
+         if(buff)
+            free(buff);
       } else if (MMDAgent_strequal(type, PLUGINVARIABLES_TIMERSTARTCOMMAND)) {
          /* TIMER_START command */
          buff = MMDAgent_strdup(args);
-         p = MMDAgent_strtok(buff, "|", &save);
-         q = MMDAgent_strtok(NULL, "|", &save);
-         i = MMDAgent_str2int(q);
-         if(i > 0)
-            countdown_thread.set(p, i);
+         p1 = MMDAgent_strtok(buff, "|", &save);
+         p2 = MMDAgent_strtok(NULL, "|", &save);
+         countdown_thread.set(p1, p2);
          if(buff)
             free(buff);
       } else if (MMDAgent_strequal(type, PLUGINVARIABLES_TIMERSTOPCOMMAND)) {
+         /* TIMER_STOP command */
          countdown_thread.unset(args);
       }
    } else {

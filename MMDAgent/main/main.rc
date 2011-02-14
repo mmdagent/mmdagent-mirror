@@ -129,7 +129,7 @@ END
 
 /* dialog box for copyright */
 
-IDD_ABOUTBOX DIALOGEX 0, 0, 350, 300
+IDD_ABOUTBOX DIALOGEX 0, 0, 350, 330
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About MMDAgent"
 FONT 9, "MS UI Gothic"
@@ -140,29 +140,32 @@ BEGIN
    LTEXT         "Bullet Physics",IDC_STATIC,5,25,280,8,SS_NOPREFIX
    LTEXT         "Copyright (c) 2003-2010 Erwin Coumans",IDC_STATIC,5,35,280,8
    LTEXT         "GLee",IDC_STATIC,5,45,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 2009      Ben Woodhouse",IDC_STATIC,5,55,280,8
+   LTEXT         "Copyright (c) 2009 Ben Woodhouse",IDC_STATIC,5,55,280,8
    LTEXT         "hts_engine API",IDC_STATIC,5,65,280,8,SS_NOPREFIX
    LTEXT         "Copyright (c) 2001-2010 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,75,280,8
    LTEXT         "Copyright (c) 2001-2008 Tokyo Institute of Technology Interdisciplinary Graduate School of Science and Engineering",IDC_STATIC,5,85,350,8
-   LTEXT         "Julius",IDC_STATIC,5,95,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan",IDC_STATIC,5,105,280,8
-   LTEXT         "Copyright (c) 1991-2010 Kawahara Lab., Kyoto University",IDC_STATIC,5,115,280,8
-   LTEXT         "Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology",IDC_STATIC,5,125,280,8
-   LTEXT         "Copyright (c) 2005-2010 Julius project team, Nagoya Institute of Technology",IDC_STATIC,5,135,280,8
-   LTEXT         "libpng",IDC_STATIC,5,145,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 1998-2010 Glenn Randers-Pehrson",IDC_STATIC,5,155,280,8
-   LTEXT         "Copyright (c) 1996-1997 Andreas Dilger",IDC_STATIC,5,165,280,8
-   LTEXT         "Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.",IDC_STATIC,5,175,280,8
-   LTEXT         "MeCab",IDC_STATIC,5,185,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 2001-2008 Taku Kudo",IDC_STATIC,5,195,280,8
-   LTEXT         "Copyright (c) 2004-2008 Nippon Telegraph and Telephone Corporation",IDC_STATIC,5,205,280,8
-   LTEXT         "Open JTalk",IDC_STATIC,5,215,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 2008-2010 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,225,280,8
-   LTEXT         "PortAudio",IDC_STATIC,5,235,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 1999-2006 Ross Bencina and Phil Burk",IDC_STATIC,5,245,280,8
-   LTEXT         "zlib",IDC_STATIC,5,255,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 1995-2010 Jean-loup Gailly and Mark Adler",IDC_STATIC,5,265,280,8
-   DEFPUSHBUTTON "OK",IDOK,150,280,50,14,WS_GROUP
+   LTEXT         "JPEG",IDC_STATIC,5,95,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 1991-2011 Thomas G. Lane",IDC_STATIC,5,105,280,8
+   LTEXT         "Copyright (c) 1991-2011 Guido Vollbeding",IDC_STATIC,5,115,280,8
+   LTEXT         "Julius",IDC_STATIC,5,125,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan",IDC_STATIC,5,135,280,8
+   LTEXT         "Copyright (c) 1991-2010 Kawahara Lab., Kyoto University",IDC_STATIC,5,145,280,8
+   LTEXT         "Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology",IDC_STATIC,5,155,280,8
+   LTEXT         "Copyright (c) 2005-2010 Julius project team, Nagoya Institute of Technology",IDC_STATIC,5,165,280,8
+   LTEXT         "libpng",IDC_STATIC,5,175,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 1998-2010 Glenn Randers-Pehrson",IDC_STATIC,5,185,280,8
+   LTEXT         "Copyright (c) 1996-1997 Andreas Dilger",IDC_STATIC,5,195,280,8
+   LTEXT         "Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.",IDC_STATIC,5,205,280,8
+   LTEXT         "MeCab",IDC_STATIC,5,215,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 2001-2008 Taku Kudo",IDC_STATIC,5,225,280,8
+   LTEXT         "Copyright (c) 2004-2008 Nippon Telegraph and Telephone Corporation",IDC_STATIC,5,235,280,8
+   LTEXT         "Open JTalk",IDC_STATIC,5,245,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 2008-2010 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,255,280,8
+   LTEXT         "PortAudio",IDC_STATIC,5,265,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 1999-2006 Ross Bencina and Phil Burk",IDC_STATIC,5,275,280,8
+   LTEXT         "zlib",IDC_STATIC,5,285,280,8,SS_NOPREFIX
+   LTEXT         "Copyright (c) 1995-2010 Jean-loup Gailly and Mark Adler",IDC_STATIC,5,295,280,8
+   DEFPUSHBUTTON "OK",IDOK,150,310,50,14,WS_GROUP
 END
 
 /* dialog box for command */

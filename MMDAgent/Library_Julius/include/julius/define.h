@@ -27,7 +27,7 @@
  * @author Akinobu LEE
  * @date   Mon Mar  7 15:17:26 2005
  *
- * $Revision: 1.4 $
+ * $Revision: 1.5 $
  * 
  */
 /*
@@ -282,6 +282,11 @@
  */
 #define FAST_FACTOR1_SUCCESSOR_LIST
 
+/**
+ * Enable score based pruning at the 1st pass.
+ * 
+ */
+#define SCORE_PRUNING
 
 #endif /* __J_DEFINE_H__ */
 

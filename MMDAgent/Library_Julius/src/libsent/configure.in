@@ -3,7 +3,7 @@ dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technolo
 dnl Copyright (c) 2005-2007 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.23 2010/05/17 09:04:17 sumomo Exp $
+dnl  $Id: configure.in,v 1.24 2011/02/05 09:00:01 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -16,7 +16,7 @@ LIBSENT_VERSION=4.1.5
 dnl Checks for options
 # specify mic type
 AC_ARG_WITH(mictype,
-[  --with-mictype=TYPE     specify mic I/O (oss|alsa|freebsd|coreaudio|sol2|sun4|irix|esd|sp|portaudio|pa-oss|pa-winmm|pa-dsound)],,with_mictype=auto)
+[  --with-mictype=TYPE     specify mic I/O (oss|alsa|freebsd|coreaudio|sol2|sun4|irix|esd|sp|portaudio|pa-oss|pa-alsa|pa-winmm|pa-dsound)],,with_mictype=auto)
 
 # NetAudio support
 AC_ARG_WITH(netaudio-dir,
@@ -251,7 +251,8 @@ else
   altype=$with_mictype
 fi
 
-# if default is portaudio, guess WinMM / DirectSound / OSS / Solaris
+# If PortAudio library found at the system, use it.
+# if not, V19 codes included in this distribution will be compiled in.
 case $altype in
     portaudio)
       pa_system=no
@@ -259,7 +260,11 @@ case $altype in
       if test "$pa_system" = no; then
         case "$host_os" in
         linux*)
-	  altype="pa-oss"
+	  if test "$has_alsa" = yes; then
+	     altype="pa-alsa"
+	  else
+	     altype="pa-oss"
+	  fi
           ;;
 	solaris*)
 	  altype="pa-solaris"
@@ -338,23 +343,37 @@ case $altype in
       ;;
     pa-*)
       aldesc="PortAudio library (internal)"
-      ADINOBJ="$ADINOBJ src/adin/pa/pa_lib.o src/adin/pa/pa_convert.o src/adin/pa/pa_trace.o src/adin/pa/pablio.o src/adin/pa/ringbuffer.o"
-      SOUNDINC="-Isrc/adin/pa"
+      ADINOBJ="$ADINOBJ src/adin/pa/common/pa_allocation.o src/adin/pa/common/pa_converters.o src/adin/pa/common/pa_cpuload.o src/adin/pa/common/pa_debugprint.o src/adin/pa/common/pa_dither.o src/adin/pa/common/pa_front.o src/adin/pa/common/pa_process.o src/adin/pa/common/pa_ringbuffer.o src/adin/pa/common/pa_skeleton.o src/adin/pa/common/pa_stream.o src/adin/pa/common/pa_trace.o"
+      SOUNDINC="-Isrc/adin/pa/include -Isrc/adin/pa/common"
       AC_DEFINE(USE_MIC)
       case "$altype" in
         pa-winmm)
 	  aldesc="$aldesc (WinMM)"
-          ADINOBJ="$ADINOBJ src/adin/pa/pa_win_wmme.o"
+	  SOUNDINC="$SOUNDINC -DPA_NO_DS -DPA_NO_ASIO"
+          ADINOBJ="$ADINOBJ src/adin/pa/os/win/pa_win_hostapis.o src/adin/pa/os/win/pa_win_util.o src/adin/pa/os/win/pa_win_waveformat.o"
+	  ADINOBJ="$ADINOBJ src/adin/pa/hostapi/wmme/pa_win_wmme.o"
           SOUNDLIB="$SOUNDLIB -lwinmm"
           ;;
         pa-dsound)
 	  aldesc="$aldesc (DirectSound)"
-          ADINOBJ="$ADINOBJ src/adin/pa/dsound_wrapper.o src/adin/pa/pa_dsound.o"
-          SOUNDLIB="$SOUNDLIB -lwinmm -ldsound"
+	  SOUNDINC="$SOUNDINC -Isrc/adin/pa/os/win -DPA_NO_ASIO"
+          ADINOBJ="$ADINOBJ src/adin/pa/os/win/pa_win_hostapis.o src/adin/pa/os/win/pa_win_util.o src/adin/pa/os/win/pa_win_waveformat.o"
+	  ADINOBJ="$ADINOBJ src/adin/pa/hostapi/wmme/pa_win_wmme.o"
+	  ADINOBJ="$ADINOBJ src/adin/pa/hostapi/dsound/pa_win_ds.o src/adin/pa/hostapi/dsound/pa_win_ds_dynlink.o"
+          SOUNDLIB="$SOUNDLIB -lwinmm -ldsound -lole32"
+          ;;
+        pa-alsa)
+	  aldesc="$aldesc (Unix/ALSA)"
+	  SOUNDINC="$SOUNDINC -Isrc/adin/pa/os/unix -DPA_USE_ALSA"
+	  ADINOBJ="$ADINOBJ src/adin/pa/os/unix/pa_unix_hostapis.o src/adin/pa/os/unix/pa_unix_util.o"
+          ADINOBJ="$ADINOBJ src/adin/pa/hostapi/alsa/pa_linux_alsa.o"
+          SOUNDLIB="$SOUNDLIB -lpthread"
           ;;
         pa-oss)
 	  aldesc="$aldesc (Unix/OSS)"
-          ADINOBJ="$ADINOBJ src/adin/pa/pa_unix.o src/adin/pa/pa_unix_oss.o"
+	  SOUNDINC="$SOUNDINC -Isrc/adin/pa/os/unix -DPA_USE_OSS"
+	  ADINOBJ="$ADINOBJ src/adin/pa/os/unix/pa_unix_hostapis.o src/adin/pa/os/unix/pa_unix_util.o"
+          ADINOBJ="$ADINOBJ src/adin/pa/hostapi/oss/pa_unix_oss.o"
           SOUNDLIB="$SOUNDLIB -lpthread"
           ;;
         pa-solaris)

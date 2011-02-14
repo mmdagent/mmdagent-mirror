@@ -62,10 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib julius_D.lib ws2_32.lib PortAudio_D.lib"
+				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib julius_D.lib ws2_32.lib PortAudio_D.lib JPEG_D.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib;..\Library_JPEG\lib"
 				ModuleDefinitionFile="Plugin_Julius.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -144,10 +144,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib Julius.lib ws2_32.lib PortAudio.lib"
+				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib Julius.lib ws2_32.lib PortAudio.lib JPEG.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_Julius\lib;..\Library_PortAudio\lib;..\Library_JPEG\lib"
 				ModuleDefinitionFile="Plugin_Julius.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -187,6 +187,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\Julius_Logger.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Julius_Thread.cpp"
 				>
 			</File>
@@ -204,6 +208,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\Julius_Logger.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Julius_Thread.h"
 				>

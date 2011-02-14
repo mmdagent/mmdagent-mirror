@@ -133,7 +133,7 @@ void CountDown_Thread::loadAndStart(HWND param1, UINT param2)
    }
 }
 
-/* CountDown_Thead::check: check timers */
+/* CountDown_Thread::check: check timers */
 void CountDown_Thread::check()
 {
    CountDown *tmp1, *tmp2;
@@ -192,12 +192,16 @@ void CountDown_Thread::stopAndRelease()
 }
 
 /* CountDown_Thread::set: set timer */
-void CountDown_Thread::set(const char *alias, int sec)
+void CountDown_Thread::set(const char *alias, const char *str)
 {
    CountDown *countDown;
-   int now;
+   int sec, now;
 
-   if(alias == NULL || MMDAgent_strlen(alias) <= 0) return;
+   if(MMDAgent_strlen(alias) <= 0)
+      return;
+   sec = MMDAgent_str2int(str);
+   if(sec <= 0)
+      return;
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
@@ -248,6 +252,8 @@ void CountDown_Thread::unset(const char *alias)
       if(MMDAgent_strequal(tmp1->name, alias)) {
          if(tmp1 == m_head) {
             if(tmp1 == m_tail) {
+               m_head = NULL;
+               m_tail = NULL;
             } else {
                m_head = tmp1->next;
                tmp1->next->prev = NULL;

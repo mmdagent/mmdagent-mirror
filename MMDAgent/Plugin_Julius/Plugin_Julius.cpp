@@ -65,6 +65,7 @@
 #include <locale.h>
 
 #include "julius/juliuslib.h"
+#include "Julius_Logger.h"
 #include "Julius_Thread.h"
 #include "MMDAgent.h"
 
@@ -72,6 +73,12 @@
 
 #define PLUGINJULIUS_NAME         "Julius"
 #define PLUGINJULIUS_DIRSEPARATOR '\\'
+
+#define PLUGINJULIUS_LANGUAGEMODEL "lang_m\\web.60k.8-8.bingramv5.gz"
+#define PLUGINJULIUS_DICTIONARY    "lang_m\\web.60k.htkdic"
+#define PLUGINJULIUS_ACOUSTICMODEL "phone_m\\clustered.mmf.16mix.all.julius.binhmm"
+#define PLUGINJULIUS_TRIPHONELIST  "phone_m\\tri_tied.list.bin"
+#define PLUGINJULIUS_CONFIGFILE    "jconf.txt"
 
 /* global variables */
 
@@ -81,19 +88,35 @@ static bool enable;
 /* extAppStart: load models and start thread */
 void __stdcall extAppStart(MMDAgent *mmdagent)
 {
-   char buff[JULIUSTHREAD_MAXBUFLEN];
-   char current_dir[JULIUSTHREAD_MAXBUFLEN];
+   int len;
+   char languageModel[JULIUSTHREAD_MAXBUFLEN];
+   char dictionary[JULIUSTHREAD_MAXBUFLEN];
+   char acousticModel[JULIUSTHREAD_MAXBUFLEN];
+   char triphoneList[JULIUSTHREAD_MAXBUFLEN];
+   char configFile[JULIUSTHREAD_MAXBUFLEN];
+   char userDictionary[JULIUSTHREAD_MAXBUFLEN];
 
-   /* save current directory and move directory */
-   GetCurrentDirectoryA(JULIUSTHREAD_MAXBUFLEN, current_dir);
-   sprintf(buff, "%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME);
-   SetCurrentDirectoryA(buff);
+   /* set model file names */
+   sprintf(languageModel, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_LANGUAGEMODEL);
+   sprintf(dictionary, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_DICTIONARY);
+   sprintf(acousticModel, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_ACOUSTICMODEL);
+   sprintf(triphoneList, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_TRIPHONELIST);
+   sprintf(configFile, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_CONFIGFILE);
+
+   /* user dictionary */
+   strcpy(userDictionary, mmdagent->getConfigFileName());
+   len = MMDAgent_strlen(userDictionary);
+   if(len > 4) {
+      userDictionary[len-4] = '.';
+      userDictionary[len-3] = 'd';
+      userDictionary[len-2] = 'i';
+      userDictionary[len-1] = 'c';
+   } else {
+      strcpy(userDictionary, "");
+   }
 
    /* load models and start thread */
-   julius_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
-
-   /* move directory */
-   SetCurrentDirectoryA(current_dir);
+   julius_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, languageModel, dictionary, acousticModel, triphoneList, configFile, userDictionary);
 
    enable = true;
    ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
@@ -117,11 +140,36 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
    }
 }
 
+/* extProcEvent: process event message */
+void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+{
+   if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
+      if(MMDAgent_strequal(args, "J")) {
+         if(julius_thread.getLogActiveFlag() == true)
+            julius_thread.setLogActiveFlag(false);
+         else
+            julius_thread.setLogActiveFlag(true);
+      }
+   }
+}
+
 /* extAppEnd: stop thread and free julius */
 void __stdcall extAppEnd(MMDAgent *mmdagent)
 {
    julius_thread.stopAndRelease();
    enable = false;
+}
+
+/* extUpdate: update log view */
+void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
+{
+   julius_thread.updateLog(deltaFrame);
+}
+
+/* extRender: render log view when debug display mode */
+void __stdcall extRender(MMDAgent *mmdagent)
+{
+   julius_thread.renderLog();
 }
 
 /* DllMain: main for DLL */

@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 16:42:38 2005
  *
- * $Revision: 1.3 $
+ * $Revision: 1.4 $
  * 
  */
 /*
@@ -47,7 +47,7 @@ ngram_make_lookup_tree(NGRAM_INFO *ndata)
     wnameindex[i] = ndata->wname[i];
   }
 
-  ndata->root = make_ptree(wnameindex, windex, ndata->max_word_num, 0);
+  ndata->root = make_ptree(wnameindex, windex, ndata->max_word_num, 0, &(ndata->mroot));
 
   free(windex);
   free(wnameindex);

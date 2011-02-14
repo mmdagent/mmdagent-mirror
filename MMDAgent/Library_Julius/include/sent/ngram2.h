@@ -95,7 +95,7 @@
  * @author Akinobu LEE
  * @date   Fri Feb 11 15:04:02 2005
  *
- * $Revision: 1.8 $
+ * $Revision: 1.9 $
  * 
  */
 /*
@@ -182,6 +182,9 @@ typedef struct __ngram_info__ {
   LOGPROB *bo_wt_1;		///< back-off weights for 2-gram on 1st pass
   LOGPROB *p_2;			///< 2-gram prob for the 1st pass
   LOGPROB (*bigram_prob)(struct __ngram_info__ *, WORD_ID, WORD_ID); ///< Pointer of a function to compite bigram probability on the 1st pass.  See bi_prob_func_set() for details
+
+  BMALLOC_BASE *mroot;		///< Pointer for block memory allocation for lookup index
+
 } NGRAM_INFO;
 
 

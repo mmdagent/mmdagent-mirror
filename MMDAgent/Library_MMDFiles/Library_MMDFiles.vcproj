@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_libpng\include;..\Library_zlib\include;src\include;..\Library_GLee\include;src\lib;"
+				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_GLee\include;..\Library_JPEG\include;..\Library_libpng\include;..\Library_zlib\include;src\include;src\lib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -113,7 +113,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_libpng\include;..\Library_zlib\include;src\include;..\Library_GLee\include;src\lib"
+				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_GLee\include;..\Library_JPEG\include;..\Library_libpng\include;..\Library_zlib\include;src\include;src\lib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"

@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 16:48:56 2005
  *
- * $Revision: 1.4 $
+ * $Revision: 1.5 $
  * 
  */
 /*
@@ -41,6 +41,7 @@ ngram_info_new()
   new->bo_wt_1 = NULL;
   new->p_2 = NULL;
   new->bos_eos_swap = FALSE;
+  new->mroot = NULL;
 
   return(new);
 }
@@ -93,7 +94,7 @@ ngram_info_free(NGRAM_INFO *ndata)
     free(ndata->d);
   }
   /* free name index tree */
-  free_ptree(ndata->root);
+  if (ndata->mroot) mybfree2(&(ndata->mroot));
   /* free whole */
   free(ndata);
 }

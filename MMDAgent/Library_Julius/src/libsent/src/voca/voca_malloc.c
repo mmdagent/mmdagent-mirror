@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Fri Feb 18 21:33:29 2005
  *
- * $Revision: 1.2 $
+ * $Revision: 1.3 $
  * 
  */
 /*
@@ -38,6 +38,7 @@ word_info_new()
 
   new = (WORD_INFO *)mymalloc(sizeof(WORD_INFO));
   new->mroot = NULL;
+  new->work = NULL;
 
   return(new);
 }

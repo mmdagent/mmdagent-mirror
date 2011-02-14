@@ -17,7 +17,7 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 15:05:43 2007
  *
- * $Revision: 1.10 $
+ * $Revision: 1.12 $
  * 
  */
 /*
@@ -194,6 +194,8 @@ jconf_set_default_values_lm(JCONF_LM *j)
   strcpy(j->wordrecog_tail_silence_model_name, "silE");
   j->wordrecog_silence_context_name[0] = '\0';
   strcpy(j->unknown_name, UNK_WORD_DEFAULT); // or UNK_WORD_DEFAULT2
+  j->additional_dict_files		= NULL;
+  j->additional_dict_entries		= NULL;
 }
 
 /** 
@@ -233,6 +235,9 @@ jconf_set_default_values_search(JCONF_SEARCH *j)
   j->lmp.lmp_specified			= FALSE;
 
   j->pass1.specified_trellis_beam_width	= -1;
+#ifdef SCORE_PRUNING
+  j->pass1.score_pruning_width		= -1.0;
+#endif
 #if defined(WPAIR) && defined(WPAIR_KEEP_NLIMIT)
   j->pass1.wpair_keep_nlimit		= 3;
 #endif

@@ -23,7 +23,7 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 13:42:28 2007
  *
- * $Revision: 1.8 $
+ * $Revision: 1.10 $
  * 
  */
 /*
@@ -220,6 +220,22 @@ typedef struct __jconf_am__ {
 } JCONF_AM;
 
 /**
+ * Name lister for language model configurations
+ * 
+ */
+typedef struct __jconf_lm_namelist__ {
+  /**
+   * Entry name
+   */
+  char *name;
+  /**
+   * Pointer to next object
+   */
+  struct __jconf_lm_namelist__ *next;
+
+} JCONF_LM_NAMELIST;
+
+/**
  * Language models (N-gram / DFA), dictionary, and related parameters.
  * 
  */
@@ -340,6 +356,16 @@ typedef struct __jconf_lm__ {
   char unknown_name[UNK_WORD_MAXLEN];
 
   /**
+   * List of additional dictionary files
+   */
+  JCONF_LM_NAMELIST *additional_dict_files;
+
+  /**
+   * List of additional dictionary entries
+   */
+  JCONF_LM_NAMELIST *additional_dict_entries;
+
+  /**
    * Pointer to next instance
    * 
    */
@@ -444,11 +470,20 @@ typedef struct __jconf_search__ {
    */
   struct {
     /**
-     * Beam width of 1st pass. If value is -1 (not specified), system
-     * will guess the value from dictionary size.  If 0, a possible
-     * maximum value will be assigned to do full search.
+     * Beam width of rank pruning for the 1st pass. If value is -1
+     * (not specified), system will guess the value from dictionary
+     * size.  If 0, a possible maximum value will be assigned to do
+     * full search.
      */
     int specified_trellis_beam_width;
+
+#ifdef SCORE_PRUNING
+    /**
+     * Another beam width for score pruning at the 1st pass. If value
+     * is -1, or not specified, score pruning will be disabled.
+     */
+#endif
+    LOGPROB score_pruning_width;
     
 #if defined(WPAIR) && defined(WPAIR_KEEP_NLIMIT)
     /**
