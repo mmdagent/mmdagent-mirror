@@ -45,8 +45,8 @@
 # ・"_EVENT_" が付くものは、イベント通知。FSTの第3フィールドで指定する。
 #
 # モデル
-# MODEL_ADD|モデルエイリアス|モデルファイル(.pmd)|相対座標|相対回転|基準モデルエイリアス|bone
-# MODEL_CHANGE|モデルエイリアス|モデルファイル(.pmd)
+# MODEL_ADD|モデルエイリアス|モデルファイル|相対座標|相対回転|基準モデルエイリアス|bone
+# MODEL_CHANGE|モデルエイリアス|モデルファイル
 # MODEL_DELETE|モデルエイリアス
 # MODEL_EVENT_ADD|モデルエイリアス
 # MODEL_EVENT_CHANGE|モデルエイリアス
@@ -58,8 +58,8 @@
 # ・MODEL_ADDは「相対座標」以降を省略可能。省略した場合、相対座標(0,0,0)、相対回転無し、基準モデルエイリアス無しになる。
 #
 # モーション
-# MOTION_ADD|モデルエイリアス|モーションエイリアス|モーションファイル(.vmd)|FULL or PART|ONCE or LOOP|ON or OFF|ON or OFF
-# MOTION_CHANGE|モデルエイリアス|モーションエイリアス|モーションファイル(.vmd)
+# MOTION_ADD|モデルエイリアス|モーションエイリアス|モーションファイル|FULL or PART|ONCE or LOOP|ON or OFF|ON or OFF
+# MOTION_CHANGE|モデルエイリアス|モーションエイリアス|モーションファイル
 # MOTION_DELETE|モデルエイリアス|モーションエイリアス
 # MOTION_EVENT_ADD|モデルエイリアス|モーションエイリアス
 # MOTION_EVENT_CHANGE|モデルエイリアス|モーションエイリアス
@@ -83,18 +83,18 @@
 # TURN_STOP|モデルエイリアス
 # TURN_EVENT_START|モデルエイリアス
 # TURN_EVENT_STOP|モデルエイリアス
-# ROTATE_START|モデルエイリアス|x軸回転角，y軸回転角，y軸回転角|GLOBAL or LOCAL|回転速度
+# ROTATE_START|モデルエイリアス|x軸回転角,y軸回転角,z軸回転角|GLOBAL or LOCAL|回転速度
 # ROTATE_STOP|モデルエイリアス
 # ROTATE_EVENT_START|モデルエイリアス
 # ROTATE_EVENT_STOP|モデルエイリアス
 #
 # 音楽・画像
-# SOUND_START|サウンドエイリアス|音楽ファイル(.wav|.mp3)
+# SOUND_START|サウンドエイリアス|音楽ファイル
 # SOUND_STOP|サウンドエイリアス
 # SOUND_EVENT_START|サウンドエイリアス
 # SOUND_EVENT_STOP|サウンドエイリアス
-# STAGE|ステージファイル(.xpmd)
-# STAGE|床画像ファイル(.bmp, .png, .tga),背景画像ファイル(.bmp, .png, .tga)
+# STAGE|ステージファイル
+# STAGE|床画像ファイル,背景画像ファイル
 #
 # カメラ・照明
 # LIGHTCOLOR|R,G,B
@@ -115,6 +115,13 @@
 # LIPSYNC_EVENT_STOP|モデルエイリアス
 #
 # 変数
+# VALUE_SET|変数エイリアス|値
+# VALUE_SET|変数エイリアス|min|max
+# VALUE_UNSET|変数エイリアス
+# VALUE_EVAL|変数エイリアス|EQ or NE or LE or LT or GE or GT|値
+# VALUE_EVENT_SET|変数エイリアス|値
+# VALUE_EVENT_UNSET|変数エイリアス
+# VALUE_EVENT_EVAL|変数エイリアス|EQ or NE or LE or LT or GE or GT|値|TRUE or FALSE
 # TIMER_START|カウントダウンエイリアス|値
 # TIMER_STOP|カウントダウンエイリアス
 # TIMER_EVENT_START|カウントダウンエイリアス
