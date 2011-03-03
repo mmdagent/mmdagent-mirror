@@ -208,6 +208,19 @@ void Audio_Thread::start()
             continue;
          }
 
+         /* wait till sound starts */
+         do {
+            if(m_playing == false) {
+               sprintf(buf, "stop _%s wait", alias);
+               mciSendStringA(buf, NULL, 0, NULL);
+               break;
+            }
+            Sleep(AUDIOTHREAD_STARTSLEEPMS);
+            /* check sound start */
+            sprintf(buf, "status _%s mode wait", alias);
+            mciSendStringA(buf, ret, sizeof(ret), NULL);
+         } while(MMDAgent_strequal(ret, "playing") == false);
+
          /* send SOUND_EVENT_START */
          sendStartEventMessage(alias);
 
@@ -218,7 +231,7 @@ void Audio_Thread::start()
                mciSendStringA(buf, NULL, 0, NULL);
                break;
             }
-            Sleep(AUDIOTHREAD_SLEEPMS);
+            Sleep(AUDIOTHREAD_ENDSLEEPMS);
             /* check end of sound */
             sprintf(buf, "status _%s mode wait", alias);
             mciSendStringA(buf, ret, sizeof(ret), NULL);

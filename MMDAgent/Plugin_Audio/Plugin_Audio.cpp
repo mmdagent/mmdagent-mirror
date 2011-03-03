@@ -78,6 +78,7 @@
 
 static Audio_Manager audio_manager;
 static bool enable;
+static char *drop_motion;
 
 /* extAppStart: setup and start thread */
 void __stdcall extAppStart(MMDAgent *mmdagent)
@@ -85,6 +86,7 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
    audio_manager.setupAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
 
    enable = true;
+   drop_motion = NULL;
    ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
 }
 
@@ -118,18 +120,33 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
 void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i;
+   FILE *fp;
    char *buf, *p, *q;
+   PMDObject *objs;
+   MotionPlayer *motionPlayer;
 
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
          buf = MMDAgent_strdup(args);
          p = MMDAgent_strtok(buf, "|", &q);
-         if(MMDAgent_strtailmatch(p, ".vmd")) {
-            i = MMDAgent_strlen(p);
-            p[i-4] = '.';
-            p[i-3] = 'm';
-            p[i-2] = 'p';
-            p[i-1] = '3';
+         if(MMDAgent_strtailmatch(p, ".mp3")) {
+            /* if there is a motion file which have the same name, store it */
+            if(drop_motion != NULL)
+               free(drop_motion);
+            drop_motion = MMDAgent_strdup(p);
+            i = MMDAgent_strlen(drop_motion);
+            drop_motion[i-4] = '.';
+            drop_motion[i-3] = 'v';
+            drop_motion[i-2] = 'm';
+            drop_motion[i-1] = 'd';
+            fp = fopen(drop_motion, "rb");
+            if(fp != NULL) {
+               fclose(fp);
+            } else {
+               free(drop_motion);
+               drop_motion = NULL;
+            }
+            /* start mp3 */
             audio_manager.stop(PLUGINAUDIO_DEFAULTALIAS);
             q = (char *) malloc(sizeof(char) * (strlen(PLUGINAUDIO_DEFAULTALIAS) + 1 + strlen(p) + 1));
             sprintf(q, "%s|%s", PLUGINAUDIO_DEFAULTALIAS, p);
@@ -138,13 +155,36 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
          }
          if(buf)
             free(buf);
+      } else if(MMDAgent_strequal(type, AUDIOTHREAD_EVENTSTART)) {
+         if(drop_motion != NULL) {
+            if(MMDAgent_strequal(args, PLUGINAUDIO_DEFAULTALIAS) == true) {
+               objs = mmdagent->getModelList();
+               for (i = 0; i < mmdagent->getNumModel(); i++) {
+                  if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
+                     for (motionPlayer = objs[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+                        if (motionPlayer->active == true && MMDAgent_strequal(motionPlayer->name, "base") == true) {
+                           mmdagent->sendCommandMessage(MMDAGENT_COMMAND_MOTIONCHANGE, "%s|%s|%s", objs[i].getAlias(), "base", drop_motion);
+                           break;
+                        }
+                     }
+                     if (!motionPlayer)
+                        mmdagent->sendCommandMessage(MMDAGENT_COMMAND_MOTIONADD, "%s|%s|%s|FULL|ONCE|ON|ON", objs[i].getAlias(), "base", drop_motion);
+                  }
+               }
+               mmdagent->resetAdjustmentTimer();
+            }
+            free(drop_motion);
+            drop_motion = NULL;
+         }
       }
    }
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+void __stdcall extAppEnd(MMDAgent * mmdagent)
 {
+   if(drop_motion != NULL)
+      free(drop_motion);
    audio_manager.stopAndRelease();
 }
 

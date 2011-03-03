@@ -43,8 +43,9 @@
 
 #define AUDIOTHREAD_MAXBUFLEN 1024
 
-#define AUDIOTHREAD_WAITMS  10000 /* 10 sec */
-#define AUDIOTHREAD_SLEEPMS 200   /* check per 0.2 sec */
+#define AUDIOTHREAD_WAITMS       10000 /* 10 sec */
+#define AUDIOTHREAD_ENDSLEEPMS   200   /* check per 0.2 sec at end */
+#define AUDIOTHREAD_STARTSLEEPMS 20    /* check per 0.02 sec at start*/
 
 #define AUDIOTHREAD_EVENTSTART "SOUND_EVENT_START"
 #define AUDIOTHREAD_EVENTSTOP  "SOUND_EVENT_STOP"
