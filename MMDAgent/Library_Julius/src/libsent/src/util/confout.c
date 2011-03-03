@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Thu Feb 17 15:34:39 2005
  *
- * $Revision: 1.6 $
+ * $Revision: 1.7 $
  * 
  */
 /*
@@ -62,6 +62,9 @@ confout_audio(FILE *strm)
 #endif
 #ifdef HAS_ESD
   fprintf(strm, " esd");
+#endif
+#ifdef HAS_PULSEAUDIO
+  fprintf(strm, " pulseaudio");
 #endif
 #ifdef USE_NETAUDIO
   fprintf(strm, " DATLink/NetAudio");

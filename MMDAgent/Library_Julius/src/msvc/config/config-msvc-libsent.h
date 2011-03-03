@@ -100,5 +100,8 @@
 /* Define if <esd.h> exist  */
 #undef HAVE_ESD_H
 
+/* Define if <pulse/simple.h> exist  */
+#undef HAVE_PULSE_SIMPLE_H
+
 /* Define if MSD-HMM support is enabled */
 #undef ENABLE_MSD

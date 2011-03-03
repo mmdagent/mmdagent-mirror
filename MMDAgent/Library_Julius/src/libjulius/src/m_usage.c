@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Fri May 13 15:04:34 2005
  *
- * $Revision: 1.13 $
+ * $Revision: 1.14 $
  * 
  */
 /*
@@ -76,6 +76,9 @@ j_output_argument_help(FILE *fp)
 # endif
 # ifdef HAS_ESD
   fprintf(fp, "         esd               use ESounD interface\n");
+# endif
+# ifdef HAS_PULSEAUDIO
+  fprintf(fp, "         pulseaudio        use PulseAudio interface\n");
 # endif
 #endif
 #ifdef USE_NETAUDIO

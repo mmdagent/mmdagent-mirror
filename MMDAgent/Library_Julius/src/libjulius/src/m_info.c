@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Thu May 12 14:14:01 2005
  *
- * $Revision: 1.11 $
+ * $Revision: 1.12 $
  * 
  */
 /*
@@ -836,6 +836,7 @@ print_engine_info(Recog *recog)
     case SP_INPUT_ALSA: jlog("alsa\n"); break;
     case SP_INPUT_OSS: jlog("oss\n"); break;
     case SP_INPUT_ESD: jlog("esd\n"); break;
+    case SP_INPUT_PULSEAUDIO: jlog("pulseaudio\n"); break;
     }
   }
   if (jconf->input.type == INPUT_WAVEFORM) {

@@ -19,7 +19,7 @@
  * @author Akinobu LEE
  * @date   Thu Feb 10 17:22:36 2005
  *
- * $Revision: 1.7 $ 
+ * $Revision: 1.8 $ 
  */
 /*
  * Copyright (c) 1991-2007 Kawahara Lab., Kyoto University
@@ -45,6 +45,9 @@
 #ifdef HAVE_ESD_H
 #define HAS_ESD
 #endif
+#ifdef HAVE_PULSE_SIMPLE_H
+#define HAS_PULSEAUDIO
+#endif
 
 /// Speech input type
 enum {
@@ -69,6 +72,7 @@ enum {
   SP_INPUT_ALSA,
   SP_INPUT_OSS,
   SP_INPUT_ESD,
+  SP_INPUT_PULSEAUDIO
 };
 
 /// Default unit size of speech input segment in bytes
@@ -173,6 +177,12 @@ boolean adin_esd_begin(char *pathname);
 boolean adin_esd_end();
 int adin_esd_read(SP16 *buf, int sampnum);
 char *adin_esd_input_name();
+/* adin/adin_pulseaudio.c */
+boolean adin_pulseaudio_standby(int freq, void *arg);
+boolean adin_pulseaudio_begin(char *pathname);
+boolean adin_pulseaudio_end();
+int adin_pulseaudio_read(SP16 *buf, int sampnum);
+char *adin_pulseaudio_input_name();
 /* adin/adin_netaudio.c  and adin/adin_na.c */
 boolean adin_netaudio_standby(int freq, void *arg);
 boolean adin_netaudio_begin(char *pathname);

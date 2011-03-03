@@ -18,7 +18,7 @@
  * @author Akinobu Lee
  * @date   Thu May 12 18:52:07 2005
  *
- * $Revision: 1.22 $
+ * $Revision: 1.23 $
  * 
  */
 /*
@@ -374,7 +374,17 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
 	jconf->input.device = SP_INPUT_ESD;
 	jconf->decodeopt.realtime_flag = TRUE;
 #else
-	jlog("ERROR: m_options: \"-input oss\": OSS support is not built-in\n");
+	jlog("ERROR: m_options: \"-input esd\": ESounD support is not built-in\n");
+	return FALSE;
+#endif
+      } else if (strmatch(tmparg,"pulseaudio")) {
+#ifdef HAS_PULSEAUDIO
+	jconf->input.type = INPUT_WAVEFORM;
+	jconf->input.speech_input = SP_MIC;
+	jconf->input.device = SP_INPUT_PULSEAUDIO;
+	jconf->decodeopt.realtime_flag = TRUE;
+#else
+	jlog("ERROR: m_options: \"-input pulseaudio\": PulseAudio support is not built-in\n");
 	return FALSE;
 #endif
 #endif

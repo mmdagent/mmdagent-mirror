@@ -56,7 +56,7 @@
  * @author Akinobu LEE
  * @date   Mon Feb 14 12:03:48 2005
  *
- * $Revision: 1.16 $
+ * $Revision: 1.17 $
  * 
  */
 /*
@@ -554,25 +554,17 @@ boolean
 adin_mic_end()
 {
   PaError err;
-#ifdef OLDVER
-  PortAudioStream *stream_local;
-#else
-  PaStream *stream_local;
-#endif
 
   if (stream == NULL) return(TRUE);
 
-  stream_local = stream;
-  stream = NULL;
-
   /* stop stream (do not wait callback and buffer flush, stop immediately) */
-  err = Pa_AbortStream(stream_local);
+  err = Pa_AbortStream(stream);
   if (err != paNoError) {
     jlog("Error: adin_portaudio: failed to stop stream: %s\n", Pa_GetErrorText(err));
     return(FALSE);
   }
   /* close stream */
-  err = Pa_CloseStream(stream_local);
+  err = Pa_CloseStream(stream);
   if (err != paNoError) {
     jlog("Error: adin_portaudio: failed to close stream: %s\n", Pa_GetErrorText(err));
     return(FALSE);
@@ -584,6 +576,8 @@ adin_mic_end()
     return(FALSE);
   }
   
+  stream = NULL;
+
   return TRUE;
 }
 

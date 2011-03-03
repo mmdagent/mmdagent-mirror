@@ -12,7 +12,7 @@
  * @author Akinobu LEE
  * @date   Fri Mar 18 16:17:23 2005
  *
- * $Revision: 1.11 $
+ * $Revision: 1.12 $
  * 
  */
 /*
@@ -105,6 +105,15 @@ adin_select(ADIn *a, int source, int dev)
       a->ad_end 	     = adin_esd_end;
       a->ad_read 	     = adin_esd_read;
       a->ad_input_name	     = adin_esd_input_name;
+      break;
+#endif
+#ifdef HAS_PULSEAUDIO
+    case SP_INPUT_PULSEAUDIO:
+      a->ad_standby 	     = adin_pulseaudio_standby;
+      a->ad_begin 	     = adin_pulseaudio_begin;
+      a->ad_end 	     = adin_pulseaudio_end;
+      a->ad_read 	     = adin_pulseaudio_read;
+      a->ad_input_name	     = adin_pulseaudio_input_name;
       break;
 #endif
     default:

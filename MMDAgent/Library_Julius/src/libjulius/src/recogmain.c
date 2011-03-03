@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Wed Aug  8 14:53:53 2007
  *
- * $Revision: 1.14 $
+ * $Revision: 1.16 $
  * 
  */
 
@@ -595,10 +595,6 @@ j_close_stream(Recog *recog)
       recog->adin->end_of_stream = TRUE;
     }
 #endif
-    /* end A/D input */
-    if (adin_end(recog->adin) == FALSE) {
-      return -2;
-    }
   } else {
     switch(jconf->input.speech_input) {
     case SP_MFCMODULE:
@@ -957,6 +953,25 @@ j_recognize_stream_core(Recog *recog)
       /******************************************************************/
       /* speech stream has been processed on-the-fly, and 1st pass ends */
       /******************************************************************/
+      if (ret == 1 || ret == 2) {		/* segmented */
+#ifdef HAVE_PTHREAD
+	if (recog->adin->adinthread_buffer_overflowed) {
+	  jlog("Warning: input buffer overflow, disgard the input\n");
+	  result_error(recog, J_RESULT_STATUS_BUFFER_OVERFLOW);
+	  /* skip 2nd pass */
+	  goto end_recog;
+	}
+#endif
+	/* check for audio overflow */
+	for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
+	  if (mfcc->f >= recog->real.maxframelen) {
+	    jlog("Warning: input buffer overflow, disgard the input\n");
+	    result_error(recog, J_RESULT_STATUS_BUFFER_OVERFLOW);
+	    /* skip 2nd pass */
+	    goto end_recog;
+	  }
+	}
+      }
       /* last procedure of 1st-pass */
       if (RealTimeParam(recog) == FALSE) {
 	jlog("ERROR: fatal error occured, program terminates now\n");

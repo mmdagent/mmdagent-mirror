@@ -35,7 +35,7 @@
  * @author Akinobu LEE
  * @date   Wed Mar 23 20:43:32 2005
  *
- * $Revision: 1.8 $
+ * $Revision: 1.9 $
  * 
  */
 /*
@@ -377,6 +377,7 @@ put_status(Recog *recog)
     case SP_INPUT_ALSA: fprintf(stderr, "alsa\n"); break;
     case SP_INPUT_OSS: fprintf(stderr, "oss\n"); break;
     case SP_INPUT_ESD: fprintf(stderr, "esd\n"); break;
+    case SP_INPUT_PULSEAUDIO: fprintf(stderr, "pulseaudio\n"); break;
     }
   }
 

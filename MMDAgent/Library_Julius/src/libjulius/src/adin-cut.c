@@ -95,7 +95,7 @@
  * @author Akinobu LEE
  * @date   Sat Feb 12 13:20:53 2005
  *
- * $Revision: 1.12 $
+ * $Revision: 1.14 $
  * 
  */
 /*
@@ -299,7 +299,7 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
   int ad_process_ret;
   int imax, len, cnt;
   int wstep;
-  int end_status;	/* return value */
+  int end_status = 0;	/* return value */
   boolean transfer_online_local;	/* local repository of transfer_online */
   int zc;		/* count of zero cross */
 
@@ -363,7 +363,7 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
 	If no data exists in the device (in case of mic input), ad_read()
 	will return 0.  If reached end of stream (in case end of file or
 	receive end ack from tcpip client), it will return -1.
-	If error, returns -2.
+	If error, returns -2. If the device requests segmentation, returns -3.
       */
       if (a->down_sample) {
 	/* get 48kHz samples to temporal buffer */
@@ -875,7 +875,9 @@ break_input:
       /* reset status */
       a->need_init = TRUE;		/* bufer status shoule be reset at next call */
     }
-    end_status = (a->bp) ? 1 : 0;
+    if (end_status >= 0) {
+      end_status = (a->bp) ? 1 : 0;
+    }
   }
   
   return(end_status);
@@ -948,7 +950,9 @@ adin_thread_input_main(void *dummy)
 
   ret = adin_cut(adin_store_buffer, NULL, recog);
 
-  if (ret == -1) {		/* error */
+  if (ret == -2) {		/* termination request by ad_check? */
+    jlog("Error: adin thread exit with termination request by checker\n");
+  } else if (ret == -1) {	/* error */
     jlog("Error: adin thread exit with error\n");
   } else if (ret == 0) {	/* EOF */
     jlog("Stat: adin thread end with EOF\n");
@@ -1084,6 +1088,7 @@ adin_thread_process(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Rec
 #ifdef THREAD_DEBUG
   jlog("DEBUG: process: reset, speechlen = %d, online=%d\n", a->speechlen, a->transfer_online);
 #endif
+  a->adinthread_buffer_overflowed = FALSE;
   pthread_mutex_unlock(&(a->mutex));
 
   /* main processing loop */
@@ -1106,7 +1111,6 @@ adin_thread_process(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Rec
       jlog("WARNING: adin_thread_process: too long input (> %d samples), segmented now\n", MAXSPEECHLEN);
       /* segment input here */
       pthread_mutex_lock(&(a->mutex));
-      a->adinthread_buffer_overflowed = FALSE;
       a->speechlen = 0;
       a->transfer_online = transfer_online_local = FALSE;
       pthread_mutex_unlock(&(a->mutex));

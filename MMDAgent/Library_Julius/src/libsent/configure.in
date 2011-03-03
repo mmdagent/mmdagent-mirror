@@ -3,7 +3,7 @@ dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technolo
 dnl Copyright (c) 2005-2007 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.24 2011/02/05 09:00:01 sumomo Exp $
+dnl  $Id: configure.in,v 1.25 2011/02/24 10:07:03 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -16,7 +16,7 @@ LIBSENT_VERSION=4.1.5
 dnl Checks for options
 # specify mic type
 AC_ARG_WITH(mictype,
-[  --with-mictype=TYPE     specify mic I/O (oss|alsa|freebsd|coreaudio|sol2|sun4|irix|esd|sp|portaudio|pa-oss|pa-alsa|pa-winmm|pa-dsound)],,with_mictype=auto)
+[  --with-mictype=TYPE     specify mic I/O (oss|alsa|freebsd|coreaudio|sol2|sun4|irix|esd|sp|portaudio|pa-oss|pa-alsa|pa-winmm|pa-dsound|pulseaudio)],,with_mictype=auto)
 
 # NetAudio support
 AC_ARG_WITH(netaudio-dir,
@@ -176,6 +176,7 @@ case "$host_os" in
 # avoid ALSA/OSS detection for Windows environment
     has_alsa=no
     has_oss=no
+    has_pulseaudio=no
     ;;
   *)
 # ALSA
@@ -192,9 +193,14 @@ case "$host_os" in
     ))
     ;;
 esac
+
 # ESounD
 has_esd=yes
 AC_CHECK_HEADERS(esd.h,,has_esd=no)
+
+# PulseAudio
+has_pulseaudio=no
+AC_CHECK_LIB(pulse-simple,pa_simple_new,AC_CHECK_HEADERS(pulse/simple.h, has_pulseaudio=yes))
 
 dnl Checks for default audio input API (order is important)
 if test "$with_mictype" = auto; then
@@ -207,18 +213,22 @@ if test "$with_mictype" = auto; then
 	   altype=alsa
 	elif test "$has_oss" = yes; then
 	   altype=oss
+	elif test "$has_pulseaudio" = yes; then
+	   altype=pulseaudio
 	elif test "$has_esd" = yes; then
 	   altype=esd
 	else
-	   AC_MSG_ERROR([no audio io avaiable!])
+	   AC_MSG_ERROR([none of alsa/oss/pulseaudio/esd header/lib found!])
 	fi
 	;;
   freebsd*)
 	# FreeBSD (snd driver)
 	if test "$has_oss" = yes; then
 	    altype=freebsd
+	elif test "$has_pulseaudio" = yes; then
+	    altype=pulseaudio
 	else
-	    AC_MSG_ERROR([no soundcard.h found])
+	    AC_MSG_ERROR([no soundcard.h or pulseaudio header/lib found!])
 	fi
 	;;
   darwin*)
@@ -242,9 +252,9 @@ if test "$with_mictype" = auto; then
 #	AC_TRY_CPP([#include <mme/mme_api.h>],altype=osf1)
 #	;;
   cygwin*|mingw*)
-      # minGW - portaudio (auto select winmm / dsound)
-      altype=portaudio
-      ;;
+	# minGW - portaudio (auto select winmm / dsound)
+	altype=portaudio
+	;;
   esac
   AC_MSG_RESULT($altype)
 else
@@ -286,6 +296,11 @@ esac
 # set appropritate parameters for the determined API
 SOUNDLIB=""
 ADINOBJ=""
+# if PulseAudio exist, include it
+if test "$has_pulseaudio" = yes; then
+    SOUNDLIB="$SOUNDLIB -lpulse-simple -lpulse"
+    ADINOBJ="$ADINOBJ src/adin/adin_pulseaudio.o"
+fi
 # if esd exist, include it
 if test "$has_esd" = yes; then
     SOUNDLIB="$SOUNDLIB -lesd"
@@ -408,7 +423,14 @@ case $altype in
       AC_DEFINE(USE_MIC)
       ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
       ;;
-
+    pulseaudio)
+      if test "$has_pulseaudio" = no; then
+        AC_MSG_ERROR([no PulseAudio header!])
+      fi
+      aldesc="PulseAudio"
+      AC_DEFINE(USE_MIC)
+      ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
+      ;;
     freebsd)
 	if test "$has_oss" = no; then
 	  AC_MSG_ERROR([neither sys/soundcard.h nor machine/soundcard.h exist])
