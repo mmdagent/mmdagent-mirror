@@ -66,6 +66,7 @@
 
 #include "MMDAgent.h"
 #include "VIManager.h"
+#include "VIManager_Logger.h"
 #include "VIManager_Thread.h"
 
 /* definitions */
@@ -76,6 +77,7 @@
 
 static VIManager_Thread vimanager_thread;
 static bool enable;
+static bool enable_log;
 
 /* extAppStart: load FST and start thread */
 void __stdcall extAppStart(MMDAgent *mmdagent)
@@ -92,12 +94,13 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
       buf[len-3] = 'f';
       buf[len-2] = 's';
       buf[len-1] = 't';
-      vimanager_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_COMMAND, buf);
+      vimanager_thread.loadAndStart(mmdagent, buf);
    }
    if(buf)
       free(buf);
 
    enable = true;
+   enable_log = false;
    ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
 }
 
@@ -130,7 +133,22 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
             vimanager_thread.enqueueBuffer(type, args); /* enqueue */
          }
       }
+      if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
+         if(MMDAgent_strequal(args, "F")) {
+            if(enable_log == true)
+               enable_log = false;
+            else
+               enable_log = true;
+         }
+      }
    }
+}
+
+/* extRender: render log */
+void __stdcall extRender(MMDAgent *mmdagent)
+{
+   if(enable == true && enable_log == true)
+      vimanager_thread.renderLog();
 }
 
 /* extAppEnd: stop and free thread */

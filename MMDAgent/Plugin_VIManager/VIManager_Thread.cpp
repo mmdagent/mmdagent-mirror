@@ -41,11 +41,11 @@
 
 /* headers */
 
-#include <windows.h>
 #include <process.h>
 
 #include "MMDAgent.h"
 #include "VIManager.h"
+#include "VIManager_Logger.h"
 #include "VIManager_Thread.h"
 
 /* VIManager_Event_initialize: initialize input message buffer */
@@ -144,8 +144,7 @@ static unsigned __stdcall main_thread(void *param)
 /* VIManager_Thread::initialize: initialize thread */
 void VIManager_Thread::initialize()
 {
-   m_window = NULL;
-   m_command = NULL;
+   m_mmdagent = NULL;
 
    m_stop = false;
 
@@ -193,14 +192,19 @@ VIManager_Thread::~VIManager_Thread()
 }
 
 /* VIManager_Thread::loadAndStart: load FST and start thread */
-void VIManager_Thread::loadAndStart(HWND window, UINT command, const char *file)
+void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
 {
+   if(mmdagent == NULL)
+      return;
+
    /* load FST for VIManager */
    if (m_vim.load(file) == 0)
       return;
 
-   m_window = window;
-   m_command = command;
+   /* setup logger */
+   m_logger.setup(mmdagent);
+
+   m_mmdagent = mmdagent;
 
    /* create mutex */
    m_queueMutex = CreateMutex(NULL, false, NULL);
@@ -263,9 +267,9 @@ void VIManager_Thread::stateTransition()
    int remain = 1;
 
    /* first epsilon step */
-   while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
+   while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
       if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-         sendMessage(otype, oargs);
+         m_mmdagent->sendCommandMessage(otype, oargs);
    }
 
    while(m_stop == false) {
@@ -288,32 +292,21 @@ void VIManager_Thread::stateTransition()
             break;
 
          /* state transition with input symbol */
-         m_vim.transition(itype, iargs, otype, oargs);
+         m_logger.setTransition(m_vim.transition(itype, iargs, otype, oargs));
          if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-            sendMessage(otype, oargs);
+            m_mmdagent->sendCommandMessage(otype, oargs);
 
          /* state transition with epsilon */
-         while (m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) {
+         while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
             if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-               sendMessage(otype, oargs);
+               m_mmdagent->sendCommandMessage(otype, oargs);
          }
       } while (remain);
    }
 }
 
-/* VIManager_Thread::sendMessage: send message to MMDAgent */
-void VIManager_Thread::sendMessage(const char *str1, const char *str2)
+/* VIManager_Thread::renderLog: render log message */
+void VIManager_Thread::renderLog()
 {
-   char *mes1, *mes2;
-
-   if(str1 == NULL)
-      return;
-
-   mes1 = MMDAgent_strdup(str1);
-   if(str2 != NULL)
-      mes2 = MMDAgent_strdup(str2);
-   else
-      mes2 = MMDAgent_strdup("");
-
-   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
+   m_logger.render(m_vim.getCurrentState());
 }

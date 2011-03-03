@@ -39,68 +39,58 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VIMANAGERTHREAD_WAITMS 10000 /* 10 sec */
+/* definitions */
 
-/* VIManager_Event: input message buffer */
-typedef struct _VIManager_Event {
-   char *type;
-   char *args;
-   struct _VIManager_Event *next;
-} VIManager_Event;
+#define VIMANAGERLOGGER_LINESTEP   0.85f
+#define VIMANAGERLOGGER_TEXTHEIGHT 15
+#define VIMANAGERLOGGER_SCALE      0.9f
 
-/* VIManager_EventQueue: queue of VIManager_Event */
-typedef struct _VIManager_EventQueue {
-   VIManager_Event *head;
-   VIManager_Event *tail;
-} VIManager_EventQueue;
+#define VIMANAGERLOGGER_POSITION1  20.f,17.0f,-16.5f
+#define VIMANAGERLOGGER_ROTATE1    -30.0f,0.0f,1.0f,0.0f
+#define VIMANAGERLOGGER_WIDTH1     45.0f
+#define VIMANAGERLOGGER_HEIGHT1    ((VIMANAGERLOGGER_TEXTHEIGHT + 1) * VIMANAGERLOGGER_LINESTEP)
+#define VIMANAGERLOGGER_BGCOLOR1   0.0f,0.0f,0.0f,0.8f
+#define VIMANAGERLOGGER_TEXTCOLOR1 0.5f,0.8f,0.0f,1.0f
 
-/* VIManager_Thread: thread of VIManager */
-class VIManager_Thread
+#define VIMANAGERLOGGER_POSITION2  20.f,3.0f,-16.5f
+#define VIMANAGERLOGGER_ROTATE2    -30.0f,0.0f,1.0f,0.0f
+#define VIMANAGERLOGGER_WIDTH2     45.0f
+#define VIMANAGERLOGGER_HEIGHT2    ((VIMANAGERLOGGER_TEXTHEIGHT + 1) * VIMANAGERLOGGER_LINESTEP)
+#define VIMANAGERLOGGER_BGCOLOR2   0.0f,0.0f,0.0f,0.8f
+#define VIMANAGERLOGGER_TEXTCOLOR2 0.2f,0.7f,0.5f,1.0f
+
+/* VIManager_Logger: Debug output VIManager status in OpenGL */
+class VIManager_Logger
 {
 private:
 
-   VIManager m_vim;           /* voice interaction manager */
-   VIManager_Logger m_logger; /* logger */
-
    MMDAgent *m_mmdagent;
 
-   bool m_stop;
+   VIManager_Arc *m_history[VIMANAGERLOGGER_TEXTHEIGHT+1];
 
-   HANDLE m_threadHandle; /* thread handle */
-   HANDLE m_queueMutex;   /* mutex for queue */
-   HANDLE m_transEvent;   /* event for transition */
+   /* drawArc: draw arc string */
+   void drawArc(unsigned int from, VIManager_Arc *arc);
 
-   VIManager_EventQueue eventQueue; /* queue of input message */
-
-   /* initialize: initialize thread */
+   /* initialize: initialize logger */
    void initialize();
 
-   /* clear: free thread */
+   /* clear: free logger */
    void clear();
 
 public:
 
-   /* VIManager_Thraed: thread constructor */
-   VIManager_Thread();
+   /* VIManager_Logger: constructor */
+   VIManager_Logger();
 
-   /* ~VIManager_Thread: thread destructor */
-   ~VIManager_Thread();
+   /* ~VIManager_Logger: destructor */
+   ~VIManager_Logger();
 
-   /* loadAndStart: load FST and start thread */
-   void loadAndStart(MMDAgent *mmdagent, const char *file);
+   /* setup: setup logger */
+   void setup(MMDAgent *mmdagent);
 
-   /* isRunning: check running */
-   bool isRunning();
+   /* setTransition: store state transition */
+   bool setTransition(VIManager_Arc *arc);
 
-   /* stopAndRelease: stop thread and release */
-   void stopAndRelease();
-
-   /* enqueueBuffer: enqueue buffer to check */
-   void enqueueBuffer(const char *type, const char *args);
-
-   /* stateTransition: thread loop for VIManager */
-   void stateTransition();
-
-   /* renderLog: render log message */
-   void renderLog();
+   /* render: render log */
+   void render(VIManager_State *currentState);
 };

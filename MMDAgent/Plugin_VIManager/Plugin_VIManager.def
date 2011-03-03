@@ -3,4 +3,5 @@ EXPORTS
 	extAppStart
 	extProcCommand
 	extProcEvent
+	extRender
 	extAppEnd

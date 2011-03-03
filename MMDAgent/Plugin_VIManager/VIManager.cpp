@@ -41,10 +41,6 @@
 
 /* headers */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "MMDAgent.h"
 #include "VIManager.h"
 
@@ -141,10 +137,7 @@ static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, c
 {
    int i;
 
-   if (input_event_type == NULL)
-      a->input_event_type = NULL;
-   else
-      a->input_event_type = MMDAgent_strdup(input_event_type);
+   a->input_event_type = MMDAgent_strdup(input_event_type);
    if (input_event_argc <= 0) {
       a->input_event_args = NULL;
       a->input_event_argc = 0;
@@ -154,14 +147,8 @@ static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, c
          a->input_event_args[i] = MMDAgent_strdup(input_event_args[i]);
       a->input_event_argc = input_event_argc;
    }
-   if (output_command_type == NULL)
-      a->output_command_type = NULL;
-   else
-      a->output_command_type = MMDAgent_strdup(output_command_type);
-   if (output_command_args == NULL)
-      a->output_command_args = NULL;
-   else
-      a->output_command_args = MMDAgent_strdup(output_command_args);
+   a->output_command_type = MMDAgent_strdup(output_command_type);
+   a->output_command_args = MMDAgent_strdup(output_command_args);
    a->next_state = next_state;
    a->next = NULL;
 }
@@ -339,7 +326,7 @@ void VIManager::initialize()
 void VIManager::clear()
 {
    VIManager_SList_clear(&m_stateList);
-   m_currentState = NULL;
+   initialize();
 }
 
 /* VIManager::VIManager: constructor */
@@ -419,8 +406,8 @@ int VIManager::load(const char *file)
    return 1;
 }
 
-/* VIManager::transition: state transition (if jumped, return 1) */
-int VIManager::transition(const char *itype, const char *iargs, char *otype, char *oargs)
+/* VIManager::transition: state transition (if jumped, return arc) */
+VIManager_Arc *VIManager::transition(const char *itype, const char *iargs, char *otype, char *oargs)
 {
    int i, j;
    int jumped = 0;
@@ -436,12 +423,12 @@ int VIManager::transition(const char *itype, const char *iargs, char *otype, cha
 
    /* FST isn't loaded yet */
    if (m_currentState == NULL)
-      return jumped;
+      return NULL;
 
    /* state don't have arc list */
    arc_list = &m_currentState->arc_list;
    if (arc_list->head == NULL)
-      return jumped;
+      return NULL;
 
    /* get input event args */
    get_args(iargs, &args, &argc);
@@ -487,5 +474,11 @@ int VIManager::transition(const char *itype, const char *iargs, char *otype, cha
       free(args);
    }
 
-   return jumped;
+   return arc;
+}
+
+/* VIManager::getCurrentState: get current state */
+VIManager_State *VIManager::getCurrentState()
+{
+   return m_currentState;
 }

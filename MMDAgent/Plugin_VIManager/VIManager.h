@@ -81,7 +81,7 @@ class VIManager
 private:
 
    VIManager_SList m_stateList;     /* state list */
-   VIManager_State *m_currentState; /* pointer of current state */
+   VIManager_State *m_currentState; /* pointer to current state */
 
    /* initialize: initialize VIManager */
    void initialize();
@@ -100,6 +100,9 @@ public:
    /* load: load FST */
    int load(const char *file);
 
-   /* transition: state transition (if jumped, return 1) */
-   int transition(const char *itype, const char* iargs, char *otype, char *oargs);
+   /* transition: state transition (if jumped, return arc) */
+   VIManager_Arc *transition(const char *itype, const char* iargs, char *otype, char *oargs);
+
+   /* getCurrentState: get current state */
+   VIManager_State *getCurrentState();
 };
