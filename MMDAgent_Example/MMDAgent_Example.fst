@@ -40,175 +40,190 @@
 # See http://creativecommons.org/ for details.                      #
 # ----------------------------------------------------------------- #
 
-# 凡例
-# ・"_EVENT_" が付かないものは、コマンド。FSTの第4フィールドで指定する。
-# ・"_EVENT_" が付くものは、イベント通知。FSTの第3フィールドで指定する。
+# 1st field: state before transition
+# 2st field: state after transition
+# 3rd field: event (input message)
+# 4th field: command (output message)
 #
-# モデル
-# MODEL_ADD|モデルエイリアス|モデルファイル|相対座標|相対回転|基準モデルエイリアス|bone
-# MODEL_CHANGE|モデルエイリアス|モデルファイル
-# MODEL_DELETE|モデルエイリアス
-# MODEL_EVENT_ADD|モデルエイリアス
-# MODEL_EVENT_CHANGE|モデルエイリアス
-# MODEL_EVENT_DELETE|モデルエイリアス
+# Model
+# MODEL_ADD|(model alias)|(model file name)|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(parrent model alias)|(parrent bone name)
+# MODEL_CHANGE|(model alias)|(model file name)
+# MODEL_DELETE|(model alias)
+# MODEL_EVENT_ADD|(model alias)
+# MODEL_EVENT_CHANGE|(model alias)
+# MODEL_EVENT_DELETE|(model alias)
 #
-# ・「基準モデルエイリアス」「bone」は、指定モデルの指定ボーンに対してそのモデルを割り付け表示（相対表示）する。アクセサリ等に利用できる。
-# ・「相対座標」「相対回転」は、基準モデルエイリアスおよびboneを指定した場合はそのボーンからの相対指定、
-# 　指定無しの場合はワールド座標の原点に対する絶対指定となる。
-# ・MODEL_ADDは「相対座標」以降を省略可能。省略した場合、相対座標(0,0,0)、相対回転無し、基準モデルエイリアス無しになる。
+# Motion
+# MOTION_ADD|(model alias)|(motion alias)|(motion file name)|(FULL or PART)|(ONCE or LOOP)|(ON or OFF for Smooth)|(ON or OFF for RePos)
+# MOTION_CHANGE|(model alias)|(motion alias)|(motion file name)
+# MOTION_DELETE|(mpdel alias)|(model alias)
+# MOTION_EVENT_ADD|(model alias)|(motion alias)
+# MOTION_EVENT_CHANGE|(model alias)|(model alias)
+# MOTION_EVENT_DELETE|(model alias)|(motion alias)
 #
-# モーション
-# MOTION_ADD|モデルエイリアス|モーションエイリアス|モーションファイル|FULL or PART|ONCE or LOOP|ON or OFF|ON or OFF
-# MOTION_CHANGE|モデルエイリアス|モーションエイリアス|モーションファイル
-# MOTION_DELETE|モデルエイリアス|モーションエイリアス
-# MOTION_EVENT_ADD|モデルエイリアス|モーションエイリアス
-# MOTION_EVENT_CHANGE|モデルエイリアス|モーションエイリアス
-# MOTION_EVENT_DELETE|モデルエイリアス|モーションエイリアス
+# Move and Rotate
+# MOVE_START|(model alias)|(x position),(y position),(z position)|(GLOBAL or LOCAL position)|(move speed)
+# MOVE_STOP|(model alias)
+# MOVE_EVENT_START|(model alias)
+# MOVE_EVENT_STOP|(model alias)
+# TURN_START|(model alias)|(x position),(y position),(z position)|(GLOBAL or LOCAL position)|(rotation speed)
+# TURN_STOP|(model alias)
+# TURN_EVENT_START|(model alias)
+# TURN_EVENT_STOP|(model alias)
+# ROTATE_START|(model alias)|(x rotation),(y rotataion),(z rotation)|(GLOBAL or LOCAL rotation)|(rotation speed)
+# ROTATE_STOP|(model alias)
+# ROTATE_EVENT_START|(model alias)
+# ROTATE_EVENT_STOP|(model alias)
 #
-# ・モーションは任意タイミングで重ね合わせできる。重ねられたモーションは平行処理され、後に追加されたものが優先される。
-# ・「FULL」を「PART」にすると、キーフレームが指定されているボーンのみ、そのモーションで制御する。
-# 　モーションで0フレーム目（初期姿勢）しか指定されていないボーンは無視され、他のモーションが透過する。
-# 　これを使って、例えば、全体のモーションを保ったまま腕だけを別のモーションで制御する、といったことができる。
-# ・「ONCE」は1回きりで、終端に達すると自動的に DELETE される。「LOOP」にすると無限ループする。
-# ・一つ目の「ON or OFF」は、モーション開始時・終了時にスムージング（ブレンディング）するかの切替。デフォルトは ON
-# ・二つ目の「ON or OFF」は、スムージング時にモデルの親座標を入れ替えるかどうかの切替。デフォルトは ON
-# ・MOTION_ADDでは「FULL or PART」以降の引数を省略可能。省略した場合、"FULL|ONCE|ON|ON" となる。
+# Sound
+# SOUND_START|(sound alias)|(sound file name)
+# SOUND_STOP|(sound alias)
+# SOUND_EVENT_START|(sound alias)
+# SOUND_EVENT_STOP|(sound alias)
 #
-# 移動・回転
-# MOVE_START|モデルエイリアス|x座標,y座標,z座標|GLOBAL or LOCAL|移動速度
-# MOVE_STOP|モデルエイリアス
-# MOVE_EVENT_START|モデルエイリアス
-# MOVE_EVENT_STOP|モデルエイリアス
-# TURN_START|モデルエイリアス|x座標,y座標,z座標|GLOBAL or LOCAL|回転速度
-# TURN_STOP|モデルエイリアス
-# TURN_EVENT_START|モデルエイリアス
-# TURN_EVENT_STOP|モデルエイリアス
-# ROTATE_START|モデルエイリアス|x軸回転角,y軸回転角,z軸回転角|GLOBAL or LOCAL|回転速度
-# ROTATE_STOP|モデルエイリアス
-# ROTATE_EVENT_START|モデルエイリアス
-# ROTATE_EVENT_STOP|モデルエイリアス
+# Stage
+# STAGE|(stage file name)
+# STAGE|(bitmap file name for floor),(bitmap file name for background)
 #
-# 音楽・画像
-# SOUND_START|サウンドエイリアス|音楽ファイル
-# SOUND_STOP|サウンドエイリアス
-# SOUND_EVENT_START|サウンドエイリアス
-# SOUND_EVENT_STOP|サウンドエイリアス
-# STAGE|ステージファイル
-# STAGE|床画像ファイル,背景画像ファイル
+# light
+# LIGHTCOLOR|(Red),(Green),(Blue)
+# LIGHTDIRECTION|(x position),(y position),(z position)
+# 
+# Camera
+# CAMERA|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(zoom)
 #
-# カメラ・照明
-# LIGHTCOLOR|R,G,B
-# LIGHTDIRECTION|x座標,y座標,z座標
-#
-# 音声認識
+# Speech recognition
 # RECOG_EVENT_START
-# RECOG_EVENT_STOP|単語列
+# RECOG_EVENT_STOP|(word sequence)
 #
-# 音声合成
-# SYNTH_START|モデルエイリアス|ボイス|テキスト
-# SYNTH_STOP|モデルエイリアス
-# SYNTH_EVENT_START|モデルエイリアス
-# SYNTH_EVENT_STOP|モデルエイリアス
-# LIPSYNC_START|モデルエイリアス|時間情報付き音素列
-# LIPSYNC_STOP|モデルエイリアス
-# LIPSYNC_EVENT_START|モデルエイリアス
-# LIPSYNC_EVENT_STOP|モデルエイリアス
+# Speech synthesis
+# SYNTH_START|(model alias)|(voice alias)|(synthesized text)
+# SYNTH_STOP|(model alias)
+# SYNTH_EVENT_START|(model alias)
+# SYNTH_EVENT_STOP|(model alias)
+# LIPSYNC_START|(model alias)|(phoneme and milli second pair sequence)
+# LIPSYNC_STOP|(model alias)
+# LIPSYNC_EVENT_START|(model alias)
+# LIPSYNC_EVENT_STOP|(model alias)
 #
-# 変数
-# VALUE_SET|変数エイリアス|値
-# VALUE_SET|変数エイリアス|min|max
-# VALUE_UNSET|変数エイリアス
-# VALUE_EVAL|変数エイリアス|EQ or NE or LE or LT or GE or GT|値
-# VALUE_EVENT_SET|変数エイリアス|値
-# VALUE_EVENT_UNSET|変数エイリアス
-# VALUE_EVENT_EVAL|変数エイリアス|EQ or NE or LE or LT or GE or GT|値|TRUE or FALSE
-# TIMER_START|カウントダウンエイリアス|値
-# TIMER_STOP|カウントダウンエイリアス
-# TIMER_EVENT_START|カウントダウンエイリアス
-# TIMER_EVENT_STOP|カウントダウンエイリアス
+# Variable
+# VALUE_SET|(variable alias)|(value)
+# VALUE_SET|(variable alias)|(minimum value for random)|(maximum value for random)
+# VALUE_UNSET|(variable alias)
+# VALUE_EVAL|(variable alias)|EQ or NE or LE or LT or GE or GT|(value)
+# VALUE_EVENT_SET|(variable alias)|(value)
+# VALUE_EVENT_UNSET|(variable alias)
+# VALUE_EVENT_EVAL|(variable alias)|(EQ or NE or LE or LT or GE or GT for evaluation)|(value)|(TRUE or FALSE)
+# TIMER_START|(count down alias)|(value)
+# TIMER_STOP|(count down alias)
+# TIMER_EVENT_START|(count down alias)
+# TIMER_EVENT_STOP|(count down alias)
 #
-# プラグイン
-# PLUGIN_ENABLE|プラグイン
-# PLUGIN_DISABLE|プラグイン
-# PLUGIN_EVENT_ENABLE|プラグイン
-# PLUGIN_EVENT_DISABLE|プラグイン
+# Plugin
+# PLUGIN_ENABLE|(plugin name)
+# PLUGIN_DISABLE|(plugin name)
+# PLUGIN_EVENT_ENABLE|(plugin name)
+# PLUGIN_EVENT_DISABLE|(plugin name)
 #
-# その他
-# DRAGANDDROP|ファイル
-# KEY|キー
+# Other events
+# DRAGANDDROP|(file name)
+# KEY|(key name)
+#
+# Other commands
+# EXECUTE|(file name)
+# KEY_POST|(window class name)|(key name)|(ON or OFF for Shift-key)|(ON or OFF for Ctrl-key)|(On or OFF for Alt-key)
 
 # 0011-0020 Initialization
 
-0   11  <eps> MODEL_ADD|メイ|Model\mei\mei.pmd|0.0,0.0,-14.0
-11  12  <eps> MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
-12  13  <eps> MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
-13  14  <eps> STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
-14  2   <eps> MOTION_ADD|メイ|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
+0    11   <eps>                               MODEL_ADD|mei|Model\mei\mei.pmd|0.0,0.0,-14.0
+11   12   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|mei
+12   13   <eps>                               MOTION_ADD|menu|rotate|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+13   14   <eps>                               STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
+14   2    <eps>                               MOTION_ADD|mei|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
 
 # 0021-0030 Idle behavior
 
-2   21  <eps>                  TIMER_START|idle1|20
-21  22  <eps>                  TIMER_START|idle2|40
-22  1   <eps>                  TIMER_START|idle3|60
-1   1   RECOG_EVENT_START      MOTION_ADD|メイ|反応|Expression\mei_listen\mei_listen.vmd|PART|ONCE
-1   1   TIMER_EVENT_STOP|idle1 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_boredom.vmd|PART|ONCE
-1   1   TIMER_EVENT_STOP|idle2 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_touch_clothes.vmd|PART|ONCE
-1   2   TIMER_EVENT_STOP|idle3 MOTION_ADD|メイ|仕草|Motion\mei_idle\mei_idle_think.vmd|PART|ONCE
+2    21   <eps>                               TIMER_START|idle1|20
+21   22   TIMER_EVENT_START|idle1             TIMER_START|idle2|40
+22   23   TIMER_EVENT_START|idle2             TIMER_START|idle3|60
+23   1    TIMER_EVENT_START|idle3             VALUE_SET|random|0|100
+1    1    RECOG_EVENT_START                   MOTION_ADD|mei|listen|Expression\mei_listen\mei_listen.vmd|PART|ONCE
+1    1    TIMER_EVENT_STOP|idle1              MOTION_ADD|mei|idle|Motion\mei_idle\mei_idle_boredom.vmd|PART|ONCE
+1    1    TIMER_EVENT_STOP|idle2              MOTION_ADD|mei|idle|Motion\mei_idle\mei_idle_touch_clothes.vmd|PART|ONCE
+1    2    TIMER_EVENT_STOP|idle3              MOTION_ADD|mei|idle|Motion\mei_idle\mei_idle_think.vmd|PART|ONCE
 
-# 0031-0040 Hello (key 1)
+# 0031-0040 Hello
 
-1   31  RECOG_EVENT_STOP|こんにちは SYNTH_START|メイ|メイ（普）|こんにちは。
-1   31  RECOG_EVENT_STOP|こんにちわ SYNTH_START|メイ|メイ（普）|こんにちは。
-1   31  KEY|1                       SYNTH_START|メイ|メイ（普）|こんにちは。
-31  32  <eps>                       MOTION_ADD|メイ|挨拶|Motion\mei_greeting\mei_greeting.vmd|PART|ONCE
-32  2   SYNTH_EVENT_STOP|メイ       <eps>
+1    31   RECOG_EVENT_STOP|こんにちは         SYNTH_START|mei|mei_voice_normal|こんにちは。
+1    31   RECOG_EVENT_STOP|こんにちわ         SYNTH_START|mei|mei_voice_normal|こんにちは。
+31   32   <eps>                               MOTION_ADD|mei|action|Motion\mei_greeting\mei_greeting.vmd|PART|ONCE
+32   2    SYNTH_EVENT_STOP|mei                <eps>
 
-# 0041-0050 Self introduction (key 2)
+# 0041-0050 Self introduction
 
-1   41  RECOG_EVENT_STOP|自己紹介  SYNTH_START|メイ|メイ（普）|メイと言います。
-1   41  RECOG_EVENT_STOP|あなた,誰 SYNTH_START|メイ|メイ（普）|メイと言います。
-1   41  RECOG_EVENT_STOP|君,誰     SYNTH_START|メイ|メイ（普）|メイと言います。
-1   41  KEY|2                      SYNTH_START|メイ|メイ（普）|メイと言います。
-41  42  <eps>                      MOTION_ADD|メイ|挨拶|Motion\mei_self_introduction\mei_self_introduction.vmd|PART|ONCE
-42  43  SYNTH_EVENT_STOP|メイ      SYNTH_START|メイ|メイ（普）|よろしくお願いします。
-43  2   SYNTH_EVENT_STOP|メイ      <eps>
+1    41   RECOG_EVENT_STOP|自己紹介           SYNTH_START|mei|mei_voice_normal|メイと言います。
+1    41   RECOG_EVENT_STOP|あなた,誰          SYNTH_START|mei|mei_voice_normal|メイと言います。
+1    41   RECOG_EVENT_STOP|君,誰              SYNTH_START|mei|mei_voice_normal|メイと言います。
+41   42   <eps>                               MOTION_ADD|mei|action|Motion\mei_self_introduction\mei_self_introduction.vmd|PART|ONCE
+42   43   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_normal|よろしくお願いします。
+43   2    SYNTH_EVENT_STOP|mei                <eps>
 
-# 0051-0060 Thank you (key 3)
+# 0051-0060 Thank you
 
-1   51  RECOG_EVENT_STOP|ありがと   SYNTH_START|メイ|メイ（普）|どういたしまして。
-1   51  RECOG_EVENT_STOP|ありがとう SYNTH_START|メイ|メイ（普）|どういたしまして。
-1   51  RECOG_EVENT_STOP|有難う     SYNTH_START|メイ|メイ（普）|どういたしまして。
-1   51  RECOG_EVENT_STOP|有り難う   SYNTH_START|メイ|メイ（普）|どういたしまして。
-1   51  KEY|3                       SYNTH_START|メイ|メイ（普）|どういたしまして。
-51  52  <eps>                       MOTION_ADD|メイ|表情|Expression\mei_happiness\mei_happiness.vmd|PART|ONCE
-52  53  SYNTH_EVENT_STOP|メイ       SYNTH_START|メイ|メイ（喜）|いつでも、話しかけてくださいね。
-53  54  <eps>                       MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
-54  2   SYNTH_EVENT_STOP|メイ       MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
+1    51   RECOG_EVENT_STOP|ありがと           SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|ありがとう         SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|有難う             SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|有り難う           SYNTH_START|mei|mei_voice_normal|どういたしまして。
+51   52   <eps>                               MOTION_ADD|mei|expression|Expression\mei_happiness\mei_happiness.vmd|PART|ONCE
+52   53   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_happy|いつでも、話しかけてくださいね。
+53   54   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_happy.vmd
+54   2    SYNTH_EVENT_STOP|mei                MOTION_CHANGE|mei|base|Motion\mei_wait\mei_wait.vmd
 
-# 0061-0070 Positive comments (key 4)
+# 0061-0070 Positive comments
 
-1   61  RECOG_EVENT_STOP|可愛い   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-1   61  RECOG_EVENT_STOP|かわいい SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-1   61  RECOG_EVENT_STOP|綺麗     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-1   61  RECOG_EVENT_STOP|きれい   SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-1   61  KEY|4                     SYNTH_START|メイ|メイ（照）|恥ずかしいです。
-61  62  <eps>                     MOTION_ADD|メイ|表情|Expression\mei_bashfulness\mei_bashfulness.vmd|PART|ONCE
-62  2   SYNTH_EVENT_STOP|メイ     <eps>
+1    70   RECOG_EVENT_STOP|可愛い             VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|かわいい           VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|綺麗               VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|きれい             VALUE_EVAL|random|LE|80
+61   62   VALUE_EVENT_EVAL|random|LE|80|TRUE  SYNTH_START|mei|mei_voice_bashful|恥ずかしいです。
+61   62   VALUE_EVENT_EVAL|random|LE|80|FALSE SYNTH_START|mei|mei_voice_bashful|ありがとう。
+62   63   <eps>                               MOTION_ADD|mei|expression|Expression\mei_bashfulness\mei_bashfulness.vmd|PART|ONCE
+63   2    SYNTH_EVENT_STOP|mei                <eps>
 
-# 0071-0090 Guide (key 5)
+# 0071-0090 Guide
 
-1   71  RECOG_EVENT_STOP|図書館 MODEL_DELETE|メニュー
-1   71  KEY|5                   MODEL_DELETE|メニュー
-71  72  <eps>                   MODEL_ADD|パネル|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|メイ
-72  73  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
-73  74  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_normal.vmd
-74  75  <eps>                   SYNTH_START|メイ|メイ（普）|図書館は、正面から見ると、右前の方向にあります。
-75  76  SYNTH_EVENT_STOP|メイ   MOTION_ADD|メイ|視線|Motion\mei_look\mei_look_down.vmd|PART|ONCE
-76  77  <eps>                   SYNTH_START|メイ|メイ（普）|キャンパスマップでは、こちらになります。
-77  78  <eps>                   MOTION_ADD|メイ|案内|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
-78  79  SYNTH_EVENT_STOP|メイ   MOTION_CHANGE|メイ|base|Motion\mei_guide\mei_guide_happy.vmd
-79  80  <eps>                   SYNTH_START|メイ|メイ（普）|お解りになりますか？
-80  81  SYNTH_EVENT_STOP|メイ   MODEL_DELETE|パネル
-81  82  <eps>                   MODEL_ADD|メニュー|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|メイ
-82  83  <eps>                   MOTION_CHANGE|メイ|base|Motion\mei_wait\mei_wait.vmd
-83  2   <eps>                   MOTION_ADD|メニュー|回転|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+1    71   RECOG_EVENT_STOP|図書館             MODEL_DELETE|menu
+71   72   <eps>                               MODEL_ADD|panel|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|mei
+72   73   <eps>                               MOTION_ADD|mei|action|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
+73   74   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_normal.vmd
+74   75   <eps>                               SYNTH_START|mei|mei_voice_normal|図書館は、正面から見ると、右前の方向にあります。
+75   76   SYNTH_EVENT_STOP|mei                MOTION_ADD|mei|look|Motion\mei_look\mei_look_down.vmd|PART|ONCE
+76   77   <eps>                               SYNTH_START|mei|mei_voice_normal|キャンパスマップでは、こちらになります。
+77   78   <eps>                               MOTION_ADD|mei|action|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
+78   79   SYNTH_EVENT_STOP|mei                MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_happy.vmd
+79   80   <eps>                               SYNTH_START|mei|mei_voice_normal|お解りになりますか？
+80   81   SYNTH_EVENT_STOP|mei                MODEL_DELETE|panel
+81   82   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|mei
+82   83   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_wait\mei_wait.vmd
+83   2    <eps>                               MOTION_ADD|menu|rotate|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+
+# 0091-0100 Bye
+
+1    91   RECOG_EVENT_STOP|バイバイ           SYNTH_START|mei|mei_voice_normal|さようなら。
+1    91   RECOG_EVENT_STOP|さようなら         SYNTH_START|mei|mei_voice_normal|さようなら。
+1    91   RECOG_EVENT_STOP|さよなら           SYNTH_START|mei|mei_voice_normal|さようなら。
+91   92   <eps>                               MOTION_ADD|mei|action|Motion\mei_bye\mei_bye.vmd|PART|ONCE
+92   2    SYNTH_EVENT_STOP|mei                <eps>
+
+# 0101-0110 Browsing
+
+1    101  RECOG_EVENT_STOP|ホームページ       EXECUTE|http://www.mmdagent.jp/
+1    101  RECOG_EVENT_STOP|ＭＭＤＡｇｅｎｔ   EXECUTE|http://www.mmdagent.jp/
+101  102  <eps>                               SYNTH_START|mei|mei_voice_normal|ＭＭＤＡｇｅｎｔの、ホームページを表示します。
+102  2    SYNTH_EVENT_STOP|mei                <eps>
+
+# 0111-0120 Screen
+
+1    111  RECOG_EVENT_STOP|フルスクリーン     KEY_POST|MMDAgent|F|OFF
+111  112  <eps>                               SYNTH_START|mei|mei_voice_normal|スクリーンの設定を、変更しました。
+112  2    SYNTH_EVENT_STOP|mei                <eps>

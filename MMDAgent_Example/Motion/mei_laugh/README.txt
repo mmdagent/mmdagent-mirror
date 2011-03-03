@@ -1,5 +1,5 @@
 ===============================================================================
-             MMDAgent Motion "Self Introduction of Mei" version RC
+                   MMDAgent Motion "Laugh of Mei" version RC
                              release March 3, 2011
 
 
@@ -10,7 +10,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Self Introduction of Mei"              #
+#           MMDAgent Motion "Laugh of Mei"                          #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #

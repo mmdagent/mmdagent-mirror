@@ -1,3 +1,7 @@
+Version RC:
+ * add breath, bye, imagine, laugh, surprise motions.
+ * add web-browsing, full-screen, and bye-bye tasks.
+
 Version Beta:
  * add guide task.
  * add listening motion.
