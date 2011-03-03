@@ -9,3 +9,4 @@
 -headmargin  300
 -tailmargin  240
 -zmeanframe
+-lv          1500
