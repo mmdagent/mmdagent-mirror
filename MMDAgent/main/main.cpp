@@ -277,6 +277,9 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
    case WM_MMDAGENT_EVENT:
       mmdagent.procEventMessage((char *) wParam, (char *) lParam);
       break;
+   case WM_MMDAGENT_LOG:
+      mmdagent.procLogMessage((char *) wParam);
+      break;
    case WM_DESTROY:
       mmdagent.procWindowDestroyMessage();
       PostQuitMessage(0);
@@ -343,8 +346,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    for(i = 0; i < argc; i++)
       free(argv[i]);
    free(argv);
-   if (!hWnd)
-      return false;
+   if (hWnd == 0) {
+      MessageBoxA(NULL, "Error: cannot execute MMDAgent.", "Error", MB_OK);
+      return 0;
+   }
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 

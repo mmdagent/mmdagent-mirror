@@ -210,8 +210,6 @@ bool PMDObject::startMotion(VMD * vmd, char *name, bool full, bool once, bool en
 {
    if (m_motionManager == NULL || m_motionManager->startMotion(vmd, name, full, once, enableSmooth, enableRepos) == false)
       return false;
-   /* update offset because motion may change center */
-   m_offsetPos = (*(m_pmd.getRootBone()->getOffset()));
    return true;
 }
 
@@ -220,8 +218,6 @@ bool PMDObject::swapMotion(VMD * vmd, char *name)
 {
    if (m_motionManager == NULL || m_motionManager->swapMotion(vmd, name) == false)
       return false;
-   /* update offset because motion may change center */
-   m_offsetPos = (*(m_pmd.getRootBone()->getOffset()));
    return true;
 }
 
@@ -399,7 +395,7 @@ bool PMDObject::updateModelRootRotation(float fps)
       /* difference calculation */
       r = (*(b->getCurrentRotation()));
       r = r - m_offsetRot;
-      diff = r.length2();
+      diff = r.length();
       if (diff > PMDOBJECT_MINSPINDIFF) {
          if (m_spinSpeed >= 0.0f && fps != 0.0f) {
             /* max turn speed */
@@ -477,8 +473,15 @@ bool PMDObject::createLipSyncMotion(char *str, unsigned char **rawData, unsigned
    return false;
 }
 
-/* PMDObject::getPosition: get root bone offset */
-void PMDObject::getPosition(btVector3 & pos)
+
+/* PMDObject::getCurrentPosition: get current offset */
+void PMDObject::getCurrentPosition(btVector3 & pos)
+{
+   pos = (*(m_pmd.getRootBone()->getOffset()));
+}
+
+/* PMDObject::getTargetPosition: get target offset */
+void PMDObject::getTargetPosition(btVector3 & pos)
 {
    pos = m_offsetPos;
 }
@@ -489,8 +492,14 @@ void PMDObject::setPosition(btVector3 & pos)
    m_offsetPos = pos;
 }
 
-/* PMDObject::getRotation: get root bone rotation */
-void PMDObject::getRotation(btQuaternion & rot)
+/* PMDObject::getCurrentRotation: get current rotation */
+void PMDObject::getCurrentRotation(btQuaternion & rot)
+{
+   rot = (*(m_pmd.getRootBone()->getCurrentRotation()));
+}
+
+/* PMDObject::getTargetRotation: get target rotation */
+void PMDObject::getTargetRotation(btQuaternion & rot)
 {
    rot = m_offsetRot;
 }

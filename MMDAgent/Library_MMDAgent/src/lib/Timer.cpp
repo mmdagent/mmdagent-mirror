@@ -67,9 +67,9 @@ void Timer::initialize()
    m_fpsStartTime = 0;
    m_fpsCount = 0;
 
-   m_adjustTargetFrame = 0.0;
-   m_adjustCurrentFrame = 0.0;
-   m_adjustEnable = false;
+   m_targetAdjustmentFrame = 0.0;
+   m_currentAdjustmentFrame = 0.0;
+   m_enableAdjustment = false;
 }
 
 /* Timer::clear: free timer */
@@ -145,11 +145,13 @@ void Timer::resume()
 /* Timer::countFrame: increment frame count for FPS calculation */
 void Timer::countFrame()
 {
+   DWORD t;
+
    /* increment count */
    m_fpsCount++;
 
    /* update fps per second */
-   DWORD t = timeGetTime();
+   t = timeGetTime();
    if (t - m_fpsStartTime >= 1000) {
       /* calculate fps */
       m_fps = 1000.0f * (float) m_fpsCount / (float)(t - m_fpsStartTime);
@@ -165,29 +167,29 @@ float Timer::getFps()
    return m_fps;
 }
 
-/* Timer::adjustSetTarget: set target frame to sync music */
-void Timer::adjustSetTarget(double frame)
+/* Timer::setTargetAdjustmentFrame: set target frame to sync music */
+void Timer::setTargetAdjustmentFrame(double frame)
 {
-   m_adjustTargetFrame = frame;
+   m_targetAdjustmentFrame = frame;
 }
 
-/* Timer::adjustStart: start to sync music */
-void Timer::adjustStart()
+/* Timer::startAdjustment: start to sync music */
+void Timer::startAdjustment()
 {
-   m_adjustCurrentFrame = 0.0;
-   m_adjustEnable = true;
+   m_currentAdjustmentFrame = 0.0;
+   m_enableAdjustment = true;
 }
 
-/* Timer::adjustStop: stop to sync music */
-void Timer::adjustStop()
+/* Timer::stopAdjustment: stop to sync music */
+void Timer::stopAdjustment()
 {
-   m_adjustEnable = false;
+   m_enableAdjustment = false;
 }
 
-/* Timer::adjustGetCurrent: get current frame to sync music */
-double Timer::adjustGetCurrent()
+/* Timer::getCurrentAdjustmentFrame: get current frame to sync music */
+double Timer::getCurrentAdjustmentFrame()
 {
-   return m_adjustCurrentFrame;
+   return m_currentAdjustmentFrame;
 }
 
 /* Timer::getAdditionalFrame: get number of additional frames to sync music */
@@ -195,34 +197,35 @@ double Timer::getAdditionalFrame(double baseProcFrame)
 {
    double mstep = 0.0;
 
-   if (m_adjustEnable == false) return 0.0;
+   if (m_enableAdjustment == false)
+      return 0.0;
 
-   if (m_adjustTargetFrame > m_adjustCurrentFrame) {
+   if (m_targetAdjustmentFrame > m_currentAdjustmentFrame) {
       /* x2 (max=10ms) */
       if (baseProcFrame > 0.3) {
          mstep = 0.3;
       } else {
          mstep = baseProcFrame;
       }
-      if (m_adjustCurrentFrame + mstep > m_adjustTargetFrame) {
-         mstep = m_adjustTargetFrame - m_adjustCurrentFrame;
-         m_adjustCurrentFrame = m_adjustTargetFrame;
+      if (m_currentAdjustmentFrame + mstep > m_targetAdjustmentFrame) {
+         mstep = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
+         m_currentAdjustmentFrame = m_targetAdjustmentFrame;
       } else {
-         m_adjustCurrentFrame += mstep;
+         m_currentAdjustmentFrame += mstep;
       }
    }
-   if (m_adjustTargetFrame < m_adjustCurrentFrame) {
+   if (m_targetAdjustmentFrame < m_currentAdjustmentFrame) {
       /* /2 (max=5ms) */
       if (baseProcFrame > 0.3) {
          mstep = -0.15;
       } else {
          mstep = - (baseProcFrame * 0.5);
       }
-      if (m_adjustCurrentFrame + mstep < m_adjustTargetFrame) {
-         mstep = m_adjustTargetFrame - m_adjustCurrentFrame;
-         m_adjustCurrentFrame = m_adjustTargetFrame;
+      if (m_currentAdjustmentFrame + mstep < m_targetAdjustmentFrame) {
+         mstep = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
+         m_currentAdjustmentFrame = m_targetAdjustmentFrame;
       } else {
-         m_adjustCurrentFrame += mstep;
+         m_currentAdjustmentFrame += mstep;
       }
    }
 

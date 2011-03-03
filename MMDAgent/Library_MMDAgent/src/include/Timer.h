@@ -54,9 +54,9 @@ private:
    DWORD m_fpsStartTime;     /* start time of fps count */
    unsigned long m_fpsCount; /* count of calling countFrame function */
 
-   double m_adjustTargetFrame;  /* target frame to sync music */
-   double m_adjustCurrentFrame; /* current frame to sync music */
-   bool m_adjustEnable;         /* switch to sync music */
+   double m_targetAdjustmentFrame;  /* target frame to sync music */
+   double m_currentAdjustmentFrame; /* current frame to sync music */
+   bool m_enableAdjustment;         /* switch to sync music */
 
    /* diffTime: return time difference between two counts */
    DWORD diffTime(DWORD now, DWORD past);
@@ -93,17 +93,17 @@ public:
    /* getFps: get fps */
    float getFps();
 
-   /* adjustSetTarget: set target frame to sync music */
-   void adjustSetTarget(double frame);
+   /* setTargetAdjustmentFrame: set target frame to sync music */
+   void setTargetAdjustmentFrame(double frame);
 
-   /* adjustStart: start to sync music */
-   void adjustStart();
+   /* startAdjustment: start to sync music */
+   void startAdjustment();
 
-   /* adjustStop: stop to sync music */
-   void adjustStop();
+   /* stopAdjustment: stop to sync music */
+   void stopAdjustment();
 
-   /* adjustGetCurrent: get current frame to sync music */
-   double adjustGetCurrent();
+   /* getCurrentAdjustmentFrame: get current frame to sync music */
+   double getCurrentAdjustmentFrame();
 
    /* getAdditionalFrame: get number of additional frames to sync music */
    double getAdditionalFrame(double baseProcFrame);

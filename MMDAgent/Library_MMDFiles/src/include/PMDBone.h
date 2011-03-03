@@ -156,5 +156,6 @@ public:
    /* setCurrentRotation: set current rotation */
    void setCurrentRotation(btQuaternion *q);
 
+   /* PMDBone::renderDebug: render bones for debug */
    void renderDebug();
 };

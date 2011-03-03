@@ -158,14 +158,20 @@ public:
    /* createLipSyncMotion: create LipSync motion */
    bool createLipSyncMotion(char *str, unsigned char **rawData, unsigned long *rawSize);
 
-   /* getPosition: get root bone offset */
-   void getPosition(btVector3 &pos);
+   /* getPosition: get current offset */
+   void getCurrentPosition(btVector3 &pos);
+
+   /* getTargetPosition: get target offset */
+   void getTargetPosition(btVector3 &pos);
 
    /* setPosition: set root bone offset */
    void setPosition(btVector3 &pos);
 
-   /* getRotation: get root bone rotation */
-   void getRotation(btQuaternion &rot);
+   /* getRotation: get current rotation */
+   void getCurrentRotation(btQuaternion &rot);
+
+   /* getTargetRotation: get target rotation */
+   void getTargetRotation(btQuaternion &rot);
 
    /* setRotation: set root bone rotation */
    void setRotation(btQuaternion &rot);

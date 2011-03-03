@@ -205,7 +205,7 @@ void TextRenderer::drawAsciiStringBitmap(char *str)
 }
 
 /* TextRenderer::getDisplayListArrayOfString: get array of display list indices Draw any string (outline, slow) */
-int TextRenderer::getDisplayListArrayOfString(char *str, unsigned int *idList, int maxlen)
+int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idList, int maxlen)
 {
    int i;
    int n = 0;
@@ -261,7 +261,7 @@ void TextRenderer::renderDisplayListArrayOfString(unsigned int *idList, int n)
 }
 
 /* TextRenderer::drawString: draw any string (outline, slow) */
-void TextRenderer::drawString(char *str)
+void TextRenderer::drawString(const char *str)
 {
    unsigned int *idList;
    int len;

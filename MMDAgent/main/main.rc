@@ -66,8 +66,6 @@
 
 #include "resource.h"
 
-/* beginning of Japanese */
-
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 LANGUAGE 17, 1
 #pragma code_page(932) /* sjis */
@@ -76,20 +74,6 @@ LANGUAGE 17, 1
 
 IDI_MMDAGENT ICON "main.ico"
 IDI_SMALL    ICON "main.ico"
-
-/* menu */
-
-IDC_MMDAGENT MENU
-BEGIN
-   POPUP "File(&F)"
-   BEGIN
-      MENUITEM "Exit(&X)",       IDM_EXIT
-   END
-   POPUP "Help(&H)"
-   BEGIN
-      MENUITEM "Version(&A)...", IDM_ABOUT
-   END
-END
 
 /* accelerators */
 
@@ -160,7 +144,7 @@ BEGIN
    LTEXT         "Copyright (c) 2001-2008 Taku Kudo",IDC_STATIC,5,225,280,8
    LTEXT         "Copyright (c) 2004-2008 Nippon Telegraph and Telephone Corporation",IDC_STATIC,5,235,280,8
    LTEXT         "Open JTalk",IDC_STATIC,5,245,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 2008-2010 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,255,280,8
+   LTEXT         "Copyright (c) 2008-2011 Nagoya Institute of Technology Department of Computer Science",IDC_STATIC,5,255,280,8
    LTEXT         "PortAudio",IDC_STATIC,5,265,280,8,SS_NOPREFIX
    LTEXT         "Copyright (c) 1999-2006 Ross Bencina and Phil Burk",IDC_STATIC,5,275,280,8
    LTEXT         "zlib",IDC_STATIC,5,285,280,8,SS_NOPREFIX
@@ -184,8 +168,8 @@ END
 
 STRINGTABLE
 BEGIN
-   IDC_MMDAGENT  "MMDAgent - Toolkit for building voice interaction systems"
+   IDC_MMDAGENT  "MMDAgent"
    IDS_APP_TITLE "MMDAgent - Toolkit for building voice interaction systems"
 END
+#endif
 
-#endif /* end of Japanese */

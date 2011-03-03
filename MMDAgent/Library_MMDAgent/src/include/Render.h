@@ -41,9 +41,9 @@
 
 /* definitions */
 
-#define SHADOW_PCF                   /* use hardware PCF for shadow mapping */
-#define SHADOW_AUTO_VIEW             /* automatically define depth frustum */
-#define SHADOW_AUTO_VIEW_ANGLE 15.0f /* view angle for automatic depth frustum */
+#define RENDER_SHADOWPCF                 /* use hardware PCF for shadow mapping */
+#define RENDER_SHADOWAUTOVIEW            /* automatically define depth frustum */
+#define RENDER_SHADOWAUTOVIEWANGLE 15.0f /* view angle for automatic depth frustum */
 
 #define RENDER_MINSCALEDIFF   0.001f
 #define RENDER_SCALESPEEDRATE 0.9f
@@ -64,14 +64,14 @@ private:
 
    int m_width;             /* window width */
    int m_height;            /* winodw height */
-   float m_scale;           /* target scale */
    btVector3 m_trans;       /* target trans vector */
    btQuaternion m_rot;      /* target rotation */
+   float m_scale;           /* target scale */
    btVector3 m_cameraTrans; /* position of camera */
 
-   float m_scaleCurrent;         /* current scale */
-   btVector3 m_transCurrent;     /* current trans vector */
-   btQuaternion m_rotCurrent;    /* current rotation */
+   btVector3 m_currentTrans;     /* current trans vector */
+   btQuaternion m_currentRot;    /* current rotation */
+   float m_currentScale;         /* current scale */
    btTransform m_transMatrix;    /* current trans vector + rotation matrix */
    btTransform m_transMatrixInv; /* current trans vector + inverse of rotation matrix */
    btScalar m_rotMatrix[16];     /* current rotation + OpenGL rotation matrix */
@@ -125,7 +125,7 @@ public:
    ~Render();
 
    /* setup: initialize and setup Render */
-   bool setup(int *size, float *color, float *rot, float *trans, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst);
+   bool setup(int *size, float *color, float *trans, float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst);
 
    /* setSize: set size */
    void setSize(int w, int h);
@@ -136,14 +136,20 @@ public:
    /* getHeight: get height */
    int getHeight();
 
+   /* resetLocation: reset rotation, transition, and scale */
+   void resetLocation(const float *trans, const float *rot, const float scale);
+
+   /* translate: translate */
+   void translate(float x, float y, float z);
+
+   /* rotate: rotate scene */
+   void rotate(float x, float y, float z);
+
    /* setScale: set scale */
    void setScale(float scale);
 
    /* getScale: get scale */
    float getScale();
-
-   /* translate: translate */
-   void translate(float x, float y, float z);
 
    /* setShadowMapping: switch shadow mapping */
    void setShadowMapping(bool useShadowMapping, int textureSize, bool shadowMappingLightFirst);
@@ -160,9 +166,9 @@ public:
    /* updateDepthTextureViewParam: update center and radius information to get required range for shadow mapping */
    void updateDepthTextureViewParam(PMDObject *objList, int num);
 
-   /* rotate: rotate scene */
-   void rotate(float x, float y, float z);
-
    /* getScreenPointPosition: convert screen position to object position */
    void getScreenPointPosition(btVector3 *dst, btVector3 *src);
+
+   /* getInfoString: store current view parameters to buffer */
+   void getInfoString(char *buf);
 };

@@ -68,6 +68,7 @@ class MMDAgent;
 
 #define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
 #define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
+#define WM_MMDAGENT_LOG     (WM_USER + 3) /* window index for log message */
 
 #define MMDAGENT_MAXNMODEL 10                 /* maximum number of model */
 #define MMDAGENT_ALLMODEL  MMDAGENT_MAXNMODEL /* alias for all model */
@@ -96,6 +97,7 @@ class MMDAgent;
 #define MMDAGENT_COMMAND_LIGHTDIRECTION "LIGHTDIRECTION"
 #define MMDAGENT_COMMAND_LIPSYNCSTART   "LIPSYNC_START"
 #define MMDAGENT_COMMAND_LIPSYNCSTOP    "LIPSYNC_STOP"
+#define MMDAGENT_COMMAND_CAMERA         "CAMERA"
 #define MMDAGENT_COMMAND_PLUGINENABLE   "PLUGIN_ENABLE"
 #define MMDAGENT_COMMAND_PLUGINDISABLE  "PLUGIN_DISABLE"
 
@@ -159,10 +161,6 @@ private:
    bool m_dispBulletBodyFlag;      /* true if bullet body is shown */
    bool m_dispModelDebug;          /* true if model debugger is on */
 
-   double m_dispFrameAdjust;                   /* display time for audio time adjustment */
-   double m_dispFrameCue;                      /* display time for audio time difference */
-   double m_dispModelMove[MMDAGENT_MAXNMODEL]; /* display time for model position when model is moving */
-
    /* getNewModelId: return new model ID */
    int getNewModelId();
 
@@ -220,6 +218,9 @@ private:
    /* setStage: set stage */
    bool setStage(char *fileName);
 
+   /* changeCamera: change camera setting */
+   bool changeCamera(char *pos, char *rot, char *scale);
+
    /* changeLightColor: change light color */
    bool changeLightColor(float r, float g, float b);
 
@@ -255,11 +256,20 @@ public:
    /* renderScene: render the whole scene */
    void renderScene();
 
+   /* drawString: draw string */
+   void drawString(const char *str);
+
+   /* resetAdjustmentTimer: reset adjustment timer */
+   void resetAdjustmentTimer();
+
    /* sendCommandMessage: send command message */
    void sendCommandMessage(char *type, const char *format, ...);
 
    /* sendEventMessage: send event message */
    void sendEventMessage(char *type, const char *format, ...);
+
+   /* showLogMessage: show log message */
+   void showLogMessage(const char *format, ...);
 
    /* findModelAlias: find a model with the specified alias */
    int findModelAlias(char *alias);
@@ -371,6 +381,9 @@ public:
 
    /* procEventMessage: process event message */
    void procEventMessage(char *mes1, char *mes2);
+
+   /* procLogMessage: process log message */
+   void procLogMessage(char *mes);
 
    /* procDropFileMessage: process file drops message */
    void procDropFileMessage(char *file, int x, int y);

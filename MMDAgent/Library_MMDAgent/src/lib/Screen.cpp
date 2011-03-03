@@ -503,7 +503,7 @@ void Screen::updateMouseActiveTime(double deltaFrame)
 }
 
 /* Screen::getInfoString: get screen information */
-char * Screen::getInfoString(char *buf, size_t buflen)
+void Screen::getInfoString(char *buf)
 {
    char ch[3];
 
@@ -511,7 +511,7 @@ char * Screen::getInfoString(char *buf, size_t buflen)
       /* CSAA */
       if (m_dcinfo.multiSampleColNum == m_dcinfo.multiSampleCovNum) {
          /* equivalent to normal MSAA */
-         _snprintf(buf, buflen, "%dx MSAA (%d,%d)", m_dcinfo.multiSampleNum, m_dcinfo.multiSampleColNum, m_dcinfo.multiSampleCovNum);
+         sprintf(buf, "%dx MSAA (%d,%d)", m_dcinfo.multiSampleNum, m_dcinfo.multiSampleColNum, m_dcinfo.multiSampleCovNum);
       } else {
          switch (m_dcinfo.multiSampleColNum) {
          case 16:
@@ -527,16 +527,15 @@ char * Screen::getInfoString(char *buf, size_t buflen)
             strcpy(ch, "L");
             break;
          }
-         _snprintf(buf, buflen, "%dx%s CSAA (%d,%d)", m_dcinfo.multiSampleNum, ch, m_dcinfo.multiSampleColNum, m_dcinfo.multiSampleCovNum);
+         sprintf(buf, "%dx%s CSAA (%d,%d)", m_dcinfo.multiSampleNum, ch, m_dcinfo.multiSampleColNum, m_dcinfo.multiSampleCovNum);
       }
    } else {
       /* MSAA */
       if (m_dcinfo.multiSampleNum > 0)
-         _snprintf(buf, buflen, "%dx MSAA", m_dcinfo.multiSampleNum);
+         sprintf(buf, "%dx MSAA", m_dcinfo.multiSampleNum);
       else
-         _snprintf(buf, buflen, "No AA");
+         sprintf(buf, "No AA");
    }
-   return buf;
 }
 
 /* Screen::getDC: get device context */

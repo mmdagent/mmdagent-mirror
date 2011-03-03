@@ -118,7 +118,7 @@ public:
    void updateMouseActiveTime(double deltaFrame);
 
    /* getInfoString: get screen information */
-   char * getInfoString(char *buf, size_t buflen);
+   void getInfoString(char *buf);
 
    /* getDC: get device context */
    HDC getDC();

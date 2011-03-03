@@ -87,11 +87,11 @@ public:
    void drawAsciiStringBitmap(char *str);
 
    /* getDisplayListArrayOfString: get array of display list indices draw any string (outline) */
-   int getDisplayListArrayOfString(char *str, unsigned int *idList, int maxlen);
+   int getDisplayListArrayOfString(const char *str, unsigned int *idList, int maxlen);
 
    /* renderSispayListArrayOfString: render the obtained array of display lists for a string */
    void renderDisplayListArrayOfString(unsigned int *idList, int n);
 
    /* drawString: draw any string (outline, slow) */
-   void drawString(char *str);
+   void drawString(const char *str);
 };
