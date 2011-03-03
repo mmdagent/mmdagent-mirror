@@ -1,6 +1,6 @@
 ===============================================================================
-  The Toolkit for Building Voice Interaction Systems "MMDAgent" version Beta
-                           release February 3, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC
+                             release March 3, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -109,6 +109,7 @@ D                         show/hide log
 B                         show/hide bones
 SHIFT + W                 show/hide rigid bodies
 J                         show/hide log of speech recognition
+SHIFT + F                 show/hide log of voice interaction manager
 
 SHIFT + V                 enable/disable synchronization with VSync
 SHIFT + X                 change rendering order of self-shadowing
@@ -137,14 +138,15 @@ pmd              CTRL     add a new model
 vmd              --       give a motion to the target model
 vmd              CTRL     give a motion to all models
 xpmd             --       change the stage
-bmp/tga/png      --       change the texture of the floor
-bmp/tga/png      CTRL     change the texture of the background
+bmp/tga/png/jpg  --       change the texture of the floor
+bmp/tga/png/jpg  CTRL     change the texture of the background
+mp3              --       play back audio
 
 Note
 
  * the target model is a model at the dropped point, or you can pre-select by a
    double click
- * when "file.vmd" is dropped, "file.mp3" will be played back if exist
+ * when "file.mp3" is dropped, "file.vmd" will be given to all models
  * the background and stage can be changed by a drag-and-drop of a pmd file,
    with the extention "xpmd"
 

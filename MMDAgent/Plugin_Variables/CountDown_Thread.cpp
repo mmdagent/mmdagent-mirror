@@ -228,8 +228,9 @@ void CountDown_Thread::set(const char *alias, const char *str)
          countDown->prev = m_tail;
       }
       m_tail = countDown;
+   } else {
+      sendStopEventMessage(countDown->name);
    }
-   /* overwrite */
    countDown->goal = now + sec;
 
    sendStartEventMessage(countDown->name); /* send message */

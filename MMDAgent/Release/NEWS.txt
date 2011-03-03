@@ -1,3 +1,11 @@
+Version RC:
+ * show log of speech recognition and voice interaction manager.
+ * support user's dictionary for speech recognition.
+ * support JPEG files.
+ * add VALUE command and event.
+ * add KEY_POST, EXECUTE, and CAMERA command.
+ * fix many bugs.
+
 Version Beta:
  * support lipsync definition per model.
  * redesign the parameter set which can be defined in the MDF file.

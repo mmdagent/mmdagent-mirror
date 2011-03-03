@@ -63,22 +63,19 @@ static void callback_result_final(Recog *recog, void *data)
    int first;
    Sentence *s;
    RecogProcess *r;
-   static char str[JULIUSTHREAD_MAXBUFLEN];
-   size_t size = 0;
+   static char str[JULIUSTHREAD_MAXBUFLEN]; /* static buffer */
    Julius_Thread *j = (Julius_Thread *) data;
-
-   _locale_t locale;
-   static wchar_t wstr[JULIUSTHREAD_MAXBUFLEN];
-
-   static char sjisbuf[JULIUSTHREAD_MAXBUFLEN];
 
    /* get status */
    r = recog->process_list;
    if (!r->live)
       return;
-   if (r->result.status < 0)
+   if (r->result.status < 0) {
+      if (r->result.status == J_RESULT_STATUS_BUFFER_OVERFLOW) {
+         MessageBoxA(NULL, "Error: too long input detected (> 20 sec.)\nPlease turn down the recording volume", "Error", MB_OK);
+      }
       return;
-
+   }
    s = &(r->result.sent[0]);
    strcpy(str, "");
    first = 1;
@@ -86,25 +83,14 @@ static void callback_result_final(Recog *recog, void *data)
       if (MMDAgent_strlen(r->lm->winfo->woutput[s->word[i]]) > 0) {
          if (first == 0)
             strcat(str, ",");
-         strncat(str, r->lm->winfo->woutput[s->word[i]], JULIUSTHREAD_MAXBUFLEN);
+         strcat(str, r->lm->winfo->woutput[s->word[i]]);
          if (first == 1)
             first = 0;
       }
    }
 
-   if (first == 0) {
-      /* euc-jp -> wide char */
-      locale = _create_locale(LC_CTYPE, JULIUSTHREAD_LOCALE);
-      if (locale)
-         _mbstowcs_s_l(&size, wstr, JULIUSTHREAD_MAXBUFLEN, str, _TRUNCATE, locale);
-      else
-         mbstowcs_s(&size, wstr, JULIUSTHREAD_MAXBUFLEN, str, _TRUNCATE);
-
-      /* wide char -> sjis */
-      wcstombs_s(&size, sjisbuf, JULIUSTHREAD_MAXBUFLEN, wstr, _TRUNCATE);
-
-      j->sendMessage(JULIUSTHREAD_EVENTSTOP, sjisbuf);
-   }
+   if(first == 0)
+      j->sendMessage(JULIUSTHREAD_EVENTSTOP, str);
 }
 
 /* main_thread: main thread */
@@ -285,8 +271,11 @@ void Julius_Thread::start()
       return;
    }
 
+   /* setup logger */
+   m_logger.setup(m_recog);
+
    /* start logger */
-   m_logger.start(m_recog);
+   m_logger.setActiveFlag(true);
 
    /* start recognize */
    j_recognize_stream(m_recog);

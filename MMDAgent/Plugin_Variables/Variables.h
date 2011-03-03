@@ -94,7 +94,7 @@ public:
    void setup(HWND hWnd, UINT event);
 
    /* set: set */
-   void set(const char *alias, const char *str);
+   void set(const char *alias, const char *str1, const char *str2);
 
    /* unset: unset */
    void unset(const char *alias);

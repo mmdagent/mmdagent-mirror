@@ -109,7 +109,8 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
          buff = MMDAgent_strdup(args);
          p1 = MMDAgent_strtok(buff, "|", &save);
          p2 = MMDAgent_strtok(NULL, "|", &save);
-         variables.set(p1, p2);
+         p3 = MMDAgent_strtok(NULL, "|", &save);
+         variables.set(p1, p2, p3);
          if(buff)
             free(buff);
       } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUEUNSETCOMMAND)) {

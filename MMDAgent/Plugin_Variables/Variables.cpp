@@ -104,11 +104,10 @@ void Variables::setup(HWND hWnd, UINT event)
 }
 
 /* Variables::set: set value */
-void Variables::set(const char *alias, const char *str)
+void Variables::set(const char *alias, const char *str1, const char *str2)
 {
    Value *val;
 
-   char *buff, *p, *q, *save;
    float max, min, tmp;
 
    if(MMDAgent_strlen(alias) <= 0) return;
@@ -135,15 +134,12 @@ void Variables::set(const char *alias, const char *str)
    }
 
    /* set value */
-   buff = MMDAgent_strdup(str);
-   p = MMDAgent_strtok(buff, ",", &save);
-   q = MMDAgent_strtok(NULL, ",", &save);
-   if(q == NULL) {
-      val->val = MMDAgent_str2float(str);
+   if(str2 == NULL) {
+      val->val = MMDAgent_str2float(str1);
    } else {
       /* set random value */
-      min = MMDAgent_str2float(q);
-      max = MMDAgent_str2float(p);
+      min = MMDAgent_str2float(str1);
+      max = MMDAgent_str2float(str2);
       if(max < min) {
          tmp = max;
          max = min;
@@ -151,8 +147,6 @@ void Variables::set(const char *alias, const char *str)
       }
       val->val = min + (max - min) * (rand() - 0.0f) * (1.0f / (RAND_MAX - 0.0f)); /* 0.0f is RAND_MIN */
    }
-   if(buff)
-      free(buff);
 
    sendEventMessage(VARIABLES_VALUESETEVENT, alias); /* send message */
 }

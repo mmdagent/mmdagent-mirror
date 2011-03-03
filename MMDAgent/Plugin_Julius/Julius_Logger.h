@@ -57,15 +57,15 @@ class Julius_Logger
 {
 private :
 
-   bool m_active;                   /* draw the log only when true */
-   bool m_recognizing;              /* true when recognition is running */
-   TRELLIS_ATOM* m_lastTrellis;     /* current word trellis edge */
-   double m_decayFrame;             /* rest frames for last decaying */
-   int m_currentMaxAdIn;            /* maximum level at last input segment */
-   int m_maxAdIn;                   /* snapped maximum level */
-   double m_adInFrameStep;          /* current frame for adin level calculation */
-   int m_numWord;                   /* number of words in recognition dictionary */
-   int m_levelThreshold;            /* audio trigger level threshold */
+   bool m_active;               /* draw the log only when true */
+   bool m_recognizing;          /* true when recognition is running */
+   TRELLIS_ATOM* m_lastTrellis; /* current word trellis edge */
+   double m_decayFrame;         /* rest frames for last decaying */
+   int m_currentMaxAdIn;        /* maximum level at last input segment */
+   int m_maxAdIn;               /* snapped maximum level */
+   double m_adInFrameStep;      /* current frame for adin level calculation */
+   int m_numWord;               /* number of words in recognition dictionary */
+   int m_levelThreshold;        /* audio trigger level threshold */
 
    float m_pos[JULIUSLOGGER_MAXARCS*3];          /* position array for recognition process drawing */
    unsigned int m_index[JULIUSLOGGER_MAXARCS*2]; /* index array for recognition process drawing */
@@ -86,8 +86,8 @@ public :
    /* ~Julius_Logger: destructor  */
    ~Julius_Logger();
 
-   /* loadAndStart: start logging */
-   void start(Recog *recog);
+   /* setup: setup for logging */
+   void setup(Recog *recog);
 
    /* setRecognitionFlag: mark recognition start and end */
    void setRecognitionFlag(bool flag);

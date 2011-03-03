@@ -113,8 +113,8 @@ Julius_Logger::~Julius_Logger()
    clear();
 }
 
-/* Julius_Logger::start: setup for logging */
-void Julius_Logger::start(Recog *recog)
+/* Julius_Logger::setup: setup for logging */
+void Julius_Logger::setup(Recog *recog)
 {
    /* reset */
    clear();

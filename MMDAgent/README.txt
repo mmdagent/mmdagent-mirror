@@ -1,6 +1,6 @@
 ===============================================================================
-  The Toolkit for Building Voice Interaction Systems "MMDAgent" version Beta
-                           release February 3, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC
+                             release March 3, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -71,20 +71,21 @@ justify ourselves to our various sponsors. We also strongly encourage you to
  * refer to the use of MMDAgent in any publications that use this software
  * report bugs, where possible with bug fixes, that are found
 
-See also "COPYRIGHT.txt" files in following directories for details.
+See also "COPYRIGHT.txt" files as follows for details.
 
- .\
- .\Library_Bullet_Physics\
- .\Library_GLee\
- .\Library_hts_engine_API\
- .\Library_Julius\
- .\Library_libpng\
- .\Library_Open_JTalk\
- .\Library_PortAudio\
- .\Library_zlib\
- .\Release\AppData\Julius\phone_m\
- .\Release\AppData\Julius\lang_m\
- .\Release\AppData\Open_JTalk\
+ .\COPYRIGHT.txt
+ .\Library_Bullet_Physics\COPYRIGHT.txt
+ .\Library_GLee\COPYRIGHT.txt
+ .\Library_hts_engine_API\COPYRIGHT.txt
+ .\Library_JPEG\COPYRIGHT.txt
+ .\Library_Julius\COPYRIGHT.txt
+ .\Library_libpng\COPYRIGHT.txt
+ .\Library_Open_JTalk\COPYRIGHT.txt
+ .\Library_PortAudio\COPYRIGHT.txt
+ .\Library_zlib\COPYRIGHT.txt
+ .\Release\AppData\Julius\phone_m\COPYRIGHT.txt
+ .\Release\AppData\Julius\lang_m\COPYRIGHT.txt
+ .\Release\AppData\Open_JTalk\COPYRIGHT.txt
 
 *******************************************************************************
                                Acknowledgements
