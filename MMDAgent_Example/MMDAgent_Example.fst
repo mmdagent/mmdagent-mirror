@@ -181,7 +181,7 @@
 
 # 0061-0070 Positive comments
 
-1    70   RECOG_EVENT_STOP|‰Âˆ¤‚¢             VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|‰Âˆ¤‚¢             VALUE_EVAL|random|LE|80
 1    61   RECOG_EVENT_STOP|‚©‚í‚¢‚¢           VALUE_EVAL|random|LE|80
 1    61   RECOG_EVENT_STOP|ãY—í               VALUE_EVAL|random|LE|80
 1    61   RECOG_EVENT_STOP|‚«‚ê‚¢             VALUE_EVAL|random|LE|80
