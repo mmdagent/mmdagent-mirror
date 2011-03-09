@@ -99,7 +99,7 @@ ESC                       quit
 
 X                         toggle self-shadowing
 E, or SHIFT + E           change edge width
-L                         toggle eye gaze control (follow mouse cursor)
+SHIFT + L                 toggle eye gaze control (follow mouse cursor)
 P                         toggle physics simulation
 W                         toggle wireframe view
 
