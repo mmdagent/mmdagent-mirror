@@ -78,7 +78,7 @@ MotionStocker::~MotionStocker()
 }
 
 /* MotionStocker::loadFromFile: load VMD from file or return cached one */
-VMD * MotionStocker::loadFromFile(char *file)
+VMD * MotionStocker::loadFromFile(const char *file)
 {
    VMDList *vl, *tmp;
 
@@ -130,7 +130,7 @@ VMD * MotionStocker::loadFromFile(char *file)
 }
 
 /* MotionStocker::loadFromData: load VMD from data memories*/
-VMD * MotionStocker::loadFromData(unsigned char *rawData, unsigned long rawSize)
+VMD * MotionStocker::loadFromData(const unsigned char *rawData, unsigned long rawSize)
 {
    VMDList *vl;
 

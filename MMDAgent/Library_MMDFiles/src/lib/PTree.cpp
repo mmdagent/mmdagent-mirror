@@ -44,7 +44,7 @@
 #include "MMDFiles.h"
 
 /* testBit: test a bit */
-static int testBit(char *str, int slen, int bitplace)
+static int testBit(const char *str, int slen, int bitplace)
 {
    int maskptr;
    const unsigned char mbit[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
@@ -55,7 +55,7 @@ static int testBit(char *str, int slen, int bitplace)
 }
 
 /* testBitMax: test a bit with max bit limit */
-static int testBitMax(char *str, int bitplace, int maxbitplace)
+static int testBitMax(const char *str, int bitplace, int maxbitplace)
 {
    const unsigned char mbit[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 
@@ -65,7 +65,7 @@ static int testBitMax(char *str, int bitplace, int maxbitplace)
 }
 
 /* getDiffPoint: return which bit differs first between two strings */
-static int getDiffPoint(char *str1, char *str2)
+static int getDiffPoint(const char *str1, const char *str2)
 {
    int p = 0;
    int bitloc;
@@ -146,7 +146,7 @@ void PTree::release()
 }
 
 /* PTree::add: add an entry to the tree */
-void PTree::add(char *str, void *data, char *matchstr)
+void PTree::add(const char *str, void *data, char *matchstr)
 {
    int slen, bitloc;
    PTreeNode **p;
@@ -186,7 +186,7 @@ void PTree::add(char *str, void *data, char *matchstr)
 }
 
 /* PTree::findNearest: return the nearest entry */
-void * PTree::findNearest(char *str)
+void * PTree::findNearest(const char *str)
 {
    PTreeNode *n;
    PTreeNode *branch;

@@ -137,13 +137,13 @@ void CountDown_Thread::loadAndStart(HWND param1, UINT param2)
 void CountDown_Thread::check()
 {
    CountDown *tmp1, *tmp2;
-   int now;
+   float now;
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
       MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
 
-   now = clock() / CLOCKS_PER_SEC;
+   now = clock() / (float)CLOCKS_PER_SEC;
 
    for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
       tmp2 = tmp1->next;
@@ -195,19 +195,19 @@ void CountDown_Thread::stopAndRelease()
 void CountDown_Thread::set(const char *alias, const char *str)
 {
    CountDown *countDown;
-   int sec, now;
+   float sec, now;
 
    if(MMDAgent_strlen(alias) <= 0)
       return;
-   sec = MMDAgent_str2int(str);
-   if(sec <= 0)
+   sec = MMDAgent_str2float(str);
+   if(sec <= 0.0f)
       return;
 
    /* wait */
    if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
       MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
 
-   now = (clock() / CLOCKS_PER_SEC);
+   now = clock() / (float)CLOCKS_PER_SEC;
 
    /* check the same alias */
    for(countDown = m_head; countDown; countDown = countDown->next) {

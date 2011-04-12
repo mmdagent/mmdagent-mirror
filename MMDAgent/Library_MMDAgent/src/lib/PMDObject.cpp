@@ -100,7 +100,7 @@ void PMDObject::release()
 }
 
 /* PMDObject::load: load model */
-bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame)
+bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame)
 {
    int i;
    int len;
@@ -123,7 +123,7 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
       m_pmd.getRootBone()->update();
    } else {
       /* set offset by root bone */
-      m_offsetPos = (*(m_pmd.getRootBone()->getOffset()));
+      m_pmd.getRootBone()->getOffset(&m_offsetPos);
    }
 
    /* copy absolute position flag */
@@ -141,14 +141,6 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
 
    /* save position when position is fixed */
    if (m_baseBone) m_origBasePos = m_baseBone->getTransform()->getOrigin();
-   /* set toon rendering flag */
-   if (useCartoonRendering == true && m_allowToonShading == true)
-      m_pmd.setToonFlag(true);
-   else
-      m_pmd.setToonFlag(false);
-
-   /* set edge width */
-   m_pmd.setEdgeThin(cartoonEdgeWidth);
 
    /* set alpha frame */
    m_alphaAppearFrame = PMDOBJECT_ALPHAFRAME;
@@ -162,6 +154,15 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
       clear();
       return false;
    }
+
+   /* set toon rendering flag */
+   if (useCartoonRendering == true && m_allowToonShading == true)
+      m_pmd.setToonFlag(true);
+   else
+      m_pmd.setToonFlag(false);
+
+   /* set edge width */
+   m_pmd.setEdgeThin(cartoonEdgeWidth);
 
    /* load lip sync */
    m_globalLipSync = sysLipSync;
@@ -206,15 +207,15 @@ bool PMDObject::load(char *fileName, char *alias, btVector3 *offsetPos, btQuater
 }
 
 /* PMDObject::setMotion: start a motion */
-bool PMDObject::startMotion(VMD * vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos)
+bool PMDObject::startMotion(VMD * vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRepos, float priority)
 {
-   if (m_motionManager == NULL || m_motionManager->startMotion(vmd, name, full, once, enableSmooth, enableRepos) == false)
+   if (m_motionManager == NULL || m_motionManager->startMotion(vmd, name, full, once, enableSmooth, enableRepos, priority) == false)
       return false;
    return true;
 }
 
 /* PMDObject::swapMotion: swap a motion */
-bool PMDObject::swapMotion(VMD * vmd, char *name)
+bool PMDObject::swapMotion(VMD * vmd, const char *name)
 {
    if (m_motionManager == NULL || m_motionManager->swapMotion(vmd, name) == false)
       return false;
@@ -340,7 +341,7 @@ bool PMDObject::updateModelRootOffset(float fps)
 
    /* target position is m_offsetPos */
    /* move offset of root bone closer to m_offsetPos */
-   pos = (*(b->getOffset()));
+   b->getOffset(&pos);
    m_isMoving = false;
    if (m_offsetPos != pos) {
       /* if there is difference then update */
@@ -391,9 +392,9 @@ bool PMDObject::updateModelRootRotation(float fps)
    b = m_pmd.getRootBone();
    /* target rotation is m_offsetRot */
    /* turn rotation of root bone closer to m_offsetRot */
-   if (m_offsetRot != (*(b->getCurrentRotation()))) {
+   b->getCurrentRotation(&r);
+   if (m_offsetRot != r) {
       /* difference calculation */
-      r = (*(b->getCurrentRotation()));
       r = r - m_offsetRot;
       diff = r.length();
       if (diff > PMDOBJECT_MINSPINDIFF) {
@@ -401,7 +402,7 @@ bool PMDObject::updateModelRootRotation(float fps)
             /* max turn speed */
             maxStep = MMDFILES_RAD(m_spinSpeed) / fps;
             if (diff > maxStep) {
-               tmpRot = (*(b->getCurrentRotation()));
+               b->getCurrentRotation(&tmpRot);
                tmpRot = tmpRot.slerp(m_offsetRot, maxStep / diff);
                b->setCurrentRotation(&tmpRot);
                m_isRotating = true;
@@ -411,7 +412,7 @@ bool PMDObject::updateModelRootRotation(float fps)
             }
          } else {
             /* current * 0.95 + target * 0.05 */
-            tmpRot = (*(b->getCurrentRotation()));
+            b->getCurrentRotation(&tmpRot);
             tmpRot = tmpRot.slerp(m_offsetRot, 1.0f - PMDOBJECT_SPINSPEEDRATE);
             b->setCurrentRotation(&tmpRot);
             m_isRotating = true;
@@ -434,7 +435,7 @@ char *PMDObject::getAlias()
 }
 
 /* PMDObject::setAlias: set alias name */
-void PMDObject::setAlias(char *alias)
+void PMDObject::setAlias(const char *alias)
 {
    if(MMDAgent_strlen(alias) > 0 && m_alias != alias) {
       if(m_alias)
@@ -464,7 +465,7 @@ void PMDObject::resetMotionManager()
 }
 
 /* PMDObject::createLipSyncMotion: create LipSync motion */
-bool PMDObject::createLipSyncMotion(char *str, unsigned char **rawData, unsigned long *rawSize)
+bool PMDObject::createLipSyncMotion(const char *str, unsigned char **rawData, unsigned long *rawSize)
 {
    if(m_localLipSync != NULL && m_localLipSync->createMotion(str, rawData, rawSize) == true)
       return true;
@@ -475,39 +476,39 @@ bool PMDObject::createLipSyncMotion(char *str, unsigned char **rawData, unsigned
 
 
 /* PMDObject::getCurrentPosition: get current offset */
-void PMDObject::getCurrentPosition(btVector3 & pos)
+void PMDObject::getCurrentPosition(btVector3 *pos)
 {
-   pos = (*(m_pmd.getRootBone()->getOffset()));
+   m_pmd.getRootBone()->getOffset(pos);
 }
 
 /* PMDObject::getTargetPosition: get target offset */
-void PMDObject::getTargetPosition(btVector3 & pos)
+void PMDObject::getTargetPosition(btVector3 *pos)
 {
-   pos = m_offsetPos;
+   (*pos) = m_offsetPos;
 }
 
 /* PMDObject::setPosition: set root bone offset */
-void PMDObject::setPosition(btVector3 & pos)
+void PMDObject::setPosition(btVector3 *pos)
 {
-   m_offsetPos = pos;
+   m_offsetPos = (*pos);
 }
 
 /* PMDObject::getCurrentRotation: get current rotation */
-void PMDObject::getCurrentRotation(btQuaternion & rot)
+void PMDObject::getCurrentRotation(btQuaternion *rot)
 {
-   rot = (*(m_pmd.getRootBone()->getCurrentRotation()));
+   m_pmd.getRootBone()->getCurrentRotation(rot);
 }
 
 /* PMDObject::getTargetRotation: get target rotation */
-void PMDObject::getTargetRotation(btQuaternion & rot)
+void PMDObject::getTargetRotation(btQuaternion *rot)
 {
-   rot = m_offsetRot;
+   (*rot) = m_offsetRot;
 }
 
 /* PMDObject::setRotation: set root bone rotation */
-void PMDObject::setRotation(btQuaternion & rot)
+void PMDObject::setRotation(btQuaternion *rot)
 {
-   m_offsetRot = rot;
+   m_offsetRot = (*rot);
 }
 
 /* PMDObject::setMoveSpeed: set move speed per second */

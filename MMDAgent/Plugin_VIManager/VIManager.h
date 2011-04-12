@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VIMANAGER_MAXBUFLEN        65536
+#define VIMANAGER_MAXBUFLEN        2048
 #define VIMANAGER_SEPARATOR1       '|'
 #define VIMANAGER_SEPARATOR2       ','
 #define VIMANAGER_COMMENT          '#'

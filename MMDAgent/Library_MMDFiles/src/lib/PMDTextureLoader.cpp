@@ -44,7 +44,7 @@
 #include "MMDFiles.h"
 
 /* PMDTextureLoader_strcat: strcat using buffer size */
-static void PMDTextureLoader_strcat(char *buf, int size, char *str)
+static void PMDTextureLoader_strcat(char *buf, int size, const char *str)
 {
    int i, j, len1, len2;
    char c;
@@ -64,7 +64,7 @@ static void PMDTextureLoader_strcat(char *buf, int size, char *str)
 }
 
 /* PMDTextureLoader:lookup: lookup texture in cache */
-PMDTexture *PMDTextureLoader::lookup(char *fileName, bool *alreadyFailRet)
+PMDTexture *PMDTextureLoader::lookup(const char *fileName, bool *alreadyFailRet)
 {
    TextureLink *tmp = m_root;
 
@@ -82,7 +82,7 @@ PMDTexture *PMDTextureLoader::lookup(char *fileName, bool *alreadyFailRet)
 }
 
 /* PMDTextureLoader::store: add a texture to cache */
-void PMDTextureLoader::store(PMDTexture *tex, char *fileName)
+void PMDTextureLoader::store(PMDTexture *tex, const char *fileName)
 {
    TextureLink *newLink = new TextureLink;
 
@@ -129,7 +129,7 @@ PMDTextureLoader::~PMDTextureLoader()
 }
 
 /* PMDTextureLoader::load: load texture from file name (multi-byte char) */
-PMDTexture *PMDTextureLoader::load(char *fileName)
+PMDTexture *PMDTextureLoader::load(const char *fileName)
 {
    PMDTexture *tex;
    bool already_fail;

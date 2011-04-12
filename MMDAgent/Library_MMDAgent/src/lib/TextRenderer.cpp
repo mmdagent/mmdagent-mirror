@@ -191,7 +191,7 @@ void TextRenderer::setup(HDC hDC)
 }
 
 /* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap) */
-void TextRenderer::drawAsciiStringBitmap(char *str)
+void TextRenderer::drawAsciiStringBitmap(const char *str)
 {
    GLsizei size;
 
@@ -251,7 +251,7 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
 }
 
 /* TextRenderer::renderSispayListArrayOfString: render the obtained array of display lists for a string */
-void TextRenderer::renderDisplayListArrayOfString(unsigned int *idList, int n)
+void TextRenderer::renderDisplayListArrayOfString(const unsigned int *idList, int n)
 {
    if(!m_hDC) return;
 

@@ -75,11 +75,11 @@ SystemTexture::~SystemTexture()
 }
 
 /* SystemTexture::load: load system texture from current directory */
-bool SystemTexture::load(char *dir)
+bool SystemTexture::load(const char *dir)
 {
    int i;
    bool ret = true;
-   char *files[] = {SYSTEMTEXTURE_FILENAMES};
+   const char *files[] = {SYSTEMTEXTURE_FILENAMES};
    char buff[MMDFILES_MAXBUFLEN];
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++) {

@@ -108,13 +108,13 @@ public:
    void release();
 
    /* load: load model */
-   bool load(char *fileName, char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
+   bool load(const char *fileName, const char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
 
    /* setMotion: start a motion */
-   bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRepos);
+   bool startMotion(VMD *vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRepos, float priority);
 
    /* swapMotion: swap a motion */
-   bool swapMotion(VMD *vmd, char *name);
+   bool swapMotion(VMD *vmd, const char *name);
 
    /* updateRootBone: update root bone if assigned to a base bone */
    void updateRootBone();
@@ -144,7 +144,7 @@ public:
    char *getAlias();
 
    /* setAlias: set alias name */
-   void setAlias(char *alias);
+   void setAlias(const char *alias);
 
    /* getPMDModel: get PMDModel */
    PMDModel *getPMDModel();
@@ -156,25 +156,25 @@ public:
    void resetMotionManager();
 
    /* createLipSyncMotion: create LipSync motion */
-   bool createLipSyncMotion(char *str, unsigned char **rawData, unsigned long *rawSize);
+   bool createLipSyncMotion(const char *str, unsigned char **rawData, unsigned long *rawSize);
 
    /* getPosition: get current offset */
-   void getCurrentPosition(btVector3 &pos);
+   void getCurrentPosition(btVector3 *pos);
 
    /* getTargetPosition: get target offset */
-   void getTargetPosition(btVector3 &pos);
+   void getTargetPosition(btVector3 *pos);
 
    /* setPosition: set root bone offset */
-   void setPosition(btVector3 &pos);
+   void setPosition(btVector3 *pos);
 
    /* getRotation: get current rotation */
-   void getCurrentRotation(btQuaternion &rot);
+   void getCurrentRotation(btQuaternion *rot);
 
    /* getTargetRotation: get target rotation */
-   void getTargetRotation(btQuaternion &rot);
+   void getTargetRotation(btQuaternion *rot);
 
    /* setRotation: set root bone rotation */
-   void setRotation(btQuaternion &rot);
+   void setRotation(btQuaternion *rot);
 
    /* setMoveSpeed: set move speed per second */
    void setMoveSpeed(float speed);

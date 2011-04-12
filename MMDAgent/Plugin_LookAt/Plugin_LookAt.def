@@ -4,3 +4,4 @@ EXPORTS
 	extProcCommand
 	extProcEvent
 	extUpdate
+	extAppEnd

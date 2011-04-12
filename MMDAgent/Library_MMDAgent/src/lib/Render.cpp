@@ -44,6 +44,17 @@
 #include "MMDAgent.h"
 #include <GL/glu.h>
 
+/* compareDepth: qsort function for reordering */
+static int compareDepth(const void *a, const void *b)
+{
+   RenderDepthData *x = (RenderDepthData *) a;
+   RenderDepthData *y = (RenderDepthData *) b;
+
+   if (x->dist == y->dist)
+      return 0;
+   return ( (x->dist > y->dist) ? 1 : -1 );
+}
+
 /* Render::updateProjectionMatrix: update view information */
 void Render::updateProjectionMatrix()
 {
@@ -76,7 +87,7 @@ void Render::updateModelViewMatrix()
 }
 
 /* Render::update: update scale */
-void Render::updateScale()
+void Render::updateScale(int ellapsedTimeForMove)
 {
    float diff;
 
@@ -84,17 +95,30 @@ void Render::updateScale()
    if (m_currentScale == m_scale)
       return;
 
-   diff = fabs(m_currentScale - m_scale);
-   if (diff < RENDER_MINSCALEDIFF) {
+   if (m_viewMoveTime == 0) {
+      /* immediately apply the target */
       m_currentScale = m_scale;
+   } else if (m_viewMoveTime > 0) {
+      /* constant move */
+      if (ellapsedTimeForMove >= m_viewMoveTime) {
+         m_currentScale = m_scale;
+      } else {
+         m_currentScale = m_viewMoveStartScale + (m_scale - m_viewMoveStartScale) * ellapsedTimeForMove / m_viewMoveTime;
+      }
    } else {
-      m_currentScale = m_currentScale * (RENDER_SCALESPEEDRATE) + m_scale * (1.0f - RENDER_SCALESPEEDRATE);
+      diff = fabs(m_currentScale - m_scale);
+      if (diff < RENDER_MINSCALEDIFF) {
+         m_currentScale = m_scale;
+      } else {
+         m_currentScale = m_currentScale * (RENDER_SCALESPEEDRATE) + m_scale * (1.0f - RENDER_SCALESPEEDRATE);
+      }
    }
+
    updateProjectionMatrix();
 }
 
 /* Render::updateTransRotMatrix:  update trans and rotation matrix */
-void Render::updateTransRotMatrix()
+void Render::updateTransRotMatrix(int ellapsedTimeForMove)
 {
    float diff1, diff2;
    btVector3 trans;
@@ -104,22 +128,37 @@ void Render::updateTransRotMatrix()
    if (m_currentRot == m_rot && m_currentTrans == m_trans)
       return;
 
-   /* calculate difference */
-   trans = m_trans;
-   trans -= m_currentTrans;
-   diff1 = trans.length2();
-   rot = m_rot;
-   rot -= m_currentRot;
-   diff2 = rot.length2();
-
-   if (diff1 > RENDER_MINMOVEDIFF)
-      m_currentTrans = m_currentTrans.lerp(m_trans, 1.0f - RENDER_MOVESPEEDRATE); /* current * 0.9 + target * 0.1 */
-   else
-      m_currentTrans = m_trans;
-   if (diff2 > RENDER_MINSPINDIFF)
-      m_currentRot = m_currentRot.slerp(m_rot, 1.0f - RENDER_SPINSPEEDRATE); /* current * 0.9 + target * 0.1 */
-   else
+   if (m_viewMoveTime == 0) {
+      /* immediately apply the target */
       m_currentRot = m_rot;
+      m_currentTrans = m_trans;
+   } else if (m_viewMoveTime > 0) {
+      /* constant move */
+      if (ellapsedTimeForMove >= m_viewMoveTime) {
+         m_currentRot = m_rot;
+         m_currentTrans = m_trans;
+      } else {
+         m_currentTrans = m_viewMoveStartTrans.lerp(m_trans, (btScalar) ellapsedTimeForMove / m_viewMoveTime);
+         m_currentRot = m_viewMoveStartRot.slerp(m_rot, (btScalar) ellapsedTimeForMove / m_viewMoveTime);
+      }
+   } else {
+      /* calculate difference */
+      trans = m_trans;
+      trans -= m_currentTrans;
+      diff1 = trans.length2();
+      rot = m_rot;
+      rot -= m_currentRot;
+      diff2 = rot.length2();
+
+      if (diff1 > RENDER_MINMOVEDIFF)
+         m_currentTrans = m_currentTrans.lerp(m_trans, 1.0f - RENDER_MOVESPEEDRATE); /* current * 0.9 + target * 0.1 */
+      else
+         m_currentTrans = m_trans;
+      if (diff2 > RENDER_MINSPINDIFF)
+         m_currentRot = m_currentRot.slerp(m_rot, 1.0f - RENDER_SPINSPEEDRATE); /* current * 0.9 + target * 0.1 */
+      else
+         m_currentRot = m_rot;
+   }
 
    updateModelViewMatrix();
 }
@@ -205,7 +244,7 @@ void Render::initializeShadowMap(int textureSize)
 }
 
 /* Render::renderSceneShadowMap: shadow mapping */
-void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
+void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
 {
    short i;
    GLint viewport[4]; /* store viewport */
@@ -286,9 +325,9 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
    /* render objects for depth */
    /* only objects that wants to drop shadow should be rendered here */
    for (i = 0; i < num; i++) {
-      if (objs[i].isEnable() == true) {
+      if (objs[order[i]].isEnable() == true) {
          glPushMatrix();
-         objs[i].getPMDModel()->renderForShadow();
+         objs[order[i]].getPMDModel()->renderForShadow();
          glPopMatrix();
       }
    }
@@ -323,9 +362,9 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
       stage->renderBackground();
       stage->renderFloor();
       for (i = 0; i < num; i++) {
-         if (objs[i].isEnable() == true) {
-            objs[i].getPMDModel()->renderModel();
-            objs[i].getPMDModel()->renderEdge();
+         if (objs[order[i]].isEnable() == true) {
+            objs[order[i]].getPMDModel()->renderModel();
+            objs[order[i]].getPMDModel()->renderEdge();
          }
       }
    } else {
@@ -340,8 +379,8 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
       stage->renderBackground();
       stage->renderFloor();
       for (i = 0; i < num; i++) {
-         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == false)
-            objs[i].getPMDModel()->renderModel();
+         if (objs[order[i]].isEnable() == true && objs[order[i]].getPMDModel()->getToonFlag() == false)
+            objs[order[i]].getPMDModel()->renderModel();
       }
 
       /* for toon objects, they should apply the model-defined toon texture color at texture coordinates (0, 0) for shadow rendering */
@@ -350,16 +389,16 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
          updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
       /* render the toon objects */
       for (i = 0; i < num; i++) {
-         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == true) {
+         if (objs[order[i]].isEnable() == true && objs[order[i]].getPMDModel()->getToonFlag() == true) {
             /* set texture coordinates for shadow mapping */
-            objs[i].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
+            objs[order[i]].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
             /* tell model to render with the shadow corrdinates */
-            objs[i].getPMDModel()->setSelfShadowDrawing(true);
+            objs[order[i]].getPMDModel()->setSelfShadowDrawing(true);
             /* render model and edge */
-            objs[i].getPMDModel()->renderModel();
-            objs[i].getPMDModel()->renderEdge();
+            objs[order[i]].getPMDModel()->renderModel();
+            objs[order[i]].getPMDModel()->renderEdge();
             /* disable shadow rendering */
-            objs[i].getPMDModel()->setSelfShadowDrawing(false);
+            objs[order[i]].getPMDModel()->setSelfShadowDrawing(false);
          }
       }
       if (useCartoonRendering == false)
@@ -414,8 +453,8 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
       stage->renderBackground();
       stage->renderFloor();
       for (i = 0; i < num; i++) {
-         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == false)
-            objs[i].getPMDModel()->renderModel();
+         if (objs[order[i]].isEnable() == true && objs[order[i]].getPMDModel()->getToonFlag() == false)
+            objs[order[i]].getPMDModel()->renderModel();
       }
 
       /* for toon objects, they should apply the model-defined toon texture color at texture coordinates (0, 0) for shadow rendering */
@@ -424,15 +463,15 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
          updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
       /* render the toon objects */
       for (i = 0; i < num; i++) {
-         if (objs[i].isEnable() == true && objs[i].getPMDModel()->getToonFlag() == true) {
+         if (objs[order[i]].isEnable() == true && objs[order[i]].getPMDModel()->getToonFlag() == true) {
             /* set texture coordinates for shadow mapping */
-            objs[i].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
+            objs[order[i]].getPMDModel()->updateShadowColorTexCoord(shadowMappingSelfDensity);
             /* tell model to render with the shadow corrdinates */
-            objs[i].getPMDModel()->setSelfShadowDrawing(true);
+            objs[order[i]].getPMDModel()->setSelfShadowDrawing(true);
             /* render model and edge */
-            objs[i].getPMDModel()->renderModel();
+            objs[order[i]].getPMDModel()->renderModel();
             /* disable shadow rendering */
-            objs[i].getPMDModel()->setSelfShadowDrawing(false);
+            objs[order[i]].getPMDModel()->setSelfShadowDrawing(false);
          }
       }
       if (useCartoonRendering == false)
@@ -443,8 +482,8 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
       stage->renderBackground();
       stage->renderFloor();
       for (i = 0; i < num; i++)
-         if (objs[i].isEnable() == true)
-            objs[i].getPMDModel()->renderModel();
+         if (objs[order[i]].isEnable() == true)
+            objs[order[i]].getPMDModel()->renderModel();
    }
 
    /* reset settings */
@@ -461,7 +500,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool u
 }
 
 /* Render::renderScene: render scene */
-void Render::renderScene(PMDObject *objs, int num, Stage *stage, float shadowMappingFloorDensity)
+void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, float shadowMappingFloorDensity)
 {
    short i;
 
@@ -496,10 +535,10 @@ void Render::renderScene(PMDObject *objs, int num, Stage *stage, float shadowMap
    /* render moodel */
    glDisable(GL_DEPTH_TEST);
    for (i = 0; i < num; i++) {
-      if (objs[i].isEnable() == true) {
+      if (objs[order[i]].isEnable() == true) {
          glPushMatrix();
          glMultMatrixf(stage->getShadowMatrix());
-         objs[i].getPMDModel()->renderForShadow();
+         objs[order[i]].getPMDModel()->renderForShadow();
          glPopMatrix();
       }
    }
@@ -519,9 +558,9 @@ void Render::renderScene(PMDObject *objs, int num, Stage *stage, float shadowMap
 
    /* render model */
    for (i = 0; i < num; i++) {
-      if (objs[i].isEnable() == true) {
-         objs[i].getPMDModel()->renderModel();
-         objs[i].getPMDModel()->renderEdge();
+      if (objs[order[i]].isEnable() == true) {
+         objs[order[i]].getPMDModel()->renderModel();
+         objs[order[i]].getPMDModel()->renderEdge();
       }
    }
 }
@@ -540,6 +579,8 @@ void Render::initialize()
    m_currentRot = m_rot;
    m_currentScale = m_scale;
 
+   m_viewMoveTime = -1;
+
    m_transMatrix.setIdentity();
    updateModelViewMatrix();
 
@@ -547,11 +588,15 @@ void Render::initialize()
    m_lightVec = btVector3(0.0f, 0.0f, 0.0f);
    m_shadowMapAutoViewEyePoint = btVector3(0.0f, 0.0f, 0.0f);
    m_shadowMapAutoViewRadius = 0.0f;
+
+   m_depth = NULL;
 }
 
 /* Render::clear: free Render */
 void Render::clear()
 {
+   if(m_depth)
+      free(m_depth);
    initialize();
 }
 
@@ -568,12 +613,13 @@ Render::~Render()
 }
 
 /* Render::setup: initialize and setup Render */
-bool Render::setup(int *size, float *color, float *trans, float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst)
+bool Render::setup(const int *size, const float *color, const float *trans, const float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, int maxNumModel)
 {
    if(size == NULL || color == NULL || rot == NULL || trans == NULL)
       return false;
 
    resetLocation(trans, rot, scale);
+   setViewMoveTimer(-1);
 
    /* set clear color */
    glClearColor(color[0], color[1], color[2], 0.0f);
@@ -607,6 +653,8 @@ bool Render::setup(int *size, float *color, float *trans, float *rot, float scal
 
    setSize(size[0], size[1]);
 
+   m_depth = (RenderDepthData *) malloc(sizeof(RenderDepthData) * maxNumModel);
+
    return true;
 }
 
@@ -635,13 +683,32 @@ int Render::getHeight()
 }
 
 /* Render::resetLocation: reset rotation, transition, and scale */
-void Render::resetLocation(const float *trans, const float *rot, const float scale)
+void Render::resetLocation(const float *trans, const float *rot, float scale)
 {
    btMatrix3x3 bm;
    bm.setEulerZYX(MMDFILES_RAD(rot[0]), MMDFILES_RAD(rot[1]), MMDFILES_RAD(rot[2]));
    bm.getRotation(m_rot);
    m_trans = btVector3(trans[0], trans[1], trans[2]);
    m_scale = scale;
+}
+
+/* Render::setViewMoveTimer: set timer for rotation, transition, and scale of view */
+void Render::setViewMoveTimer(int ms)
+{
+   m_viewMoveTime = ms;
+   if (m_viewMoveTime > 0) {
+      m_viewMoveStartRot = m_currentRot;
+      m_viewMoveStartTrans = m_currentTrans;
+      m_viewMoveStartScale = m_currentScale;
+   }
+}
+
+/* Render::isViewMoving: return if view is moving by timer */
+bool Render::isViewMoving()
+{
+   if (m_viewMoveTime > 0 && (m_currentRot != m_rot || m_currentTrans != m_trans || m_currentScale != m_scale))
+      return true;
+   return false;
 }
 
 /* Render::translate: translate */
@@ -702,18 +769,46 @@ void Render::setShadowMapping(bool useShadowMapping, int textureSize, bool shado
    }
 }
 
+/* Render::getRenderOrder: return rendering order */
+void Render::getRenderOrder(short *order, PMDObject *objs, int num)
+{
+   int i, s;
+   btVector3 pos, v;
+
+   if (num == 0)
+      return;
+
+   s = 0;
+   for (i = 0; i < num; i++) {
+      if (objs[i].isEnable() == false || objs[i].allowMotionFileDrop() == false) continue;
+      pos = objs[i].getPMDModel()->getCenterBone()->getTransform()->getOrigin();
+      pos = m_transMatrix * pos;
+      m_depth[s].dist = pos.z();
+      m_depth[s].id = i;
+      s++;
+   }
+   qsort(m_depth, s, sizeof(RenderDepthData), compareDepth);
+   for (i = 0; i < s; i++)
+      order[i] = m_depth[i].id;
+   for (i = 0; i < num; i++)
+      if (objs[i].isEnable() == false || objs[i].allowMotionFileDrop() == false)
+         order[s++] = i;
+}
+
 /* Render::render: render all */
-void Render::render(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity)
+void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, int ellapsedTimeForMove)
 {
    /* update scale */
-   updateScale();
+   updateScale(ellapsedTimeForMove);
    /* update trans and rotation matrix */
-   updateTransRotMatrix();
+   updateTransRotMatrix(ellapsedTimeForMove);
+   if (isViewMoving() == false)
+      m_viewMoveTime = -1;
 
    if (useShadowMapping)
-      renderSceneShadowMap(objs, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);
+      renderSceneShadowMap(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);
    else
-      renderScene(objs, num, stage, shadowMappingFloorDensity);
+      renderScene(objs, order, num, stage, shadowMappingFloorDensity);
 }
 
 /* Render::pickModel: pick up a model at the screen position */
@@ -792,7 +887,7 @@ int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPick
 }
 
 /* Render::updateLight: update light */
-void Render::updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor)
+void Render::updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor)
 {
    float fLightDif[4];
    float fLightSpc[4];

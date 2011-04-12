@@ -96,7 +96,7 @@ LogText::~LogText()
 }
 
 /* LogText::setup: initialize and setup logger with args */
-void LogText::setup(TextRenderer *text, int *size, float *position, float scale)
+void LogText::setup(TextRenderer *text, const int *size, const float *position, float scale)
 {
    int i;
 

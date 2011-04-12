@@ -70,6 +70,8 @@ void Timer::initialize()
    m_targetAdjustmentFrame = 0.0;
    m_currentAdjustmentFrame = 0.0;
    m_enableAdjustment = false;
+
+   m_userStartTime = 0;
 }
 
 /* Timer::clear: free timer */
@@ -140,6 +142,18 @@ void Timer::pause()
 void Timer::resume()
 {
    m_lastUpdateFrameSystem += diffTime(timeGetTime(), m_pauseTime) * 0.03;
+}
+
+/* Timer::start: start user timer */
+void Timer::start()
+{
+   m_userStartTime = timeGetTime();
+}
+
+/* Timer::ellapsed: return ellapsed time since last call of start() */
+int Timer::ellapsed()
+{
+   return((int)diffTime(timeGetTime(), m_userStartTime));
 }
 
 /* Timer::countFrame: increment frame count for FPS calculation */

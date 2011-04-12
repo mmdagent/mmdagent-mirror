@@ -121,7 +121,7 @@ public:
    void setTransform(btTransform *tr);
 
    /* getOriginPosition: get origin position */
-   btVector3 *getOriginPosition();
+   void getOriginPosition(btVector3 *v);
 
    /* isLimitAngleX: return true if this bone can be bended for X axis only at IK process */
    bool isLimitAngleX();
@@ -136,7 +136,7 @@ public:
    bool isSimulated();
 
    /* getOffset: get offset */
-   btVector3 *getOffset();
+   void getOffset(btVector3 *v);
 
    /* setOffset: set offset */
    void setOffset(btVector3 *v);
@@ -145,13 +145,13 @@ public:
    PMDBone *getParentBone();
 
    /* getCurrentPosition: get current position */
-   btVector3 *getCurrentPosition();
+   void getCurrentPosition(btVector3 *v);
 
    /* setCurrentPosition: set current position */
    void setCurrentPosition(btVector3 *v);
 
    /* getCurrentRotation: get current rotation */
-   btQuaternion *getCurrentRotation();
+   void getCurrentRotation(btQuaternion *q);
 
    /* setCurrentRotation: set current rotation */
    void setCurrentRotation(btQuaternion *q);

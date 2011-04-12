@@ -99,13 +99,13 @@ ESC                       quit
 
 X                         toggle self-shadowing
 E, or SHIFT + E           change edge width
-SHIFT + L                 toggle eye gaze control (follow mouse cursor)
+L, or SHIFT + L           toggle eye gaze control (follow mouse cursor)
 P                         toggle physics simulation
 W                         toggle wireframe view
 
 F                         enable/disable full-screen
 S                         show/hide FPS
-D                         show/hide log
+D, or SHIFT + D           show/hide log
 B                         show/hide bones
 SHIFT + W                 show/hide rigid bodies
 J                         show/hide log of speech recognition
@@ -113,7 +113,7 @@ SHIFT + F                 show/hide log of voice interaction manager
 
 SHIFT + V                 enable/disable synchronization with VSync
 SHIFT + X                 change rendering order of self-shadowing
-CTRL+left, right          adjust latency of audio file play back
+CTRL + left, right        adjust latency of audio file play back
 V                         excecute an FST command
 DELETE                    delete selected model(s) previously selected by
                           double click

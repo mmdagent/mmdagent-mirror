@@ -44,9 +44,9 @@
 #include "MMDFiles.h"
 
 /* PMDModel::parse: initialize and load from data memories */
-bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, char *dir)
+bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, const char *dir)
 {
-   unsigned char *start = data;
+   const unsigned char *start = data;
    FILE *fp;
    bool ret = true;
    unsigned long i;
@@ -72,7 +72,7 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
    PMDFile_RigidBody *fileRigidBody;
    PMDFile_Constraint *fileConstraint;
 
-   unsigned short j, k;
+   unsigned short j, k, l;
    unsigned short *surfaceFrom, *surfaceTo;
    unsigned char type;
    char *name;
@@ -175,6 +175,36 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
       m_centerBone = &(m_boneList[0]);
    }
    data += sizeof(PMDFile_Bone) * m_numBone;
+   /* make ordered bone list */
+   if (m_numBone > 0) {
+      m_orderedBoneList = (PMDBone **) malloc(sizeof(PMDBone *) * m_numBone);
+      k = 0;
+      for (j = 0; j < m_numBone; j++) {
+         if (fileBone[j].parentBoneID == -1)
+            m_orderedBoneList[k++] = &(m_boneList[j]);
+      }
+      l = k;
+      for (j = 0; j < m_numBone; j++) {
+         if (fileBone[j].parentBoneID != -1)
+            m_orderedBoneList[l++] = &(m_boneList[j]);
+      }
+      do {
+         i = 0;
+         for (j = k; j < m_numBone; j++) {
+            for (l = 0; l < j; l++) {
+               if (m_orderedBoneList[l] == m_orderedBoneList[j]->getParentBone())
+                  break;
+            }
+            if (l >= j) {
+               bMatch = m_orderedBoneList[j];
+               if (j < m_numBone - 1)
+                  memmove(m_orderedBoneList[j], m_orderedBoneList[j+1], sizeof(PMDBone *) * (m_numBone - 1 - j));
+               m_orderedBoneList[m_numBone - 1] = bMatch;
+               i = 1;
+            }
+         }
+      } while (i != 0);
+   }
    /* calculate bone offset after all bone positions are loaded */
    for (i = 0; i < m_numBone; i++)
       m_boneList[i].computeOffset();
@@ -232,18 +262,18 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
       m_numRigidBody = 0;
       m_numConstraint = 0;
       /* assign default toon textures for toon shading */
-      for (i = 0; i <= 10; i++) {
-         if (i == 0)
+      for (j = 0; j <= 10; j++) {
+         if (j == 0)
             sprintf(buf, "%s%ctoon0.bmp", dir, MMDFILES_DIRSEPARATOR);
          else
-            sprintf(buf, "%s%ctoon%02d.bmp", dir, MMDFILES_DIRSEPARATOR, i);
+            sprintf(buf, "%s%ctoon%02d.bmp", dir, MMDFILES_DIRSEPARATOR, j);
          /* if "toon??.bmp" exist at the same directory as PMD file, use it */
          /* if not exist or failed to read, use system default toon textures */
          fp = fopen(buf, "rb");
          if (fp != NULL) {
             fclose(fp);
-            if (m_localToonTexture[i].load(buf) == true)
-               m_toonTextureID[i] = m_localToonTexture[i].getID();
+            if (m_localToonTexture[j].load(buf) == true)
+               m_toonTextureID[j] = m_localToonTexture[j].getID();
          }
       }
    } else {
@@ -285,13 +315,17 @@ bool PMDModel::parse(unsigned char *data, unsigned long size, BulletPhysics *bul
       /* check for remaining data */
       if ((unsigned long) data - (unsigned long) start >= size) {
          /* no rigid body / constraint data exist */
+         m_numRigidBody = 0;
+         m_numConstraint = 0;
       } else if (!m_bulletPhysics) {
          /* check if we have given a bulletphysics engine */
+         m_numRigidBody = 0;
+         m_numConstraint = 0;
       } else {
-         modelOffset = (*(m_rootBone.getOffset()));
+         m_rootBone.getOffset(&modelOffset);
          /* update bone matrix to apply root bone offset to bone position */
          for (i = 0; i < m_numBone; i++)
-            m_boneList[i].update();
+            m_orderedBoneList[i]->update();
 
          /* Bullet Physics rigidbody data */
          m_numRigidBody = *((unsigned long *) data);

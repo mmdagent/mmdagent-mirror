@@ -213,6 +213,11 @@
 #define OPTION_DISPLAYCOMMENTFRAME_MAX 1000.0f
 #define OPTION_DISPLAYCOMMENTFRAME_MIN 0.0f
 
+#define OPTION_MAXNUMMODEL_STR "max_num_model"
+#define OPTION_MAXNUMMODEL_DEF 10
+#define OPTION_MAXNUMMODEL_MAX 1024
+#define OPTION_MAXNUMMODEL_MIN 1
+
 /* Option: user options */
 class Option
 {
@@ -280,6 +285,9 @@ private:
    /* comment */
    float m_displayCommentFrame;
 
+   /* model */
+   int m_maxNumModel;
+
    /* initialize: initialize options */
    void initialize();
 
@@ -289,7 +297,7 @@ public:
    Option();
 
    /* load: load options */
-   bool load(char *file);
+   bool load(const char *file);
 
    /* getUseCartoonRendering: get cartoon rendering flag */
    bool getUseCartoonRendering();
@@ -319,19 +327,19 @@ public:
    float *getCartoonEdgeSelectedColor();
 
    /* setCartoonEdgeSelectedColor: set cartoon edge seleceted color */
-   void setCartoonEdgeSelectedColor(float *f);
+   void setCartoonEdgeSelectedColor(const float *f);
 
    /* getRenderingRotation: get rendering rotation */
    float *getRenderingRotation();
 
    /* setRenderingRotation: set rendering rotation */
-   void setRenderingRotation(float *f);
+   void setRenderingRotation(const float *f);
 
    /* getRenderingTransition: get rendering transition */
    float *getRenderingTransition();
 
    /* setRenderingTransition: set rendering transition */
-   void setRenderingTransition(float *f);
+   void setRenderingTransition(const float *f);
 
    /* getRenderingScale: get rendering scale */
    float getRenderingScale();
@@ -343,7 +351,7 @@ public:
    float *getStageSize();
 
    /* setStageSize: set stage size */
-   void setStageSize(float *f);
+   void setStageSize(const float *f);
 
    /* getShowFps: get fps flag */
    bool getShowFps();
@@ -355,13 +363,13 @@ public:
    float *getFpsPosition();
 
    /* setFpsPosition: set fps position */
-   void setFpsPosition(float *f);
+   void setFpsPosition(const float *f);
 
    /* getWindowSize: get window size */
    int *getWindowSize();
 
    /* setWindowSize: set window size */
-   void setWindowSize(int *i);
+   void setWindowSize(const int *i);
 
    /* getTopMost: get top most flag */
    bool getTopMost();
@@ -379,13 +387,13 @@ public:
    int* getLogSize();
 
    /* setLogSize: set log window size */
-   void setLogSize(int *i);
+   void setLogSize(const int *i);
 
    /* getLogPosition: get log window position */
    float *getLogPosition();
 
    /* setLogPosition: set log window position */
-   void setLogPosition(float *f);
+   void setLogPosition(const float *f);
 
    /* getLogScale: get log window scale */
    float getLogScale();
@@ -397,7 +405,7 @@ public:
    float *getLightDirection();
 
    /* setLogDirection: set light direction */
-   void setLightDirection(float *f);
+   void setLightDirection(const float *f);
 
    /* getLogIntensity: get light intensity */
    float getLightIntensity();
@@ -409,13 +417,13 @@ public:
    float *getLightColor();
 
    /* setLightColor: set light color */
-   void setLightColor(float *f);
+   void setLightColor(const float *f);
 
    /* getCampusColor: get campus color */
    float *getCampusColor();
 
    /* setCampusColor: set campus color */
-   void setCampusColor(float *f);
+   void setCampusColor(const float *f);
 
    /* getMaxMultiSampling: get max number of multi sampling */
    int getMaxMultiSampling();
@@ -494,4 +502,10 @@ public:
 
    /* setDisplayCommentFrame: set display comment frame */
    void setDisplayCommentFrame(float f);
+
+   /* getMaxNumModel: get maximum number of models */
+   int getMaxNumModel();
+
+   /* setMaxNumModel: set maximum number of models */
+   void setMaxNumModel(int i);
 };

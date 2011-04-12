@@ -91,7 +91,7 @@ TileTexture::~TileTexture()
 }
 
 /* TileTexture::load: load a texture from file name (wide char) */
-bool TileTexture::load(char *file)
+bool TileTexture::load(const char *file)
 {
    if (MMDAgent_strlen(file) <= 0)
       return false;

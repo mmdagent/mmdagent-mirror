@@ -50,7 +50,7 @@ void PMDModel::updateBone()
 
    /* update bone matrix from current position and rotation */
    for (i = 0; i < m_numBone; i++)
-      m_boneList[i].update();
+      m_orderedBoneList[i]->update();
 
    /* solve IK chains */
    if (m_enableSimulation) {
@@ -173,7 +173,7 @@ void PMDModel::updateShadowColorTexCoord(float coef)
 float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
 {
    unsigned long i;
-   btVector3 centerPos, v;
+   btVector3 centerPos = btVector3(0, 0, 0), v;
    float maxR = 0.0f, r2;
 
    if (m_centerBone) {
@@ -202,10 +202,10 @@ void PMDModel::smearAllBonesToDefault(float rate)
    btQuaternion tmpq;
 
    for (i = 0; i < m_numBone; i++) {
-      tmpv = (*(m_boneList[i].getCurrentPosition()));
+      m_boneList[i].getCurrentPosition(&tmpv);
       tmpv = v.lerp(tmpv, rate);
       m_boneList[i].setCurrentPosition(&tmpv);
-      tmpq = (*(m_boneList[i].getCurrentRotation()));
+      m_boneList[i].getCurrentRotation(&tmpq);
       tmpq = q.slerp(tmpq, rate);
       m_boneList[i].setCurrentRotation(&tmpq);
    }

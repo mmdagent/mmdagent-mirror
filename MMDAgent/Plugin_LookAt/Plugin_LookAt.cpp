@@ -70,40 +70,50 @@
 
 /* global variables */
 
-static BoneController headController[MMDAGENT_MAXNMODEL];
-static BoneController eyeController[MMDAGENT_MAXNMODEL];
+typedef struct _ControllerList {
+   BoneController head;
+   BoneController eye;
+   struct _ControllerList *next;
+} ControllerList;
+
+static ControllerList *controllerList;
 static bool enable;
+static bool updating;
 
 /* setHeadController: set bone controller to head */
 static void setHeadController(BoneController *controller, PMDModel *model)
 {
-   char *bone[] = {"“ª"};
+   const char *bone[] = {"“ª"};
    controller->setup(model, bone, 1, 0.150f, 0.008f, 0.0f, 0.0f, 1.0f, 20.0f, 60.0f, 0.0f, -45.0f, -60.0f, 0.0f, 0.0f, -1.0f, 0.0f);
 }
 
 /* setEyeController: set eye controller to eyes */
 static void setEyeController(BoneController *controller, PMDModel *model)
 {
-   char *bone[] = {"‰E–Ú", "¶–Ú"};
+   const char *bone[] = {"‰E–Ú", "¶–Ú"};
    controller->setup(model, bone, 2, 0.180f, 0.008f, 0.0f, 0.0f, 1.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 /* changeLookAt: switch LookAt */
-static void changeLookAt(PMDObject *objs, const int num, HWND hWnd)
+static void changeLookAt(PMDObject *objs, int num, HWND hWnd)
 {
    int i;
+   ControllerList *tmp;
 
-   for(i = 0; i < num; i++) {
-      if(objs[i].isEnable() == true) {
+   for(i = 0, tmp = controllerList; i < num; i++) {
+      if(objs[i].isEnable() == true && tmp != NULL) {
          if(enable == true) {
-            headController[i].setEnableFlag(false);
-            eyeController[i].setEnableFlag(false);
+            tmp->head.setEnableFlag(false);
+            tmp->eye.setEnableFlag(false);
          } else {
-            headController[i].setEnableFlag(true);
-            eyeController[i].setEnableFlag(true);
+            tmp->head.setEnableFlag(true);
+            tmp->eye.setEnableFlag(true);
          }
       }
+      if(tmp != NULL)
+         tmp = tmp->next;
    }
+   updating = true;
    enable = !enable;
    if(enable)
       ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINLOOKAT_NAME));
@@ -114,7 +124,9 @@ static void changeLookAt(PMDObject *objs, const int num, HWND hWnd)
 /* extAppStart: initialize controller */
 void __stdcall extAppStart(MMDAgent *mmdagent)
 {
+   controllerList = NULL;
    enable = false;
+   updating = false;
 }
 
 /* extProcCommand: process command message */
@@ -132,13 +144,14 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
 /* extProcEvent: process event message */
 void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
-   int id;
+   int i, id;
    char *p, *buf, *save;
    PMDObject *objs;
+   ControllerList *tmp1, *tmp2;
 
    objs = mmdagent->getModelList();
    if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
-      if(MMDAgent_strequal(args, "L")) {
+      if(MMDAgent_strequal(args, "l") || MMDAgent_strequal(args, "L")) {
          changeLookAt(objs, mmdagent->getNumModel(), mmdagent->getWindowHandler());
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(type, MMDAGENT_EVENT_MODELADD)) {
@@ -147,10 +160,24 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
       if(p) {
          id = mmdagent->findModelAlias(p);
          if(id != -1) {
-            setHeadController(&headController[id], objs[id].getPMDModel());
-            setEyeController(&eyeController[id], objs[id].getPMDModel());
-            headController[id].setEnableFlag(enable);
-            eyeController[id].setEnableFlag(enable);
+            for(i = 0, tmp1 = controllerList; i <= id; i++) {
+               if(tmp1 == NULL) {
+                  tmp1 = new ControllerList;
+                  tmp1->next = NULL;
+                  if(i == 0)
+                     controllerList = tmp1;
+                  else
+                     tmp2->next = tmp1;
+               }
+               if(i == id) {
+                  setHeadController(&tmp1->head, objs[id].getPMDModel());
+                  setEyeController(&tmp1->eye, objs[id].getPMDModel());
+                  tmp1->head.setEnableFlag(enable);
+                  tmp1->eye.setEnableFlag(enable);
+               }
+               tmp2 = tmp1;
+               tmp1 = tmp1->next;
+            }
          }
       }
       if(buf != NULL)
@@ -168,6 +195,11 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    HWND hWnd = mmdagent->getWindowHandler();
    RECT rc;
    POINT pos;
+   ControllerList *tmp;
+   bool hasUpdates;
+
+   if (updating == false) return;
+   if (controllerList == NULL) return;
 
    /* set target position */
    if (!GetWindowRect(hWnd, &rc)) return;
@@ -179,13 +211,35 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    mmdagent->getScreenPointPosition(&targetPos, &pointPos);
 
    /* calculate direction of all controlled bones */
+   hasUpdates = false;
    objs = mmdagent->getModelList();
-   for (i = 0; i < mmdagent->getNumModel(); i++) {
-      if (objs[i].isEnable() == true) {
-         headController[i].update(&targetPos, (float) deltaFrame);
-         eyeController[i].update(&targetPos, (float) deltaFrame);
+   for (i = 0, tmp = controllerList; i < mmdagent->getNumModel(); i++) {
+      if (objs[i].isEnable() == true && tmp != NULL) {
+         if (tmp->head.update(&targetPos, (float) deltaFrame) == true)
+            hasUpdates = true;
+         if (tmp->eye.update(&targetPos, (float) deltaFrame) == true)
+            hasUpdates = true;
       }
+      if(tmp != NULL)
+         tmp = tmp->next;
    }
+
+   if (hasUpdates == false) {
+      /* no further update, stop updating */
+      updating = false;
+   }
+}
+
+void __stdcall extAppEnd(MMDAgent *mmdagent)
+{
+   ControllerList *tmp1, *tmp2;
+
+   for(tmp1 = controllerList; tmp1 != NULL; tmp1 = tmp2) {
+      tmp2 = tmp1->next;
+      delete tmp1;
+   }
+   controllerList = NULL;
+   enable = false;
 }
 
 /* DllMain: main for DLL */

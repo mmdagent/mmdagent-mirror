@@ -44,7 +44,7 @@
 #define MMDFILESUTILS_MAXCHARBYTE 3
 
 /* MMDFiles_getcharsize: get character size */
-char MMDFiles_getcharsize(const char *str);
+unsigned char MMDFiles_getcharsize(const char *str);
 
 /* MMDFiles_strequal: string matching */
 bool MMDFiles_strequal(const char *str1, const char *str2);
@@ -60,3 +60,6 @@ char *MMDFiles_strdup(const char *str);
 
 /* MMDFiles_dirdup: get directory from file path */
 char *MMDFiles_dirdup(const char *file);
+
+/* MMDFiles_getfsize: get file size */
+size_t MMDFiles_getfsize(const char *file);

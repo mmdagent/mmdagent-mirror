@@ -40,7 +40,7 @@
 /* ----------------------------------------------------------------- */
 
 #define COUNTDOWNTHREAD_WAITMS  10000 /* 10 sec */
-#define COUNTDOWNTHREAD_SLEEPMS 500   /* check per 0.5 sec */
+#define COUNTDOWNTHREAD_SLEEPMS 100   /* check per 0.1 sec */
 
 #define COUNTDOWNTHREAD_TIMERSTARTEVENT "TIMER_EVENT_START"
 #define COUNTDOWNTHREAD_TIMERSTOPEVENT  "TIMER_EVENT_STOP"
@@ -48,7 +48,7 @@
 /* CountDown: timer */
 typedef struct _CountDown {
    char *name;
-   int goal;
+   float goal;
    struct _CountDown *prev;
    struct _CountDown *next;
 } CountDown;

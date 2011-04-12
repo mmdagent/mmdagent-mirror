@@ -255,6 +255,7 @@ static void postKeyMessage(const char *args)
 void __stdcall extAppStart(MMDAgent *mmdagent)
 {
    enable = true;
+   PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
 }
 
 /* extProcCommand: process command message */
@@ -262,8 +263,10 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
 {
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE) == true) {
-         enable = false;
-         PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
+         if(MMDAgent_strequal(args, PLUGINWINDOWCONTROLLER_NAME)) {
+            enable = false;
+            PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
+         }
       } else if(MMDAgent_strequal(type, PLUGINWINDOWCONTROLLER_EXECUTE) == true) {
          if(MMDAgent_strlen(args) > 0)
             ShellExecuteA(mmdagent->getWindowHandler(), NULL, args, NULL, NULL, SW_SHOWNORMAL);

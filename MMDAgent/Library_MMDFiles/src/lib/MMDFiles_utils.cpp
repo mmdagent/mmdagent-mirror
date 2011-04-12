@@ -53,9 +53,9 @@ static const unsigned char MMDFiles_charsize[] = {
 };
 
 /* MMDFiles_getcharsize: get character size */
-char MMDFiles_getcharsize(const char *str)
+unsigned char MMDFiles_getcharsize(const char *str)
 {
-   char i, size = -1;
+   unsigned char i;
 
    if(str == NULL || *str == '\0')
       return 0;
@@ -143,4 +143,22 @@ char *MMDFiles_dirdup(const char *file)
    }
 
    return dir;
+}
+
+/* MMDFiles_getfsize: get file size */
+size_t MMDFiles_getfsize(const char *file)
+{
+   FILE *fp;
+   fpos_t size;
+
+   fp = fopen(file, "rb");
+   if (!fp)
+      return 0;
+
+   fseek(fp, 0, SEEK_END);
+   fgetpos(fp, &size);
+   fseek(fp, 0, SEEK_SET);
+   fclose(fp);
+
+   return (size_t) size;
 }

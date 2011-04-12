@@ -91,7 +91,7 @@ LipSync::~LipSync()
 }
 
 /* LipSync::load: initialize and load lip setting */
-bool LipSync::load(char *file)
+bool LipSync::load(const char *file)
 {
    int i, j;
    FILE *fp;
@@ -169,7 +169,7 @@ bool LipSync::load(char *file)
 }
 
 /* LipSync::createMotion: create motion from phoneme sequence */
-bool LipSync::createMotion(char *str, unsigned char **rawData, unsigned long *rawSize)
+bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned long *rawSize)
 {
    int i, j, k;
    int len;

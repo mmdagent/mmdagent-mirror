@@ -102,19 +102,19 @@ private:
    float m_maxFrame; /* max frame */
 
    /* addBoneMotion: add new bone motion to list */
-   void addBoneMotion(char *name);
+   void addBoneMotion(const char *name);
 
    /* addFaceMotion: add new face motion to list */
-   void addFaceMotion(char *name);
+   void addFaceMotion(const char *name);
 
    /* getBoneMotion: find bone motion by name */
-   BoneMotion * getBoneMotion(char *name);
+   BoneMotion * getBoneMotion(const char *name);
 
    /* getFaceMotion: find face motion by name */
-   FaceMotion * getFaceMotion(char *name);
+   FaceMotion * getFaceMotion(const char *name);
 
    /* setInterpolationTable: set up motion interpolation parameter */
-   void setInterpolationTable(BoneKeyFrame *bf, char ip[]);
+   void setInterpolationTable(BoneKeyFrame *bf, const char *ip);
 
    /* initialize: initialize VMD */
    void initialize();
@@ -131,10 +131,10 @@ public:
    ~VMD();
 
    /* load: initialize and load from file name */
-   bool load(char *file);
+   bool load(const char *file);
 
    /* parse: initialize and load from data memories */
-   bool parse(unsigned char *data, unsigned long size);
+   bool parse(const unsigned char *data, unsigned long size);
 
    /* getTotalKeyFrame: get total number of key frames */
    unsigned long getTotalKeyFrame();

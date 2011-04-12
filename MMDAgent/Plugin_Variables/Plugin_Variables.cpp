@@ -99,7 +99,7 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
    char *buff, *p1, *p2, *p3, *save;
 
    if(enable == true) {
-      if(MMDAgent_strequal(type, MMDAGENT_EVENT_PLUGINDISABLE)) {
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
             enable = false;
             ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
@@ -138,7 +138,7 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
          countdown_thread.unset(args);
       }
    } else {
-      if(MMDAgent_strequal(type, MMDAGENT_EVENT_PLUGINENABLE)) {
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
             enable = true;
             ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));

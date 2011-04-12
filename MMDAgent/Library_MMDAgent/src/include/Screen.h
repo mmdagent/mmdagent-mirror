@@ -96,8 +96,8 @@ public:
    /* Screen: destructor */
    ~Screen();
 
-   /* createWindow: create window */
-   HWND createWindow(int *size, HINSTANCE hInstance, char *title, char *windowName, int max_sample_num, int max_sample_col_num, bool topMost);
+   /* setup: create window */
+   HWND setup(const int *size, HINSTANCE hInstance, const char *title, const char *windowName, int maxNumSample, int maxNumColSample, bool topMost);
 
    /* swapBuffers: swap buffers */
    void swapBuffers();

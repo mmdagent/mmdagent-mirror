@@ -307,8 +307,8 @@ void Screen::getPixelFormatARB(DeviceContextInfo *info, int max_sample_num, int 
    }
 }
 
-/* Screen::createWindow: create window */
-HWND Screen::createWindow(int *size, HINSTANCE hInstance, char *title, char *windowName, int max_sample_num, int max_sample_col_num, bool topMost)
+/* Screen::setup: create window */
+HWND Screen::setup(const int *size, HINSTANCE hInstance, const char *title, const char *windowName, int maxNumSample, int maxNumColSample, bool topMost)
 {
    HWND hWnd;
    int currentPixelFormat;
@@ -319,7 +319,7 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, char *title, char *win
    /* make dummy window */
    hWnd = CreateWindowExA(
              (topMost ? WS_EX_TOPMOST : 0),
-             max_sample_num > 0 ? DUMMY_CLASS_NAME : windowName,
+             maxNumSample > 0 ? DUMMY_CLASS_NAME : windowName,
              title,
              WS_VISIBLE | WS_OVERLAPPEDWINDOW,
              CW_USEDEFAULT,
@@ -338,10 +338,10 @@ HWND Screen::createWindow(int *size, HINSTANCE hInstance, char *title, char *win
    /* prepare initial device context (if FSAA is used, dummy) */
    initDC(hWnd, -1);
 
-   if (max_sample_num > 0) {
+   if (maxNumSample > 0) {
 
       /* get pixel format (extension) */
-      getPixelFormatARB(&m_dcinfo, max_sample_num, max_sample_col_num);
+      getPixelFormatARB(&m_dcinfo, maxNumSample, maxNumColSample);
       /* save parameter */
       currentPixelFormat = m_dcinfo.pixelformat;
       /* close winodw */

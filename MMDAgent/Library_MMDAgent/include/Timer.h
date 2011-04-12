@@ -58,6 +58,8 @@ private:
    double m_currentAdjustmentFrame; /* current frame to sync music */
    bool m_enableAdjustment;         /* switch to sync music */
 
+   DWORD m_userStartTime;    /* user start time */
+
    /* diffTime: return time difference between two counts */
    DWORD diffTime(DWORD now, DWORD past);
 
@@ -86,6 +88,12 @@ public:
 
    /* resume: resume timer */
    void resume();
+
+   /* start: start user timer */
+   void start();
+
+   /* ellapsed: return ellapsed time since last call of start() */
+   int ellapsed();
 
    /* countFrame: increment frame count for FPS calculation */
    void countFrame();

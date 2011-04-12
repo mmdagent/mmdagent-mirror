@@ -83,16 +83,16 @@ public:
    ~Stage();
 
    /* setSize: set size of floor and background */
-   void setSize(float *size, float numx, float numy);
+   void setSize(const float *size, float numx, float numy);
 
    /* loadFloor: load floor image */
-   bool loadFloor(char *file, BulletPhysics *bullet);
+   bool loadFloor(const char *file, BulletPhysics *bullet);
 
    /* loadBackground: load background image */
-   bool loadBackground(char *file, BulletPhysics *bullet);
+   bool loadBackground(const char *file, BulletPhysics *bullet);
 
    /* loadStagePMD: load stage pmd */
-   bool loadStagePMD(char *file, BulletPhysics *bullet, SystemTexture *systex);
+   bool loadStagePMD(const char *file, BulletPhysics *bullet, SystemTexture *systex);
 
    /* renderFloor: render the floor */
    void renderFloor();
@@ -104,7 +104,7 @@ public:
    void renderPMD();
 
    /* updateShadowMatrix: update shadow projection matrix */
-   void updateShadowMatrix(float *lightDirection);
+   void updateShadowMatrix(const float *lightDirection);
 
    /* getShadowMatrix: get shadow projection matrix */
    GLfloat *getShadowMatrix();

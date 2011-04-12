@@ -113,7 +113,7 @@ char *MMDAgent_strtok(char *str, const char *pat, char **save)
    char mbc2[UTILS_MAXCHARBYTE];
    int find;
    int step = 0;
-   char i, size;
+   unsigned char i, size;
 
    if(str != NULL)
       p = str;

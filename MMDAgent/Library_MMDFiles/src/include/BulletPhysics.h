@@ -83,5 +83,6 @@ public:
    /* getWorld: get simulation world */
    btDiscreteDynamicsWorld *getWorld();
 
+   /* debugDisplay: render rigid bodies */
    void debugDisplay();
 };

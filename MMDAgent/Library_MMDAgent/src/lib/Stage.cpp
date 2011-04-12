@@ -119,7 +119,7 @@ Stage::~Stage()
 }
 
 /* Stage::setSize: set size of floor and background */
-void Stage::setSize(float *size, float numx, float numy)
+void Stage::setSize(const float *size, float numx, float numy)
 {
    m_floor.setSize(-size[0], 0.0f, size[1],
                    size[0], 0.0f, size[1],
@@ -135,7 +135,7 @@ void Stage::setSize(float *size, float numx, float numy)
 }
 
 /* Stage::loadFloor: load floor image */
-bool Stage::loadFloor(char *file, BulletPhysics *bullet)
+bool Stage::loadFloor(const char *file, BulletPhysics *bullet)
 {
    if (m_bullet == NULL)
       m_bullet = bullet;
@@ -152,7 +152,7 @@ bool Stage::loadFloor(char *file, BulletPhysics *bullet)
 }
 
 /* Stage::loadBackground: load background image */
-bool Stage::loadBackground(char *file, BulletPhysics *bullet)
+bool Stage::loadBackground(const char *file, BulletPhysics *bullet)
 {
    if (m_bullet == NULL)
       m_bullet = bullet;
@@ -169,7 +169,7 @@ bool Stage::loadBackground(char *file, BulletPhysics *bullet)
 }
 
 /* Stage::loadStagePMD: load stage pmd */
-bool Stage::loadStagePMD(char *file, BulletPhysics *bullet, SystemTexture *systex)
+bool Stage::loadStagePMD(const char *file, BulletPhysics *bullet, SystemTexture *systex)
 {
    if (m_bullet == NULL)
       m_bullet = bullet;
@@ -226,7 +226,7 @@ void Stage::renderPMD()
 }
 
 /* Stage::updateShadowMatrix: update shadow projection matrix */
-void Stage::updateShadowMatrix(float *lightDirection)
+void Stage::updateShadowMatrix(const float *lightDirection)
 {
    GLfloat dot;
    GLfloat floorPlane[4];

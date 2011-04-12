@@ -57,16 +57,16 @@ private:
 private:
 
    /* loadBMP: load BMP texture */
-   bool loadBMP(char *fileName);
+   bool loadBMP(const char *fileName);
 
    /* loadTGA: load TGA texture */
-   bool loadTGA(char *fileName);
+   bool loadTGA(const char *fileName);
 
    /* loadPNG: load PNG texture */
-   bool loadPNG(char *fileName);
+   bool loadPNG(const char *fileName);
 
    /* loadJPG: load JPG texture */
-   bool loadJPG(char *fileName);
+   bool loadJPG(const char *fileName);
 
    /* initialize: initialize texture */
    void initialize();
@@ -83,7 +83,7 @@ public:
    ~PMDTexture();
 
    /* load: load from file name */
-   bool load(char *fileName);
+   bool load(const char *fileName);
 
    /* getID: get OpenGL texture ID */
    GLuint getID();

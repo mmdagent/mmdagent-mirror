@@ -55,10 +55,10 @@ private:
    bool m_hasError;     /* true then some error occured at texture loading */
 
    /* lookup: lookup texture in cache */
-   PMDTexture *lookup(char *fileName, bool *alreadyFailRet);
+   PMDTexture *lookup(const char *fileName, bool *alreadyFailRet);
 
    /* store: add a texture to cache */
-   void store(PMDTexture *tex, char *fileName);
+   void store(PMDTexture *tex, const char *fileName);
 
    /* initialize: initialize texture loader */
    void initialize();
@@ -75,7 +75,7 @@ public:
    ~PMDTextureLoader();
 
    /* load: load texture from file name (multi-byte char) */
-   PMDTexture *load(char *fileName);
+   PMDTexture *load(const char *fileName);
 
    /* getErrorTextureString: get newline-separated list of error textures */
    void getErrorTextureString(char *buf, int size);

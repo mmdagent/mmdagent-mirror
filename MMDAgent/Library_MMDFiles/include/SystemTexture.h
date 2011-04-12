@@ -65,7 +65,7 @@ public:
    ~SystemTexture();
 
    /* load: load system texture from current directory */
-   bool load(char *dir);
+   bool load(const char *dir);
 
    /* getTextureID: get toon texture ID */
    unsigned int getTextureID(int i);

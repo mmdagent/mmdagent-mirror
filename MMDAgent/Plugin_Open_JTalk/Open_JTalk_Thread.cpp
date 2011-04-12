@@ -333,7 +333,7 @@ void Open_JTalk_Thread::start()
          m_openJTalk.prepare(text);
          m_openJTalk.getPhonemeSequence(lip);
          if (MMDAgent_strlen(lip) > 0) {
-            sendLipCommandMessage(chara, lip);
+            sendStartLipCommandMessage(chara, lip);
             m_openJTalk.synthesis();
          }
 
@@ -419,8 +419,24 @@ void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const ch
 /* Open_JTalk_Thread::stop: barge-in function */
 void Open_JTalk_Thread::stop()
 {
-   if(isRunning())
+   if(isRunning()) {
       m_openJTalk.stop();
+
+      if(m_bufferMutex == 0) return;
+
+      /* wait buffer mutex */
+      if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
+         MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
+         return;
+      }
+
+      /* stop lip sync */
+      sendStopLipCommandMessage(m_charaBuff);
+
+      /* release buffer mutex */
+      ReleaseMutex(m_bufferMutex);
+
+   }
 }
 
 /* Open_JTalk_Thread::sendStartEventMessage: send start event message to MMDAgent */
@@ -435,17 +451,31 @@ void Open_JTalk_Thread::sendStopEventMessage(const char *str)
    ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(OPENJTALKTHREAD_EVENTSTOP), (LPARAM) MMDAgent_strdup(str));
 }
 
-/* Open_JTalk_Thread::sendLipCommandMessage: send lipsync command message to MMDAgent */
-void Open_JTalk_Thread::sendLipCommandMessage(const char *chara, const char *lip)
+/* Open_JTalk_Thread::sendStartLipCommandMessage: send lipsync command message to MMDAgent */
+void Open_JTalk_Thread::sendStartLipCommandMessage(const char *chara, const char *lip)
 {
    char *mes1;
    char *mes2;
 
    if(chara == NULL || lip == NULL) return;
 
-   mes1 = MMDAgent_strdup(OPENJTALKTHREAD_COMMANDLIP);
+   mes1 = MMDAgent_strdup(OPENJTALKTHREAD_COMMANDSTARTLIP);
    mes2 = (char *) malloc(sizeof(char) * (MMDAgent_strlen(chara) + 1 + MMDAgent_strlen(lip) + 1));
    sprintf(mes2, "%s|%s", chara, lip);
+
+   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
+}
+
+/* Open_JTalk_Thread::sendStopLipCommandMessage: send lipsync command message to MMDAgent */
+void Open_JTalk_Thread::sendStopLipCommandMessage(const char *chara)
+{
+   char *mes1;
+   char *mes2;
+
+   if(chara == NULL) return;
+
+   mes1 = MMDAgent_strdup(OPENJTALKTHREAD_COMMANDSTOPLIP);
+   mes2 = MMDAgent_strdup(chara);
 
    ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
 }

@@ -57,6 +57,12 @@
 #define RENDER_VIEWPOINTFRUSTUMNEAR 5.0f
 #define RENDER_VIEWPOINTFRUSTUMFAR  2000.0f
 
+/* RenderDepthData: depth data for model ordering */
+typedef struct {
+   float dist;
+   short   id;
+} RenderDepthData;
+
 /* Render: render */
 class Render
 {
@@ -77,6 +83,11 @@ private:
    btScalar m_rotMatrix[16];     /* current rotation + OpenGL rotation matrix */
    btScalar m_rotMatrixInv[16];  /* current rotation + inverse of OpenGL rotation matrix */
 
+   int m_viewMoveTime;              /* view length in msec */
+   btVector3 m_viewMoveStartTrans;  /* transition at start of view move */
+   btQuaternion m_viewMoveStartRot; /* rotation at start of view move */
+   float m_viewMoveStartScale;      /* scale at start of view move */
+
    float m_backgroundColor[3]; /* background color */
 
    bool m_shadowMapInitialized;           /* true if initialized */
@@ -85,6 +96,8 @@ private:
    btVector3 m_lightVec;                  /* light vector for shadow maapping */
    btVector3 m_shadowMapAutoViewEyePoint; /* view point of shadow mapping */
    float m_shadowMapAutoViewRadius;       /* radius from view point */
+
+   RenderDepthData *m_depth;              /* depth data of each model for reordering */
 
    /* updateProjectionMatrix: update view information */
    void updateProjectionMatrix();
@@ -96,19 +109,19 @@ private:
    void updateModelViewMatrix();
 
    /* update: update scale */
-   void updateScale();
+   void updateScale(int ellapsedTimeForMove);
 
    /* updateTransRotMatrix:  update trans and rotation matrix */
-   void updateTransRotMatrix();
+   void updateTransRotMatrix(int ellapsedTimeForMove);
 
    /* initializeShadowMap: initialize OpenGL for shadow mapping */
    void initializeShadowMap(int textureSize);
 
    /* renderSceneShadowMap: shadow mapping */
-   void renderSceneShadowMap(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
+   void renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
 
    /* renderScene: render scene */
-   void renderScene(PMDObject *objs, int num, Stage *stage, float shadowMappingFloorDensity);
+   void renderScene(PMDObject *objs, short *order, int num, Stage *stage, float shadowMappingFloorDensity);
 
    /* initialize: initialzie Render */
    void initialize();
@@ -125,7 +138,7 @@ public:
    ~Render();
 
    /* setup: initialize and setup Render */
-   bool setup(int *size, float *color, float *trans, float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst);
+   bool setup(const int *size, const float *color, const float *trans, const float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, int maxNumModel);
 
    /* setSize: set size */
    void setSize(int w, int h);
@@ -137,7 +150,13 @@ public:
    int getHeight();
 
    /* resetLocation: reset rotation, transition, and scale */
-   void resetLocation(const float *trans, const float *rot, const float scale);
+   void resetLocation(const float *trans, const float *rot, float scale);
+
+   /* setViewMoveTimer: reset timer for rotation, transition, and scale of view */
+   void setViewMoveTimer(int ms);
+
+   /* isViewMoving: return if view is moving by timer */
+   bool isViewMoving();
 
    /* translate: translate */
    void translate(float x, float y, float z);
@@ -154,14 +173,17 @@ public:
    /* setShadowMapping: switch shadow mapping */
    void setShadowMapping(bool useShadowMapping, int textureSize, bool shadowMappingLightFirst);
 
+   /* getRenderOrder: return rendering order */
+   void getRenderOrder(short *order, PMDObject *objs, int num);
+
    /* render: render all */
-   void render(PMDObject *objs, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity);
+   void render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, int ellapsedTimeForMove);
 
    /* pickModel: pick up a model at the screen position */
    int pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPicked);
 
    /* updateLigit: update light */
-   void updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor);
+   void updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor);
 
    /* updateDepthTextureViewParam: update center and radius information to get required range for shadow mapping */
    void updateDepthTextureViewParam(PMDObject *objList, int num);

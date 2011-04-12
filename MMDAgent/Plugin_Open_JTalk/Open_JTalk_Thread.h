@@ -41,10 +41,11 @@
 
 /* definitions */
 
-#define OPENJTALKTHREAD_WAITMS     10000               /* 10 sec */
-#define OPENJTALKTHREAD_EVENTSTART "SYNTH_EVENT_START"
-#define OPENJTALKTHREAD_EVENTSTOP  "SYNTH_EVENT_STOP"
-#define OPENJTALKTHREAD_COMMANDLIP "LIPSYNC_START"
+#define OPENJTALKTHREAD_WAITMS          10000               /* 10 sec */
+#define OPENJTALKTHREAD_EVENTSTART      "SYNTH_EVENT_START"
+#define OPENJTALKTHREAD_EVENTSTOP       "SYNTH_EVENT_STOP"
+#define OPENJTALKTHREAD_COMMANDSTARTLIP "LIPSYNC_START"
+#define OPENJTALKTHREAD_COMMANDSTOPLIP  "LIPSYNC_STOP"
 
 /* Open_JTalk_Thread: thread for Open JTalk */
 class Open_JTalk_Thread
@@ -117,6 +118,9 @@ public:
    /* sendStopEventMessage: send stop event message to MMDAgent */
    void sendStopEventMessage(const char *str);
 
-   /* sendLipCommandMessage: send lipsync command message to MMDAgent */
-   void sendLipCommandMessage(const char *chara, const char *lip);
+   /* sendStartLipCommandMessage: send lipsync command message to MMDAgent */
+   void sendStartLipCommandMessage(const char *chara, const char *lip);
+
+   /* sendStopLipCommandMessage: send lipsync command message to MMDAgent */
+   void sendStopLipCommandMessage(const char *chara);
 };

@@ -74,7 +74,7 @@ static float ipfuncd(float t, float p1, float p2)
 }
 
 /* VMD::addBoneMotion: add new bone motion to list */
-void VMD::addBoneMotion(char *name)
+void VMD::addBoneMotion(const char *name)
 {
    BoneMotionLink *link;
    BoneMotion *bmNew;
@@ -97,7 +97,7 @@ void VMD::addBoneMotion(char *name)
 }
 
 /* VMD::addFaceMotion: add new face motion to list */
-void VMD::addFaceMotion(char *name)
+void VMD::addFaceMotion(const char *name)
 {
    FaceMotionLink *link;
    FaceMotion *fmNew;
@@ -120,7 +120,7 @@ void VMD::addFaceMotion(char *name)
 }
 
 /* VMD::getBoneMotion: find bone motion by name */
-BoneMotion* VMD::getBoneMotion(char *name)
+BoneMotion* VMD::getBoneMotion(const char *name)
 {
    BoneMotion *bm;
 
@@ -135,7 +135,7 @@ BoneMotion* VMD::getBoneMotion(char *name)
 }
 
 /* VMD::getFaceMotion: find face motion by name */
-FaceMotion* VMD::getFaceMotion(char *name)
+FaceMotion* VMD::getFaceMotion(const char *name)
 {
    FaceMotion *fm;
 
@@ -150,7 +150,7 @@ FaceMotion* VMD::getFaceMotion(char *name)
 }
 
 /* VMD::setInterpolationTable: set up motion interpolation parameter */
-void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
+void VMD::setInterpolationTable(BoneKeyFrame *bf, const char *ip)
 {
    short i, d;
    float x1, x2, y1, y2;
@@ -167,13 +167,13 @@ void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
          bf->interpolationTable[i] = NULL;
          continue;
       }
-      bf->interpolationTable[i] = (float *) malloc(sizeof(float) * VMD_INTERPOLATIONTABLESIZE);
+      bf->interpolationTable[i] = (float *) malloc(sizeof(float) * (VMD_INTERPOLATIONTABLESIZE + 1));
       x1 = ip[   i] / 127.0f;
       y1 = ip[ 4+i] / 127.0f;
       x2 = ip[ 8+i] / 127.0f;
       y2 = ip[12+i] / 127.0f;
       for (d = 0; d < VMD_INTERPOLATIONTABLESIZE; d++) {
-         inval = ((float) d + 0.5f) / (float) VMD_INTERPOLATIONTABLESIZE;
+         inval = (float) d / (float) VMD_INTERPOLATIONTABLESIZE;
          /* get Y value for given inval */
          t = inval;
          while (1) {
@@ -185,6 +185,7 @@ void VMD::setInterpolationTable(BoneKeyFrame *bf, char ip[])
          }
          bf->interpolationTable[i][d] = ipfunc(t, y1, y2);
       }
+      bf->interpolationTable[i][VMD_INTERPOLATIONTABLESIZE] = 1.0f;
    }
 }
 
@@ -254,10 +255,10 @@ VMD::~VMD()
 }
 
 /* VMD::load: initialize and load from file name */
-bool VMD::load(char *file)
+bool VMD::load(const char *file)
 {
    FILE *fp;
-   fpos_t size;
+   size_t size;
    unsigned char *data;
    bool ret;
 
@@ -267,14 +268,12 @@ bool VMD::load(char *file)
       return false;
 
    /* get file size */
-   fseek(fp, 0, SEEK_END);
-   fgetpos(fp, &size);
+   size = MMDFiles_getfsize(file);
 
    /* allocate memory for reading data */
-   data = (unsigned char *) malloc((size_t) size);
+   data = (unsigned char *) malloc(size);
 
    /* read all data */
-   fseek(fp, 0, SEEK_SET);
    fread(data, 1, (size_t) size, fp);
 
    /* close file */
@@ -290,10 +289,9 @@ bool VMD::load(char *file)
 }
 
 /* VMD::parse: initialize and load from data memories */
-bool VMD::parse(unsigned char *data, unsigned long size)
+bool VMD::parse(const unsigned char *data, unsigned long size)
 {
    unsigned long i;
-   size_t len = 0;
    BoneMotion *bm;
    BoneMotionLink *bl;
    FaceMotion *fm;

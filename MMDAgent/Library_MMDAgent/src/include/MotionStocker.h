@@ -75,10 +75,10 @@ public:
    ~MotionStocker();
 
    /* loadFromFile: load VMD from file or return cached one */
-   VMD *loadFromFile(char *file);
+   VMD *loadFromFile(const char *file);
 
    /* loadFromData: load VMD from data memories */
-   VMD *loadFromData(unsigned char *rawData, unsigned long rawSize);
+   VMD *loadFromData(const unsigned char *rawData, unsigned long rawSize);
 
    /* unload: unload VMD */
    void unload(VMD *vmd);

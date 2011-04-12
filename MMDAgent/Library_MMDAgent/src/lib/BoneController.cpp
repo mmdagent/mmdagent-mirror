@@ -91,7 +91,7 @@ BoneController::~BoneController()
 }
 
 /* BoneController::setup: initialize and setup bone controller */
-void BoneController::setup(PMDModel *model, char **boneName, int numBone, float rateOn, float rateOff,
+void BoneController::setup(PMDModel *model, const char **boneName, int numBone, float rateOn, float rateOff,
                            float baseVectorX, float baseVectorY, float baseVectorZ,
                            float upperAngLimitX, float upperAngLimitY, float upperAngLimitZ,
                            float lowerAngLimitX, float lowerAngLimitY, float lowerAngLimitZ,
@@ -153,7 +153,7 @@ void BoneController::setEnableFlag(bool b)
 
    if(b == true) {
       for(i = 0; i < m_numBone; i++)
-         m_rotList[i] = (*(m_boneList[i]->getCurrentRotation()));
+         m_boneList[i]->getCurrentRotation(&m_rotList[i]);
    } else if(m_enable == true) {
       m_fadingRate = 1.0f;
    }
@@ -161,7 +161,7 @@ void BoneController::setEnableFlag(bool b)
 }
 
 /* BoneController::update: update motions */
-void BoneController::update(btVector3 *pos, float deltaFrame)
+bool BoneController::update(btVector3 *pos, float deltaFrame)
 {
    int i;
    float rate, dot;
@@ -171,14 +171,15 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
    btScalar x, y, z;
    btMatrix3x3 mat;
 
-   if(m_numBone <= 0) return;
+   if(m_numBone <= 0) return false;
 
    if(m_enable) {
-      /* increase rate */
+      /* rotate bone to target */
+      /* increasement rate */
       rate = m_rateOn * deltaFrame;
       if(rate > 1.0f) rate = 1.0f;
       if(rate < 0.0f) rate = 0.0f;
-      /* set offset of target position */
+      /* set offset to target position */
       v = (*pos) + m_adjustPos;
       for(i = 0; i < m_numBone; i++) {
          /* calculate rotation to target position */
@@ -214,7 +215,7 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
       for(i = 0; i < m_numChildBone; i++)
          m_childBoneList[i]->update();
    } else {
-      /* spin target bone slowly */
+      /* loose bone to its original rotation */
       if (m_fadingRate > 0.0f) {
          /* decrement rate */
          m_fadingRate -= m_rateOff * deltaFrame;
@@ -222,7 +223,7 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
             m_fadingRate = 0.0f;
          /* rate multiplication for bone rotation */
          for (i = 0; i < m_numBone; i++) {
-            targetRot = (*(m_boneList[i]->getCurrentRotation()));
+            m_boneList[i]->getCurrentRotation(&targetRot);
             m_rotList[i] = targetRot.slerp(m_rotList[i], m_fadingRate);
             m_boneList[i]->setCurrentRotation(&m_rotList[i]);
          }
@@ -231,7 +232,12 @@ void BoneController::update(btVector3 *pos, float deltaFrame)
             m_boneList[i]->update();
          for (i = 0; i < m_numChildBone; i++)
             m_childBoneList[i]->update();
+      } else {
+         /* now bone has returned to its original rotation */
+         return false;
       }
    }
+
+   return true;
 }
 

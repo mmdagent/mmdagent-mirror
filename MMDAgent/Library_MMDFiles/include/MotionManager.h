@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define MOTIONMANAGER_DEFAULTPRIORITY    0    /* motion priority */
+#define MOTIONMANAGER_DEFAULTPRIORITY    0.0f /* motion priority */
 #define MOTIONMANAGER_DEFAULTLOOPATFRAME 0.0f /* when specified with loop, motion will rewind at this frame when reached end */
 
 /* motions's status at last call */
@@ -58,7 +58,7 @@ typedef struct _MotionPlayer {
 
    /* switches which should be set before startMotion() */
    unsigned char onEnd;         /* switch for end-of-motion: 0=keep last pose forever, 1=loop(rewind), 2=disapper with blending */
-   short priority;              /* priority of this motion, larger value will supercede others default is 0 */
+   float priority;              /* priority of this motion, larger value will supercede others default is 0 */
    bool ignoreStatic;           /* if true, bones / faces which has only the first frame will be ignored */
    float loopAt;                /* rewind to the frame, used when onEnd==1 */
    bool enableSmooth;           /* enable "magic" smooth motion transition at start, end, and loop of motion */
@@ -109,16 +109,16 @@ public:
    ~MotionManager();
 
    /* startMotion: start a motion */
-   bool startMotion(VMD *vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRePos);
+   bool startMotion(VMD *vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRePos, float priority);
 
    /* startMotionSub: initialize a motion */
    void startMotionSub(VMD *vmd, MotionPlayer *m);
 
    /* swapMotion: swap a motion, keeping parameters */
-   bool swapMotion(VMD *vmd, char *name);
+   bool swapMotion(VMD *vmd, const char *name);
 
    /* deleteMotion: delete a motion */
-   bool deleteMotion(char *name);
+   bool deleteMotion(const char *name);
 
    /* update: apply all motion players */
    bool update(double frame);

@@ -194,7 +194,7 @@ void PMDBone::reset()
 void PMDBone::setMotionIndependency()
 {
    int i;
-   char *names[] = {PMDBONE_ADDITIONALROOTNAME};
+   const char *names[] = {PMDBONE_ADDITIONALROOTNAME};
 
    if (! m_parentBone || m_parentIsRoot) {
       /* if no parent bone in the model, return true */
@@ -276,9 +276,9 @@ void PMDBone::setTransform(btTransform *tr)
 }
 
 /* PMDBone::getOriginPosition: get position */
-btVector3 *PMDBone::getOriginPosition()
+void PMDBone::getOriginPosition(btVector3 *v)
 {
-   return &m_originPosition;
+   (*v) = m_originPosition;
 }
 
 /* PMDBone::isLimitAngleX: return true if this bone can be bended for X axis only at IK process */
@@ -305,9 +305,9 @@ bool PMDBone::isSimulated()
 }
 
 /* PMDBone::getOffset: get offset */
-btVector3 *PMDBone::getOffset()
+void PMDBone::getOffset(btVector3 *v)
 {
-   return &m_offset;
+   (*v) = m_offset;
 }
 
 /* PMDBone::setOffset: set offset */
@@ -323,9 +323,9 @@ PMDBone *PMDBone::getParentBone()
 }
 
 /* PMDBone::getCurrentPosition: get current position */
-btVector3 *PMDBone::getCurrentPosition()
+void PMDBone::getCurrentPosition(btVector3 *v)
 {
-   return &m_pos;
+   (*v) = m_pos;
 }
 
 /* PMDBone::setCurrentPosition: set current position */
@@ -335,9 +335,9 @@ void PMDBone::setCurrentPosition(btVector3 *v)
 }
 
 /* PMDBone::getCurrentRotation: get current rotation */
-btQuaternion *PMDBone::getCurrentRotation()
+void PMDBone::getCurrentRotation(btQuaternion *q)
 {
-   return &m_rot;
+   (*q) = m_rot;
 }
 
 /* PMDBone::setCurrentRotation: set current rotation */

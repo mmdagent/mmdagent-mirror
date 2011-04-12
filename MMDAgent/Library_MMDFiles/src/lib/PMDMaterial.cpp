@@ -83,7 +83,7 @@ PMDMaterial::~PMDMaterial()
 }
 
 /* PMDMaterial::setup: initialize and setup material */
-bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, char *dir)
+bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir)
 {
    int i, len;
    char *p;

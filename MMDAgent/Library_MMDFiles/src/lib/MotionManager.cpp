@@ -136,7 +136,7 @@ MotionManager::~MotionManager()
 }
 
 /* MotionManager::startMotion start a motion */
-bool MotionManager::startMotion(VMD * vmd, char *name, bool full, bool once, bool enableSmooth, bool enableRePos)
+bool MotionManager::startMotion(VMD * vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRePos, float priority)
 {
    MotionPlayer *m, *tmp1, *tmp2;
 
@@ -150,6 +150,7 @@ bool MotionManager::startMotion(VMD * vmd, char *name, bool full, bool once, boo
    MotionPlayer_initialize(m);
 
    m->name = MMDFiles_strdup(name);
+   m->priority = priority;
    m->onEnd = once ? 2 : 1; /* if loop is not specified, this motion will be deleted */
    m->ignoreStatic = full ? false : true;
    m->enableSmooth = enableSmooth;
@@ -162,8 +163,8 @@ bool MotionManager::startMotion(VMD * vmd, char *name, bool full, bool once, boo
       m_beginningNonControlledBlend = 10.0f;
 
    /* add this new motion to the last of the motion player list, consulting priority */
-   if (m_playerList == NULL) {
-      m->next = NULL;
+   if (m_playerList == NULL || m_playerList->priority > m->priority) {
+      m->next = m_playerList;
       m_playerList = m;
    } else {
       tmp2 = m_playerList->next; /* skip the base motion */
@@ -195,8 +196,8 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
    btTransform tr;
    btVector3 pos;
 
-   btVector3 center_pos;
-   btVector3 root_offset;
+   btVector3 centerPos;
+   btVector3 rootOffset;
 
    /* initialize and setup motion controller */
    m->mc.setup(m_pmd, vmd);
@@ -224,15 +225,15 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
          tr = m_pmd->getRootBone()->getTransform()->inverse();
          pos = tr * centerBone->getTransform()->getOrigin();
          /* get the translation vector */
-         center_pos = (*(centerBone->getOriginPosition()));
-         offset = pos - center_pos;
+         centerBone->getOriginPosition(&centerPos);
+         offset = pos - centerPos;
          offset.setY(0.0f); /* Y axis should be set to zero to place model on ground */
          /* save the current pos/rot for smooth motion changing, resetting center location */
          m->mc.setOverrideFirst(&offset);
          /* add the offset to the root bone */
-         root_offset = (*(m_pmd->getRootBone()->getOffset()));
-         root_offset += offset;
-         m_pmd->getRootBone()->setOffset(&root_offset);
+         m_pmd->getRootBone()->getOffset(&rootOffset);
+         rootOffset += offset;
+         m_pmd->getRootBone()->setOffset(&rootOffset);
          m_pmd->getRootBone()->update();
       } else {
          /* save the current pos/rot for smooth motion changing */
@@ -242,7 +243,7 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
 }
 
 /* MotionManager::swapMotion: swap a motion, keeping parameters */
-bool MotionManager::swapMotion(VMD * vmd, char * name)
+bool MotionManager::swapMotion(VMD * vmd, const char * name)
 {
    MotionPlayer *m;
 
@@ -268,7 +269,7 @@ bool MotionManager::swapMotion(VMD * vmd, char * name)
 }
 
 /* MotionManager::deleteMotion: delete a motion */
-bool MotionManager::deleteMotion(char *name)
+bool MotionManager::deleteMotion(const char *name)
 {
    MotionPlayer *m;
 
@@ -276,9 +277,15 @@ bool MotionManager::deleteMotion(char *name)
 
    for (m = m_playerList; m; m = m->next) {
       if (m->active && MMDFiles_strequal(m->name, name) == true) {
-         /* enter the ending status, gradually decreasing the blend rate */
-         m->endingBoneBlend = m->endingBoneBlendFrames;
-         m->endingFaceBlend = m->endingFaceBlendFrames;
+         if (m->enableSmooth) {
+            /* enter the ending status, gradually decreasing the blend rate */
+            m->endingBoneBlend = m->endingBoneBlendFrames;
+            m->endingFaceBlend = m->endingFaceBlendFrames;
+         } else {
+            /* will deactivate this motion player at the next update */
+            m->endingBoneBlend = 0.0001f;
+            m->endingFaceBlend = 0.0001f;
+         }
          return true;
       }
    }
@@ -344,9 +351,15 @@ bool MotionManager::update(double frame)
                }
                break;
             case 2:
-               /* enter the ending status, gradually decreasing the blend rate */
-               m->endingBoneBlend = m->endingBoneBlendFrames;
-               m->endingFaceBlend = m->endingFaceBlendFrames;
+               if (m->enableSmooth) {
+                  /* enter the ending status, gradually decreasing the blend rate */
+                  m->endingBoneBlend = m->endingBoneBlendFrames;
+                  m->endingFaceBlend = m->endingFaceBlendFrames;
+               } else {
+                  /* deactivate this motion player immediately */
+                  m->active = false;
+                  m->statusFlag = MOTION_STATUS_DELETED; /* set return flag */
+               }
                break;
             }
          }

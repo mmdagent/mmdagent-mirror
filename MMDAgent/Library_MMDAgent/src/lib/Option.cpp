@@ -115,6 +115,8 @@ void Option::initialize()
    m_shadowMapLightFirst = OPTION_SHADOWMAPPINGLIGHTFIRST_DEF;
 
    m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_DEF;
+
+   m_maxNumModel = OPTION_MAXNUMMODEL_DEF;
 }
 
 /* Option::Option: constructor */
@@ -124,7 +126,7 @@ Option::Option()
 }
 
 /* Option::load: load options from config file */
-bool Option::load(char *file)
+bool Option::load(const char *file)
 {
    FILE *fp;
    char buf[OPTION_MAXBUFLEN];
@@ -234,6 +236,8 @@ bool Option::load(char *file)
          setShadowMappingLightFirst(MMDAgent_str2bool(p1));
       } else if(MMDAgent_strequal(buf, OPTION_DISPLAYCOMMENTFRAME_STR)) {
          setDisplayCommentFrame(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_MAXNUMMODEL_STR)) {
+         setMaxNumModel(MMDAgent_str2int(p1));
       }
    }
    fclose(fp);
@@ -306,7 +310,7 @@ float *Option::getCartoonEdgeSelectedColor()
 }
 
 /* Option::setCartoonEdgeSelectedColor: set cartoon edge selected color */
-void Option::setCartoonEdgeSelectedColor(float *f)
+void Option::setCartoonEdgeSelectedColor(const float *f)
 {
    if(OPTION_CARTOONEDGESELECTEDCOLOR_MAX < f[0])
       m_cartoonEdgeSelectedColor[0] = OPTION_CARTOONEDGESELECTEDCOLOR_MAX;
@@ -344,7 +348,7 @@ float *Option::getRenderingRotation()
 }
 
 /* Option::setRenderingRotation: set rendering rotation */
-void Option::setRenderingRotation(float *f)
+void Option::setRenderingRotation(const float *f)
 {
    if(OPTION_RENDERINGROTATION_MAX < f[0])
       m_renderingRotation[0] = OPTION_RENDERINGROTATION_MAX;
@@ -375,7 +379,7 @@ float *Option::getRenderingTransition()
 }
 
 /* Option::setRenderingTransition: set rendering transition */
-void Option::setRenderingTransition(float *f)
+void Option::setRenderingTransition(const float *f)
 {
    if(OPTION_RENDERINGTRANSITION_MAX < f[0])
       m_renderingTransition[0] = OPTION_RENDERINGTRANSITION_MAX;
@@ -423,7 +427,7 @@ float *Option::getStageSize()
 }
 
 /* Option::setStageSize: set stage size */
-void Option::setStageSize(float *f)
+void Option::setStageSize(const float *f)
 {
    if(OPTION_STAGESIZE_MAX < f[0])
       m_stageSize[0] = OPTION_STAGESIZE_MAX;
@@ -466,7 +470,7 @@ float *Option::getFpsPosition()
 }
 
 /* Option::setFpsPosition: set fps position */
-void Option::setFpsPosition(float *f)
+void Option::setFpsPosition(const float *f)
 {
    m_fpsPosition[0] = f[0];
    m_fpsPosition[1] = f[1];
@@ -480,7 +484,7 @@ int *Option::getWindowSize()
 }
 
 /* Option::setWindowSize: set window size */
-void Option::setWindowSize(int *i)
+void Option::setWindowSize(const int *i)
 {
    if(OPTION_WINDOWSIZE_MAX < i[0])
       m_windowSize[0] = OPTION_WINDOWSIZE_MAX;
@@ -528,7 +532,7 @@ int *Option::getLogSize()
 }
 
 /* Option::setLogSize: set log window size */
-void Option::setLogSize(int *i)
+void Option::setLogSize(const int *i)
 {
    if(OPTION_LOGSIZE_MAX < i[0])
       m_logSize[0] = OPTION_LOGSIZE_MAX;
@@ -552,7 +556,7 @@ float *Option::getLogPosition()
 }
 
 /* Option::setLogPosition: set log window position */
-void Option::setLogPosition(float *f)
+void Option::setLogPosition(const float *f)
 {
    m_logPosition[0] = f[0];
    m_logPosition[1] = f[1];
@@ -583,7 +587,7 @@ float *Option::getLightDirection()
 }
 
 /* Option::setLogDirection: set light direction */
-void Option::setLightDirection(float *f)
+void Option::setLightDirection(const float *f)
 {
    m_lightDirection[0] = f[0];
    m_lightDirection[1] = f[1];
@@ -615,7 +619,7 @@ float *Option::getLightColor()
 }
 
 /* Option::setLightColor: set light color */
-void Option::setLightColor(float *f)
+void Option::setLightColor(const float *f)
 {
    if(OPTION_LIGHTCOLOR_MAX < f[0])
       m_lightColor[0] = OPTION_LIGHTCOLOR_MAX;
@@ -646,7 +650,7 @@ float *Option::getCampusColor()
 }
 
 /* Option::setCampusColor: set campus color */
-void Option::setCampusColor(float *f)
+void Option::setCampusColor(const float *f)
 {
    if(OPTION_CAMPUSCOLOR_MAX < f[0])
       m_campusColor[0] = OPTION_CAMPUSCOLOR_MAX;
@@ -874,4 +878,21 @@ void Option::setDisplayCommentFrame(float f)
       m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_MIN;
    else
       m_displayCommentFrame = f;
+}
+
+/* Option::getMaxNumModel: get maximum number of models */
+int Option::getMaxNumModel()
+{
+   return m_maxNumModel;
+}
+
+/* Option::setMaxNumModel: set maximum number of models */
+void Option::setMaxNumModel(int i)
+{
+   if(OPTION_MAXNUMMODEL_MAX < i)
+      m_maxNumModel = OPTION_MAXNUMMODEL_MAX;
+   else if(OPTION_MAXNUMMODEL_MIN > i)
+      m_maxNumModel = OPTION_MAXNUMMODEL_MIN;
+   else
+      m_maxNumModel = i;
 }

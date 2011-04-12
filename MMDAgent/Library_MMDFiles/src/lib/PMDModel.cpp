@@ -46,11 +46,13 @@
 /* PMDModel::initialize: initialize PMDModel */
 void PMDModel::initialize()
 {
+   int i;
+
    m_name = NULL;
    m_modelDir = NULL;
    m_comment = NULL;
-   m_bulletPhysics = NULL;
 
+   m_numVertex = 0;
    m_vertexList = NULL;
    m_normalList = NULL;
    m_texCoordList = NULL;
@@ -58,26 +60,54 @@ void PMDModel::initialize()
    m_bone2List = NULL;
    m_boneWeight1 = NULL;
    m_noEdgeFlag = NULL;
+
+   m_numSurface = 0;
    m_surfaceList = NULL;
+
+   m_numMaterial = 0;
    m_material = NULL;
+
+   m_numBone = 0;
    m_boneList = NULL;
+
+   m_numIK = 0;
    m_IKList = NULL;
+
+   m_numFace = 0;
    m_faceList = NULL;
+
+   m_numRigidBody = 0;
    m_rigidBodyList = NULL;
+
+   m_numConstraint = 0;
    m_constraintList = NULL;
+
+   for(i = 0; i < SYSTEMTEXTURE_NUMFILES; i++) {
+      m_toonTextureID[i] = 0;
+      m_localToonTexture[i].release();
+   }
 
    m_boneSkinningTrans = NULL;
    m_skinnedVertexList = NULL;
    m_skinnedNormalList = NULL;
    m_toonTexCoordList = NULL;
    m_edgeVertexList = NULL;
+   m_numSurfaceForEdge = 0;
    m_surfaceListForEdge = NULL;
    m_toonTexCoordListForShadowMap = NULL;
+
+   m_centerBone = NULL;
+   m_baseFace = NULL;
+   m_orderedBoneList = NULL;
+   m_hasSingleSphereMap = false;
+   m_hasMultipleSphereMap = false;
+   m_numRotateBone = 0;
    m_rotateBoneIDList = NULL;
    m_IKSimulated = NULL;
+   m_enableSimulation = true;
+   m_maxHeight = 0.0f;
 
    /* initial values for variables that should be kept at model change */
-   m_enableSimulation = true;
    m_toon = false;
    m_globalAlpha = 1.0f;
    m_edgeOffset = 0.03f;
@@ -87,6 +117,8 @@ void PMDModel::initialize()
    m_edgeColor[1] = PMDMODEL_EDGECOLORG;
    m_edgeColor[2] = PMDMODEL_EDGECOLORB;
    m_edgeColor[3] = PMDMODEL_EDGECOLORA;
+
+   m_bulletPhysics = NULL;
    m_rootBone.reset();
 }
 
@@ -95,117 +127,69 @@ void PMDModel::clear()
 {
    int i;
 
-   if (m_vertexList) {
+   if (m_vertexList)
       delete [] m_vertexList;
-      m_vertexList = NULL;
-   }
-   if (m_normalList) {
+   if (m_normalList)
       delete [] m_normalList;
-      m_normalList = NULL;
-   }
-   if (m_texCoordList) {
+   if (m_texCoordList)
       free(m_texCoordList);
-      m_texCoordList = NULL;
-   }
-   if (m_bone1List) {
+   if (m_bone1List)
       free(m_bone1List);
-      m_bone1List = NULL;
-   }
-   if (m_bone2List) {
+   if (m_bone2List)
       free(m_bone2List);
-      m_bone2List = NULL;
-   }
-   if (m_boneWeight1) {
+   if (m_boneWeight1)
       free(m_boneWeight1);
-      m_boneWeight1 = NULL;
-   }
-   if (m_noEdgeFlag) {
+   if (m_noEdgeFlag)
       free(m_noEdgeFlag);
-      m_noEdgeFlag = NULL;
-   }
-   if (m_surfaceList) {
+   if (m_surfaceList)
       free(m_surfaceList);
-      m_surfaceList = NULL;
-   }
-   if (m_material) {
+   if (m_material)
       delete [] m_material;
-      m_material = NULL;
-   }
    m_textureLoader.release();
-   if (m_boneList) {
+   if (m_boneList)
       delete [] m_boneList;
-      m_boneList = NULL;
-   }
-   if (m_IKList) {
+   if (m_IKList)
       delete [] m_IKList;
-      m_IKList = NULL;
-   }
-   if (m_faceList) {
+   if (m_faceList)
       delete [] m_faceList;
-      m_faceList = NULL;
-   }
-   if (m_constraintList) {
+   if (m_constraintList)
       delete [] m_constraintList;
-      m_constraintList = NULL;
-   }
-   if (m_rigidBodyList) {
+   if (m_rigidBodyList)
       delete [] m_rigidBodyList;
-      m_rigidBodyList = NULL;
-   }
 
-   if (m_boneSkinningTrans) {
+   if (m_boneSkinningTrans)
       delete [] m_boneSkinningTrans;
-      m_boneSkinningTrans = NULL;
-   }
-   if (m_skinnedVertexList) {
+   if (m_skinnedVertexList)
       delete [] m_skinnedVertexList;
-      m_skinnedVertexList = NULL;
-   }
-   if (m_skinnedNormalList) {
+   if (m_skinnedNormalList)
       delete [] m_skinnedNormalList;
-      m_skinnedNormalList = NULL;
-   }
-   if (m_toonTexCoordList) {
+   if (m_toonTexCoordList)
       free(m_toonTexCoordList);
-      m_toonTexCoordList = NULL;
-   }
-   if (m_edgeVertexList) {
+   if (m_edgeVertexList)
       delete [] m_edgeVertexList;
-      m_edgeVertexList = NULL;
-   }
-   if (m_surfaceListForEdge) {
+   if (m_surfaceListForEdge)
       free(m_surfaceListForEdge);
-      m_surfaceListForEdge = NULL;
-   }
-   if (m_toonTexCoordListForShadowMap) {
+   if (m_toonTexCoordListForShadowMap)
       free(m_toonTexCoordListForShadowMap);
-      m_toonTexCoordListForShadowMap = NULL;
-   }
-   if (m_rotateBoneIDList) {
+   if (m_orderedBoneList)
+      free(m_orderedBoneList);
+   if (m_rotateBoneIDList)
       free(m_rotateBoneIDList);
-      m_rotateBoneIDList = NULL;
-   }
-   if (m_IKSimulated) {
+   if (m_IKSimulated)
       free(m_IKSimulated);
-      m_IKSimulated = NULL;
-   }
-   if(m_comment) {
+   if(m_comment)
       free(m_comment);
-      m_comment = NULL;
-   }
-   if(m_name) {
+   if(m_name)
       free(m_name);
-      m_name = NULL;
-   }
-   if(m_modelDir) {
+   if(m_modelDir)
       free(m_modelDir);
-      m_modelDir = NULL;
-   }
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
       m_localToonTexture[i].release();
    m_name2bone.release();
    m_name2face.release();
+
+   initialize();
 }
 
 /* PMDModel::PMDModel: constructor */
@@ -225,7 +209,7 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
 {
    int len;
    FILE *fp;
-   fpos_t size;
+   size_t size;
    unsigned char *data;
    char *dir;
    bool ret;
@@ -245,15 +229,13 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
       return false;
 
    /* get file size */
-   fseek(fp, 0, SEEK_END);
-   fgetpos(fp, &size);
+   size = MMDFiles_getfsize(file);
 
    /* allocate memory for reading data */
-   data = (unsigned char *) malloc((size_t) size);
+   data = (unsigned char *) malloc(size);
 
    /* read all data */
-   fseek(fp, 0, SEEK_SET);
-   fread(data, 1, (size_t) size, fp);
+   fread(data, 1, size, fp);
 
    /* close file */
    fclose(fp);
@@ -269,7 +251,7 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
 }
 
 /* PMDModel::getBone: find bone data by name */
-PMDBone *PMDModel::getBone(char *name)
+PMDBone *PMDModel::getBone(const char *name)
 {
    PMDBone *match = (PMDBone *) m_name2bone.findNearest(name);
 
@@ -280,7 +262,7 @@ PMDBone *PMDModel::getBone(char *name)
 }
 
 /* PMDModel::getFace: find face data by name */
-PMDFace *PMDModel::getFace(char *name)
+PMDFace *PMDModel::getFace(const char *name)
 {
    PMDFace *match = (PMDFace *) m_name2face.findNearest(name);
 

@@ -80,7 +80,7 @@ public:
    ~LogText();
 
    /* setup: initialize and setup logger with args */
-   void setup(TextRenderer *text, int *size, float *position, float scale);
+   void setup(TextRenderer *text, const int *size, const float *position, float scale);
 
    /* log: store log text */
    void log(const char *format, ...);

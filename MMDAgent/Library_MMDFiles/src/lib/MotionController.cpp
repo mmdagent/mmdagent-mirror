@@ -48,15 +48,16 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
 {
    BoneMotion *bm = mc->motion;
    float frame = frameNow;
-   unsigned long k1, k2;
+   unsigned long k1, k2 = 0;
    unsigned long i;
    float time1;
    float time2;
-   btVector3 pos1, pos2;
+   btVector3 pos1, pos2 = btVector3(0, 0, 0);
    btQuaternion rot1, rot2;
    BoneKeyFrame *keyFrameForInterpolation;
    float x, y, z, ww;
    float w;
+   short idx;
 
    /* clamp frame to the defined last frame */
    if (frame > bm->keyFrameList[bm->numKeyFrame-1].keyFrame)
@@ -145,29 +146,30 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
       } else {
          /* lerp */
          w = (frame - time1) / (time2 - time1);
+         idx = (short)(w * VMD_INTERPOLATIONTABLESIZE);
          if (keyFrameForInterpolation->linear[0]) {
             x = pos1.x() * (1.0f - w) + pos2.x() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[0][(int)(w * VMD_INTERPOLATIONTABLESIZE)];
+            ww = keyFrameForInterpolation->interpolationTable[0][idx] + (keyFrameForInterpolation->interpolationTable[0][idx+1] - keyFrameForInterpolation->interpolationTable[0][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             x = pos1.x() * (1.0f - ww) + pos2.x() * ww;
          }
          if (keyFrameForInterpolation->linear[1]) {
             y = pos1.y() * (1.0f - w) + pos2.y() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[1][(int)(w * VMD_INTERPOLATIONTABLESIZE)];
+            ww = keyFrameForInterpolation->interpolationTable[1][idx] + (keyFrameForInterpolation->interpolationTable[1][idx+1] - keyFrameForInterpolation->interpolationTable[1][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             y = pos1.y() * (1.0f - ww) + pos2.y() * ww;
          }
          if (keyFrameForInterpolation->linear[2]) {
             z = pos1.z() * (1.0f - w) + pos2.z() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[2][(int)(w * VMD_INTERPOLATIONTABLESIZE)];
+            ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx+1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             z = pos1.z() * (1.0f - ww) + pos2.z() * ww;
          }
          mc->pos.setValue(x, y, z);
          if (keyFrameForInterpolation->linear[3]) {
             mc->rot = rot1.slerp(rot2, w);
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[3][(int)(w * VMD_INTERPOLATIONTABLESIZE)];
+            ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx+1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             mc->rot = rot1.slerp(rot2, ww);
          }
       }
@@ -183,9 +185,9 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
 {
    FaceMotion *fm = mc->motion;
    float frame = frameNow;
-   unsigned long k1, k2;
+   unsigned long k1, k2 = 0;
    unsigned long i;
-   float time1, time2, weight1, weight2;
+   float time1, time2, weight1, weight2 = 0.0f;
    float w;
 
    /* clamp frame to the defined last frame */
@@ -287,10 +289,10 @@ void MotionController::control(float frameNow)
          mcb->bone->setCurrentRotation(&mcb->rot);
       } else {
          /* lerp */
-         tmpPos = (*(mcb->bone->getCurrentPosition()));
+         mcb->bone->getCurrentPosition(&tmpPos);
          tmpPos = tmpPos.lerp(mcb->pos, m_boneBlendRate);
          mcb->bone->setCurrentPosition(&tmpPos);
-         tmpRot = (*(mcb->bone->getCurrentRotation()));
+         mcb->bone->getCurrentRotation(&tmpRot);
          tmpRot = tmpRot.slerp(mcb->rot, m_boneBlendRate);
          mcb->bone->setCurrentRotation(&tmpRot);
       }
@@ -321,12 +323,12 @@ void MotionController::takeSnap(btVector3 *centerPos)
 
    for (i = 0; i < m_numBoneCtrl; i++) {
       mcb = &(m_boneCtrlList[i]);
-      mcb->snapPos = (*(mcb->bone->getCurrentPosition()));
+      mcb->bone->getCurrentPosition(&mcb->snapPos);
       if (centerPos && mcb->bone->hasMotionIndependency()) {
          /* consider center offset for snapshot */
          mcb->snapPos -= *centerPos;
       }
-      mcb->snapRot = (*(mcb->bone->getCurrentRotation()));
+      mcb->bone->getCurrentRotation(&mcb->snapRot);
    }
    for (i = 0; i < m_numFaceCtrl; i++) {
       mcf = &(m_faceCtrlList[i]);

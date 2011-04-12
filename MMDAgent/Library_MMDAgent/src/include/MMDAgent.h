@@ -70,9 +70,6 @@ class MMDAgent;
 #define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
 #define WM_MMDAGENT_LOG     (WM_USER + 3) /* window index for log message */
 
-#define MMDAGENT_MAXNMODEL 10                 /* maximum number of model */
-#define MMDAGENT_ALLMODEL  MMDAGENT_MAXNMODEL /* alias for all model */
-
 #define MMDAGENT_MAXBUFLEN    1024
 #define MMDAGENT_DIRSEPARATOR '\\'
 #define MMDAGENT_MAXNCOMMAND  10
@@ -145,6 +142,7 @@ private:
    LogText *m_logger;       /* logger */
 
    PMDObject *m_model;      /* models */
+   short *m_renderOrder;    /* model rendering order */
    int m_numModel;          /* number of models */
    MotionStocker *m_motion; /* motions */
 
@@ -174,52 +172,52 @@ private:
    void setHighLight(int modelId);
 
    /* addModel: add model */
-   bool addModel(char *modelAlias, char *fileName, btVector3 *pos, btQuaternion *rot, char *baseModelAlias, char *baseBoneName);
+   bool addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, const char *baseModelAlias, const char *baseBoneName);
 
    /* changeModel: change model */
-   bool changeModel(char *modelAlias, char *fileName);
+   bool changeModel(const char *modelAlias, const char *fileName);
 
    /* deleteModel: delete model */
-   bool deleteModel(char *modelAlias);
+   bool deleteModel(const char *modelAlias);
 
    /* addMotion: add motion */
-   bool addMotion(char *modelAlias, char *motionAlias, char *fileName, bool full, bool once, bool enableSmooth, bool enableRePos);
+   bool addMotion(const char *modelAlias, const char *motionAlias, const char *fileName, bool full, bool once, bool enableSmooth, bool enableRePos, float priority);
 
    /* changeMotion: change motion */
-   bool changeMotion(char *modelAlias, char *motionAlias, char *fileName);
+   bool changeMotion(const char *modelAlias, const char *motionAlias, const char *fileName);
 
    /* deleteMotion: delete motion */
-   bool deleteMotion(char *modelAlias, char *motionAlias);
+   bool deleteMotion(const char *modelAlias, const char *motionAlias);
 
    /* startMove: start moving */
-   bool startMove(char *modelAlias, btVector3 *pos, bool local, float speed);
+   bool startMove(const char *modelAlias, btVector3 *pos, bool local, float speed);
 
    /* stopMove: stop moving */
-   bool stopMove(char *modelAlias);
+   bool stopMove(const char *modelAlias);
 
    /* startTurn: start turn */
-   bool startTurn(char *modelAlias, btVector3 *pos, bool local, float speed);
+   bool startTurn(const char *modelAlias, btVector3 *pos, bool local, float speed);
 
    /* stopTurn: stop turn */
-   bool stopTurn(char *modelAlias);
+   bool stopTurn(const char *modelAlias);
 
    /* startRotation: start rotation */
-   bool startRotation(char *modelAlias, btQuaternion *rot, bool local, float spped);
+   bool startRotation(const char *modelAlias, btQuaternion *rot, bool local, float spped);
 
    /* stopRotation: stop rotation */
-   bool stopRotation(char *modelAlias);
+   bool stopRotation(const char *modelAlias);
 
    /* setFloor: set floor image */
-   bool setFloor(char *fileName);
+   bool setFloor(const char *fileName);
 
    /* setBackground: set background image */
-   bool setBackground(char *fileName);
+   bool setBackground(const char *fileName);
 
    /* setStage: set stage */
-   bool setStage(char *fileName);
+   bool setStage(const char *fileName);
 
    /* changeCamera: change camera setting */
-   bool changeCamera(char *pos, char *rot, char *scale);
+   bool changeCamera(const char *pos, const char *rot, const char *scale, const char *time);
 
    /* changeLightColor: change light color */
    bool changeLightColor(float r, float g, float b);
@@ -228,10 +226,10 @@ private:
    bool changeLightDirection(float x, float y, float z);
 
    /* startLipSync: start lip sync */
-   bool startLipSync(char *modelAlias, char *seq);
+   bool startLipSync(const char *modelAlias, const char *seq);
 
    /* stopLipSync: stop lip sync */
-   bool stopLipSync(char *modelAlias);
+   bool stopLipSync(const char *modelAlias);
 
    /* initialize: initialize MMDAgent */
    void initialize();
@@ -248,7 +246,7 @@ public:
    ~MMDAgent();
 
    /* setup: initialize and setup MMDAgent */
-   HWND setup(HINSTANCE hInstance, char *title, char *windowName, int argc, char **argv);
+   HWND setup(HINSTANCE hInstance, const char *title, const char *windowName, int argc, char **argv);
 
    /* updateScene: update the whole scene */
    void updateScene();
@@ -263,16 +261,16 @@ public:
    void resetAdjustmentTimer();
 
    /* sendCommandMessage: send command message */
-   void sendCommandMessage(char *type, const char *format, ...);
+   void sendCommandMessage(const char *type, const char *format, ...);
 
    /* sendEventMessage: send event message */
-   void sendEventMessage(char *type, const char *format, ...);
+   void sendEventMessage(const char *type, const char *format, ...);
 
    /* showLogMessage: show log message */
    void showLogMessage(const char *format, ...);
 
    /* findModelAlias: find a model with the specified alias */
-   int findModelAlias(char *alias);
+   int findModelAlias(const char *alias);
 
    /* getMoelList: get model list */
    PMDObject *getModelList();
@@ -386,7 +384,7 @@ public:
    void procLogMessage(char *mes);
 
    /* procDropFileMessage: process file drops message */
-   void procDropFileMessage(char *file, int x, int y);
+   void procDropFileMessage(const char *file, int x, int y);
 };
 
 #endif /* __mmdagent_h__ */

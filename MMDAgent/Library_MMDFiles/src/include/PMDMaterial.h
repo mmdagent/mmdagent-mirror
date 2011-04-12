@@ -74,7 +74,7 @@ public:
    ~PMDMaterial();
 
    /* setup: initialize and setup material */
-   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, char *dir);
+   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir);
 
    /* hasSingleSphereMap: return if it has single sphere maps */
    bool hasSingleSphereMap();

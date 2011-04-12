@@ -131,7 +131,7 @@ void PMDIK::solve()
    m_targetBone->update();
 
    /* save the current rotation of the target bone. It will be restored at the end of this function */
-   origTargetRot = (*(m_targetBone->getCurrentRotation()));
+   m_targetBone->getCurrentRotation(&origTargetRot);
 
    /* begin IK iteration */
    for (ite = 0; ite < m_iteration; ite++) {
@@ -185,7 +185,7 @@ void PMDIK::solve()
                mat.setRotation(rot);
                mat.getEulerZYX(z, y, x);
                /* get euler angles of current bone rotation (specified by the motion) */
-               tmpRot = (*(m_boneList[j]->getCurrentRotation()));
+               m_boneList[j]->getCurrentRotation(&tmpRot);
                mat.setRotation(tmpRot);
                mat.getEulerZYX(cz, cy, cx);
                /* y and z should be zero, x should be over 0 */
@@ -205,12 +205,12 @@ void PMDIK::solve()
                rot.setEulerZYX(0.0f, 0.0f, x);
             }
             /* apply the limited rotation to current bone */
-            tmpRot = (*(m_boneList[j]->getCurrentRotation()));
+            m_boneList[j]->getCurrentRotation(&tmpRot);
             tmpRot = rot * tmpRot;
             m_boneList[j]->setCurrentRotation(&tmpRot);
          } else {
             /* apply the rotation to current bone */
-            tmpRot = (*(m_boneList[j]->getCurrentRotation()));
+            m_boneList[j]->getCurrentRotation(&tmpRot);
             tmpRot *= rot;
             m_boneList[j]->setCurrentRotation(&tmpRot);
          }

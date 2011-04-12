@@ -46,10 +46,10 @@
 #include "jpeglib.h"
 
 /* PMDTexture::loadBMP: load BMP texture */
-bool PMDTexture::loadBMP(char *fileName)
+bool PMDTexture::loadBMP(const char *fileName)
 {
    FILE *fp;
-   fpos_t size;
+   size_t size;
    unsigned char *data;
 
    unsigned short bit;
@@ -74,11 +74,9 @@ bool PMDTexture::loadBMP(char *fileName)
    fp = fopen(fileName, "rb");
    if (!fp)
       return false;
-   fseek(fp, 0, SEEK_END);
-   fgetpos(fp, &size);
-   data = (unsigned char *) malloc((size_t) size);
-   fseek(fp, 0, SEEK_SET);
-   fread(data, 1, (size_t)size, fp);
+   size = MMDFiles_getfsize(fileName);
+   data = (unsigned char *) malloc(size);
+   fread(data, 1, size, fp);
    fclose(fp);
 
    /* parse header */
@@ -207,12 +205,13 @@ bool PMDTexture::loadBMP(char *fileName)
 }
 
 /* PMDTexture::loadTGA: load TGA texture */
-bool PMDTexture::loadTGA(char *fileName)
+bool PMDTexture::loadTGA(const char *fileName)
 {
    FILE *fp;
-   fpos_t size;
+   size_t size;
    unsigned char *data;
 
+   unsigned char idField;
    unsigned char type;
    unsigned char bit;
    unsigned char attrib;
@@ -233,15 +232,14 @@ bool PMDTexture::loadTGA(char *fileName)
    fp = fopen(fileName, "rb");
    if (!fp)
       return false;
-   fseek(fp, 0, SEEK_END);
-   fgetpos(fp, &size);
-   data = (unsigned char *) malloc((size_t) size);
-   fseek(fp, 0, SEEK_SET);
-   fread(data, 1, (size_t)size, fp);
+   size = MMDFiles_getfsize(fileName);
+   data = (unsigned char *) malloc(size);
+   fread(data, 1, size, fp);
    fclose(fp);
 
    /* parse TGA */
    /* support only Full-color images */
+   idField = *((unsigned char *) data);
    type = *((unsigned char *) (data + 2));
    if (type != 2 /* full color */ && type != 10 /* full color + RLE */) {
       free(data);
@@ -252,7 +250,7 @@ bool PMDTexture::loadTGA(char *fileName)
    bit = *((unsigned char *) (data + 16)); /* 24 or 32 */
    attrib = *((unsigned char *) (data + 17));
    stride = bit / 8;
-   body = data + 18;
+   body = data + 18 + idField;
 
    /* if RLE compressed, uncompress it */
    uncompressed = NULL;
@@ -313,7 +311,7 @@ bool PMDTexture::loadTGA(char *fileName)
 }
 
 /* PMDTexture::loadPNG: load PNG texture */
-bool PMDTexture::loadPNG(char *fileName)
+bool PMDTexture::loadPNG(const char *fileName)
 {
    png_uint_32 imageWidth, imageHeight;
    int depth, color;
@@ -410,7 +408,7 @@ void jpeg_error_catcher(j_common_ptr jpegDecompressor)
 }
 
 /* PMDTexture::loadJPG: load JPG texture */
-bool PMDTexture::loadJPG(char *fileName)
+bool PMDTexture::loadJPG(const char *fileName)
 {
    FILE *fp;
 
@@ -501,7 +499,7 @@ PMDTexture::~PMDTexture()
 }
 
 /* PMDTexture::load: load from file (multi-byte character) */
-bool PMDTexture::load(char *fileName)
+bool PMDTexture::load(const char *fileName)
 {
    bool ret = true;
    size_t len;

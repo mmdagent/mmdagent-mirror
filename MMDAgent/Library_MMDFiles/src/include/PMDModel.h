@@ -113,6 +113,7 @@ private:
    /* flags and short lists extracted from the model data */
    PMDBone *m_centerBone;              /* center bone */
    PMDFace *m_baseFace;                /* base face definition */
+   PMDBone **m_orderedBoneList;        /* bone list in update order */
    bool m_hasSingleSphereMap;            /* true if this model has Sphere map texture */
    bool m_hasMultipleSphereMap;          /* true if this model has additional sphere map texture */
    unsigned short m_numRotateBone;     /* number of bones under rotatation of other bone (type == 5 or 9) */
@@ -136,7 +137,7 @@ private:
    PTree m_name2face;              /* name-to-face index for fast lookup */
 
    /* parse: initialize and load from data memories */
-   bool parse(unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, char *dir);
+   bool parse(const unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, const char *dir);
 
    /* initialize: initialize PMDModel */
    void initialize();
@@ -156,10 +157,10 @@ public:
    bool load(const char *file, BulletPhysics *bullet, SystemTexture *systex);
 
    /* getBone: find bone data by name */
-   PMDBone *getBone(char *name);
+   PMDBone *getBone(const char *name);
 
    /* getFace: find face data by name */
-   PMDFace *getFace(char *name);
+   PMDFace *getFace(const char *name);
 
    /* getChildBoneList: return list of child bones, in decent order */
    int getChildBoneList(PMDBone **bone, unsigned short numBone, PMDBone **childBoneList);

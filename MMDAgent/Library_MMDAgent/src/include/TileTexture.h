@@ -71,7 +71,7 @@ public:
    ~TileTexture();
 
    /* load: load a texture from file name */
-   bool load(char *file);
+   bool load(const char *file);
 
    /* render: render the textures */
    void render(bool cullFace, const float *normal);

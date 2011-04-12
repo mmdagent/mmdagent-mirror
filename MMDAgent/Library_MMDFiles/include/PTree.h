@@ -86,8 +86,8 @@ public:
    void release();
 
    /* add: add an entry to the tree */
-   void add(char *str, void *data, char *matchStr);
+   void add(const char *str, void *data, char *matchStr);
 
    /* findNearest: return the nearest entry */
-   void *findNearest(char *str);
+   void *findNearest(const char *str);
 };
