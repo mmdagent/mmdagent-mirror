@@ -144,6 +144,8 @@ static unsigned __stdcall main_thread(void *param)
 /* VIManager_Thread::initialize: initialize thread */
 void VIManager_Thread::initialize()
 {
+   m_sub = NULL;
+
    m_mmdagent = NULL;
 
    m_stop = false;
@@ -158,6 +160,8 @@ void VIManager_Thread::initialize()
 /* VIManager_Thread::clear: free thread */
 void VIManager_Thread::clear()
 {
+   VIManager_Link *tmp1, *tmp2;
+
    m_stop = true;
    if(m_transEvent)
       SetEvent(m_transEvent);
@@ -175,6 +179,11 @@ void VIManager_Thread::clear()
 
    /* free */
    VIManager_EventQueue_clear(&eventQueue);
+
+   for(tmp1 = m_sub; tmp1 != NULL; tmp1 = tmp2) {
+      tmp2 = tmp1->next;
+      delete tmp1;
+   }
 
    initialize();
 }
@@ -194,6 +203,14 @@ VIManager_Thread::~VIManager_Thread()
 /* VIManager_Thread::loadAndStart: load FST and start thread */
 void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
 {
+   WIN32_FIND_DATA data;
+   HANDLE find;
+   char buf[VIMANAGER_MAXBUFLEN];
+   char dir[VIMANAGER_MAXBUFLEN];
+   char fst[VIMANAGER_MAXBUFLEN];
+   int i, j, len;
+   VIManager_Link *l, *last;
+
    if(mmdagent == NULL)
       return;
 
@@ -205,6 +222,41 @@ void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
    m_logger.setup(mmdagent);
 
    m_mmdagent = mmdagent;
+
+   /* get dir and fst */
+   len = MMDAgent_strlen(file);
+   strcpy(dir, file);
+   for(i = len - 1; i >= 0; i--) {
+      dir[i] = '\0';
+      if(file[i] == '\\')
+         break;
+   }
+   for(j = 0, i++; i <= len; i++, j++) {
+      fst[j] = file[i];
+   }
+
+   /* load sub fst */
+   sprintf(buf, "%s*", file);
+   find = FindFirstFileA(buf, &data);
+   if(find != INVALID_HANDLE_VALUE) {
+      do {
+         sprintf(buf, "%s\\%s", dir, data.cFileName);
+         if(MMDAgent_strequal(data.cFileName, fst) == false) {
+            l = new VIManager_Link;
+            l->next = NULL;
+            if(l->vim.load(buf) == 0) {
+               delete l;
+            } else {
+               if(m_sub == NULL)
+                  m_sub = l;
+               else
+                  last->next = l;
+               last = l;
+            }
+         }
+      } while(FindNextFileA(find, &data));
+      FindClose(find);
+   }
 
    /* create mutex */
    m_queueMutex = CreateMutex(NULL, false, NULL);
@@ -265,11 +317,19 @@ void VIManager_Thread::stateTransition()
    char otype[VIMANAGER_MAXBUFLEN];
    char oargs[VIMANAGER_MAXBUFLEN];
    int remain = 1;
+   VIManager_Link *l;
 
    /* first epsilon step */
    while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
       if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
          m_mmdagent->sendCommandMessage(otype, oargs);
+   }
+
+   for(l = m_sub; l != NULL; l = l->next) {
+      while (l->vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs) != NULL) {
+         if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
+            m_mmdagent->sendCommandMessage(otype, oargs);
+      }
    }
 
    while(m_stop == false) {
@@ -300,6 +360,18 @@ void VIManager_Thread::stateTransition()
          while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
             if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
                m_mmdagent->sendCommandMessage(otype, oargs);
+         }
+
+         for(l = m_sub; l != NULL; l = l->next) {
+            l->vim.transition(itype, iargs, otype, oargs);
+            if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
+               m_mmdagent->sendCommandMessage(otype, oargs);
+
+            /* state transition with epsilon */
+            while (l->vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs) != NULL) {
+               if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
+                  m_mmdagent->sendCommandMessage(otype, oargs);
+            }
          }
       } while (remain);
    }

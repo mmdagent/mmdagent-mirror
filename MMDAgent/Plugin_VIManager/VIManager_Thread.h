@@ -54,6 +54,11 @@ typedef struct _VIManager_EventQueue {
    VIManager_Event *tail;
 } VIManager_EventQueue;
 
+typedef struct _VIManager_Link {
+   VIManager vim;
+   struct _VIManager_Link *next;
+} VIManager_Link;
+
 /* VIManager_Thread: thread of VIManager */
 class VIManager_Thread
 {
@@ -61,6 +66,8 @@ private:
 
    VIManager m_vim;           /* voice interaction manager */
    VIManager_Logger m_logger; /* logger */
+
+   VIManager_Link *m_sub; /* sub FST */
 
    MMDAgent *m_mmdagent;
 
