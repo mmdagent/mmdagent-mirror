@@ -1,3 +1,6 @@
+Version RC2:
+ * add boot screen.
+
 Version RC:
  * add breath, bye, imagine, laugh, surprise motions.
  * add web-browsing, full-screen, and bye-bye tasks.

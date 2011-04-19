@@ -1,5 +1,5 @@
 ===============================================================================
-                  MMDAgent Motion "Guide of Mei" version RC2
+                 MMDAgent Accessory "Boot Screen" version RC2
                             release April 19, 2011
 
 
@@ -10,7 +10,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Guide of Mei"                          #
+#           MMDAgent Accessory "Boot Screen"                        #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #

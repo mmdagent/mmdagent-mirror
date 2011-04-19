@@ -115,3 +115,7 @@ shadow_mapping_light_first=true
 # Comment
 
 display_comment_frame=0.0
+
+# Model
+
+max_num_model=3

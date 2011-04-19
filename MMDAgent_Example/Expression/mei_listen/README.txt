@@ -1,6 +1,6 @@
 ===============================================================================
-                MMDAgent Expression "Listen of Mei" version RC
-                             release March 3, 2011
+                MMDAgent Expression "Listen of Mei" version RC2
+                            release April 19, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
