@@ -106,6 +106,7 @@ void PMDModel::initialize()
    m_IKSimulated = NULL;
    m_enableSimulation = true;
    m_maxHeight = 0.0f;
+   m_boundingSphereStep = PMDMODEL_BOUNDINGSPHEREPOINTSMIN;
 
    /* initial values for variables that should be kept at model change */
    m_toon = false;
@@ -117,6 +118,7 @@ void PMDModel::initialize()
    m_edgeColor[1] = PMDMODEL_EDGECOLORG;
    m_edgeColor[2] = PMDMODEL_EDGECOLORB;
    m_edgeColor[3] = PMDMODEL_EDGECOLORA;
+   m_forceEdge = false;
 
    m_bulletPhysics = NULL;
    m_rootBone.reset();
@@ -459,4 +461,10 @@ char *PMDModel::getComment()
 char *PMDModel::getModelDir()
 {
    return m_modelDir;
+}
+
+/* PMDModel::setForceEdgeFlag: set force edge flag */
+void PMDModel::setForceEdgeFlag(bool flag)
+{
+   m_forceEdge = flag;
 }

@@ -127,10 +127,14 @@ void MMDAgent::setHighLight(int modelId)
       color[2] = PMDMODEL_EDGECOLORB;
       color[3] = PMDMODEL_EDGECOLORA;
       m_model[m_highLightingModel].getPMDModel()->setEdgeColor(color);
+      /* disable force edge flag */
+      m_model[m_highLightingModel].getPMDModel()->setForceEdgeFlag(false);
    }
    if (modelId != -1) {
       /* set highlight to the specified model */
       m_model[modelId].getPMDModel()->setEdgeColor(m_option->getCartoonEdgeSelectedColor());
+      /* enable force edge flag */
+      m_model[modelId].getPMDModel()->setForceEdgeFlag(true);
    }
 
    m_highLightingModel = modelId;
@@ -1047,6 +1051,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    /* setup timer */
    m_timer = new Timer();
    m_timer->setup(2); /* set timer precision to 2ms */
+   m_timer->startAdjustment();
 
    /* setup text render */
    m_text = new TextRenderer();
@@ -1246,12 +1251,12 @@ void MMDAgent::renderScene()
       /* show model position */
       strcpy(buff, "");
       for (i = 0; i < m_numModel; i++) {
-         if (m_model[i].isEnable() == true && m_model[i].allowMotionFileDrop() == true) {
+         if (m_model[i].isEnable() == true) {
             m_model[i].getCurrentPosition(&pos);
             if(MMDAgent_strlen(buff) <= 0)
-               sprintf(buff, "(%.1f, %.1f, %.1f)", pos.x(), pos.y(), pos.z());
+               sprintf(buff, "(%.2f, %.2f, %.2f)", pos.x(), pos.y(), pos.z());
             else
-               sprintf(buff, "%s (%.1f, %.1f, %.1f)", buff, pos.x(), pos.y(), pos.z());
+               sprintf(buff, "%s (%.2f, %.2f, %.2f)", buff, pos.x(), pos.y(), pos.z());
          }
       }
       if (MMDAgent_strlen(buff) > 0) {
@@ -1301,7 +1306,6 @@ void MMDAgent::drawString(const char *str)
 /* resetAdjustmentTimer: reset adjustment timer */
 void MMDAgent::resetAdjustmentTimer()
 {
-   m_option->setMotionAdjustFrame(0);
    m_timer->setTargetAdjustmentFrame((double) m_option->getMotionAdjustFrame() * 0.03);
    m_timer->startAdjustment();
 }
@@ -1532,13 +1536,30 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
       if (r1 < -32768) r1 += 65536;
       if (r2 > 32767) r2 -= 65536;
       if (r2 < -32768) r2 += 65536;
-      if (withShift && withCtrl) {
-         /* if Shift- and Ctrl-key, rotate light direction */
+      if (withShift && withCtrl && m_selectedModel == -1) {
+         /* if Shift- and Ctrl-key, and no model is pointed, rotate light direction */
          f = m_option->getLightDirection();
          v = btVector3(f[0], f[1], f[2]);
-         bm = btMatrix3x3(btQuaternion(0, r2 * 0.007f, 0) * btQuaternion(r1 * 0.007f, 0, 0));
+         bm = btMatrix3x3(btQuaternion(0, r2 * 0.1f * m_option->getRotateStep(), 0) * btQuaternion(r1 * 0.1f * m_option->getRotateStep(), 0, 0));
          v = bm * v;
          changeLightDirection(v.x(), v.y(), v.z());
+      } else if (withCtrl) {
+         /* if Ctrl-key and model is pointed, move the model */
+         if (m_selectedModel != -1) {
+            setHighLight(m_selectedModel);
+            m_model[m_selectedModel].getTargetPosition(&v);
+            if (withShift) {
+               /* with Shift-key, move on XY (coronal) plane */
+               v.setX(v.x() + r1 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+               v.setY(v.y() - r2 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+            } else {
+               /* else, move on XZ (axial) plane */
+               v.setX(v.x() + r1 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+               v.setZ(v.z() + r2 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+            }
+            m_model[m_selectedModel].setPosition(&v);
+            m_model[m_selectedModel].setMoveSpeed(-1.0f);
+         }
       } else if (withShift) {
          /* if Shift-key, translate display */
          tmp1 = r1 / (float) m_render->getWidth();
@@ -1550,19 +1571,9 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
          tmp2 /= m_render->getScale();
          tmp3 = 0.0f;
          m_render->translate(tmp1, tmp2, tmp3);
-      } else if (withCtrl) {
-         /* if Ctrl-key, move model */
-         if (m_selectedModel != -1 && m_model[m_selectedModel].allowMotionFileDrop()) {
-            setHighLight(m_selectedModel);
-            m_model[m_selectedModel].getTargetPosition(&v);
-            v.setX(v.x() + r1 / 20.0f);
-            v.setZ(v.z() + r2 / 20.0f);
-            m_model[m_selectedModel].setPosition(&v);
-            m_model[m_selectedModel].setMoveSpeed(-1.0f);
-         }
       } else {
          /* if no key, rotate display */
-         m_render->rotate(r1 * 0.007f, r2 * 0.007f, 0.0f);
+         m_render->rotate(r1 * 0.1f * m_option->getRotateStep(), r2 * 0.1f * m_option->getRotateStep(), 0.0f);
       }
       m_mousepos.x = x;
       m_mousepos.y = y;
@@ -1597,7 +1608,7 @@ void MMDAgent::procFullScreenMessage()
       m_option->setFullScreen(true);
    }
 
-   GetWindowRect(m_hWnd, &rc);
+   GetClientRect(m_hWnd, &rc);
    procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
 }
 
@@ -2220,8 +2231,6 @@ void MMDAgent::procDropFileMessage(const char * file, int x, int y)
                }
             }
          }
-         /* reset timer */
-         resetAdjustmentTimer();
       }
    } else if (MMDAgent_strtailmatch(file, ".xpmd") || MMDAgent_strtailmatch(file, ".XPMD")) {
       /* load stage */

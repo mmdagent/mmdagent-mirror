@@ -41,7 +41,7 @@
 
 /* definitions */
 
-#define STAGE_MAXBUFLEN 1024
+#define STAGE_MAXBUFLEN 2048
 
 /* Stage: stage */
 class Stage

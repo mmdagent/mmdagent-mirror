@@ -70,7 +70,7 @@ class MMDAgent;
 #define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
 #define WM_MMDAGENT_LOG     (WM_USER + 3) /* window index for log message */
 
-#define MMDAGENT_MAXBUFLEN    1024
+#define MMDAGENT_MAXBUFLEN    2048
 #define MMDAGENT_DIRSEPARATOR '\\'
 #define MMDAGENT_MAXNCOMMAND  10
 

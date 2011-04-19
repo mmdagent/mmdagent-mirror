@@ -268,13 +268,26 @@ void PMDModel::renderModel()
 /* PMDModel::renderEdge: render toon edge */
 void PMDModel::renderEdge()
 {
+   unsigned long numSurface;
+   unsigned short *surfaceList;
    float modelAlpha;
 
    if (!m_vertexList) return;
 
-   if (!m_toon) return;
-
-   if (m_numSurfaceForEdge == 0) return;
+   if (m_forceEdge) {
+      if (m_numSurfaceForEdge == 0) {
+         numSurface = m_numSurface;
+         surfaceList = m_surfaceList;
+      } else {
+         numSurface = m_numSurfaceForEdge;
+         surfaceList = m_surfaceListForEdge;
+      }
+   } else {
+      if (!m_toon) return;
+      if (m_numSurfaceForEdge == 0) return;
+      numSurface = m_numSurfaceForEdge;
+      surfaceList = m_surfaceListForEdge;
+   }
 
 #ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glPushMatrix();
@@ -292,7 +305,7 @@ void PMDModel::renderEdge()
    glEnableClientState(GL_VERTEX_ARRAY);
    glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_edgeVertexList);
    glColor4f(m_edgeColor[0], m_edgeColor[1], m_edgeColor[2], m_edgeColor[3] * modelAlpha);
-   glDrawElements(GL_TRIANGLES, m_numSurfaceForEdge, GL_UNSIGNED_SHORT, m_surfaceListForEdge);
+   glDrawElements(GL_TRIANGLES, numSurface, GL_UNSIGNED_SHORT, surfaceList);
    glDisableClientState(GL_VERTEX_ARRAY);
    glEnable(GL_LIGHTING);
 

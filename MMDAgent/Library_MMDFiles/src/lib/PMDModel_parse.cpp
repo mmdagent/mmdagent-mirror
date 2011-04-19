@@ -468,6 +468,11 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             m_maxHeight = m_vertexList[i].y();
    }
 
+   /* get bounding sphere step */
+   m_boundingSphereStep = m_numVertex / PMDMODEL_BOUNDINGSPHEREPOINTS;
+   if (m_boundingSphereStep < PMDMODEL_BOUNDINGSPHEREPOINTSMIN) m_boundingSphereStep = PMDMODEL_BOUNDINGSPHEREPOINTSMIN;
+   if (m_boundingSphereStep > PMDMODEL_BOUNDINGSPHEREPOINTSMAX) m_boundingSphereStep = PMDMODEL_BOUNDINGSPHEREPOINTSMAX;
+
    /* simulation is currently off, so change bone status */
    if (!m_enableSimulation)
       setPhysicsControl(false);

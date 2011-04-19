@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VARIABLES_MAXBUFLEN 1024
+#define VARIABLES_MAXBUFLEN 2048
 
 #define VARIABLES_VALUESETEVENT   "VALUE_EVENT_SET"
 #define VARIABLES_VALUEUNSETEVENT "VALUE_EVENT_UNSET"

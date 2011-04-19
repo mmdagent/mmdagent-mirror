@@ -49,7 +49,7 @@
 #define MMDFILES_RAD(a) (a * (3.1415926f / 180.0f))
 #define MMDFILES_DEG(a) (a * (180.0f / 3.1415926f))
 
-#define MMDFILES_MAXBUFLEN    1024
+#define MMDFILES_MAXBUFLEN    2048
 #define MMDFILES_DIRSEPARATOR '\\'
 
 #include "btBulletDynamicsCommon.h"

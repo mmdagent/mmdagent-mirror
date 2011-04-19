@@ -49,6 +49,10 @@
 #define PMDMODEL_EDGECOLORB 0.0f
 #define PMDMODEL_EDGECOLORA 1.0f
 
+#define PMDMODEL_BOUNDINGSPHEREPOINTS 1000
+#define PMDMODEL_BOUNDINGSPHEREPOINTSMIN 5
+#define PMDMODEL_BOUNDINGSPHEREPOINTSMAX 20
+
 /* TexCoord: texture coordinaiton */
 typedef struct {
    float u;
@@ -121,6 +125,7 @@ private:
    bool *m_IKSimulated;                /* boolean list whether an IK should be disabled due to simulation */
    bool m_enableSimulation;            /* true when physics bone control is enabled and simulated IK should be skipped */
    float m_maxHeight;                  /* maximum height of this model */
+   unsigned long m_boundingSphereStep; /* vertex step to calculate bounding sphere for shadow mapping */
 
    /* configuration parameters given from outside */
    bool m_toon;                   /* true when enable toon rendering */
@@ -129,6 +134,7 @@ private:
    bool m_selfShadowDrawing;      /* true when render with self shadow color */
    float m_selfShadowDensityCoef; /* shadow density coefficient for self shadow */
    float m_edgeColor[4];          /* edge color */
+   bool m_forceEdge;              /* true when force edge drawing for all objects */
 
    /* additional information for managing model */
    BulletPhysics *m_bulletPhysics; /* pointer to BulletPhysics class, under which this model is controlled */
@@ -233,6 +239,9 @@ public:
 
    /* getModelDir: get model directory */
    char *getModelDir();
+
+   /* setForceEdgeFlag: set force edge flag */
+   void setForceEdgeFlag(bool flag);
 
    /* updateBone: update bones */
    void updateBone();

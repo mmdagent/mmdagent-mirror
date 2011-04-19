@@ -243,7 +243,7 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       break;
    case WM_SIZE: {
       RECT rc;
-      GetWindowRect(hWnd, &rc);
+      GetClientRect(hWnd, &rc);
       mmdagent.procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
    }
    break;

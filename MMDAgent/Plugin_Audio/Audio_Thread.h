@@ -41,7 +41,7 @@
 
 /* definitions */
 
-#define AUDIOTHREAD_MAXBUFLEN 1024
+#define AUDIOTHREAD_MAXBUFLEN 2048
 
 #define AUDIOTHREAD_WAITMS       10000 /* 10 sec */
 #define AUDIOTHREAD_ENDSLEEPMS   200   /* check per 0.2 sec at end */

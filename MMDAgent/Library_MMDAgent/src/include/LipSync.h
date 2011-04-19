@@ -42,7 +42,7 @@
 /* definitions */
 
 #define LIPSYNC_CONFIGFILE          "lip.txt"
-#define LIPSYNC_MAXBUFLEN           1024
+#define LIPSYNC_MAXBUFLEN           2048
 #define LIPSYNC_MOTIONNAME          "LipSync" /* motion name of lip sync */
 #define LIPSYNC_INTERPOLATIONMARGIN 2
 #define LIPSYNC_INTERPOLATIONRATE   0.8f

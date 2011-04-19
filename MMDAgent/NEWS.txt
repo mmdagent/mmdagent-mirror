@@ -1,3 +1,16 @@
+Version RC2:
+ * modify CAMERA, MOTION_ADD, and TIMER_START commands.
+ * support multi-FST in voice interaction manager.
+ * support motion priority.
+ * support motion interpolation for slow motions.
+ * support rendering by Z order for correct alpha blending.
+ * remove many warnings for compiler.
+ * add maximum number of models in .mdf options.
+ * add model translation of X-Y position by SHIFT+CTRL+drag.
+ * force edge drawing at model selection.
+ * modify buffer length.
+ * fix many bugs.
+
 Version RC:
  * show log of speech recognition and voice interaction manager.
  * support user's dictionary for speech recognition.

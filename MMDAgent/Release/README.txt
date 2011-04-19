@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC
-                             release March 3, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC2
+                            release April 19, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -88,59 +88,60 @@ Double click MMDAgent.exe file.
                             Key and mouse bindings
 *******************************************************************************
 
-Key                       Action
+Key                          Action
 -------------------------------------------------------------------------------
-ALT + /                   show copyright
+ALT + /                      show copyright
 
-arrow keys                rotate viewpoint
-SHIFT + arrow keys        translate viewpoint
-+, -                      zoom in, zoom out
-ESC                       quit
+arrow keys                   rotate viewpoint
+SHIFT + arrow keys           translate viewpoint
++, -                         zoom in, zoom out
+ESC                          quit
 
-X                         toggle self-shadowing
-E, or SHIFT + E           change edge width
-L, or SHIFT + L           toggle eye gaze control (follow mouse cursor)
-P                         toggle physics simulation
-W                         toggle wireframe view
+X                            toggle self-shadowing
+E, or SHIFT + E              change edge width
+L, or SHIFT + L              toggle eye gaze control (follow mouse cursor)
+P                            toggle physics simulation
+W                            toggle wireframe view
 
-F                         enable/disable full-screen
-S                         show/hide FPS
-D, or SHIFT + D           show/hide log
-B                         show/hide bones
-SHIFT + W                 show/hide rigid bodies
-J                         show/hide log of speech recognition
-SHIFT + F                 show/hide log of voice interaction manager
+F                            enable/disable full-screen
+S                            show/hide FPS
+D, or SHIFT + D              show/hide log
+B                            show/hide bones
+SHIFT + W                    show/hide rigid bodies
+SHIFT + J                    show/hide log of speech recognition
+SHIFT + F                    show/hide log of voice interaction manager
 
-SHIFT + V                 enable/disable synchronization with VSync
-SHIFT + X                 change rendering order of self-shadowing
-CTRL + left, right        adjust latency of audio file play back
-V                         excecute an FST command
-DELETE                    delete selected model(s) previously selected by
-                          double click
+SHIFT + V                    enable/disable synchronization with VSync
+SHIFT + X                    change rendering order of self-shadowing
+CTRL + left, right           adjust latency of audio file play back
+V                            excecute an FST command
+DELETE                       delete selected model(s) previously selected by
+                             double click
 
-Mouse                     Action
+Mouse                        Action
 -------------------------------------------------------------------------------
-drag                      rotate viewpoint
-SHIFT + drag              translate viewpoint
-wheel                     zoom in, zoom out
-SHIFT + CTRL + drag       change light direction
-CTRL + drag a model       translate the position of the model
-double click a model      select the model (see "File drop" below)
+drag                         rotate viewpoint
+SHIFT + drag                 translate viewpoint
+wheel                        zoom in, zoom out
+SHIFT + CTRL + drag          change light direction
+CTRL + drag a model          translate the XZ position of the model
+SHIFT + CTRL + drag a model  translate the XY position of the model
+double click a model         select the model (see "File drop" below)
 
 *******************************************************************************
                                    File drop
 *******************************************************************************
 
-File extention   Key      Action
+File extention   Key         Action
 -------------------------------------------------------------------------------
-pmd              --       swap the target model, keeping motion(s)
-pmd              CTRL     add a new model
-vmd              --       give a motion to the target model
-vmd              CTRL     give a motion to all models
-xpmd             --       change the stage
-bmp/tga/png/jpg  --       change the texture of the floor
-bmp/tga/png/jpg  CTRL     change the texture of the background
-mp3              --       play back audio
+pmd              --          swap the target model, keeping motion(s)
+pmd              CTRL        add a new model
+vmd              --          give a motion to the target model
+vmd              CTRL        give a motion to all models
+xpmd             --          change the stage
+bmp/tga/png/jpg  --          change the texture of the floor
+bmp/tga/png/jpg  CTRL        change the texture of the background
+mp3              --          play back audio
 
 Note
 

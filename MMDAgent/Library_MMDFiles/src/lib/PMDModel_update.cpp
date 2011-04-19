@@ -178,7 +178,7 @@ float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
 
    if (m_centerBone) {
       centerPos = m_centerBone->getTransform()->getOrigin();
-      for (i = 0; i < m_numVertex; i += 10) {
+      for (i = 0; i < m_numVertex; i += m_boundingSphereStep) {
          r2 = centerPos.distance2(m_skinnedVertexList[i]);
          if (maxR < r2) maxR = r2;
       }

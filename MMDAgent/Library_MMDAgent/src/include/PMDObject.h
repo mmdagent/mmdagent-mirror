@@ -41,7 +41,7 @@
 
 /* definitions */
 
-#define PMDOBJECT_MAXBUFLEN 1024
+#define PMDOBJECT_MAXBUFLEN 2048
 
 #define PMDOBJECT_ALPHAFRAME    15.0   /* number of frames for appear/disappear alpha blending */
 #define PMDOBJECT_ALIASNAMELEN  50

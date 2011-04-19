@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC
-                             release March 3, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC2
+                            release April 19, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
