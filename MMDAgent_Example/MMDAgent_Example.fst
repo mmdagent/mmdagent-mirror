@@ -46,7 +46,7 @@
 # 4th field: command (output message)
 #
 # Model
-# MODEL_ADD|(model alias)|(model file name)|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(parrent model alias)|(parrent bone name)
+# MODEL_ADD|(model alias)|(model file name)|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(parent model alias)|(parent bone name)
 # MODEL_CHANGE|(model alias)|(model file name)
 # MODEL_DELETE|(model alias)
 # MODEL_EVENT_ADD|(model alias)
