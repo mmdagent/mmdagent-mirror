@@ -310,13 +310,14 @@ void Open_JTalk_Manager::start()
          if(chara != NULL && style != NULL || text != NULL) {
             /* check character */
             for(i = 0, link = m_list; link; link = link->next, i++)
-               if(link->open_jtalk_thread.checkCharacter(chara))
+               if(link->open_jtalk_thread.checkCharacter(chara) == true)
                   break;
             if(link) {
-               link->open_jtalk_thread.stop(); /* if the same character is speaking, stop immediately */
+               if(link->open_jtalk_thread.isSpeaking() == true)
+                  link->open_jtalk_thread.stop(); /* if the same character is speaking, stop immediately */
             } else {
                for(i = 0, link = m_list; link; link = link->next, i++)
-                  if(link->open_jtalk_thread.isRunning() && link->open_jtalk_thread.isSpeaking() == false)
+                  if(link->open_jtalk_thread.isRunning() == true && link->open_jtalk_thread.isSpeaking() == false)
                      break;
                if(link == NULL) {
                   link = new Open_JTalk_Link;

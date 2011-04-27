@@ -312,10 +312,10 @@ void Open_JTalk_Thread::start()
             MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
             return;
          }
+         m_speaking = true;
          chara = MMDAgent_strdup(m_charaBuff);
          style = MMDAgent_strdup(m_styleBuff);
          text = MMDAgent_strdup(m_textBuff);
-         m_speaking = true;
          ReleaseMutex(m_bufferMutex);
 
          /* search style index */
