@@ -95,13 +95,13 @@
  * @author Akinobu LEE
  * @date   Sat Feb 12 13:20:53 2005
  *
- * $Revision: 1.14 $
+ * $Revision: 1.16 $
  * 
  */
 /*
- * Copyright (c) 1991-2007 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2007 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -1025,17 +1025,40 @@ adin_thread_cancel(Recog *recog)
 
   if (recog->adin->adinthread_ended) return TRUE;
 
+  /* send a cencellation request to the A/D-in thread */
   ret = pthread_cancel(recog->adin->adin_thread);
-  if (ret == 0) {
-    jlog("STAT: AD-in thread deleted\n");
-  } else {
+  if (ret != 0) {
     if (ret == ESRCH) {
       jlog("STAT: adin_thread_cancel: no A/D-in thread\n");
+      recog->adin->adinthread_ended = TRUE;
+      return TRUE;
     } else {
       jlog("Error: adin_thread_cancel: failed to cancel A/D-in thread\n");
       return FALSE;
     }
   }
+  /* wait for the thread to terminate */
+  ret = pthread_join(recog->adin->adin_thread, NULL);
+  if (ret != 0) {
+    if (ret == EINVAL) {
+      jlog("InternalError: adin_thread_cancel: AD-in thread is invalid\n");
+      recog->adin->adinthread_ended = TRUE;
+      return FALSE;
+    } else if (ret == ESRCH) {
+      jlog("STAT: adin_thread_cancel: no A/D-in thread\n");
+      recog->adin->adinthread_ended = TRUE;
+      return TRUE;
+    } else if (ret == EDEADLK) {
+      jlog("InternalError: adin_thread_cancel: dead lock or self thread?\n");
+      recog->adin->adinthread_ended = TRUE;
+      return FALSE;
+    } else {
+      jlog("Error: adin_thread_cancel: failed to wait end of A/D-in thread\n");
+      return FALSE;
+    }
+  }
+
+  jlog("STAT: AD-in thread deleted\n");
   recog->adin->adinthread_ended = TRUE;
   return TRUE;
 }

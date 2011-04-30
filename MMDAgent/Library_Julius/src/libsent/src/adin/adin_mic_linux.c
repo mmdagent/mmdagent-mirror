@@ -6,7 +6,7 @@
  *
  * マイク入力のための低レベル関数です．
  * インタフェースを明示指定しない (-input mic) 場合に呼ばれます．
- * ALSA, OSS, PulesAudio, ESD の順で最初に見つかったものが使用されます．
+ * ALSA, PulesAudio, OSS, ESD の順で最初に見つかったものが使用されます．
  * それぞれの API を明示的に指定したい場合は "-input" にそれぞれ
  * "alsa", "oss", "pulseaudio", "esd" を指定してください。
  * </JA>
@@ -15,7 +15,7 @@
  *
  * Low level I/O functions for microphone input on Linux.
  * This will be called when no device was explicitly specified ("-input mic").
- * ALSA, OSS, PulseAudio, ESD will be chosen at compilation time.
+ * ALSA, PulseAudio, OSS, ESD will be chosen in this order at compilation time.
  * "-input alsa", "-input oss", "-input pulseaudio" or "-input esd" to
  * specify which API to use.
  * </EN>
@@ -23,13 +23,13 @@
  * @author Akinobu LEE
  * @date   Sun Feb 13 16:18:26 2005
  *
- * $Revision: 1.5 $
+ * $Revision: 1.7 $
  * 
  */
 /*
- * Copyright (c) 1991-2008 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2008 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 

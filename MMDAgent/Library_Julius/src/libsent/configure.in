@@ -1,9 +1,9 @@
-dnl Copyright (c) 1991-2007 Kawahara Lab., Kyoto University
+dnl Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
 dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
-dnl Copyright (c) 2005-2007 Julius project team, Nagoya Institute of Technology
+dnl Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.25 2011/02/24 10:07:03 sumomo Exp $
+dnl  $Id: configure.in,v 1.27 2011/04/29 01:57:20 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_INIT(src/phmm/outprob.c)
 AC_CONFIG_HEADER(include/sent/config.h)
 AC_CONFIG_AUX_DIR(../support)
 
-LIBSENT_VERSION=4.1.5
+LIBSENT_VERSION=4.2
 
 dnl Checks for options
 # specify mic type
@@ -176,7 +176,6 @@ case "$host_os" in
 # avoid ALSA/OSS detection for Windows environment
     has_alsa=no
     has_oss=no
-    has_pulseaudio=no
     ;;
   *)
 # ALSA
@@ -204,17 +203,17 @@ AC_CHECK_LIB(pulse-simple,pa_simple_new,AC_CHECK_HEADERS(pulse/simple.h, has_pul
 
 dnl Checks for default audio input API (order is important)
 if test "$with_mictype" = auto; then
-  AC_MSG_CHECKING(for input device type)
+  AC_MSG_CHECKING(for default input device type)
   altype=no
   case "$host_os" in
   linux*)
 	# Linux - availability already checked, set default
 	if test "$has_alsa" = yes; then
 	   altype=alsa
-	elif test "$has_oss" = yes; then
-	   altype=oss
 	elif test "$has_pulseaudio" = yes; then
 	   altype=pulseaudio
+	elif test "$has_oss" = yes; then
+	   altype=oss
 	elif test "$has_esd" = yes; then
 	   altype=esd
 	else
@@ -296,24 +295,37 @@ esac
 # set appropritate parameters for the determined API
 SOUNDLIB=""
 ADINOBJ=""
-# if PulseAudio exist, include it
-if test "$has_pulseaudio" = yes; then
-    SOUNDLIB="$SOUNDLIB -lpulse-simple -lpulse"
-    ADINOBJ="$ADINOBJ src/adin/adin_pulseaudio.o"
-fi
-# if esd exist, include it
-if test "$has_esd" = yes; then
-    SOUNDLIB="$SOUNDLIB -lesd"
-    ADINOBJ="$ADINOBJ src/adin/adin_esd.o"
-fi
-# if alsa exist, include it
-if test "$has_alsa" = yes; then
-    SOUNDLIB="$SOUNDLIB -lasound"
-    ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_alsa.o"
-fi
-# if oss exist, include it
-if test "$has_oss" = yes; then
-    ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_oss.o"
+
+# when auto, several available interfaces will be enabled
+adinlist=""
+if test "$with_mictype" = auto; then
+  # if PulseAudio exist, include it
+  if test "$has_pulseaudio" = yes; then
+      SOUNDLIB="$SOUNDLIB -lpulse-simple -lpulse"
+      ADINOBJ="$ADINOBJ src/adin/adin_pulseaudio.o"
+      AC_DEFINE(HAS_PULSEAUDIO)
+      adinlist="$adinlist pulseaudio"
+  fi
+  # if alsa exist, include it
+  if test "$has_alsa" = yes; then
+      SOUNDLIB="$SOUNDLIB -lasound"
+      ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_alsa.o"
+      AC_DEFINE(HAS_ALSA)
+      adinlist="$adinlist alsa"
+  fi
+  # if oss exist, include it
+  if test "$has_oss" = yes; then
+      ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_oss.o"
+      AC_DEFINE(HAS_OSS)
+      adinlist="$adinlist oss"
+  fi
+  # if esd exist, include it
+  if test "$has_esd" = yes; then
+      SOUNDLIB="$SOUNDLIB -lesd"
+      ADINOBJ="$ADINOBJ src/adin/adin_esd.o"
+      AC_DEFINE(HAS_ESD)
+      adinlist="$adinlist esd"
+  fi
 fi
 
 # altype-specific setup
@@ -406,6 +418,11 @@ case $altype in
       aldesc="Open Sound System compatible"
       AC_DEFINE(USE_MIC)
       ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
+      if test "$with_mictype" != auto; then
+	ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_oss.o"
+	AC_DEFINE(HAS_OSS)
+        adinlist="$adinlist oss"
+      fi
       ;;
     alsa)
       if test "$has_alsa" = no; then
@@ -414,6 +431,12 @@ case $altype in
       aldesc="Advanced Linux Sound Architecture"
       AC_DEFINE(USE_MIC)
       ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
+      if test "$with_mictype" != auto; then
+	SOUNDLIB="$SOUNDLIB -lasound"
+	ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_alsa.o"
+	AC_DEFINE(HAS_ALSA)
+        adinlist="$adinlist alsa"
+      fi
       ;;
     esd)
       if test "$has_esd" = no; then
@@ -422,6 +445,12 @@ case $altype in
       aldesc="EsoundD - The Enlightened Sound Daemon"
       AC_DEFINE(USE_MIC)
       ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
+      if test "$with_mictype" != auto; then
+	SOUNDLIB="$SOUNDLIB -lesd"
+	ADINOBJ="$ADINOBJ src/adin/adin_esd.o"
+	AC_DEFINE(HAS_ESD)
+        adinlist="$adinlist esd"
+      fi
       ;;
     pulseaudio)
       if test "$has_pulseaudio" = no; then
@@ -430,6 +459,12 @@ case $altype in
       aldesc="PulseAudio"
       AC_DEFINE(USE_MIC)
       ADINOBJ="$ADINOBJ src/adin/adin_mic_linux.o"
+      if test "$with_mictype" != auto; then
+	SOUNDLIB="$SOUNDLIB -lpulse-simple -lpulse"
+	ADINOBJ="$ADINOBJ src/adin/adin_pulseaudio.o"
+	AC_DEFINE(HAS_PULSEAUDIO)
+        adinlist="$adinlist pulseaudio"
+      fi
       ;;
     freebsd)
 	if test "$has_oss" = no; then
@@ -438,6 +473,11 @@ case $altype in
 	aldesc="FreeBSD snd driver"
 	ADINOBJ="$ADINOBJ src/adin/adin_mic_freebsd.o"
 	AC_DEFINE(USE_MIC)
+	if test "$with_mictype" != auto; then
+	   ADINOBJ="$ADINOBJ src/adin/adin_mic_linux_oss.o"
+	   AC_DEFINE(HAS_OSS)
+           adinlist="$adinlist oss"
+	fi
 	;;
     coreaudio)
 	aldesc="MacOSX CoreAudio"
@@ -488,7 +528,8 @@ AC_TRY_CPP([#include <netaudio.h>],
 	AC_DEFINE(USE_NETAUDIO)
 	SOUNDINC="-I${with_netaudio_dir}/include"
 	ADINOBJ="$ADINOBJ src/adin/adin_netaudio.o src/adin/adin_na.o "
-	SOUNDLIB="$SOUNDLIB -L${with_netaudio_dir}/lib -lnetaudio -lsupport")
+	SOUNDLIB="$SOUNDLIB -L${with_netaudio_dir}/lib -lnetaudio -lsupport"
+	adinlist="$adinlist netaudio")
 AC_MSG_RESULT($use_netaudio)
 CPPFLAGS="$TMPCPPFLAGS"
 EXTRAOBJ="$EXTRAOBJ $ADINOBJ"
@@ -565,6 +606,7 @@ dnl substitute some definitions in libsent-config
 AC_SUBST(LIBSENT_VERSION)
 AC_SUBST(altype)
 AC_SUBST(aldesc)
+AC_SUBST(adinlist)
 AC_SUBST(use_netaudio)
 AC_SUBST(use_pthread)
 AC_SUBST(wavefile_support)
@@ -591,6 +633,7 @@ AC_OUTPUT_COMMANDS(
 ],
 altype=$altype
 aldesc="$aldesc"
+adinlist="$adinlist"
 use_netaudio=$use_netaudio
 use_pthread=$use_pthread
 wavefile_support="$wavefile_support"
