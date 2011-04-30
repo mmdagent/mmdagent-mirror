@@ -1,3 +1,17 @@
+2011-04-29 14:07  uratec
+
+	* ChangeLog, NEWS, README, configure.ac,
+	  mecab-naist-jdic/naist-jdic.csv: Modify dictionary.  Update
+	  documents.
+
+2011-04-22 11:26  uratec
+
+	* ChangeLog, njd_set_accent_phrase/njd_set_accent_phrase.c,
+	  njd_set_accent_phrase/njd_set_accent_phrase_rule_euc_jp.h,
+	  njd_set_accent_phrase/njd_set_accent_phrase_rule_shift_jis.h,
+	  njd_set_accent_phrase/njd_set_accent_phrase_rule_utf_8.h: add new
+	  rule for accent phrasing.
+
 2011-04-19 08:42  uratec
 
 	* ChangeLog, mecab-naist-jdic/naist-jdic.csv: Modify dictionary.
