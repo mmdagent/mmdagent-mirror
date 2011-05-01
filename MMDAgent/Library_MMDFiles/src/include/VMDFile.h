@@ -64,5 +64,16 @@ typedef struct _VMDFile_FaceFrame {
    float weight;           /* weight (0.0 - 1.0) */
 } VMDFile_FaceFrame;
 
+/* VMDFile_Camera: camera motion element structure for VMD file reading */
+typedef struct _VMDFile_CameraFrame {
+   unsigned long keyFrame; /* key frame */
+   float distance;
+   float pos[3];
+   float angle[3];
+   char interpolation[24]; /* interpolation parameters */
+   unsigned long viewAngle;
+   unsigned char noPerspective;
+} VMDFile_CameraFrame;
+
 /* restore alignment */
 #pragma pack(pop)

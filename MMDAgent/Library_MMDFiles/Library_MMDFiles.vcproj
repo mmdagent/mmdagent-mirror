@@ -171,6 +171,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\CameraController.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\KinematicMotionState.cpp"
 				>
 			</File>
@@ -258,6 +262,10 @@
 			</File>
 			<File
 				RelativePath=".\src\include\BulletPhysics.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\include\CameraController.h"
 				>
 			</File>
 			<File

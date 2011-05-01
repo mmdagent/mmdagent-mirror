@@ -146,6 +146,9 @@ private:
    int m_numModel;          /* number of models */
    MotionStocker *m_motion; /* motions */
 
+   CameraController m_camera; /* camera controller */
+   bool m_cameraControlled;  /* true when camera is controlled by motion */
+
    bool m_keyCtrl;           /* true if Ctrl-key is on */
    bool m_keyShift;          /* true if Shift-key is on */
    int m_selectedModel;      /* model ID selected by mouse */
@@ -153,11 +156,13 @@ private:
    bool m_doubleClicked;     /* true if double clicked */
    POINT m_mousepos;
    bool m_leftButtonPressed;
+   double m_restFrame;
 
    bool m_enablePhysicsSimulation; /* true if physics simulation is on */
    bool m_dispLog;                 /* true if log window is shown */
    bool m_dispBulletBodyFlag;      /* true if bullet body is shown */
    bool m_dispModelDebug;          /* true if model debugger is on */
+   bool m_holdMotion;              /* true if holding motion */
 
    /* getNewModelId: return new model ID */
    int getNewModelId();
@@ -217,7 +222,7 @@ private:
    bool setStage(const char *fileName);
 
    /* changeCamera: change camera setting */
-   bool changeCamera(const char *pos, const char *rot, const char *scale, const char *time);
+   bool changeCamera(const char *pos, const char *rot, const char *distance, const char *fovy, const char *time);
 
    /* changeLightColor: change light color */
    bool changeLightColor(float r, float g, float b);
@@ -367,6 +372,9 @@ public:
 
    /* procDisplayLogMessage: process display log message */
    void procDisplayLogMessage();
+
+   /* procHoldMessage: process hold message */
+   void procHoldMessage();
 
    /* procWindowSizeMessage: process window size message */
    void procWindowSizeMessage(int x, int y);

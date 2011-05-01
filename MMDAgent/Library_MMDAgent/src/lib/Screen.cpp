@@ -397,6 +397,12 @@ void Screen::swapBuffers()
    SwapBuffers(m_dcinfo.hDC);
 }
 
+/* Screen::getVSync: get vertical sync. flag */
+bool Screen::getVSync()
+{
+   return m_vsync;
+}
+
 /* Screen::setVSync: set vertical sync. */
 void Screen::setVSync(bool flag)
 {

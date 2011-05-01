@@ -105,6 +105,9 @@ public:
    /* toggleVSync: toggle vertical sync. flag */
    void toggleVSync();
 
+   /* getVSync: get vertical sync. flag */
+   bool getVSync();
+
    /* setFullScreen: set fullscreen */
    void setFullScreen(HWND hWnd);
 

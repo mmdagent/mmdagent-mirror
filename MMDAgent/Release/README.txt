@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version RC2
-                            release April 19, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.0
+                              release May 1, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -114,9 +114,10 @@ SHIFT + F                    show/hide log of voice interaction manager
 SHIFT + V                    enable/disable synchronization with VSync
 SHIFT + X                    change rendering order of self-shadowing
 CTRL + left, right           adjust latency of audio file play back
-V                            excecute an FST command
+V                            excecute an command
 DELETE                       delete selected model(s) previously selected by
                              double click
+H                            hold all motions
 
 Mouse                        Action
 -------------------------------------------------------------------------------

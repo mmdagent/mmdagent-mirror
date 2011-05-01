@@ -70,55 +70,22 @@ void Render::updateProjectionMatrix()
 /* Render::applyProjectionMatirx: update projection matrix */
 void Render::applyProjectionMatrix()
 {
-   double aspect = (double) m_height / (double) m_width;
-   double ratio = (m_currentScale == 0.0f) ? 1.0 : 1.0 / m_currentScale;
-
-   glFrustum(- ratio, ratio, - aspect * ratio, aspect * ratio, RENDER_VIEWPOINTFRUSTUMNEAR, RENDER_VIEWPOINTFRUSTUMFAR);
+   gluPerspective(m_currentFovy, (double) m_width / (double) m_height, RENDER_VIEWPOINTFRUSTUMNEAR, RENDER_VIEWPOINTFRUSTUMFAR);
 }
 
 /* Render::updateModelViewMatrix: update model view matrix */
 void Render::updateModelViewMatrix()
 {
+   m_transMatrix.setIdentity();
    m_transMatrix.setRotation(m_currentRot);
-   m_transMatrix.setOrigin(m_currentTrans + m_cameraTrans);
+   m_transMatrix.setOrigin(m_transMatrix * ( - m_currentTrans) - btVector3(0.0f, 0.0f, m_currentDistance));
    m_transMatrixInv = m_transMatrix.inverse();
    m_transMatrix.getOpenGLMatrix(m_rotMatrix);
    m_transMatrixInv.getOpenGLMatrix(m_rotMatrixInv);
 }
 
-/* Render::update: update scale */
-void Render::updateScale(int ellapsedTimeForMove)
-{
-   float diff;
-
-   /* if no difference, return */
-   if (m_currentScale == m_scale)
-      return;
-
-   if (m_viewMoveTime == 0) {
-      /* immediately apply the target */
-      m_currentScale = m_scale;
-   } else if (m_viewMoveTime > 0) {
-      /* constant move */
-      if (ellapsedTimeForMove >= m_viewMoveTime) {
-         m_currentScale = m_scale;
-      } else {
-         m_currentScale = m_viewMoveStartScale + (m_scale - m_viewMoveStartScale) * ellapsedTimeForMove / m_viewMoveTime;
-      }
-   } else {
-      diff = fabs(m_currentScale - m_scale);
-      if (diff < RENDER_MINSCALEDIFF) {
-         m_currentScale = m_scale;
-      } else {
-         m_currentScale = m_currentScale * (RENDER_SCALESPEEDRATE) + m_scale * (1.0f - RENDER_SCALESPEEDRATE);
-      }
-   }
-
-   updateProjectionMatrix();
-}
-
 /* Render::updateTransRotMatrix:  update trans and rotation matrix */
-void Render::updateTransRotMatrix(int ellapsedTimeForMove)
+bool Render::updateTransRotMatrix(int ellapsedTimeForMove)
 {
    float diff1, diff2;
    btVector3 trans;
@@ -126,9 +93,9 @@ void Render::updateTransRotMatrix(int ellapsedTimeForMove)
 
    /* if no difference, return */
    if (m_currentRot == m_rot && m_currentTrans == m_trans)
-      return;
+      return false;
 
-   if (m_viewMoveTime == 0) {
+   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
       /* immediately apply the target */
       m_currentRot = m_rot;
       m_currentTrans = m_trans;
@@ -160,7 +127,77 @@ void Render::updateTransRotMatrix(int ellapsedTimeForMove)
          m_currentRot = m_rot;
    }
 
-   updateModelViewMatrix();
+   return true;
+}
+
+/* Render::updateRotationFromAngle: update rotation quaternion from angle */
+void Render::updateRotationFromAngle()
+{
+   m_rot = btQuaternion(btVector3(0, 0, 1), MMDFILES_RAD(m_angle.z()))
+           * btQuaternion(btVector3(1, 0, 0), MMDFILES_RAD(m_angle.x()))
+           * btQuaternion(btVector3(0, 1, 0), MMDFILES_RAD(m_angle.y()));
+}
+
+/* Render::updateDistance: update distance */
+bool Render::updateDistance(int ellapsedTimeForMove)
+{
+   float diff;
+
+   /* if no difference, return */
+   if (m_currentDistance == m_distance)
+      return false;
+
+   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
+      /* immediately apply the target */
+      m_currentDistance = m_distance;
+   } else if (m_viewMoveTime > 0) {
+      /* constant move */
+      if (ellapsedTimeForMove >= m_viewMoveTime) {
+         m_currentDistance = m_distance;
+      } else {
+         m_currentDistance = m_viewMoveStartDistance + (m_distance - m_viewMoveStartDistance) * ellapsedTimeForMove / m_viewMoveTime;
+      }
+   } else {
+      diff = fabs(m_currentDistance - m_distance);
+      if (diff < RENDER_MINDISTANCEDIFF) {
+         m_currentDistance = m_distance;
+      } else {
+         m_currentDistance = m_currentDistance * (RENDER_DISTANCESPEEDRATE) + m_distance * (1.0f - RENDER_DISTANCESPEEDRATE);
+      }
+   }
+
+   return true;
+}
+
+/* Render::updateFovy: update distance */
+bool Render::updateFovy(int ellapsedTimeForMove)
+{
+   float diff;
+
+   /* if no difference, return */
+   if (m_currentFovy == m_fovy)
+      return false;
+
+   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
+      /* immediately apply the target */
+      m_currentFovy = m_fovy;
+   } else if (m_viewMoveTime > 0) {
+      /* constant move */
+      if (ellapsedTimeForMove >= m_viewMoveTime) {
+         m_currentFovy = m_fovy;
+      } else {
+         m_currentFovy = m_viewMoveStartFovy + (m_fovy - m_viewMoveStartFovy) * ellapsedTimeForMove / m_viewMoveTime;
+      }
+   } else {
+      diff = fabs(m_currentFovy - m_fovy);
+      if (diff < RENDER_MINFOVYDIFF) {
+         m_currentFovy = m_fovy;
+      } else {
+         m_currentFovy = m_currentFovy * (RENDER_FOVYSPEEDRATE) + m_fovy * (1.0f - RENDER_FOVYSPEEDRATE);
+      }
+   }
+
+   return true;
 }
 
 /* Render::initializeShadowMap: initialize OpenGL for shadow mapping */
@@ -326,9 +363,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
    /* only objects that wants to drop shadow should be rendered here */
    for (i = 0; i < num; i++) {
       if (objs[order[i]].isEnable() == true) {
-         glPushMatrix();
          objs[order[i]].getPMDModel()->renderForShadow();
-         glPopMatrix();
       }
    }
 
@@ -515,7 +550,6 @@ void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, f
    glMultMatrixf(m_rotMatrix);
 
    /* stage and shadhow */
-   glPushMatrix();
    /* background */
    stage->renderBackground();
    /* enable stencil */
@@ -534,14 +568,14 @@ void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, f
    glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
    /* render moodel */
    glDisable(GL_DEPTH_TEST);
+   glPushMatrix();
+   glMultMatrixf(stage->getShadowMatrix());
    for (i = 0; i < num; i++) {
       if (objs[order[i]].isEnable() == true) {
-         glPushMatrix();
-         glMultMatrixf(stage->getShadowMatrix());
          objs[order[i]].getPMDModel()->renderForShadow();
-         glPopMatrix();
       }
    }
+   glPopMatrix();
    glEnable(GL_DEPTH_TEST);
    glColorMask(1, 1, 1, 1);
    glDepthMask(1);
@@ -554,7 +588,6 @@ void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, f
    glEnable(GL_DEPTH_TEST);
    glDisable(GL_STENCIL_TEST);
    glEnable(GL_LIGHTING);
-   glPopMatrix();
 
    /* render model */
    for (i = 0; i < num; i++) {
@@ -571,15 +604,18 @@ void Render::initialize()
    m_width = 0;
    m_height = 0;
    m_trans = btVector3(0.0f, 0.0f, 0.0f);
-   m_rot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
-   m_scale = 1.0f;
-   m_cameraTrans = btVector3(0.0f, RENDER_VIEWPOINTCAMERAY, RENDER_VIEWPOINTCAMERAZ);
+   m_angle = btVector3(0.0f, 0.0f, 0.0f);
+   updateRotationFromAngle();
+   m_distance = 100.0f;
+   m_fovy = 16.0f;
 
    m_currentTrans = m_trans;
    m_currentRot = m_rot;
-   m_currentScale = m_scale;
+   m_currentDistance = m_distance;
+   m_currentFovy = m_fovy;
 
    m_viewMoveTime = -1;
+   m_viewControlledByMotion = false;
 
    m_transMatrix.setIdentity();
    updateModelViewMatrix();
@@ -613,13 +649,13 @@ Render::~Render()
 }
 
 /* Render::setup: initialize and setup Render */
-bool Render::setup(const int *size, const float *color, const float *trans, const float *rot, float scale, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, int maxNumModel)
+bool Render::setup(const int *size, const float *color, const float *trans, const float *rot, float distance, float fovy, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, int maxNumModel)
 {
    if(size == NULL || color == NULL || rot == NULL || trans == NULL)
       return false;
 
-   resetLocation(trans, rot, scale);
-   setViewMoveTimer(-1);
+   resetCameraView(trans, rot, distance, fovy);
+   setViewMoveTimer(0);
 
    /* set clear color */
    glClearColor(color[0], color[1], color[2], 0.0f);
@@ -682,14 +718,25 @@ int Render::getHeight()
    return m_height;
 }
 
-/* Render::resetLocation: reset rotation, transition, and scale */
-void Render::resetLocation(const float *trans, const float *rot, float scale)
+/* Render::resetCameraView: reset camera view */
+void Render::resetCameraView(const float *trans, const float *angle, float distance, float fovy)
 {
-   btMatrix3x3 bm;
-   bm.setEulerZYX(MMDFILES_RAD(rot[0]), MMDFILES_RAD(rot[1]), MMDFILES_RAD(rot[2]));
-   bm.getRotation(m_rot);
+   m_angle = btVector3(angle[0], angle[1], angle[2]);
    m_trans = btVector3(trans[0], trans[1], trans[2]);
-   m_scale = scale;
+   m_distance = distance;
+   m_fovy = fovy;
+   updateRotationFromAngle();
+}
+
+/* Render::setCameraParam: set camera view parameter from camera controller */
+void Render::setCameraFromController(CameraController *c)
+{
+   if (c != NULL) {
+      c->getCurrentViewParam(&m_distance, &m_trans, &m_angle, &m_fovy);
+      updateRotationFromAngle();
+      m_viewControlledByMotion = true;
+   } else
+      m_viewControlledByMotion = false;
 }
 
 /* Render::setViewMoveTimer: set timer for rotation, transition, and scale of view */
@@ -699,14 +746,15 @@ void Render::setViewMoveTimer(int ms)
    if (m_viewMoveTime > 0) {
       m_viewMoveStartRot = m_currentRot;
       m_viewMoveStartTrans = m_currentTrans;
-      m_viewMoveStartScale = m_currentScale;
+      m_viewMoveStartDistance = m_currentDistance;
+      m_viewMoveStartFovy = m_currentFovy;
    }
 }
 
 /* Render::isViewMoving: return if view is moving by timer */
 bool Render::isViewMoving()
 {
-   if (m_viewMoveTime > 0 && (m_currentRot != m_rot || m_currentTrans != m_trans || m_currentScale != m_scale))
+   if (m_viewMoveTime > 0 && (m_currentRot != m_rot || m_currentTrans != m_trans || m_currentDistance != m_distance || m_currentFovy != m_fovy))
       return true;
    return false;
 }
@@ -720,20 +768,34 @@ void Render::translate(float x, float y, float z)
 /* Render::rotate: rotate scene */
 void Render::rotate(float x, float y, float z)
 {
-   m_rot = m_rot * btQuaternion(x, 0, 0);
-   m_rot = btQuaternion(0, y, 0) * m_rot;
+   m_angle.setX(m_angle.x() + x);
+   m_angle.setY(m_angle.y() + y);
+   m_angle.setZ(m_angle.z() + z);
+   updateRotationFromAngle();
 }
 
-/* Render::setScale: set scale */
-void Render::setScale(float scale)
+/* Render::setDistance: set distance */
+void Render::setDistance(float distance)
 {
-   m_scale = scale;
+   m_distance = distance;
 }
 
-/* Render::getScale: get scale */
-float Render::getScale()
+/* Render::getDistance: get distance */
+float Render::getDistance()
 {
-   return m_scale;
+   return m_distance;
+}
+
+/* Render::setFovy: set fovy */
+void Render::setFovy(float fovy)
+{
+   m_fovy = fovy;
+}
+
+/* Render::getFovy: get fovy */
+float Render::getFovy()
+{
+   return m_fovy;
 }
 
 /* Render::setShadowMapping: switch shadow mapping */
@@ -798,10 +860,16 @@ void Render::getRenderOrder(short *order, PMDObject *objs, int num)
 /* Render::render: render all */
 void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, int ellapsedTimeForMove)
 {
-   /* update scale */
-   updateScale(ellapsedTimeForMove);
-   /* update trans and rotation matrix */
-   updateTransRotMatrix(ellapsedTimeForMove);
+   bool updated;
+
+   /* update camera view matrices */
+   updated = updateDistance(ellapsedTimeForMove);
+   updated |= updateTransRotMatrix(ellapsedTimeForMove);
+   if (updated == true)
+      updateModelViewMatrix();
+   if (updateFovy(ellapsedTimeForMove) == true)
+      updateProjectionMatrix();
+
    if (isViewMoving() == false)
       m_viewMoveTime = -1;
 
@@ -971,13 +1039,21 @@ void Render::getScreenPointPosition(btVector3 *dst, btVector3 *src)
    *dst = m_transMatrixInv * (*src);
 }
 
+/* Render::getCurrentViewCenterPos: get current view center position */
+void Render::getCurrentViewCenterPos(btVector3 *pos)
+{
+   *pos = m_currentTrans;
+}
+
+/* Render::getCurrentViewRotation: get current view translation matrix */
+void Render::getCurrentViewTransform(btTransform *tr)
+{
+   *tr = m_transMatrix;
+}
+
 /* Render::getInfoString: store current view parameters to buffer */
 void Render::getInfoString(char *buf)
 {
-   btMatrix3x3 mat;
-   btScalar rx, ry, rz;
-
-   mat.setRotation(m_currentRot);
-   mat.getEulerZYX(rz, ry, rx);
-   sprintf(buf, "%.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f", m_currentTrans.x(), m_currentTrans.y(), m_currentTrans.z(), MMDFILES_DEG(rx), MMDFILES_DEG(ry), MMDFILES_DEG(rz), m_currentScale);
+   sprintf(buf, "%.2f, %.2f, %.2f | %.2f, %.2f, %.2f | %.2f | %.2f", m_currentTrans.x(), m_currentTrans.y(), m_currentTrans.z(), m_angle.x(), m_angle.y(), m_angle.z(), m_currentDistance, m_currentFovy);
 }
+

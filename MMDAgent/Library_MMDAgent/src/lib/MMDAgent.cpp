@@ -221,6 +221,12 @@ bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 
    /* initialize motion manager */
    m_model[id].resetMotionManager();
 
+   /* update for initial positions and skins */
+   m_model[id].updateRootBone();
+   m_model[id].updateMotion(0.0);
+   m_model[id].updateAlpha(0.0);
+   m_model[id].updateAfterSimulation(m_enablePhysicsSimulation);
+
    /* send event message */
    sendEventMessage(MMDAGENT_EVENT_MODELADD, "%s", name);
    free(name);
@@ -263,6 +269,12 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
          }
       }
    }
+
+   /* update for initial positions and skins */
+   m_model[id].updateRootBone();
+   m_model[id].updateMotion(0.0);
+   m_model[id].updateAlpha(0.0);
+   m_model[id].updateAfterSimulation(m_enablePhysicsSimulation);
 
    /* delete accessories immediately*/
    for (i = 0; i < m_numModel; i++)
@@ -714,17 +726,26 @@ bool MMDAgent::setStage(const char *fileName)
 }
 
 /* MMDAgent::changeCamera: change camera setting */
-bool MMDAgent::changeCamera(const char *pos, const char *rot, const char *scale, const char *time)
+bool MMDAgent::changeCamera(const char *posOrVMD, const char *rot, const char *distance, const char *fovy, const char *time)
 {
    float p[3], r[3];
+   VMD *vmd;
 
-   if(MMDAgent_str2fvec(pos, p, 3) == true && MMDAgent_str2fvec(rot, r, 3) == true) {
-      m_render->resetLocation(p, r, MMDAgent_str2float(scale));
+   if(MMDAgent_str2fvec(posOrVMD, p, 3) == true && MMDAgent_str2fvec(rot, r, 3) == true) {
+      m_render->resetCameraView(p, r, MMDAgent_str2float(distance), MMDAgent_str2float(fovy));
       if (time) {
          m_render->setViewMoveTimer((int)(MMDAgent_str2float(time) * 1000.0f));
          m_timer->start();
       } else
          m_render->setViewMoveTimer(-1);
+      return true;
+   }
+
+   vmd = m_motion->loadFromFile(posOrVMD);
+   if(vmd != NULL) {
+      m_camera.setup(vmd);
+      m_camera.reset();
+      m_cameraControlled = true;
       return true;
    }
 
@@ -865,6 +886,8 @@ void MMDAgent::initialize()
    m_numModel = 0;
    m_motion = NULL;
 
+   m_cameraControlled = false;
+
    m_keyCtrl = false;
    m_keyShift = false;
    m_selectedModel = -1;
@@ -873,11 +896,13 @@ void MMDAgent::initialize()
    m_mousepos.x = 0;
    m_mousepos.y = 0;
    m_leftButtonPressed = false;
+   m_restFrame = 0.0;
 
    m_enablePhysicsSimulation = true;
    m_dispLog = false;
    m_dispBulletBodyFlag = false;
    m_dispModelDebug = false;
+   m_holdMotion = false;
 }
 
 /* MMDAgent::clear: free MMDAgent */
@@ -1043,7 +1068,7 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
 
    /* setup render */
    m_render = new Render();
-   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getRenderingTransition(), m_option->getRenderingRotation(), m_option->getRenderingScale(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getMaxNumModel()) == false) {
+   if (m_render->setup(m_option->getWindowSize(), m_option->getCampusColor(), m_option->getCameraTransition(), m_option->getCameraRotation(), m_option->getCameraDistance(), m_option->getCameraFovy(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getMaxNumModel()) == false) {
       clear();
       return 0;
    }
@@ -1110,17 +1135,48 @@ void MMDAgent::updateScene()
    /* get frame interval */
    intervalFrame = m_timer->getFrameInterval();
 
+   if (m_holdMotion == true) {
+      /* minimal update with no frame advance */
+      for (i = 0; i < m_numModel; i++) {
+         if (m_model[i].isEnable() == false) continue;
+         if(m_model[i].isMoving() == true) {
+            m_model[i].updateRootBone();
+            m_model[i].updateMotion(0);
+         }
+         m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
+      }
+      InvalidateRect(m_hWnd, NULL, false);
+      return;
+   }
+
    stepmax = m_option->getBulletFps();
    stepFrame = 30.0 / m_option->getBulletFps();
-   restFrame = intervalFrame;
+   restFrame = intervalFrame + m_restFrame;
+   m_restFrame = 0.0;
 
    for (ite = 0; ite < stepmax; ite++) {
+      /* determine frame amount */
       if (restFrame <= stepFrame) {
-         /* break */
-         procFrame = restFrame;
+         if (m_screen->getVSync()) {
+            if (restFrame > stepFrame * 0.5) {
+               /* process one step in advance */
+               procFrame = stepFrame;
+               m_restFrame = restFrame - stepFrame;
+            } else if (restFrame <= stepFrame * 0.5) {
+               /* leave for next call */
+               m_restFrame = restFrame;
+               break;
+            } else {
+               /* process as is */
+               procFrame = restFrame;
+            }
+         } else {
+            /* process as is */
+            procFrame = restFrame;
+         }
          ite = stepmax;
       } else {
-         /* add stepFrame */
+         /* process by stepFrame */
          procFrame = stepFrame;
          restFrame -= stepFrame;
       }
@@ -1154,6 +1210,17 @@ void MMDAgent::updateScene()
       m_plugin->execUpdate(this, procFrame + adjustFrame);
       /* update bullet physics */
       m_bullet->update((float) procFrame);
+
+      /* camera motion */
+      if (m_cameraControlled == true) {
+         if (m_camera.advance(procFrame + adjustFrame) == true) {
+            /* reached end */
+            m_cameraControlled = false;
+         }
+         m_render->setCameraFromController(&m_camera);
+      } else {
+         m_render->setCameraFromController(NULL);
+      }
    }
    /* update after simulation */
    for (i = 0; i < m_numModel; i++)
@@ -1177,6 +1244,16 @@ void MMDAgent::renderScene()
    char buff[MMDAGENT_MAXBUFLEN];
    btVector3 pos;
    float fps;
+   static const GLfloat vertices[8][3] = {
+      { -0.5f, -0.5f, 0.5f},
+      { 0.5f, -0.5f, 0.5f},
+      { 0.5f, 0.5f, 0.5f},
+      { -0.5f, 0.5f, 0.5f},
+      { 0.5f, -0.5f, -0.5f},
+      { -0.5f, -0.5f, -0.5f},
+      { -0.5f, 0.5f, -0.5f},
+      { 0.5f, 0.5f, -0.5f}
+   };
 
    if (!m_hWnd) return;
 
@@ -1233,6 +1310,18 @@ void MMDAgent::renderScene()
       glEnable(GL_LIGHTING);
    }
 
+   /* show holding message */
+   if (m_holdMotion) {
+      sprintf(buff, "<<HOLD>>");
+      glDisable(GL_LIGHTING);
+      glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+      glPushMatrix();
+      glWindowPos2f(m_render->getWidth() / 2 - 30.0f, m_render->getHeight() - 50.0f);
+      m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
    if (m_dispLog) {
       /* show adjustment time for audio */
       if (m_option->getMotionAdjustFrame() > 0)
@@ -1275,6 +1364,49 @@ void MMDAgent::renderScene()
       glPushMatrix();
       glWindowPos2f(5.0f, 5.0f + 18.0f);
       m_text->drawAsciiStringBitmap(buff);
+      glPopMatrix();
+      /* show camera eye point */
+      glPushMatrix();
+      m_render->getCurrentViewCenterPos(&pos);
+      glTranslatef(pos.x(), pos.y(), pos.z());
+      glColor4f(0.9f, 0.4f, 0.0f, 1.0f);
+      glScaled(0.3, 0.3, 0.3);
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[0]);
+      glVertex3fv(vertices[1]);
+      glVertex3fv(vertices[2]);
+      glVertex3fv(vertices[3]);
+      glEnd();
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[4]);
+      glVertex3fv(vertices[5]);
+      glVertex3fv(vertices[6]);
+      glVertex3fv(vertices[7]);
+      glEnd();
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[1]);
+      glVertex3fv(vertices[4]);
+      glVertex3fv(vertices[7]);
+      glVertex3fv(vertices[2]);
+      glEnd();
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[5]);
+      glVertex3fv(vertices[0]);
+      glVertex3fv(vertices[3]);
+      glVertex3fv(vertices[6]);
+      glEnd();
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[3]);
+      glVertex3fv(vertices[2]);
+      glVertex3fv(vertices[7]);
+      glVertex3fv(vertices[6]);
+      glEnd();
+      glBegin(GL_POLYGON);
+      glVertex3fv(vertices[1]);
+      glVertex3fv(vertices[0]);
+      glVertex3fv(vertices[5]);
+      glVertex3fv(vertices[4]);
+      glEnd();
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
@@ -1495,19 +1627,32 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
 
    if (!m_hWnd) return;
 
-   /* zoom */
-   tmp1 = m_option->getScaleStep();
-   tmp2 = m_render->getScale();
-   if (withCtrl) /* faster */
-      tmp1 = (tmp1 - 1.0f) * 5.0f + 1.0f;
-   else if (withShift) /* slower */
-      tmp1 = (tmp1 - 1.0f) * 0.2f + 1.0f;
-   if(tmp1 != 0.0) {
-      if (zoomup)
-         tmp2 *= tmp1;
-      else
-         tmp2 /= tmp1;
-      m_render->setScale(tmp2);
+   if (withCtrl && withShift) {
+      /* move camera fovy */
+      tmp1 = m_option->getFovyStep();
+      tmp2 = m_render->getFovy();
+      if (tmp1 != 0.0) {
+         if (zoomup)
+            tmp2 -= tmp1;
+         else
+            tmp2 += tmp1;
+         m_render->setFovy(tmp2);
+      }
+   } else {
+      /* move camera distance */
+      tmp1 = m_option->getDistanceStep();
+      tmp2 = m_render->getDistance();
+      if (withCtrl) /* faster */
+         tmp1 = tmp1 * 5.0f;
+      else if (withShift) /* slower */
+         tmp1 = tmp1 * 0.2f;
+      if (tmp1 != 0.0) {
+         if (zoomup)
+            tmp2 -= tmp1;
+         else
+            tmp2 += tmp1;
+         m_render->setDistance(tmp2);
+      }
    }
 }
 
@@ -1515,11 +1660,11 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
 void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
 {
    float *f;
-   float tmp1, tmp2, tmp3;
    LONG r1; /* should be renamed */
    LONG r2;
    btVector3 v;
    btMatrix3x3 bm;
+   btTransform tr;
 
    if (!m_hWnd) return;
 
@@ -1540,7 +1685,7 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
          /* if Shift- and Ctrl-key, and no model is pointed, rotate light direction */
          f = m_option->getLightDirection();
          v = btVector3(f[0], f[1], f[2]);
-         bm = btMatrix3x3(btQuaternion(0, r2 * 0.1f * m_option->getRotateStep(), 0) * btQuaternion(r1 * 0.1f * m_option->getRotateStep(), 0, 0));
+         bm = btMatrix3x3(btQuaternion(0, r2 * 0.1f * MMDFILES_RAD(m_option->getRotateStep()), 0) * btQuaternion(r1 * 0.1f * MMDFILES_RAD(m_option->getRotateStep()), 0, 0));
          v = bm * v;
          changeLightDirection(v.x(), v.y(), v.z());
       } else if (withCtrl) {
@@ -1550,35 +1695,29 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
             m_model[m_selectedModel].getTargetPosition(&v);
             if (withShift) {
                /* with Shift-key, move on XY (coronal) plane */
-               v.setX(v.x() + r1 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
-               v.setY(v.y() - r2 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
+               v.setY(v.y() - r2 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
             } else {
                /* else, move on XZ (axial) plane */
-               v.setX(v.x() + r1 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
-               v.setZ(v.z() + r2 * 0.1f * m_option->getTranslateStep() / m_render->getScale());
+               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
+               v.setZ(v.z() + r2 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
             }
             m_model[m_selectedModel].setPosition(&v);
             m_model[m_selectedModel].setMoveSpeed(-1.0f);
          }
       } else if (withShift) {
          /* if Shift-key, translate display */
-         tmp1 = r1 / (float) m_render->getWidth();
-         tmp2 = - r2 / (float) m_render->getHeight();
-         tmp3 = 20.0f;
-         tmp1 = (float) (tmp1 * (tmp3 - RENDER_VIEWPOINTCAMERAZ) / RENDER_VIEWPOINTFRUSTUMNEAR);
-         tmp2 = (float) (tmp2 * (tmp3 - RENDER_VIEWPOINTCAMERAZ) / RENDER_VIEWPOINTFRUSTUMNEAR);
-         tmp1 /= m_render->getScale();
-         tmp2 /= m_render->getScale();
-         tmp3 = 0.0f;
-         m_render->translate(tmp1, tmp2, tmp3);
+         v = btVector3(r1 * 0.0005f * m_render->getDistance(), -r2 * 0.0005f * m_render->getDistance(), 0.0f);
+         m_render->getCurrentViewTransform(&tr);
+         tr.setOrigin(btVector3(0.0f, 0.0f, 0.0f));
+         v = tr.inverse() * v;
+         m_render->translate(-v.x(), -v.y(), -v.z());
       } else {
          /* if no key, rotate display */
-         m_render->rotate(r1 * 0.1f * m_option->getRotateStep(), r2 * 0.1f * m_option->getRotateStep(), 0.0f);
+         m_render->rotate(r2 * 0.1f * m_option->getRotateStep(), r1 * 0.1f * m_option->getRotateStep(), 0.0f);
       }
       m_mousepos.x = x;
       m_mousepos.y = y;
-      /* forced update motion */
-      updateScene();
    } else if (m_mousepos.x != x || m_mousepos.y != y) {
       /* set mouse enable timer */
       m_screen->setMouseActiveTime(45.0f);
@@ -1653,6 +1792,7 @@ void MMDAgent::procShadowMappingOrderMessage()
       m_option->setShadowMappingLightFirst(false);
    else
       m_option->setShadowMappingLightFirst(true);
+   m_render->setShadowMapping(m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
 }
 
 /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
@@ -1718,9 +1858,9 @@ void MMDAgent::procHorizontalRotateMessage(bool right)
    if (!m_hWnd) return;
 
    if(right)
-      m_render->rotate(m_option->getRotateStep(), 0.0f, 0.0f);
+      m_render->rotate(0.0f, m_option->getRotateStep(), 0.0f);
    else
-      m_render->rotate(-m_option->getRotateStep(), 0.0f, 0.0f);
+      m_render->rotate(0.0f, -m_option->getRotateStep(), 0.0f);
 }
 
 /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
@@ -1729,9 +1869,9 @@ void MMDAgent::procVerticalRotateMessage(bool up)
    if (!m_hWnd) return;
 
    if(up)
-      m_render->rotate(0.0f, -m_option->getRotateStep(), 0.0f);
+      m_render->rotate(-m_option->getRotateStep(), 0.0f, 0.0f);
    else
-      m_render->rotate(0.0f, m_option->getRotateStep(), 0.0f);
+      m_render->rotate(m_option->getRotateStep(), 0.0f, 0.0f);
 }
 
 /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
@@ -1785,6 +1925,14 @@ void MMDAgent::procDisplayLogMessage()
    if (!m_hWnd) return;
 
    m_dispLog = !m_dispLog;
+}
+
+/* MMDAgent::procHoldMessage: process hold message */
+void MMDAgent::procHoldMessage()
+{
+   if (!m_hWnd) return;
+
+   m_holdMotion = !m_holdMotion;
 }
 
 /* MMDAgent::procWindowSizeMessage: process window size message */
@@ -2080,11 +2228,15 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
       }
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_CAMERA)) {
       /* camera */
-      if(num < 3 || num > 4) {
-         m_logger->log("Error: %s: number of arguments should be 3-4.", command);
+      if((num < 4 || num > 5) && num != 1) {
+         m_logger->log("Error: %s: number of arguments should be 1 or 4-5.", command);
          return;
       }
-      changeCamera(argv[0], argv[1], argv[2], (num == 4) ? argv[3] : NULL);
+      if (num == 1) {
+         changeCamera(argv[0], NULL, NULL, NULL, NULL);
+      } else {
+         changeCamera(argv[0], argv[1], argv[2], argv[3], (num == 5) ? argv[4] : NULL);
+      }
    } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTCOLOR)) {
       /* change light color */
       if (num != 1) {

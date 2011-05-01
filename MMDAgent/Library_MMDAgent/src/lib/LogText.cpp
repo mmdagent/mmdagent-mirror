@@ -181,7 +181,7 @@ void LogText::render()
    glVertex3f(x + w, y + h, z);
    glVertex3f(x    , y + h, z);
    glEnd();
-   glTranslatef(x + 0.5f, y + h - 0.4f, z + 0.01f);
+   glTranslatef(x + 0.5f, y + h - 0.4f, z + 0.05f);
    for (i = 0; i < m_textHeight; i++) {
       glTranslatef(0.0f, -0.85f, 0.0f);
       j = m_textLine + i;

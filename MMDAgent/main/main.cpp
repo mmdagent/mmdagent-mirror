@@ -224,6 +224,9 @@ LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       case IDM_TOGGLE_DISP_LOG:
          mmdagent.procDisplayLogMessage();
          break;
+      case IDM_TOGGLE_HOLD:
+         mmdagent.procHoldMessage();
+         break;
       case IDM_ABOUT:
          DialogBox(mmdagent.getInstance(), MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, copyrightDialogBox);
          break;

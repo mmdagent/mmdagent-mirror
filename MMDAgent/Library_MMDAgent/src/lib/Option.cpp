@@ -55,13 +55,14 @@ void Option::initialize()
    m_cartoonEdgeSelectedColor[2] = OPTION_CARTOONEDGESELECTEDCOLORB_DEF;
    m_cartoonEdgeSelectedColor[3] = OPTION_CARTOONEDGESELECTEDCOLORA_DEF;
 
-   m_renderingRotation[0] = OPTION_RENDERINGROTATIONX_DEF;
-   m_renderingRotation[1] = OPTION_RENDERINGROTATIONY_DEF;
-   m_renderingRotation[2] = OPTION_RENDERINGROTATIONZ_DEF;
-   m_renderingTransition[0] = OPTION_RENDERINGTRANSITIONX_DEF;
-   m_renderingTransition[1] = OPTION_RENDERINGTRANSITIONY_DEF;
-   m_renderingTransition[2] = OPTION_RENDERINGTRANSITIONZ_DEF;
-   m_renderingScale = OPTION_RENDERINGSCALE_DEF;
+   m_cameraRotation[0] = OPTION_CAMERAROTATIONX_DEF;
+   m_cameraRotation[1] = OPTION_CAMERAROTATIONY_DEF;
+   m_cameraRotation[2] = OPTION_CAMERAROTATIONZ_DEF;
+   m_cameraTransition[0] = OPTION_CAMERATRANSITIONX_DEF;
+   m_cameraTransition[1] = OPTION_CAMERATRANSITIONY_DEF;
+   m_cameraTransition[2] = OPTION_CAMERATRANSITIONZ_DEF;
+   m_cameraDistance = OPTION_CAMERADISTANCE_DEF;
+   m_cameraFovy = OPTION_CAMERAFOVY_DEF;
 
    m_stageSize[0] = OPTION_STAGESIZEW_DEF;
    m_stageSize[1] = OPTION_STAGESIZED_DEF;
@@ -106,7 +107,8 @@ void Option::initialize()
 
    m_rotateStep = OPTION_ROTATESTEP_DEF;
    m_translateStep = OPTION_TRANSLATESTEP_DEF;
-   m_scaleStep = OPTION_SCALESTEP_DEF;
+   m_distanceStep = OPTION_DISTANCESTEP_DEF;
+   m_fovyStep = OPTION_FOVYSTEP_DEF;
 
    m_useShadowMapping = OPTION_USESHADOWMAPPING_DEF;
    m_shadowMapTextureSize = OPTION_SHADOWMAPPINGTEXTURESIZE_DEF;
@@ -168,14 +170,16 @@ bool Option::load(const char *file)
       } else if(MMDAgent_strequal(buf, OPTION_CARTOONEDGESELECTEDCOLOR_STR)) {
          if(MMDAgent_str2fvec(p1, fvec4, 4))
             setCartoonEdgeSelectedColor(fvec4);
-      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGROTATION_STR)) {
+      } else if(MMDAgent_strequal(buf, OPTION_CAMERAROTATION_STR)) {
          if(MMDAgent_str2fvec(p1, fvec3, 3))
-            setRenderingRotation(fvec3);
-      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGTRANSITION_STR)) {
+            setCameraRotation(fvec3);
+      } else if(MMDAgent_strequal(buf, OPTION_CAMERATRANSITION_STR)) {
          if(MMDAgent_str2fvec(p1, fvec3, 3))
-            setRenderingTransition(fvec3);
-      } else if(MMDAgent_strequal(buf, OPTION_RENDERINGSCALE_STR)) {
-         setRenderingScale(MMDAgent_str2float(p1));
+            setCameraTransition(fvec3);
+      } else if(MMDAgent_strequal(buf, OPTION_CAMERADISTANCE_STR)) {
+         setCameraDistance(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_CAMERAFOVY_STR)) {
+         setCameraFovy(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_STAGESIZE_STR)) {
          if(MMDAgent_str2fvec(p1, fvec3, 3))
             setStageSize(fvec3);
@@ -222,8 +226,10 @@ bool Option::load(const char *file)
          setRotateStep(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_TRANSLATESTEP_STR)) {
          setTranslateStep(MMDAgent_str2float(p1));
-      } else if(MMDAgent_strequal(buf, OPTION_SCALESTEP_STR)) {
-         setScaleStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_DISTANCESTEP_STR)) {
+         setDistanceStep(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_FOVYSTEP_STR)) {
+         setFovyStep(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_USESHADOWMAPPING_STR)) {
          setUseShadowMapping(MMDAgent_str2bool(p1));
       } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGTEXTURESIZE_STR)) {
@@ -341,83 +347,100 @@ void Option::setCartoonEdgeSelectedColor(const float *f)
       m_cartoonEdgeSelectedColor[3] = f[3];
 }
 
-/* Option::getRenderingRotation: get rendering rotation */
-float *Option::getRenderingRotation()
+/* Option::getCameraRotation: get camera rotation */
+float *Option::getCameraRotation()
 {
-   return m_renderingRotation;
+   return m_cameraRotation;
 }
 
-/* Option::setRenderingRotation: set rendering rotation */
-void Option::setRenderingRotation(const float *f)
+/* Option::setCameraRotation: set camera rotation */
+void Option::setCameraRotation(const float *f)
 {
-   if(OPTION_RENDERINGROTATION_MAX < f[0])
-      m_renderingRotation[0] = OPTION_RENDERINGROTATION_MAX;
-   else if(OPTION_RENDERINGROTATION_MIN > f[0])
-      m_renderingRotation[0] = OPTION_RENDERINGROTATION_MIN;
+   if(OPTION_CAMERAROTATION_MAX < f[0])
+      m_cameraRotation[0] = OPTION_CAMERAROTATION_MAX;
+   else if(OPTION_CAMERAROTATION_MIN > f[0])
+      m_cameraRotation[0] = OPTION_CAMERAROTATION_MIN;
    else
-      m_renderingRotation[0] = f[0];
+      m_cameraRotation[0] = f[0];
 
-   if(OPTION_RENDERINGROTATION_MAX < f[1])
-      m_renderingRotation[1] = OPTION_RENDERINGROTATION_MAX;
-   else if(OPTION_RENDERINGROTATION_MIN > f[1])
-      m_renderingRotation[1] = OPTION_RENDERINGROTATION_MIN;
+   if(OPTION_CAMERAROTATION_MAX < f[1])
+      m_cameraRotation[1] = OPTION_CAMERAROTATION_MAX;
+   else if(OPTION_CAMERAROTATION_MIN > f[1])
+      m_cameraRotation[1] = OPTION_CAMERAROTATION_MIN;
    else
-      m_renderingRotation[1] = f[1];
+      m_cameraRotation[1] = f[1];
 
-   if(OPTION_RENDERINGROTATION_MAX < f[2])
-      m_renderingRotation[2] = OPTION_RENDERINGROTATION_MAX;
-   else if(OPTION_RENDERINGROTATION_MIN > f[2])
-      m_renderingRotation[2] = OPTION_RENDERINGROTATION_MIN;
+   if(OPTION_CAMERAROTATION_MAX < f[2])
+      m_cameraRotation[2] = OPTION_CAMERAROTATION_MAX;
+   else if(OPTION_CAMERAROTATION_MIN > f[2])
+      m_cameraRotation[2] = OPTION_CAMERAROTATION_MIN;
    else
-      m_renderingRotation[2] = f[2];
+      m_cameraRotation[2] = f[2];
 }
 
-/* Option::getRenderingTransition: get rendering transition */
-float *Option::getRenderingTransition()
+/* Option::getCameraTransition: get camera transition */
+float *Option::getCameraTransition()
 {
-   return m_renderingTransition;
+   return m_cameraTransition;
 }
 
-/* Option::setRenderingTransition: set rendering transition */
-void Option::setRenderingTransition(const float *f)
+/* Option::setCameraTransition: set camera transition */
+void Option::setCameraTransition(const float *f)
 {
-   if(OPTION_RENDERINGTRANSITION_MAX < f[0])
-      m_renderingTransition[0] = OPTION_RENDERINGTRANSITION_MAX;
-   else if(OPTION_RENDERINGTRANSITION_MIN > f[0])
-      m_renderingTransition[0] = OPTION_RENDERINGTRANSITION_MIN;
+   if(OPTION_CAMERATRANSITION_MAX < f[0])
+      m_cameraTransition[0] = OPTION_CAMERATRANSITION_MAX;
+   else if(OPTION_CAMERATRANSITION_MIN > f[0])
+      m_cameraTransition[0] = OPTION_CAMERATRANSITION_MIN;
    else
-      m_renderingTransition[0] = f[0];
+      m_cameraTransition[0] = f[0];
 
-   if(OPTION_RENDERINGTRANSITION_MAX < f[1])
-      m_renderingTransition[1] = OPTION_RENDERINGTRANSITION_MAX;
-   else if(OPTION_RENDERINGTRANSITION_MIN > f[1])
-      m_renderingTransition[1] = OPTION_RENDERINGTRANSITION_MIN;
+   if(OPTION_CAMERATRANSITION_MAX < f[1])
+      m_cameraTransition[1] = OPTION_CAMERATRANSITION_MAX;
+   else if(OPTION_CAMERATRANSITION_MIN > f[1])
+      m_cameraTransition[1] = OPTION_CAMERATRANSITION_MIN;
    else
-      m_renderingTransition[1] = f[1];
+      m_cameraTransition[1] = f[1];
 
-   if(OPTION_RENDERINGTRANSITION_MAX < f[2])
-      m_renderingTransition[2] = OPTION_RENDERINGTRANSITION_MAX;
-   else if(OPTION_RENDERINGTRANSITION_MIN > f[2])
-      m_renderingTransition[2] = OPTION_RENDERINGTRANSITION_MIN;
+   if(OPTION_CAMERATRANSITION_MAX < f[2])
+      m_cameraTransition[2] = OPTION_CAMERATRANSITION_MAX;
+   else if(OPTION_CAMERATRANSITION_MIN > f[2])
+      m_cameraTransition[2] = OPTION_CAMERATRANSITION_MIN;
    else
-      m_renderingTransition[2] = f[2];
+      m_cameraTransition[2] = f[2];
 }
 
-/* Option::getRenderingScale: get rendering scale */
-float Option::getRenderingScale()
+/* Option::getCameraDistance: get camera distance */
+float Option::getCameraDistance()
 {
-   return m_renderingScale;
+   return m_cameraDistance;
 }
 
-/* Option::setRenderingScale: set rendering scale */
-void Option::setRenderingScale(float f)
+/* Option::setCameraDistance: set camera distance */
+void Option::setCameraDistance(float f)
 {
-   if(OPTION_RENDERINGSCALE_MAX < f)
-      m_renderingScale = OPTION_RENDERINGSCALE_MAX;
-   else if(OPTION_RENDERINGSCALE_MIN > f)
-      m_renderingScale = OPTION_RENDERINGSCALE_MIN;
+   if(OPTION_CAMERADISTANCE_MAX < f)
+      m_cameraDistance = OPTION_CAMERADISTANCE_MAX;
+   else if(OPTION_CAMERADISTANCE_MIN > f)
+      m_cameraDistance = OPTION_CAMERADISTANCE_MIN;
    else
-      m_renderingScale = f;
+      m_cameraDistance = f;
+}
+
+/* Option::getCameraFovy: get camera fovy */
+float Option::getCameraFovy()
+{
+   return m_cameraFovy;
+}
+
+/* Option::setCameraFovy: set camera fovy */
+void Option::setCameraFovy(float f)
+{
+   if(OPTION_CAMERAFOVY_MAX < f)
+      m_cameraFovy = OPTION_CAMERAFOVY_MAX;
+   else if(OPTION_CAMERAFOVY_MIN > f)
+      m_cameraFovy = OPTION_CAMERAFOVY_MIN;
+   else
+      m_cameraFovy = f;
 }
 
 /* Option::getStageSize: get stage size */
@@ -771,21 +794,38 @@ void Option::setTranslateStep(float f)
       m_translateStep = f;
 }
 
-/* Option::getScaleStep: get scale step */
-float Option::getScaleStep()
+/* Option::getDistanceStep: get distance step */
+float Option::getDistanceStep()
 {
-   return m_scaleStep;
+   return m_distanceStep;
 }
 
-/* Option::setScaleStep: set scale step */
-void Option::setScaleStep(float f)
+/* Option::setDistanceStep: set distance step */
+void Option::setDistanceStep(float f)
 {
-   if(OPTION_SCALESTEP_MAX < f)
-      m_scaleStep = OPTION_SCALESTEP_MAX;
-   else if(OPTION_SCALESTEP_MIN > f)
-      m_scaleStep = OPTION_SCALESTEP_MIN;
+   if(OPTION_DISTANCESTEP_MAX < f)
+      m_distanceStep = OPTION_DISTANCESTEP_MAX;
+   else if(OPTION_DISTANCESTEP_MIN > f)
+      m_distanceStep = OPTION_DISTANCESTEP_MIN;
    else
-      m_scaleStep = f;
+      m_distanceStep = f;
+}
+
+/* Option::getFovyStep: get fovy step */
+float Option::getFovyStep()
+{
+   return m_fovyStep;
+}
+
+/* Option::setFovyStep: set fovy step */
+void Option::setFovyStep(float f)
+{
+   if(OPTION_FOVYSTEP_MAX < f)
+      m_fovyStep = OPTION_FOVYSTEP_MAX;
+   else if(OPTION_FOVYSTEP_MIN > f)
+      m_fovyStep = OPTION_FOVYSTEP_MIN;
+   else
+      m_fovyStep = f;
 }
 
 /* Option::getUseShadowMapping: get shadow mapping flag */

@@ -43,8 +43,8 @@
 
 #include "MMDFiles.h"
 
-/* compareKeyFrameBone: qsort function for bone key frames */
-static int compareKeyFrameBone(const void *x, const void *y)
+/* compareBoneKeyFrame: qsort function for bone key frames */
+static int compareBoneKeyFrame(const void *x, const void *y)
 {
    BoneKeyFrame *a = (BoneKeyFrame *) x;
    BoneKeyFrame *b = (BoneKeyFrame *) y;
@@ -52,11 +52,20 @@ static int compareKeyFrameBone(const void *x, const void *y)
    return (int) (a->keyFrame - b->keyFrame);
 }
 
-/* compareKeyFrameFace: qsort function for face key frames */
-static int compareKeyFrameFace(const void *x, const void *y)
+/* compareFaceKeyFrame: qsort function for face key frames */
+static int compareFaceKeyFrame(const void *x, const void *y)
 {
    FaceKeyFrame *a = (FaceKeyFrame *) x;
    FaceKeyFrame *b = (FaceKeyFrame *) y;
+
+   return (int) (a->keyFrame - b->keyFrame);
+}
+
+/* compareCameraKeyFrame: qsort function for camera key frames */
+static int compareCameraKeyFrame(const void *x, const void *y)
+{
+   CameraKeyFrame *a = (CameraKeyFrame *) x;
+   CameraKeyFrame *b = (CameraKeyFrame *) y;
 
    return (int) (a->keyFrame - b->keyFrame);
 }
@@ -149,8 +158,8 @@ FaceMotion* VMD::getFaceMotion(const char *name)
    return NULL;
 }
 
-/* VMD::setInterpolationTable: set up motion interpolation parameter */
-void VMD::setInterpolationTable(BoneKeyFrame *bf, const char *ip)
+/* VMD::setBoneInterpolationTable: set up bone motion interpolation parameter */
+void VMD::setBoneInterpolationTable(BoneKeyFrame *bf, const char *ip)
 {
    short i, d;
    float x1, x2, y1, y2;
@@ -189,13 +198,55 @@ void VMD::setInterpolationTable(BoneKeyFrame *bf, const char *ip)
    }
 }
 
+/* VMD::setCameraInterpolationTable: set up camera motion interpolation parameter */
+void VMD::setCameraInterpolationTable(CameraKeyFrame *cf, const char *ip)
+{
+   short i, d;
+   float x1, x2, y1, y2;
+   float inval, t, v, tt;
+
+   /* check if they are just a linear function */
+   for (i = 0; i < 6; i++)
+      cf->linear[i] = (ip[i*4] == ip[i*4+2] && ip[i*4+1] == ip[i*4+3]) ? true : false;
+
+   /* make X (0.0 - 1.0) -> Y (0.0 - 1.0) mapping table */
+   for (i = 0; i < 6; i++) {
+      if (cf->linear[i]) {
+         /* table not needed */
+         cf->interpolationTable[i] = NULL;
+         continue;
+      }
+      cf->interpolationTable[i] = (float *) malloc(sizeof(float) * (VMD_INTERPOLATIONTABLESIZE + 1));
+      x1 = ip[i*4  ] / 127.0f;
+      y1 = ip[i*4+2] / 127.0f;
+      x2 = ip[i*4+1] / 127.0f;
+      y2 = ip[i*4+3] / 127.0f;
+      for (d = 0; d < VMD_INTERPOLATIONTABLESIZE; d++) {
+         inval = (float) d / (float) VMD_INTERPOLATIONTABLESIZE;
+         /* get Y value for given inval */
+         t = inval;
+         while (1) {
+            v = ipfunc(t, x1, x2) - inval;
+            if (fabsf(v) < 0.0001f) break;
+            tt = ipfuncd(t, x1, x2);
+            if (tt == 0.0f) break;
+            t -= v / tt;
+         }
+         cf->interpolationTable[i][d] = ipfunc(t, y1, y2);
+      }
+      cf->interpolationTable[i][VMD_INTERPOLATIONTABLESIZE] = 1.0f;
+   }
+}
+
 /* VMD::initialize: initialize VMD */
 void VMD::initialize()
 {
    m_numTotalBoneKeyFrame = 0;
    m_numTotalFaceKeyFrame = 0;
+   m_numTotalCameraKeyFrame = 0;
    m_boneLink = NULL;
    m_faceLink = NULL;
+   m_cameraMotion = NULL;
    m_numBoneKind = 0;
    m_numBoneKind = 0;
    m_maxFrame = 0.0f;
@@ -237,6 +288,18 @@ void VMD::clear()
       fl_tmp = fl->next;
       free(fl);
       fl = fl_tmp;
+   }
+
+   if (m_cameraMotion != NULL) {
+      if (m_cameraMotion->keyFrameList != NULL) {
+         for (i = 0; i < m_cameraMotion->numKeyFrame; i++) {
+            for (j = 0; j < 6; j++)
+               if (m_cameraMotion->keyFrameList[i].linear[j] == false)
+                  free(m_cameraMotion->keyFrameList[i].interpolationTable[j]);
+         }
+         free(m_cameraMotion->keyFrameList);
+      }
+      free(m_cameraMotion);
    }
 
    initialize();
@@ -291,6 +354,7 @@ bool VMD::load(const char *file)
 /* VMD::parse: initialize and load from data memories */
 bool VMD::parse(const unsigned char *data, unsigned long size)
 {
+   const unsigned char *start = data;
    unsigned long i;
    BoneMotion *bm;
    BoneMotionLink *bl;
@@ -300,6 +364,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    VMDFile_Header *header;
    VMDFile_BoneFrame *boneFrame;
    VMDFile_FaceFrame *faceFrame;
+   VMDFile_CameraFrame *cameraFrame;
 
    char name[16];
 
@@ -351,12 +416,12 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
       bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(boneFrame[i].rot[0], boneFrame[i].rot[1], boneFrame[i].rot[2], boneFrame[i].rot[3]);
 #endif
       /* set interpolation table */
-      setInterpolationTable(&(bm->keyFrameList[bm->numKeyFrame]), boneFrame[i].interpolation);
+      setBoneInterpolationTable(&(bm->keyFrameList[bm->numKeyFrame]), boneFrame[i].interpolation);
       bm->numKeyFrame++;
    }
    /* sort the key frames in each boneMotion by frame */
    for (bl = m_boneLink; bl; bl = bl->next)
-      qsort(bl->boneMotion.keyFrameList, bl->boneMotion.numKeyFrame, sizeof(BoneKeyFrame), compareKeyFrameBone);
+      qsort(bl->boneMotion.keyFrameList, bl->boneMotion.numKeyFrame, sizeof(BoneKeyFrame), compareBoneKeyFrame);
    /* count number of bones appear in this vmd */
    m_numBoneKind = 0;
    for (bl = m_boneLink; bl; bl = bl->next)
@@ -398,7 +463,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    }
    /* sort the key frames in each faceMotion by frame */
    for (fl = m_faceLink; fl; fl = fl->next)
-      qsort(fl->faceMotion.keyFrameList, fl->faceMotion.numKeyFrame, sizeof(FaceKeyFrame), compareKeyFrameFace);
+      qsort(fl->faceMotion.keyFrameList, fl->faceMotion.numKeyFrame, sizeof(FaceKeyFrame), compareFaceKeyFrame);
 
    /* count number of faces appear in this vmd */
    m_numFaceKind = 0;
@@ -406,6 +471,38 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
       m_numFaceKind++;
 
    data += sizeof(VMDFile_FaceFrame) * m_numTotalFaceKeyFrame;
+
+   if ((unsigned long) data - (unsigned long) start >= size) {
+      /* no camera motion entry */
+      return true;
+   }
+
+   /* camera motions */
+   m_numTotalCameraKeyFrame = *((unsigned long *) data);
+   data += sizeof(unsigned long);
+
+   cameraFrame = (VMDFile_CameraFrame *) data;
+
+   if (m_numTotalCameraKeyFrame > 0) {
+      m_cameraMotion = (CameraMotion *)malloc(sizeof(CameraMotion));
+      m_cameraMotion->numKeyFrame = m_numTotalCameraKeyFrame;
+      m_cameraMotion->keyFrameList = (CameraKeyFrame *) malloc(sizeof(CameraKeyFrame) * m_cameraMotion->numKeyFrame);
+      for (i = 0; i < m_cameraMotion->numKeyFrame; i++) {
+         m_cameraMotion->keyFrameList[i].keyFrame = (float) cameraFrame[i].keyFrame;
+         m_cameraMotion->keyFrameList[i].distance = - cameraFrame[i].distance;
+#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
+         m_cameraMotion->keyFrameList[i].pos = btVector3(cameraFrame[i].pos[0], cameraFrame[i].pos[1], - cameraFrame[i].pos[2]);
+         m_cameraMotion->keyFrameList[i].angle = btVector3(- MMDFILES_DEG(cameraFrame[i].angle[0]), -MMDFILES_DEG(cameraFrame[i].angle[1]), MMDFILES_DEG(cameraFrame[i].angle[2]));
+#else
+         m_cameraMotion->keyFrameList[i].pos = btVector3(cameraFrame[i].pos[0], cameraFrame[i].pos[1], cameraFrame[i].pos[2]);
+         m_cameraMotion->keyFrameList[i].angle = btVector3(MMDFILES_DEG(cameraFrame[i].angle[0]), MMDFILES_DEG(cameraFrame[i].angle[1]), MMDFILES_DEG(cameraFrame[i].angle[2]));
+#endif
+         m_cameraMotion->keyFrameList[i].fovy = (float) cameraFrame[i].viewAngle;
+         m_cameraMotion->keyFrameList[i].noPerspective = cameraFrame[i].noPerspective;
+         setCameraInterpolationTable(&(m_cameraMotion->keyFrameList[i]), cameraFrame[i].interpolation);
+      }
+      qsort(m_cameraMotion->keyFrameList, m_cameraMotion->numKeyFrame, sizeof(CameraKeyFrame), compareCameraKeyFrame);
+   }
 
    return true;
 }
@@ -426,6 +523,12 @@ BoneMotionLink *VMD::getBoneMotionLink()
 FaceMotionLink *VMD::getFaceMotionLink()
 {
    return m_faceLink;
+}
+
+/* VMD::getCameraMotion: get camera motion */
+CameraMotion *VMD::getCameraMotion()
+{
+   return m_cameraMotion;
 }
 
 /* VMD::getNumBoneKind: get number of bone motions */

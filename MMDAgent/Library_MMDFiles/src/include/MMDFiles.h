@@ -79,4 +79,6 @@
 #include "MotionController.h"
 #include "MotionManager.h"
 
+#include "CameraController.h"
+
 #endif /* __mmdfiles_h__ */

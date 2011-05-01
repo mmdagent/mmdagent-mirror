@@ -57,6 +57,7 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char *head;
    unsigned char *body;
    bool reversed = false;
+   bool haveAlpha = false;
    BITMAPFILEHEADER *fh;
    unsigned long len;
    BITMAPINFOHEADER *ih;
@@ -185,16 +186,29 @@ bool PMDTexture::loadBMP(const char *fileName)
             t++;
             break;
          case 32:
-            /* BGR0 -> RGB */
+            /* BGR0/BGRA -> RGB/RGBA */
             *t = tl[w*4+2];
             t++;
             *t = tl[w*4+1];
             t++;
             *t = tl[w*4 ];
             t++;
-            *t = 255;
+            *t = tl[w*4+3];
+            if (*t != 0)
+               haveAlpha = true;
             t++;
             break;
+         }
+      }
+   }
+
+   if (bit == 32 && haveAlpha == false) {
+      /* rewrite 0 (reserved) to 255 */
+      t = m_textureData + 3;
+      for (h = 0; h < m_height; h++) {
+         for (w = 0; w < m_width; w++) {
+            *t = 255;
+            t += 4;
          }
       }
    }

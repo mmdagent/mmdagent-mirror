@@ -82,6 +82,24 @@ typedef struct _FaceMotionLink {
    struct _FaceMotionLink *next;
 } FaceMotionLink;
 
+/* CameraKeyFrame: camera key frame */
+typedef struct _CameraKeyFrame {
+   float keyFrame;               /* key frame */
+   float distance;               /* distance */
+   btVector3 pos;                /* translation position */
+   btVector3 angle;              /* angle */
+   bool linear[6];               /* this is liner interpolation, use simpler calculation */
+   float *interpolationTable[6]; /* table for interpolation */
+   float fovy;                   /* view angle */
+   unsigned char noPerspective;  /* true when perspective is off */
+} CameraKeyFrame;
+
+/* CameraMotion: camera motion unit */
+typedef struct _CameraMotion {
+   unsigned long numKeyFrame;    /* number of defined key frames */
+   CameraKeyFrame *keyFrameList; /* list of key frame data */
+} CameraMotion;
+
 /* VMD: motion file class */
 class VMD
 {
@@ -89,12 +107,14 @@ private:
 
    unsigned long m_numTotalBoneKeyFrame; /* total number of bone frames */
    unsigned long m_numTotalFaceKeyFrame; /* total number of face frames */
+   unsigned long m_numTotalCameraKeyFrame; /* total number of camera frames */
 
    PTree m_name2bone;
    PTree m_name2face;
 
-   BoneMotionLink *m_boneLink; /* linked list of bones in the motion */
-   FaceMotionLink *m_faceLink; /* linked list of faces in the motion */
+   BoneMotionLink *m_boneLink;   /* linked list of bones in the motion */
+   FaceMotionLink *m_faceLink;   /* linked list of faces in the motion */
+   CameraMotion *m_cameraMotion; /* list of camera key frame data */
 
    unsigned long m_numBoneKind; /* number of bones in m_boneLink */
    unsigned long m_numFaceKind; /* number of faces in m_faceLink */
@@ -113,8 +133,11 @@ private:
    /* getFaceMotion: find face motion by name */
    FaceMotion * getFaceMotion(const char *name);
 
-   /* setInterpolationTable: set up motion interpolation parameter */
-   void setInterpolationTable(BoneKeyFrame *bf, const char *ip);
+   /* setBoneInterpolationTable: set up bone motion interpolation parameter */
+   void setBoneInterpolationTable(BoneKeyFrame *bf, const char *ip);
+
+   /* setCameraInterpolationTable: set up camera motion interpolation parameter */
+   void setCameraInterpolationTable(CameraKeyFrame *cf, const char *ip);
 
    /* initialize: initialize VMD */
    void initialize();
@@ -144,6 +167,9 @@ public:
 
    /* getFaceMotionLink: get list of face motions */
    FaceMotionLink * getFaceMotionLink();
+
+   /* getCameraMotion: get camera motion */
+   CameraMotion *getCameraMotion();
 
    /* getNumBoneKind: get number of bone motions */
    unsigned long getNumBoneKind();

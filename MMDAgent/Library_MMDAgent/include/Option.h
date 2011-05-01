@@ -67,24 +67,29 @@
 #define OPTION_CARTOONEDGESELECTEDCOLOR_MAX  1.0f
 #define OPTION_CARTOONEDGESELECTEDCOLOR_MIN  0.0f
 
-#define OPTION_RENDERINGROTATION_STR  "rendering_rotation"
-#define OPTION_RENDERINGROTATIONX_DEF 0.0f
-#define OPTION_RENDERINGROTATIONY_DEF 0.0f
-#define OPTION_RENDERINGROTATIONZ_DEF 0.0f
-#define OPTION_RENDERINGROTATION_MAX  1000.0f
-#define OPTION_RENDERINGROTATION_MIN  0.001f
+#define OPTION_CAMERAROTATION_STR  "camera_rotation"
+#define OPTION_CAMERAROTATIONX_DEF 0.0f
+#define OPTION_CAMERAROTATIONY_DEF 0.0f
+#define OPTION_CAMERAROTATIONZ_DEF 0.0f
+#define OPTION_CAMERAROTATION_MAX  1000.0f
+#define OPTION_CAMERAROTATION_MIN  0.001f
 
-#define OPTION_RENDERINGTRANSITION_STR  "rendering_transition"
-#define OPTION_RENDERINGTRANSITIONX_DEF 0.0f
-#define OPTION_RENDERINGTRANSITIONY_DEF 0.0f
-#define OPTION_RENDERINGTRANSITIONZ_DEF 0.0f
-#define OPTION_RENDERINGTRANSITION_MAX  1000.0f
-#define OPTION_RENDERINGTRANSITION_MIN  -1000.0f
+#define OPTION_CAMERATRANSITION_STR  "camera_transition"
+#define OPTION_CAMERATRANSITIONX_DEF 0.0f
+#define OPTION_CAMERATRANSITIONY_DEF 13.0f
+#define OPTION_CAMERATRANSITIONZ_DEF 0.0f
+#define OPTION_CAMERATRANSITION_MAX  10000.0f
+#define OPTION_CAMERATRANSITION_MIN  -10000.0f
 
-#define OPTION_RENDERINGSCALE_STR "rendering_scale"
-#define OPTION_RENDERINGSCALE_DEF 1.0f
-#define OPTION_RENDERINGSCALE_MAX 1000.0f
-#define OPTION_RENDERINGSCALE_MIN 0.001f
+#define OPTION_CAMERADISTANCE_STR "camera_distance"
+#define OPTION_CAMERADISTANCE_DEF 100.0f
+#define OPTION_CAMERADISTANCE_MAX 100000.0f
+#define OPTION_CAMERADISTANCE_MIN 0.0f
+
+#define OPTION_CAMERAFOVY_STR "camera_fovy"
+#define OPTION_CAMERAFOVY_DEF 16.0f
+#define OPTION_CAMERAFOVY_MAX 180.0f
+#define OPTION_CAMERAFOVY_MIN 0.0f
 
 #define OPTION_STAGESIZE_STR  "stage_size"
 #define OPTION_STAGESIZEW_DEF 25.0f
@@ -173,8 +178,8 @@
 #define OPTION_BULLETFPS_MIN 1
 
 #define OPTION_ROTATESTEP_STR "rotate_step"
-#define OPTION_ROTATESTEP_DEF 0.08f
-#define OPTION_ROTATESTEP_MAX 1000.0f
+#define OPTION_ROTATESTEP_DEF 4.5f
+#define OPTION_ROTATESTEP_MAX 180.0f
 #define OPTION_ROTATESTEP_MIN 0.001f
 
 #define OPTION_TRANSLATESTEP_STR "translate_step"
@@ -182,10 +187,15 @@
 #define OPTION_TRANSLATESTEP_MAX 1000.0f
 #define OPTION_TRANSLATESTEP_MIN 0.001f
 
-#define OPTION_SCALESTEP_STR "scale_step"
-#define OPTION_SCALESTEP_DEF 1.05f
-#define OPTION_SCALESTEP_MAX 1000.0f
-#define OPTION_SCALESTEP_MIN 0.001f
+#define OPTION_DISTANCESTEP_STR "distance_step"
+#define OPTION_DISTANCESTEP_DEF 4.0f
+#define OPTION_DISTANCESTEP_MAX 1000.0f
+#define OPTION_DISTANCESTEP_MIN 0.001f
+
+#define OPTION_FOVYSTEP_STR "fovy_step"
+#define OPTION_FOVYSTEP_DEF 1.0f
+#define OPTION_FOVYSTEP_MAX 1000.0f
+#define OPTION_FOVYSTEP_MIN 0.001f
 
 #define OPTION_USESHADOWMAPPING_STR "use_shadow_mapping"
 #define OPTION_USESHADOWMAPPING_DEF false
@@ -230,10 +240,11 @@ private:
    float m_cartoonEdgeStep;
    float m_cartoonEdgeSelectedColor[4];
 
-   /* rendering size */
-   float m_renderingRotation[3];
-   float m_renderingTransition[3];
-   float m_renderingScale;
+   /* camera viewpoint parameters */
+   float m_cameraRotation[3];
+   float m_cameraTransition[3];
+   float m_cameraDistance;
+   float m_cameraFovy;
 
    /* stage */
    float m_stageSize[3];
@@ -273,7 +284,8 @@ private:
    /* move */
    float m_rotateStep;
    float m_translateStep;
-   float m_scaleStep;
+   float m_distanceStep;
+   float m_fovyStep;
 
    /* shadow mapping */
    bool m_useShadowMapping;
@@ -329,23 +341,29 @@ public:
    /* setCartoonEdgeSelectedColor: set cartoon edge seleceted color */
    void setCartoonEdgeSelectedColor(const float *f);
 
-   /* getRenderingRotation: get rendering rotation */
-   float *getRenderingRotation();
+   /* getCameraRotation: get camera rotation */
+   float *getCameraRotation();
 
-   /* setRenderingRotation: set rendering rotation */
-   void setRenderingRotation(const float *f);
+   /* setCameraRotation: set camera rotation */
+   void setCameraRotation(const float *f);
 
-   /* getRenderingTransition: get rendering transition */
-   float *getRenderingTransition();
+   /* getCameraTransition: get camera transition */
+   float *getCameraTransition();
 
-   /* setRenderingTransition: set rendering transition */
-   void setRenderingTransition(const float *f);
+   /* setCameraTransition: set camera transition */
+   void setCameraTransition(const float *f);
 
-   /* getRenderingScale: get rendering scale */
-   float getRenderingScale();
+   /* getCameraDistance: get camera distance */
+   float getCameraDistance();
 
-   /* setRenderingScale: set rendering scale */
-   void setRenderingScale(float f);
+   /* setCameraDistance: set camera distance */
+   void setCameraDistance(float f);
+
+   /* getCameraFovy: get camera fovy */
+   float getCameraFovy();
+
+   /* setCameraFovy: set camera fovy */
+   void setCameraFovy(float f);
 
    /* getStageSize: get stage size */
    float *getStageSize();
@@ -461,11 +479,17 @@ public:
    /* setTranslateStep: set translate step */
    void setTranslateStep(float f);
 
-   /* getScaleStep: get scale step */
-   float getScaleStep();
+   /* getDistanceStep: get distance step */
+   float getDistanceStep();
 
-   /* setScaleStep: set scale step */
-   void setScaleStep(float f);
+   /* setDistanceStep: set distance step */
+   void setDistanceStep(float f);
+
+   /* getFovyStep: get fovy step */
+   float getFovyStep();
+
+   /* setFovyStep: set fovy step */
+   void setFovyStep(float f);
 
    /* getUseShadowMapping: get shadow mapping flag */
    bool getUseShadowMapping();

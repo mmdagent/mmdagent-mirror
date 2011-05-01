@@ -1,3 +1,11 @@
+Version 1.0:
+ * the stable release.
+ * support camera motion file.
+ * add motion holding by H key.
+ * modify CAMERA command parameter.
+ * update libraries (Julius 4.2 and Open JTalk 1.03).
+ * fix bugs.
+
 Version RC2:
  * modify CAMERA, MOTION_ADD, and TIMER_START commands.
  * support multi-FST in voice interaction manager.

@@ -82,3 +82,5 @@
 #define IDM_TOGGLE_PHYSICS         32794
 #define IDM_TOGGLE_DISP_LOG        32795
 #define IDM_TEST_COMMAND           32796
+#define IDM_TOGGLE_HOLD            32797
+

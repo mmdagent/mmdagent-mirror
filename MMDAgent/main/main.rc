@@ -93,6 +93,7 @@ BEGIN
    "W",       IDM_TOGGLE_DISP_RIGIDBODY,  VIRTKEY, NOINVERT, SHIFT
    "X",       IDM_TOGGLE_SHADOWMAP,       VIRTKEY, NOINVERT
    "X",       IDM_TOGGLE_SHADOWMAP_ORDER, VIRTKEY, NOINVERT, SHIFT
+   "H",       IDM_TOGGLE_HOLD,            VIRTKEY, NOINVERT
    "-",       IDM_ZOOM_OUT,               ASCII,   NOINVERT
    "+",       IDM_ZOOM_IN,                ASCII,   NOINVERT
    "?",       IDM_ABOUT,                  ASCII,   ALT
@@ -132,10 +133,10 @@ BEGIN
    LTEXT         "Copyright (c) 1991-2011 Thomas G. Lane",IDC_STATIC,5,105,280,8
    LTEXT         "Copyright (c) 1991-2011 Guido Vollbeding",IDC_STATIC,5,115,280,8
    LTEXT         "Julius",IDC_STATIC,5,125,280,8,SS_NOPREFIX
-   LTEXT         "Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan",IDC_STATIC,5,135,280,8
-   LTEXT         "Copyright (c) 1991-2010 Kawahara Lab., Kyoto University",IDC_STATIC,5,145,280,8
+   LTEXT         "Copyright (c) 1991-2011 Kawahara Lab., Kyoto University",IDC_STATIC,5,135,280,8
+   LTEXT         "Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan",IDC_STATIC,5,145,280,8
    LTEXT         "Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology",IDC_STATIC,5,155,280,8
-   LTEXT         "Copyright (c) 2005-2010 Julius project team, Nagoya Institute of Technology",IDC_STATIC,5,165,280,8
+   LTEXT         "Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology",IDC_STATIC,5,165,280,8
    LTEXT         "libpng",IDC_STATIC,5,175,280,8,SS_NOPREFIX
    LTEXT         "Copyright (c) 1998-2010 Glenn Randers-Pehrson",IDC_STATIC,5,185,280,8
    LTEXT         "Copyright (c) 1996-1997 Andreas Dilger",IDC_STATIC,5,195,280,8
