@@ -1,6 +1,6 @@
 ===============================================================================
-                 MMDAgent Accessory "Boot Screen" version RC2
-                            release April 19, 2011
+                 MMDAgent Accessory "Boot Screen" version 1.0
+                              release May 1, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).

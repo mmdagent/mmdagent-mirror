@@ -1,6 +1,6 @@
 ===============================================================================
-                   MMDAgent Motion "Wait of Mei" version RC2
-                            release April 19, 2011
+                   MMDAgent Motion "Wait of Mei" version 1.0
+                              release May 1, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).

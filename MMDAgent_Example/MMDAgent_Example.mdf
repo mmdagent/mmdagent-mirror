@@ -48,11 +48,12 @@ cartoon_edge_width=0.35
 cartoon_edge_step=1.2
 cartoon_edge_selected_color=1.0,0.0,0.0,1.0
 
-# Rendering size
+# Camera
 
-rendering_rotation=0.0,0.0,0.0
-rendering_transition=0.0,0.0,0.0
-rendering_scale=1.2
+camera_rotation=0.0,0.0,0.0
+camera_transition=0.0,13.0,0.0
+camera_distance=100.0
+camera_fovy=16.0
 
 # Stage
 
@@ -100,9 +101,10 @@ bullet_fps=120
 
 # User interface
 
-rotate_step=0.08
+rotate_step=4.5
 translate_step=0.5
-scale_step=1.05
+distance_step=4.0
+fovy_step=1.0
 
 # Shadow mapping
 
