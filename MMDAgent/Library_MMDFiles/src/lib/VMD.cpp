@@ -326,7 +326,7 @@ bool VMD::load(const char *file)
    bool ret;
 
    /* open file */
-   fp = fopen(file, "rb");
+   fp = MMDFiles_fopen(file, "rb");
    if (!fp)
       return false;
 
@@ -414,7 +414,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
 #else
       bm->keyFrameList[bm->numKeyFrame].pos = btVector3(boneFrame[i].pos[0], boneFrame[i].pos[1], boneFrame[i].pos[2]);
       bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(boneFrame[i].rot[0], boneFrame[i].rot[1], boneFrame[i].rot[2], boneFrame[i].rot[3]);
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
       /* set interpolation table */
       setBoneInterpolationTable(&(bm->keyFrameList[bm->numKeyFrame]), boneFrame[i].interpolation);
       bm->numKeyFrame++;
@@ -496,7 +496,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
 #else
          m_cameraMotion->keyFrameList[i].pos = btVector3(cameraFrame[i].pos[0], cameraFrame[i].pos[1], cameraFrame[i].pos[2]);
          m_cameraMotion->keyFrameList[i].angle = btVector3(MMDFILES_DEG(cameraFrame[i].angle[0]), MMDFILES_DEG(cameraFrame[i].angle[1]), MMDFILES_DEG(cameraFrame[i].angle[2]));
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
          m_cameraMotion->keyFrameList[i].fovy = (float) cameraFrame[i].viewAngle;
          m_cameraMotion->keyFrameList[i].noPerspective = cameraFrame[i].noPerspective;
          setCameraInterpolationTable(&(m_cameraMotion->keyFrameList[i]), cameraFrame[i].interpolation);

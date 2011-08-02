@@ -45,6 +45,42 @@
 #include "MMDFiles.h"
 #include "jpeglib.h"
 
+#pragma pack(push, 1)
+
+/* BMPPallete: pallete for BMP */
+typedef struct _BMPPallete {
+   unsigned char rgbBlue;
+   unsigned char rgbGreen;
+   unsigned char rgbRed;
+   unsigned char rgbReserved;
+} BMPPallete;
+
+/* BMPHeader: header for BMP */
+typedef struct _BMPHeader {
+   unsigned short bfType;
+   unsigned long bfSize;
+   unsigned short bfReserved1;
+   unsigned short bfReserved2;
+   unsigned long bfOffBits;
+} BMPHeader;
+
+/* BMPInfo: info for BMP */
+typedef struct _BMPInfo {
+   unsigned long biSize;
+   long biWidth;
+   long biHeight;
+   unsigned short biPlanes;
+   unsigned short biBitCount;
+   unsigned long biCompression;
+   unsigned long biSizeImage;
+   long biXPelsPerMeter;
+   long biYPelsPerMeter;
+   unsigned long biClrUsed;
+   unsigned long biClrImportant;
+} BMPInfo;
+
+#pragma pack(pop)
+
 /* PMDTexture::loadBMP: load BMP texture */
 bool PMDTexture::loadBMP(const char *fileName)
 {
@@ -53,14 +89,14 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char *data;
 
    unsigned short bit;
-   RGBQUAD *palette;
+   BMPPallete *palette = NULL;
    unsigned char *head;
    unsigned char *body;
    bool reversed = false;
    bool haveAlpha = false;
-   BITMAPFILEHEADER *fh;
+   BMPHeader *fh;
    unsigned long len;
-   BITMAPINFOHEADER *ih;
+   BMPInfo *ih;
    unsigned long lineByte;
 
    unsigned char *t;
@@ -72,7 +108,7 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char bitmask;
 
    /* open file and read whole data into buffer */
-   fp = fopen(fileName, "rb");
+   fp = MMDFiles_fopen(fileName, "rb");
    if (!fp)
       return false;
    size = MMDFiles_getfsize(fileName);
@@ -86,32 +122,31 @@ bool PMDTexture::loadBMP(const char *fileName)
       free(data);
       return false;
    }
-   fh = (BITMAPFILEHEADER *) head;
+   fh = (BMPHeader *) head;
    body = data + fh->bfOffBits;
-   head += sizeof(BITMAPFILEHEADER);
+   head += sizeof(BMPHeader);
    len = *((unsigned long *) head);
-   if (len == sizeof(BITMAPCOREHEADER)) {
+   if (len == 12) {
       free(data);
       return false;
+   }
+   ih = (BMPInfo *) head;
+   m_width = ih->biWidth;
+   if (ih->biHeight < 0) {
+      m_height = -ih->biHeight;
+      reversed = true;
    } else {
-      ih = (BITMAPINFOHEADER *) head;
-      m_width = ih->biWidth;
-      if (ih->biHeight < 0) {
-         m_height = -ih->biHeight;
-         reversed = true;
-      } else {
-         m_height = ih->biHeight;
-         reversed = false;
-      }
+      m_height = ih->biHeight;
+      reversed = false;
+   }
 
-      bit = ih->biBitCount;
-      if (ih->biCompression != 0) {
-         free(data);
-         return false;
-      }
-      if (bit <= 8) {
-         palette = (RGBQUAD *) (head + sizeof(BITMAPINFOHEADER));
-      }
+   bit = ih->biBitCount;
+   if (ih->biCompression != 0) {
+      free(data);
+      return false;
+   }
+   if (bit <= 8) {
+      palette = (BMPPallete *) (head + sizeof(BMPInfo));
    }
 
    m_components = 4;
@@ -243,7 +278,7 @@ bool PMDTexture::loadTGA(const char *fileName)
    long h, w;
 
    /* open file and read whole data into buffer */
-   fp = fopen(fileName, "rb");
+   fp = MMDFiles_fopen(fileName, "rb");
    if (!fp)
       return false;
    size = MMDFiles_getfsize(fileName);
@@ -336,7 +371,7 @@ bool PMDTexture::loadPNG(const char *fileName)
    png_uint_32 i;
 
    /* open file */
-   fp = fopen(fileName, "rb");
+   fp = MMDFiles_fopen(fileName, "rb");
    if (!fp)
       return false;
 
@@ -404,7 +439,6 @@ bool PMDTexture::loadPNG(const char *fileName)
 
    /* close file */
    fclose(fp);
-
    return true;
 }
 
@@ -432,7 +466,7 @@ bool PMDTexture::loadJPG(const char *fileName)
    int i;
    JSAMPROW buff;
 
-   fp = fopen(fileName, "rb");
+   fp = MMDFiles_fopen(fileName, "rb");
    if(fp == NULL)
       return false;
 
@@ -532,12 +566,12 @@ bool PMDTexture::load(const char *fileName)
 
    /* read texture bitmap from the file into textureData */
    if (MMDFiles_strtailmatch(fileName, ".sph") || MMDFiles_strtailmatch(fileName, ".SPH")) {
-      if ((ret = loadBMP(fileName))) {
+      if ((ret = loadBMP(fileName)) || (ret = loadPNG(fileName)) || (ret = loadJPG(fileName)) || (ret = loadTGA(fileName))) {
          m_isSphereMap = true;
          m_isSphereMapAdd = false;
       }
    } else if (MMDFiles_strtailmatch(fileName, ".spa") || MMDFiles_strtailmatch(fileName, ".SPA")) {
-      if ((ret = loadBMP(fileName))) {
+      if ((ret = loadBMP(fileName)) || (ret = loadPNG(fileName)) || (ret = loadJPG(fileName)) || (ret = loadTGA(fileName))) {
          m_isSphereMap = true;
          m_isSphereMapAdd = true;
       }

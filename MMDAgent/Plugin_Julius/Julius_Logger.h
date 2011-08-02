@@ -52,7 +52,7 @@
 #define JULIUSLOGGER_FRAMESINBAR              200.0f
 #define JULIUSLOGGER_ADINOVERFLOWTHRES        32000
 
-/* Julius_Logger: Display debug information with OpenGL */
+/* Julius_Logger: display debug information with OpenGL */
 class Julius_Logger
 {
 private :
@@ -108,7 +108,7 @@ public :
    bool getActiveFlag();
 
    /* update: update log view per step */
-   void update(double deltaFrame);
+   void update(double frame);
 
    /* render: render log view */
    void render();

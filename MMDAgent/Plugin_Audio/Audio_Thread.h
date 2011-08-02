@@ -41,26 +41,23 @@
 
 /* definitions */
 
-#define AUDIOTHREAD_MAXBUFLEN 2048
-
-#define AUDIOTHREAD_WAITMS       10000 /* 10 sec */
-#define AUDIOTHREAD_ENDSLEEPMS   200   /* check per 0.2 sec at end */
-#define AUDIOTHREAD_STARTSLEEPMS 20    /* check per 0.02 sec at start*/
-
-#define AUDIOTHREAD_EVENTSTART "SOUND_EVENT_START"
-#define AUDIOTHREAD_EVENTSTOP  "SOUND_EVENT_STOP"
+#define AUDIOTHREAD_ENDSLEEPMS   200                 /* check per 0.2 sec at end */
+#define AUDIOTHREAD_STARTSLEEPMS 20                  /* check per 0.02 sec at start*/
+#define AUDIOTHREAD_EVENTSTART   "SOUND_EVENT_START"
+#define AUDIOTHREAD_EVENTSTOP    "SOUND_EVENT_STOP"
 
 /* Audio_Thread: thread for audio */
 class Audio_Thread
 {
 private:
 
-   HWND m_window;  /* window handle to post message */
-   UINT m_event;   /* message type to post event message */
+   MMDAgent *m_mmdagent;
 
-   HANDLE m_threadHandle; /* thread handle */
-   HANDLE m_bufferMutex;  /* mutex for buffer */
-   HANDLE m_playingEvent; /* event for playing */
+   GLFWmutex m_mutex;
+   GLFWcond m_cond;
+   GLFWthread m_thread;
+
+   int m_count;
 
    bool m_playing;
    bool m_kill;
@@ -83,13 +80,13 @@ public:
    ~Audio_Thread();
 
    /* setupAndStart: setup audio and start thread */
-   void setupAndStart(HWND window, UINT event);
+   void setupAndStart(MMDAgent *mmdagent);
 
    /* stopAndRelease: stop thread and free audio */
    void stopAndRelease();
 
-   /* start: main thread loop for audio */
-   void start();
+   /* run: main thread loop for audio */
+   void run();
 
    /* isRunning: check running */
    bool isRunning();
@@ -105,10 +102,4 @@ public:
 
    /* stop: stop playing */
    void stop();
-
-   /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(const char *str);
-
-   /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(const char *str);
 };

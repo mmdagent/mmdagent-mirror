@@ -39,11 +39,12 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VARIABLES_MAXBUFLEN 2048
+/* definitions */
 
 #define VARIABLES_VALUESETEVENT   "VALUE_EVENT_SET"
 #define VARIABLES_VALUEUNSETEVENT "VALUE_EVENT_UNSET"
 #define VARIABLES_VALUEEVALEVENT  "VALUE_EVENT_EVAL"
+#define VARIABLES_VALUEGETEVENT   "VALUE_EVENT_GET"
 
 #define VARIABLES_EQ    "EQ"
 #define VARIABLES_NE    "NE"
@@ -57,7 +58,8 @@
 /* Value: value */
 typedef struct _Value {
    char *name;
-   float val;
+   char *sval;
+   float fval;
    struct _Value *prev;
    struct _Value *next;
 } Value;
@@ -70,11 +72,7 @@ private:
    Value *m_head;
    Value *m_tail;
 
-   HWND m_window;
-   UINT m_event;
-
-   /* Variables::sendEventMessage: send event message to MMDAgent */
-   void Variables::sendEventMessage(const char *mes1, const char *mes2);
+   MMDAgent *m_mmdagent;
 
    /* initialize: initialize variables */
    void initialize();
@@ -91,14 +89,17 @@ public:
    ~Variables();
 
    /* setup: setup variables */
-   void setup(HWND hWnd, UINT event);
+   void setup(MMDAgent *mmdagent);
 
-   /* set: set */
+   /* set: set value */
    void set(const char *alias, const char *str1, const char *str2);
 
-   /* unset: unset */
+   /* unset: unset value */
    void unset(const char *alias);
 
    /* evaluate: evaluate value */
    void evaluate(const char *alias, const char *mode, const char *str);
+
+   /* get: get value */
+   void get(const char *alias);
 };

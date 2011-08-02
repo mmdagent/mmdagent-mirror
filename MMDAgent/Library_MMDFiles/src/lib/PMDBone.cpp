@@ -160,7 +160,7 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
    m_originPosition = btVector3(b->pos[0], b->pos[1], -b->pos[2]);
 #else
    m_originPosition = btVector3(b->pos[0], b->pos[1], b->pos[2]);
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* reset current transform values */
    m_trans.setOrigin(m_originPosition);
@@ -320,6 +320,18 @@ void PMDBone::setOffset(btVector3 *v)
 PMDBone *PMDBone::getParentBone()
 {
    return m_parentBone;
+}
+
+/* PMDBone::getChildBone: get child bone */
+PMDBone *PMDBone::getChildBone()
+{
+   return m_childBone;
+}
+
+/* PMDBone::getTargetBone: get target bone */
+PMDBone *PMDBone::getTargetBone()
+{
+   return m_targetBone;
 }
 
 /* PMDBone::getCurrentPosition: get current position */

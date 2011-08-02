@@ -101,7 +101,7 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    btTransform startTrans;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    btMatrix3x3 rx, ry, rz;
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
 
@@ -144,13 +144,13 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    bm = ry * rz * rx;
 #else
    bm.setEulerZYX(rb->rot[0], rb->rot[1], rb->rot[2]);
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    m_trans.setBasis(bm);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], -rb->pos[2]));
 #else
    m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], rb->pos[2]));
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* calculate initial global transform */
    startTrans.setIdentity();
@@ -237,7 +237,11 @@ void PMDRigidBody::setKinematic(bool flag)
    } else {
       /* kinematic to default */
       m_kinematicMotionState->getWorldTransform(tr);
-      m_motionState->setWorldTransform(tr);
+      if (m_type == 2) {
+         ((AlignedMotionState *)m_motionState)->setWorldTransformDirectly(tr);
+      } else {
+         m_motionState->setWorldTransform(tr);
+      }
       m_body->setMotionState(m_motionState);
       m_body->setCollisionFlags(m_body->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
    }

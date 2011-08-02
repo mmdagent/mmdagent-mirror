@@ -39,62 +39,46 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINVARIABLES_NAME              "Variables"
+#define PLUGINVARIABLES_TIMERSTARTCOMMAND "TIMER_START"
+#define PLUGINVARIABLES_TIMERSTOPCOMMAND  "TIMER_STOP"
+#define PLUGINVARIABLES_VALUESETCOMMAND   "VALUE_SET"
+#define PLUGINVARIABLES_VALUEUNSETCOMMAND "VALUE_UNSET"
+#define PLUGINVARIABLES_VALUEEVALCOMMAND  "VALUE_EVAL"
+#define PLUGINVARIABLES_VALUEGETCOMMAND   "VALUE_GET"
 
 /* headers */
-
-#include <windows.h>
 
 #include "MMDAgent.h"
 #include "Variables.h"
 #include "CountDown_Thread.h"
 
-/* definitions */
-
-#define PLUGINVARIABLES_NAME "Variables"
-
-#define PLUGINVARIABLES_TIMERSTARTCOMMAND "TIMER_START"
-#define PLUGINVARIABLES_TIMERSTOPCOMMAND  "TIMER_STOP"
-
-#define PLUGINVARIABLES_VALUESETCOMMAND   "VALUE_SET"
-#define PLUGINVARIABLES_VALUEUNSETCOMMAND "VALUE_UNSET"
-#define PLUGINVARIABLES_VALUEEVALCOMMAND  "VALUE_EVAL"
-
-/* global variables */
+/* variables */
 
 static Variables variables;
 static CountDown_Thread countdown_thread;
 static bool enable;
 
 /* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
-   variables.setup(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
-   countdown_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
+   variables.setup(mmdagent);
+   countdown_thread.setupAndStart(mmdagent);
+
    enable = true;
-   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVARIABLES_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    char *buff, *p1, *p2, *p3, *save;
 
@@ -102,7 +86,7 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
             enable = false;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINVARIABLES_NAME);
          }
       } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUESETCOMMAND)) {
          /* VALUE_SET command */
@@ -125,6 +109,9 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
          variables.evaluate(p1, p2, p3);
          if(buff)
             free(buff);
+      } else if (MMDAgent_strequal(type, PLUGINVARIABLES_VALUEGETCOMMAND)) {
+         /* VALUE_GET command */
+         variables.get(args);
       } else if (MMDAgent_strequal(type, PLUGINVARIABLES_TIMERSTARTCOMMAND)) {
          /* TIMER_START command */
          buff = MMDAgent_strdup(args);
@@ -141,27 +128,14 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINVARIABLES_NAME)) {
             enable = true;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVARIABLES_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVARIABLES_NAME);
          }
       }
    }
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *m)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    countdown_thread.stopAndRelease();
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

@@ -86,7 +86,7 @@ private:
    btScalar m_rotMatrix[16];     /* current rotation + OpenGL rotation matrix */
    btScalar m_rotMatrixInv[16];  /* current rotation + inverse of OpenGL rotation matrix */
 
-   int m_viewMoveTime;              /* view length in msec */
+   double m_viewMoveTime;           /* view length in msec */
    bool m_viewControlledByMotion;   /* true when view is controlled by motion */
    btVector3 m_viewMoveStartTrans;  /* transition at start of view move */
    btQuaternion m_viewMoveStartRot; /* rotation at start of view move */
@@ -114,16 +114,16 @@ private:
    void updateModelViewMatrix();
 
    /* updateTransRotMatrix:  update trans and rotation matrix */
-   bool updateTransRotMatrix(int ellapsedTimeForMove);
+   bool updateTransRotMatrix(double ellapsedTimeForMove);
 
    /* updateRotationFromAngle: update rotation quaternion from angle */
    void updateRotationFromAngle();
 
    /* updateDistance: update distance */
-   bool updateDistance(int ellapsedTimeForMove);
+   bool updateDistance(double ellapsedTimeForMove);
 
    /* updateFovy: update fovy */
-   bool updateFovy(int ellapsedTimeForMove);
+   bool updateFovy(double ellapsedTimeForMove);
 
    /* initializeShadowMap: initialize OpenGL for shadow mapping */
    void initializeShadowMap(int textureSize);
@@ -197,7 +197,7 @@ public:
    void getRenderOrder(short *order, PMDObject *objs, int num);
 
    /* render: render all */
-   void render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, int ellapsedTimeForMove);
+   void render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove);
 
    /* pickModel: pick up a model at the screen position */
    int pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPicked);

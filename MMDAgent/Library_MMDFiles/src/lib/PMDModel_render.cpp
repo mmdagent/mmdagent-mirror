@@ -62,7 +62,7 @@ void PMDModel::renderModel()
    glPushMatrix();
    glScalef(1.0f, 1.0f, -1.0f); /* from left-hand to right-hand */
    glCullFace(GL_FRONT);
-#endif
+#endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* activate texture unit 0 */
    glActiveTextureARB(GL_TEXTURE0_ARB);
@@ -262,7 +262,7 @@ void PMDModel::renderModel()
 #ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glCullFace(GL_BACK);
    glPopMatrix();
-#endif
+#endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
 }
 
 /* PMDModel::renderEdge: render toon edge */
@@ -275,6 +275,7 @@ void PMDModel::renderEdge()
    if (!m_vertexList) return;
 
    if (m_forceEdge) {
+      /* force edge drawing even if this model has no edge surface or no-toon mode */
       if (m_numSurfaceForEdge == 0) {
          numSurface = m_numSurface;
          surfaceList = m_surfaceList;
@@ -283,6 +284,7 @@ void PMDModel::renderEdge()
          surfaceList = m_surfaceListForEdge;
       }
    } else {
+      /* draw edge when toon mode, skip when this model has no edge surface */
       if (!m_toon) return;
       if (m_numSurfaceForEdge == 0) return;
       numSurface = m_numSurfaceForEdge;
@@ -296,7 +298,7 @@ void PMDModel::renderEdge()
 #else
    /* draw back surface only */
    glCullFace(GL_FRONT);
-#endif
+#endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* calculate alpha value */
    modelAlpha = m_globalAlpha;
@@ -315,7 +317,7 @@ void PMDModel::renderEdge()
    glCullFace(GL_FRONT);
 #else
    glCullFace(GL_BACK);
-#endif
+#endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
 }
 
 /* PMDModel::renderForShadow: render for shadow */
@@ -323,6 +325,23 @@ void PMDModel::renderForShadow()
 {
    if (!m_vertexList) return;
 
+   /* plain drawing of only edge surfaces */
+   if (m_numSurfaceForEdge == 0) return;
+
+   glDisable(GL_CULL_FACE);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_skinnedVertexList);
+   glDrawElements(GL_TRIANGLES, m_numSurfaceForEdge, GL_UNSIGNED_SHORT, m_surfaceListForEdge);
+   glDisableClientState(GL_VERTEX_ARRAY);
+   glEnable(GL_CULL_FACE);
+}
+
+/* PMDModel::renderForPick: render for pick */
+void PMDModel::renderForPick()
+{
+   if (!m_vertexList) return;
+
+   /* plain drawing of all surfaces */
    glDisable(GL_CULL_FACE);
    glEnableClientState(GL_VERTEX_ARRAY);
    glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_skinnedVertexList);

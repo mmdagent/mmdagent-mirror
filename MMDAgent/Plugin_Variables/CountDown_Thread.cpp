@@ -41,23 +41,15 @@
 
 /* headers */
 
-#include <windows.h>
-#include <process.h>
 #include <time.h>
-
 #include "MMDAgent.h"
 #include "CountDown_Thread.h"
 
-/* main_thread: main thread */
-static unsigned __stdcall main_thread(void *param)
+/* mainThread: main thread */
+static void mainThread(void *param)
 {
    CountDown_Thread *cdt = (CountDown_Thread *) param;
-
-   while (cdt->isRunning())
-      cdt->check();
-
-   _endthreadex(0);
-   return 0;
+   cdt->run();
 }
 
 /* CountDown_Thread::initialize: initialize thread */
@@ -66,13 +58,12 @@ void CountDown_Thread::initialize()
    m_head = NULL;
    m_tail = NULL;
 
-   m_window = 0;
-   m_event = 0;
+   m_mmdagent = NULL;
 
-   m_threadHandle = 0;
-   m_mutex = 0;
+   m_mutex = NULL;
+   m_thread = -1;
 
-   m_stop = false;
+   m_kill = false;
 }
 
 /* CountDown_Thread::clear: free thread */
@@ -80,17 +71,18 @@ void CountDown_Thread::clear()
 {
    CountDown *tmp1, *tmp2;
 
-   m_stop = true;
+   m_kill = true;
 
    /* wait end of thread */
-   if(m_threadHandle != 0) {
-      if (WaitForSingleObject(m_threadHandle, INFINITE) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "Error: cannot stop count down thread.", "Error", MB_OK);
-      CloseHandle(m_threadHandle);
+   if(m_mutex != NULL || m_thread >= 0) {
+      if(m_thread >= 0) {
+         glfwWaitThread(m_thread, GLFW_WAIT);
+         glfwDestroyThread(m_thread);
+      }
+      if(m_mutex != NULL)
+         glfwDestroyMutex(m_mutex);
+      glfwTerminate();
    }
-
-   if(m_mutex)
-      CloseHandle(m_mutex);
 
    for(tmp1 = m_head; tmp1 ; tmp1 = tmp2) {
       tmp2 = tmp1->next;
@@ -113,76 +105,72 @@ CountDown_Thread::~CountDown_Thread()
    clear();
 }
 
-/* CountDown_Thread::loadAndStart: load variables and start thread */
-void CountDown_Thread::loadAndStart(HWND param1, UINT param2)
+/* CountDown_Thread::setupAndStart: load variables and start thread */
+void CountDown_Thread::setupAndStart(MMDAgent *mmdagent)
 {
-   m_window = param1;
-   m_event = param2;
+   m_mmdagent = mmdagent;
 
-   m_mutex = CreateMutex(NULL, false, NULL);
-   if(m_mutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create buffer mutex for count down.", "Error", MB_OK);
-      return;
-   }
-
-   /* thread start */
-   m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
-   if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: cannot start count down thread.", "Error", MB_OK);
+   glfwInit();
+   m_mutex = glfwCreateMutex();
+   m_thread = glfwCreateThread(mainThread, this);
+   if(m_mutex == NULL || m_thread < 0) {
+      clear();
       return;
    }
 }
 
-/* CountDown_Thread::check: check timers */
-void CountDown_Thread::check()
+/* CountDown_Thread::run: check timers */
+void CountDown_Thread::run()
 {
    CountDown *tmp1, *tmp2;
-   float now;
+   double now;
 
-   /* wait */
-   if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
+   while(m_kill == false) {
+      /* wait */
+      glfwLockMutex(m_mutex);
 
-   now = clock() / (float)CLOCKS_PER_SEC;
+      now = MMDAgent_getTime();
 
-   for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
-      tmp2 = tmp1->next;
-      if(tmp1->goal <= now) {
-         if(tmp1 == m_head) {
-            if(tmp1 == m_tail) {
-               m_head = NULL;
-               m_tail = NULL;
+      for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
+         tmp2 = tmp1->next;
+         if(tmp1->goal <= now) {
+            if(tmp1 == m_head) {
+               if(tmp1 == m_tail) {
+                  m_head = NULL;
+                  m_tail = NULL;
+               } else {
+                  m_head = tmp1->next;
+                  tmp1->next->prev = NULL;
+               }
             } else {
-               m_head = tmp1->next;
-               tmp1->next->prev = NULL;
+               if(tmp1 == m_tail) {
+                  tmp1->prev->next = NULL;
+                  m_tail = tmp1->prev;
+               } else {
+                  tmp1->prev->next = tmp1->next;
+                  tmp1->next->prev = tmp1->prev;
+               }
             }
-         } else {
-            if(tmp1 == m_tail) {
-               tmp1->prev->next = NULL;
-               m_tail = tmp1->prev;
-            } else {
-               tmp1->prev->next = tmp1->next;
-               tmp1->next->prev = tmp1->prev;
-            }
+            m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, tmp1->name);
+            free(tmp1->name);
+            free(tmp1);
          }
-         sendStopEventMessage(tmp1->name); /* send message */
-         free(tmp1->name);
-         free(tmp1);
       }
+
+      /* release */
+      glfwUnlockMutex(m_mutex);
+
+      MMDAgent_sleep(COUNTDOWNTHREAD_SLEEPMS);
    }
-
-   /* release */
-   ReleaseMutex(m_mutex);
-
-   Sleep(COUNTDOWNTHREAD_SLEEPMS);
 }
 
 /* CountDown_Thread::isRunning: check running */
 bool CountDown_Thread::isRunning()
 {
-   if (m_threadHandle == 0 || m_stop == true)
+   if (m_kill == true || m_mutex == NULL || m_thread < 0)
       return false;
-   return true;
+   else
+      return true;
 }
 
 /* CountDown_Thread::stopAndRelease: stop thread and free Open JTalk */
@@ -195,19 +183,18 @@ void CountDown_Thread::stopAndRelease()
 void CountDown_Thread::set(const char *alias, const char *str)
 {
    CountDown *countDown;
-   float sec, now;
+   double msec, now;
 
    if(MMDAgent_strlen(alias) <= 0)
       return;
-   sec = MMDAgent_str2float(str);
-   if(sec <= 0.0f)
+   msec = MMDAgent_str2double(str) * 1000.0;
+   if(msec <= 0.0)
       return;
 
    /* wait */
-   if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
+   glfwLockMutex(m_mutex);
 
-   now = clock() / (float)CLOCKS_PER_SEC;
+   now = MMDAgent_getTime();
 
    /* check the same alias */
    for(countDown = m_head; countDown; countDown = countDown->next) {
@@ -229,14 +216,14 @@ void CountDown_Thread::set(const char *alias, const char *str)
       }
       m_tail = countDown;
    } else {
-      sendStopEventMessage(countDown->name);
+      m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, countDown->name);
    }
-   countDown->goal = now + sec;
+   countDown->goal = now + msec;
 
-   sendStartEventMessage(countDown->name); /* send message */
+   m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTARTEVENT, countDown->name);
 
    /* release */
-   ReleaseMutex(m_mutex);
+   glfwUnlockMutex(m_mutex);
 }
 
 /* CountDown_Thread::unset: unset timer */
@@ -245,8 +232,7 @@ void CountDown_Thread::unset(const char *alias)
    CountDown *tmp1, *tmp2;
 
    /* wait */
-   if(WaitForSingleObject(m_mutex, INFINITE) != WAIT_OBJECT_0)
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for count down.", "Error", MB_OK);
+   glfwLockMutex(m_mutex);
 
    for(tmp1 = m_head; tmp1; tmp1 = tmp2) {
       tmp2 = tmp1->next;
@@ -268,7 +254,7 @@ void CountDown_Thread::unset(const char *alias)
                tmp1->prev->next = tmp1->prev;
             }
          }
-         sendStopEventMessage(tmp1->name); /* send message */
+         m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, tmp1->name);
          free(tmp1->name);
          free(tmp1);
          break;
@@ -276,23 +262,5 @@ void CountDown_Thread::unset(const char *alias)
    }
 
    /* release */
-   ReleaseMutex(m_mutex);
-}
-
-/* CountDown_Thread::sendStartEventMessage: send start event message to MMDAgent */
-void CountDown_Thread::sendStartEventMessage(const char *str)
-{
-   if(str == NULL)
-      return;
-
-   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(COUNTDOWNTHREAD_TIMERSTARTEVENT), (LPARAM) MMDAgent_strdup(str));
-}
-
-/* CountDown_Thread::sendStopEventMessage: send stop event message to MMDAgent */
-void CountDown_Thread::sendStopEventMessage(const char *str)
-{
-   if(str == NULL)
-      return;
-
-   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(COUNTDOWNTHREAD_TIMERSTOPEVENT), (LPARAM) MMDAgent_strdup(str));
+   glfwUnlockMutex(m_mutex);
 }

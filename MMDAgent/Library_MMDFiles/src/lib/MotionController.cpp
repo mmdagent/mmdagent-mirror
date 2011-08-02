@@ -53,7 +53,8 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
    float time1;
    float time2;
    btVector3 pos1, pos2 = btVector3(0, 0, 0);
-   btQuaternion rot1, rot2;
+   btQuaternion rot1 = btQuaternion(0, 0, 0, 0);
+   btQuaternion rot2 = btQuaternion(0, 0, 0, 0);
    BoneKeyFrame *keyFrameForInterpolation;
    float x, y, z, ww;
    float w;
@@ -563,4 +564,16 @@ double MotionController::getPreviousFrame()
 void MotionController::setPreviousFrame(double frame)
 {
    m_previousFrame = frame;
+}
+
+/* MotionController::getNumBoneCtrl: get number of bone controller */
+unsigned long MotionController::getNumBoneCtrl()
+{
+   return m_numBoneCtrl;
+}
+
+/* MotionController::getBoneCtrlList: get list of bone controller */
+MotionControllerBoneElement *MotionController::getBoneCtrlList()
+{
+   return m_boneCtrlList;
 }

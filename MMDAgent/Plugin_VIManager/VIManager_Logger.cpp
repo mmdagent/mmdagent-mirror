@@ -43,7 +43,7 @@
 
 #include "MMDAgent.h"
 #include "VIManager.h"
-#include "VIMAnager_Logger.h"
+#include "VIManager_Logger.h"
 #include "VIManager_Thread.h"
 
 /* VIManager_Logger::initialize: initialize logger */
@@ -104,7 +104,7 @@ bool VIManager_Logger::setTransition(VIManager_Arc *arc)
 void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
 {
    int i;
-   static char buf1[VIMANAGER_MAXBUFLEN], buf2[VIMANAGER_MAXBUFLEN]; /* static buffer */
+   static char buf1[MMDAGENT_MAXBUFLEN], buf2[MMDAGENT_MAXBUFLEN]; /* static buffer */
 
    strcpy(buf1, arc->input_event_type);
    for (i = 0; i < arc->input_event_argc; i++) {

@@ -86,7 +86,7 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    btTransform trB;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    btMatrix3x3 rx, ry, rz;
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
 
@@ -105,13 +105,13 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    bm = ry * rz * rx;
 #else
    bm.setEulerZYX(c->rot[0], c->rot[1], c->rot[2]);
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    tr.setBasis(bm);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    tr.setOrigin(btVector3(c->pos[0], c->pos[1], -c->pos[2]) + *offset);
 #else
    tr.setOrigin(btVector3(c->pos[0], c->pos[1], c->pos[2]) + *offset);
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    /* make local transforms from both rigid bodies */
    trA = rbA->getWorldTransform().inverse() * tr;
    trB = rbB->getWorldTransform().inverse() * tr;
@@ -135,7 +135,7 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    /* set rotation angle limits */
    m_constraint->setAngularLowerLimit(btVector3(c->limitRotFrom[0], c->limitRotFrom[1], c->limitRotFrom[2]));
    m_constraint->setAngularUpperLimit(btVector3(c->limitRotTo[0], c->limitRotTo[1], c->limitRotTo[2]));
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* set spring stiffnesses */
    for (i = 0; i < 6; i++) {

@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_VIMANAGER_EXPORTS;_CRT_SECURE_NO_WARNINGS;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;..\Library_GLFW\include;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;MMDAGENT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,11 +61,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib JPEG_D.lib"
+				AdditionalDependencies="MMDFiles_D.lib libpng_D.lib Bullet_Physics_D.lib winmm.lib opengl32.lib glu32.lib zlib_D.lib GLee_D.lib MMDAgent_D.lib JPEG_D.lib GLFW_D.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_JPEG\lib"
-				ModuleDefinitionFile="Plugin_VIManager.def"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_JPEG\lib;..\Library_GLFW\lib;"
+				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -123,8 +123,8 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_VIMANAGER_EXPORTS;_CRT_SECURE_NO_WARNINGS;"
+				AdditionalIncludeDirectories="..\Library_GLee\include;..\MMDAgent;..\Library_Bullet_physics\include;..\Library_MMDFiles\include;..\Library_MMDAgent\include;..\Library_GLFW\include;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;MMDAGENT"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -142,11 +142,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib JPEG.lib"
+				AdditionalDependencies="MMDFiles.lib libpng.lib Bullet_Physics.lib winmm.lib opengl32.lib glu32.lib zlib.lib GLee.lib MMDAgent.lib JPEG.lib GLFW.lib"
 				OutputFile="$(OutDir)\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_JPEG\lib"
-				ModuleDefinitionFile="Plugin_VIManager.def"
+				AdditionalLibraryDirectories="..\Library_Bullet_Physics\lib;..\Library_MMDFiles\lib;..\Library_zlib\lib;..\Library_libpng\lib;..\Library_GLee\lib;..\Library_MMDAgent\lib;..\Library_JPEG\lib;..\Library_GLFW\lib;"
+				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -186,10 +186,6 @@
 			>
 			<File
 				RelativePath=".\Plugin_VIManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Plugin_VIManager.def"
 				>
 			</File>
 			<File

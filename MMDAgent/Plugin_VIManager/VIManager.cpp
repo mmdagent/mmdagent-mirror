@@ -44,8 +44,8 @@
 #include "MMDAgent.h"
 #include "VIManager.h"
 
-/* get_token_from_string: get token from string */
-static int get_token_from_string(char *str, int *index, char *buff)
+/* getTokenFromString: get token from string */
+static int getTokenFromString(const char *str, int *index, char *buff)
 {
    char c;
    int i = 0;
@@ -68,8 +68,8 @@ static int get_token_from_string(char *str, int *index, char *buff)
    return i;
 }
 
-/* get_arg_from_string: get argument from string using separators */
-static int get_arg_from_string(const char *str, int *index, char *buff)
+/* getArgFromString: get argument from string using separators */
+static int getArgFromString(const char *str, int *index, char *buff)
 {
    char c;
    int i = 0;
@@ -94,11 +94,11 @@ static int get_arg_from_string(const char *str, int *index, char *buff)
    return i;
 }
 
-/* get_args: get event arguments */
-static int get_args(const char *str, char ***args, int *argc)
+/* getArgs: get event arguments */
+static int getArgs(const char *str, char ***args, int *argc)
 {
    int i, j, len, idx = 0;
-   char buff[VIMANAGER_MAXBUFLEN];
+   char buff[MMDAGENT_MAXBUFLEN];
 
    if (str == NULL) {
       (*argc) = 0;
@@ -124,7 +124,7 @@ static int get_args(const char *str, char ***args, int *argc)
 
    /* get event arguments */
    for (i = 0; i < (*argc); i++) {
-      j = get_arg_from_string(str, &idx, buff);
+      j = getArgFromString(str, &idx, buff);
       (*args)[i] = (char *) calloc(j + 1, sizeof(char));
       strcpy((*args)[i], buff);
    }
@@ -225,8 +225,8 @@ static void VIManager_SList_clear(VIManager_SList *l)
    l->head = NULL;
 }
 
-/* VIManager_SList_search_state: search state pointer */
-static VIManager_State *VIManager_SList_search_state(VIManager_SList *l, unsigned int n)
+/* VIManager_SList_searchState: search state pointer */
+static VIManager_State *VIManager_SList_searchState(VIManager_SList *l, unsigned int n)
 {
    VIManager_State *tmp1, *tmp2, *result = NULL;
 
@@ -263,37 +263,37 @@ static VIManager_State *VIManager_SList_search_state(VIManager_SList *l, unsigne
    return result;
 }
 
-/* VIManager_SList_add_arc: add arc */
-static void VIManager_SList_add_arc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol)
+/* VIManager_SList_addArc: add arc */
+static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol)
 {
    int i, idx;
    VIManager_State *s1, *s2;
    VIManager_Arc *a1, *a2;
    VIManager_AList *arc_list;
 
-   char type[VIMANAGER_MAXBUFLEN];
+   char type[MMDAGENT_MAXBUFLEN];
    char **args = NULL;
    int argc = 0;
-   char otype[VIMANAGER_MAXBUFLEN];
-   char oargs[VIMANAGER_MAXBUFLEN];
+   char otype[MMDAGENT_MAXBUFLEN];
+   char oargs[MMDAGENT_MAXBUFLEN];
 
-   s1 = VIManager_SList_search_state(l, index_s1);
-   s2 = VIManager_SList_search_state(l, index_s2);
+   s1 = VIManager_SList_searchState(l, index_s1);
+   s2 = VIManager_SList_searchState(l, index_s2);
    arc_list = &s1->arc_list;
 
    /* analysis input symbol */
    idx = 0;
-   i = get_arg_from_string(isymbol, &idx, type);
+   i = getArgFromString(isymbol, &idx, type);
    if (i <= 0)
       return;
-   get_args(&isymbol[idx], &args, &argc);
+   getArgs(&isymbol[idx], &args, &argc);
 
    /* analysis output symbol */
    idx = 0;
-   i = get_arg_from_string(osymbol, &idx, otype);
+   i = getArgFromString(osymbol, &idx, otype);
    if (i <= 0)
       return;
-   get_token_from_string(osymbol, &idx, oargs);
+   getTokenFromString(osymbol, &idx, oargs);
 
    /* create */
    a1 = (VIManager_Arc *) calloc(1, sizeof(VIManager_Arc));
@@ -345,15 +345,15 @@ VIManager::~VIManager()
 int VIManager::load(const char *file)
 {
    FILE *fp;
-   char buff[VIMANAGER_MAXBUFLEN];
+   char buff[MMDAGENT_MAXBUFLEN];
    int len;
    int idx;
 
-   char buff_s1[VIMANAGER_MAXBUFLEN];
-   char buff_s2[VIMANAGER_MAXBUFLEN];
-   char buff_is[VIMANAGER_MAXBUFLEN];
-   char buff_os[VIMANAGER_MAXBUFLEN];
-   char buff_er[VIMANAGER_MAXBUFLEN];
+   char buff_s1[MMDAGENT_MAXBUFLEN];
+   char buff_s2[MMDAGENT_MAXBUFLEN];
+   char buff_is[MMDAGENT_MAXBUFLEN];
+   char buff_os[MMDAGENT_MAXBUFLEN];
+   char buff_er[MMDAGENT_MAXBUFLEN];
    int size_s1;
    int size_s2;
    int size_is;
@@ -365,7 +365,7 @@ int VIManager::load(const char *file)
    unsigned int index_s2;
 
    /* open */
-   fp = fopen(file, "r");
+   fp = MMDAgent_fopen(file, "r");
    if (fp == NULL)
       return 0;
 
@@ -373,7 +373,7 @@ int VIManager::load(const char *file)
    VIManager_SList_clear(&m_stateList);
    VIManager_SList_initialize(&m_stateList);
 
-   while (fgets(buff, VIMANAGER_MAXBUFLEN - 3, fp) != NULL) { /* string + \r + \n + \0 */
+   while (fgets(buff, MMDAGENT_MAXBUFLEN - 3, fp) != NULL) { /* string + \r + \n + \0 */
       /* remove final \n and \r */
       len = MMDAgent_strlen(buff);
       while (len > 0 && (buff[len-1] == '\n' || buff[len-1] == '\r'))
@@ -382,16 +382,16 @@ int VIManager::load(const char *file)
       /* check and load arc */
       if (len > 0) {
          idx = 0;
-         size_s1 = get_token_from_string(buff, &idx, buff_s1);
-         size_s2 = get_token_from_string(buff, &idx, buff_s2);
-         size_is = get_token_from_string(buff, &idx, buff_is);
-         size_os = get_token_from_string(buff, &idx, buff_os);
-         size_er = get_token_from_string(buff, &idx, buff_er);
+         size_s1 = getTokenFromString(buff, &idx, buff_s1);
+         size_s2 = getTokenFromString(buff, &idx, buff_s2);
+         size_is = getTokenFromString(buff, &idx, buff_is);
+         size_os = getTokenFromString(buff, &idx, buff_os);
+         size_er = getTokenFromString(buff, &idx, buff_er);
          if (size_s1 > 0 && size_s2 > 0 && size_is > 0 && size_os > 0 && size_er == 0 && buff_s1[0] != VIMANAGER_COMMENT) {
             index_s1 = (unsigned int) strtoul(buff_s1, &err_s1, 10);
             index_s2 = (unsigned int) strtoul(buff_s2, &err_s2, 10);
             if (buff_s1 + size_s1 == err_s1 && buff_s2 + size_s2 == err_s2)
-               VIManager_SList_add_arc(&m_stateList, index_s1, index_s2, buff_is, buff_os);
+               VIManager_SList_addArc(&m_stateList, index_s1, index_s2, buff_is, buff_os);
          }
       }
       if (feof(fp) || ferror(fp))
@@ -401,7 +401,7 @@ int VIManager::load(const char *file)
    fclose(fp);
 
    /* set current state to zero */
-   m_currentState = VIManager_SList_search_state(&m_stateList, VIMANAGER_STARTSTATE);
+   m_currentState = VIManager_SList_searchState(&m_stateList, VIMANAGER_STARTSTATE);
 
    return 1;
 }
@@ -431,7 +431,7 @@ VIManager_Arc *VIManager::transition(const char *itype, const char *iargs, char 
       return NULL;
 
    /* get input event args */
-   get_args(iargs, &args, &argc);
+   getArgs(iargs, &args, &argc);
 
    /* matching */
    for (arc = arc_list->head; arc != NULL; arc = arc->next) {

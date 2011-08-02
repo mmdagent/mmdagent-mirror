@@ -1,5 +1,0 @@
-LIBRARY	"Plugin_WindowController"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extAppEnd

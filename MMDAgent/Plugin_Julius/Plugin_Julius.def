@@ -1,8 +1,0 @@
-LIBRARY	"Plugin_Julius"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extProcEvent
-	extAppEnd
-	extUpdate
-	extRender

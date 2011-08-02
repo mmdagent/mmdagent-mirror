@@ -65,22 +65,30 @@ private:
    bool m_enable;
    float m_fadingRate;
 
+   /* initialize: initialize bone controller */
    void initialize();
+
+   /* clear: free bone controller */
    void clear();
 
 public:
 
+   /* BoneController: constructor */
    BoneController();
 
+   /* ~BoneController: destructor */
    ~BoneController();
 
+   /* setup: initialize and setup bone controller */
    void setup(PMDModel *model, const char **boneName, int numBone, float rateOn, float rateOff,
               float baseVectorX, float baseVectorY, float baseVectorZ,
               float upperAngLimitX, float upperAngLimitY, float upperAngLimitZ,
               float lowerAngLimitX, float lowerAngLimitY, float lowerAngLimitZ,
               float adjustPosX, float adjustPosY, float adjustPosZ);
 
+   /* setEnableFlag: set enable flag */
    void setEnableFlag(bool b);
 
+   /* update: update motions */
    bool update(btVector3 *pos, float deltaFrame);
 };

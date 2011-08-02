@@ -126,9 +126,12 @@ void PMDIK::solve()
    destPos = m_destBone->getTransform()->getOrigin();
 
    /* before begin IK iteration, make sure all the child bones and target bone are up to date update from root to child */
+#ifndef MMDFILES_DONTUPDATEMATRICESFORIK
+   /* this can be disabled for compatibility with MikuMikuDance */
    for (i = m_numBone - 1; i >= 0; i--)
       m_boneList[i]->update();
    m_targetBone->update();
+#endif
 
    /* save the current rotation of the target bone. It will be restored at the end of this function */
    m_targetBone->getCurrentRotation(&origTargetRot);

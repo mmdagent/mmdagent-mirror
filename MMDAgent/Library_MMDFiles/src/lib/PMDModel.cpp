@@ -49,7 +49,6 @@ void PMDModel::initialize()
    int i;
 
    m_name = NULL;
-   m_modelDir = NULL;
    m_comment = NULL;
 
    m_numVertex = 0;
@@ -183,8 +182,6 @@ void PMDModel::clear()
       free(m_comment);
    if(m_name)
       free(m_name);
-   if(m_modelDir)
-      free(m_modelDir);
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
       m_localToonTexture[i].release();
@@ -223,10 +220,10 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
       return false;
 
    /* get model directory */
-   dir = MMDFiles_dirdup(file);
+   dir = MMDFiles_dirname(file);
 
    /* open file */
-   fp = fopen(file, "rb");
+   fp = MMDFiles_fopen(file, "rb");
    if (!fp)
       return false;
 
@@ -455,12 +452,6 @@ float PMDModel::getMaxHeight()
 char *PMDModel::getComment()
 {
    return m_comment;
-}
-
-/* PMDModel::getModelDir: get model directory */
-char *PMDModel::getModelDir()
-{
-   return m_modelDir;
 }
 
 /* PMDModel::setForceEdgeFlag: set force edge flag */

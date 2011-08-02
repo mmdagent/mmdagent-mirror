@@ -39,34 +39,28 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* definitions */
-
-#define PLUGIN_DIRSEPARATOR '\\'
-#define PLUGIN_DYNAMICLIBS  "*.dll"
-
-/* Dll: dll for MMDAgent */
-typedef struct _Dll {
+/* DLLibrary: dynamic link library for MMDAgent */
+typedef struct _DLLibrary {
    char *name;
-   HINSTANCE handle;
-   bool enable;
+   void *handle;
 
-   void (__stdcall *appStart)(MMDAgent *mmdagent);
-   void (__stdcall *appEnd)(MMDAgent *mmdagent);
-   void (__stdcall *procCommand)(MMDAgent *mmdagent, const char *type, const char *args);
-   void (__stdcall *procEvent)(MMDAgent *mmdagent, const char *type, const char *args);
-   void (__stdcall *update)(MMDAgent *mmdagent, double deltaFrame);
-   void (__stdcall *render)(MMDAgent *mmdagent);
+   void (*appStart)(MMDAgent *mmdagent);
+   void (*appEnd)(MMDAgent *mmdagent);
+   void (*procCommand)(MMDAgent *mmdagent, const char *type, const char *args);
+   void (*procEvent)(MMDAgent *mmdagent, const char *type, const char *args);
+   void (*update)(MMDAgent *mmdagent, double deltaFrame);
+   void (*render)(MMDAgent *mmdagent);
 
-   struct _Dll *next;
-} Dll;
+   struct _DLLibrary *next;
+} DLLibrary;
 
 /* Plugin: plugin list */
 class Plugin
 {
 private:
 
-   Dll *m_head;
-   Dll *m_tail;
+   DLLibrary *m_head;
+   DLLibrary *m_tail;
 
    /* initialize: initialize plugin list */
    void initialize();

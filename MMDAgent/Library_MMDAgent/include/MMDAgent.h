@@ -42,36 +42,10 @@
 #ifndef __mmdagent_h__
 #define __mmdagent_h__
 
-/* headers */
-
-#include "MMDFiles.h"
-
-class MMDAgent;
-
-#include "TextRenderer.h"
-#include "LogText.h"
-#include "LipSync.h"
-#include "PMDObject.h"
-
-#include "Option.h"
-#include "Screen.h"
-#include "TileTexture.h"
-#include "Stage.h"
-#include "Render.h"
-#include "Timer.h"
-#include "Plugin.h"
-#include "MotionStocker.h"
-
-#include "MMDAgent_utils.h"
-
 /* definitions */
 
-#define WM_MMDAGENT_EVENT   (WM_USER + 1) /* window index for output event message */
-#define WM_MMDAGENT_COMMAND (WM_USER + 2) /* window index for input command message */
-#define WM_MMDAGENT_LOG     (WM_USER + 3) /* window index for log message */
-
-#define MMDAGENT_MAXBUFLEN    2048
-#define MMDAGENT_DIRSEPARATOR '\\'
+#define MMDAGENT_MAXBUFLEN    MMDFILES_MAXBUFLEN
+#define MMDAGENT_DIRSEPARATOR MMDFILES_DIRSEPARATOR
 #define MMDAGENT_MAXNCOMMAND  10
 
 #define MMDAGENT_SYSDATADIR "AppData"
@@ -117,22 +91,46 @@ class MMDAgent;
 #define MMDAGENT_EVENT_DRAGANDDROP   "DRAGANDDROP"
 #define MMDAGENT_EVENT_KEY           "KEY"
 
+/* headers */
+
+#include "MMDFiles.h"
+
+#include "GL/glfw.h"
+
+class MMDAgent;
+
+#include "MMDAgent_utils.h"
+
+#include "TextRenderer.h"
+#include "LogText.h"
+#include "LipSync.h"
+#include "PMDObject.h"
+
+#include "Option.h"
+#include "ScreenWindow.h"
+#include "Message.h"
+#include "TileTexture.h"
+#include "Stage.h"
+#include "Render.h"
+#include "Timer.h"
+#include "Plugin.h"
+#include "MotionStocker.h"
+
 /* MMDAgent: MMDAgent class */
 class MMDAgent
 {
 private:
+   bool m_enable;
 
    char *m_configFileName; /* config file name */
    char *m_configDirName;  /* directory name of config file */
    char *m_appDirName;     /* directory name of application data */
 
-   HWND m_hWnd;       /* window handle */
-   HINSTANCE m_hInst; /* application instance */
-
    Option *m_option;        /* user options */
+   ScreenWindow *m_screen;  /* screen window */
+   Message *m_message;      /* message queue */
    BulletPhysics *m_bullet; /* Bullet Physics */
    Plugin *m_plugin;        /* plugins */
-   Screen *m_screen;        /* screen */
    Stage *m_stage;          /* stage */
    SystemTexture *m_systex; /* system texture */
    LipSync *m_lipSync;      /* system default lipsync */
@@ -147,14 +145,15 @@ private:
    MotionStocker *m_motion; /* motions */
 
    CameraController m_camera; /* camera controller */
-   bool m_cameraControlled;  /* true when camera is controlled by motion */
+   bool m_cameraControlled;   /* true when camera is controlled by motion */
 
    bool m_keyCtrl;           /* true if Ctrl-key is on */
    bool m_keyShift;          /* true if Shift-key is on */
    int m_selectedModel;      /* model ID selected by mouse */
    int m_highLightingModel;
    bool m_doubleClicked;     /* true if double clicked */
-   POINT m_mousepos;
+   int m_mousePosX;
+   int m_mousePosY;
    bool m_leftButtonPressed;
    double m_restFrame;
 
@@ -175,6 +174,12 @@ private:
 
    /* setHighLight: set high-light of selected model */
    void setHighLight(int modelId);
+
+   /* updateScene: update the whole scene */
+   bool updateScene();
+
+   /* renderScene: render the whole scene */
+   void renderScene();
 
    /* addModel: add model */
    bool addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, const char *baseModelAlias, const char *baseBoneName);
@@ -251,13 +256,10 @@ public:
    ~MMDAgent();
 
    /* setup: initialize and setup MMDAgent */
-   HWND setup(HINSTANCE hInstance, const char *title, const char *windowName, int argc, char **argv);
+   bool setup(int argc, char **argv, const char *title);
 
-   /* updateScene: update the whole scene */
-   void updateScene();
-
-   /* renderScene: render the whole scene */
-   void renderScene();
+   /* updateAndRender: update and render the whole scene */
+   void updateAndRender();
 
    /* drawString: draw string */
    void drawString(const char *str);
@@ -283,14 +285,14 @@ public:
    /* getNumModel: get number of models */
    short getNumModel();
 
+   /* getMousePosition:: get mouse position */
+   void getMousePosition(int *x, int *y);
+
    /* getScreenPointPosition: convert screen position to object position */
    void getScreenPointPosition(btVector3 *dst, btVector3 *src);
 
-   /* getWindowHandler: get window handle */
-   HWND getWindowHandler();
-
-   /* getInstance: get application instance */
-   HINSTANCE getInstance();
+   /* MMDAgent::getWindowSize: get window size */
+   void getWindowSize(int *w, int *h);
 
    /* getConfigFileName: get config file name for plugin */
    char *getConfigFileName();
@@ -316,8 +318,8 @@ public:
    /* procMouseWheel: process mouse wheel message */
    void procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift);
 
-   /* procMouseMoveMessage: process mouse move message */
-   void procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift);
+   /* procMousePosMessage: process mouse position message */
+   void procMousePosMessage(int x, int y, bool withCtrl, bool withShift);
 
    /* procMouseRightButtonDownMessage: process mouse right button down message */
    void procMouseRightButtonDownMessage();
@@ -383,13 +385,13 @@ public:
    void procKeyMessage(char c);
 
    /* procCommandMessage: process command message */
-   void procCommandMessage(char *mes1, char *mes2);
+   void procCommandMessage(const char *type, const char *value);
 
    /* procEventMessage: process event message */
-   void procEventMessage(char *mes1, char *mes2);
+   void procEventMessage(const char *type, const char *value);
 
    /* procLogMessage: process log message */
-   void procLogMessage(char *mes);
+   void procLogMessage(const char *log);
 
    /* procDropFileMessage: process file drops message */
    void procDropFileMessage(const char *file, int x, int y);

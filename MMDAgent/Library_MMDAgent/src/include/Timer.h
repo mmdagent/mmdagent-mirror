@@ -44,24 +44,19 @@ class Timer
 {
 private:
 
-   UINT m_prec; /* precision of timer */
+   double m_systemStartTime; /* system start time */
+   double m_lastUpdateFrameSystem;  /* number of frames from last getTimeInterval function */
+   double m_pauseTime;       /* time from system start to last pause function */
 
-   DWORD m_systemStartTime;        /* system start time */
-   double m_lastUpdateFrameSystem; /* number of frames from last getTimeInterval function */
-   DWORD m_pauseTime;              /* time from system start to last pause function */
-
-   float m_fps;              /* current frame rate */
-   DWORD m_fpsStartTime;     /* start time of fps count */
-   unsigned long m_fpsCount; /* count of calling countFrame function */
+   float m_fps;                  /* current frame rate */
+   double m_fpsStartTime; /* start time of fps count */
+   double m_fpsCount;     /* count of calling countFrame function */
 
    double m_targetAdjustmentFrame;  /* target frame to sync music */
    double m_currentAdjustmentFrame; /* current frame to sync music */
    bool m_enableAdjustment;         /* switch to sync music */
 
-   DWORD m_userStartTime;    /* user start time */
-
-   /* diffTime: return time difference between two counts */
-   DWORD diffTime(DWORD now, DWORD past);
+   double m_userStartTime; /* user start time */
 
    /* initialize: initialize timer */
    void initialize();
@@ -78,7 +73,7 @@ public:
    ~Timer();
 
    /* setup: initialize and start timer */
-   void setup(UINT msec);
+   void setup();
 
    /* getFrameInterval: return time interval from last call */
    double getFrameInterval();
@@ -93,7 +88,7 @@ public:
    void start();
 
    /* ellapsed: return ellapsed time since last call of start() */
-   int ellapsed();
+   double ellapsed();
 
    /* countFrame: increment frame count for FPS calculation */
    void countFrame();
@@ -114,5 +109,5 @@ public:
    double getCurrentAdjustmentFrame();
 
    /* getAdditionalFrame: get number of additional frames to sync music */
-   double getAdditionalFrame(double baseProcFrame);
+   double getAdditionalFrame(double frame);
 };

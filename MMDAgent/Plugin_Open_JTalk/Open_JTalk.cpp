@@ -79,7 +79,6 @@ void Open_JTalk::initialize()
 
    m_f0Shift = OPENJTALK_HALFTONE;
    m_numModels = 0;
-   m_loaded = false;
    m_styleWeights = NULL;
    m_numStyles = 0;
 }
@@ -94,7 +93,6 @@ void Open_JTalk::clear()
 
    m_f0Shift = 0.0;
    m_numModels = 0;
-   m_loaded = false;
    if (m_styleWeights != NULL)
       free(m_styleWeights);
    m_styleWeights = NULL;
@@ -118,7 +116,7 @@ bool Open_JTalk::load(const char *dicDir, char **modelDir, int numModels, double
 {
    int i, j;
 
-   char buff[OPENJTALK_MAXBUFLEN];
+   char buff[MMDAGENT_MAXBUFLEN];
    char *dn_mecab;
    char **fn_ws_mcp, **fn_ws_lf0, **fn_ws_lpf;
    char *fn_gv_switch;
@@ -149,48 +147,48 @@ bool Open_JTalk::load(const char *dicDir, char **modelDir, int numModels, double
    fn_ms_gvm = (char **) calloc(m_numModels, sizeof(char *));
    fn_ms_gvl = (char **) calloc(m_numModels, sizeof(char *));
 
-   dn_mecab = MMDAgent_strdup(dicDir);
-   sprintf(buff, "%s\\%s", modelDir[0], "mgc.win1");
-   fn_ws_mcp[0] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "mgc.win2");
-   fn_ws_mcp[1] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "mgc.win3");
-   fn_ws_mcp[2] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "lf0.win1");
-   fn_ws_lf0[0] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "lf0.win2");
-   fn_ws_lf0[1] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "lf0.win3");
-   fn_ws_lf0[2] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "lpf.win1");
-   fn_ws_lpf[0] = MMDAgent_strdup(buff);
-   sprintf(buff, "%s\\%s", modelDir[0], "gv-switch.inf");
-   fn_gv_switch = MMDAgent_strdup(buff);
+   dn_mecab = MMDAgent_pathdup(dicDir);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN1);
+   fn_ws_mcp[0] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN2);
+   fn_ws_mcp[1] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN3);
+   fn_ws_mcp[2] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN1);
+   fn_ws_lf0[0] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN2);
+   fn_ws_lf0[1] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN3);
+   fn_ws_lf0[2] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFWIN1);
+   fn_ws_lpf[0] = MMDAgent_pathdup(buff);
+   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_GVSWITCH);
+   fn_gv_switch = MMDAgent_pathdup(buff);
    for (i = 0; i < m_numModels; i++) {
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-dur.inf");
-      fn_ts_dur[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-mgc.inf");
-      fn_ts_mcp[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-lf0.inf");
-      fn_ts_lf0[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-lpf.inf");
-      fn_ts_lpf[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "dur.pdf");
-      fn_ms_dur[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "mgc.pdf");
-      fn_ms_mcp[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "lf0.pdf");
-      fn_ms_lf0[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "lpf.pdf");
-      fn_ms_lpf[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-gv-mgc.inf");
-      fn_ts_gvm[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "tree-gv-lf0.inf");
-      fn_ts_gvl[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "gv-mgc.pdf");
-      fn_ms_gvm[i] = MMDAgent_strdup(buff);
-      sprintf(buff, "%s\\%s", modelDir[i], "gv-lf0.pdf");
-      fn_ms_gvl[i] = MMDAgent_strdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_DURTREE);
+      fn_ts_dur[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCTREE);
+      fn_ts_mcp[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0TREE);
+      fn_ts_lf0[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFTREE);
+      fn_ts_lpf[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_DURPDF);
+      fn_ms_dur[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCPDF);
+      fn_ms_mcp[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0PDF);
+      fn_ms_lf0[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFPDF);
+      fn_ms_lpf[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCGVTREE);
+      fn_ts_gvm[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0GVTREE);
+      fn_ts_gvl[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCGVPDF);
+      fn_ms_gvm[i] = MMDAgent_pathdup(buff);
+      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0GVPDF);
+      fn_ms_gvl[i] = MMDAgent_pathdup(buff);
    }
 
    /* load */
@@ -248,8 +246,6 @@ bool Open_JTalk::load(const char *dicDir, char **modelDir, int numModels, double
    for (j = 0; j < m_numStyles * (m_numModels * 3 + 4); j++)
       m_styleWeights[j] = styleWeights[j];
 
-   m_loaded = true;
-
    setStyle(0);
    return true;
 }
@@ -263,7 +259,7 @@ void Open_JTalk::prepare(const char *str)
    int i;
    double f;
 
-   if (m_loaded == false)
+   if(m_numStyles <= 0)
       return;
 
    /* text analysis */
@@ -314,7 +310,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
 
    strcpy(str, "");
 
-   if (m_loaded == false)
+   if(m_numStyles <= 0)
       return;
 
    size = JPCommon_get_label_size(&m_jpcommon);
@@ -352,7 +348,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
 /* Open_JTalk::synthesis: speech synthesis */
 void Open_JTalk::synthesis()
 {
-   if (m_loaded == false)
+   if(m_numStyles <= 0)
       return;
    if (JPCommon_get_label_size(&m_jpcommon) > 2) {
       HTS_Engine_create_gstream(&m_engine);
@@ -366,7 +362,7 @@ void Open_JTalk::synthesis()
 /* Open_JTalk::stop: stop speech synthesis */
 void Open_JTalk::stop()
 {
-   if (m_loaded == false)
+   if(m_numStyles <= 0)
       return;
    HTS_Engine_set_stop_flag(&m_engine, TRUE);
 }
@@ -377,7 +373,7 @@ bool Open_JTalk::setStyle(int val)
    int i, index;
    double f;
 
-   if (m_loaded == false || m_styleWeights == NULL || m_numStyles <= 0 || val < 0 || val >= m_numStyles)
+   if (m_numStyles <= 0 || m_styleWeights == NULL || val < 0 || val >= m_numStyles)
       return false;
 
    index = val * (m_numModels * 3 + 4);

@@ -41,8 +41,10 @@
 
 /* headers */
 
+#include <ctype.h>
 #include "MMDAgent.h"
 
+#ifdef _WIN32
 /* TextRenderer::getID: get display list of character */
 bool TextRenderer::getID(unsigned long mbc, unsigned int *id)
 {
@@ -89,20 +91,24 @@ bool TextRenderer::getID(unsigned long mbc, unsigned int *id)
 
    return true;
 }
+#endif /* _WIN32 */
 
 /* TextRenderer::initialize: initialize text renderer */
 void TextRenderer::initialize()
 {
+#ifdef _WIN32
    m_hDC = NULL;
    m_outlineFont = NULL;
    m_outlineFontID = 0;
    m_bitmapFontID = 0;
    m_list = NULL;
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::clear: clear text renderer */
 void TextRenderer::clear()
 {
+#ifdef _WIN32
    CharDispList *tmp1, *tmp2;
 
    for(tmp1 = m_list; tmp1; tmp1 = tmp2) {
@@ -118,6 +124,7 @@ void TextRenderer::clear()
       DeleteObject(m_outlineFont);
 
    initialize();
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::TextRenderer: constructor */
@@ -133,15 +140,16 @@ TextRenderer::~TextRenderer()
 }
 
 /* TextRenderer::setup: initialize and setup text renderer */
-void TextRenderer::setup(HDC hDC)
+void TextRenderer::setup()
 {
+#ifdef _WIN32
    HGDIOBJ oldfont;
    GLYPHMETRICSFLOAT gmf[TEXTRENDERER_ASCIISIZE];
 
    clear();
 
    /* store device context */
-   m_hDC = hDC;
+   m_hDC = glfwGetDeviceContext();
 
    /* set TEXTRENDERER_ASCIISIZE bitmap font for ASCII */
    m_bitmapFontID = glGenLists(TEXTRENDERER_ASCIISIZE);
@@ -188,35 +196,41 @@ void TextRenderer::setup(HDC hDC)
       return;
    }
    SelectObject(m_hDC, oldfont);
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::drawAsciiStringBitmap: draw ascii string (bitmap) */
 void TextRenderer::drawAsciiStringBitmap(const char *str)
 {
+#ifdef _WIN32
    GLsizei size;
 
-   if(!m_hDC) return;
+   if(!m_hDC)
+      return;
 
    size = MMDAgent_strlen(str);
    if(size > 0) {
       glListBase(m_bitmapFontID);
       glCallLists(size, GL_UNSIGNED_BYTE, (const GLvoid*) str);
    }
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::getDisplayListArrayOfString: get array of display list indices Draw any string (outline, slow) */
 int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idList, int maxlen)
 {
+#ifdef _WIN32
    int i;
    int n = 0;
-   unsigned int id;
+   unsigned int id = 0;
    unsigned char c1;
    unsigned char c2;
    unsigned long mbc;
    char size;
    int len;
 
-   if(!m_hDC) return 0;
+   if(!m_hDC)
+      return 0;
 
    len = MMDAgent_strlen(str);
    for (i = 0; i < len && n < maxlen;) {
@@ -248,26 +262,34 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
       }
    }
    return n;
+#else
+   return 0;
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::renderSispayListArrayOfString: render the obtained array of display lists for a string */
 void TextRenderer::renderDisplayListArrayOfString(const unsigned int *idList, int n)
 {
-   if(!m_hDC) return;
+#ifdef _WIN32
+   if(!m_hDC)
+      return;
 
    glListBase(m_outlineFontID);
    glCallLists((GLsizei) n, GL_UNSIGNED_INT, (const GLvoid*) idList);
    glFrontFace(GL_CCW);
+#endif /* _WIN32 */
 }
 
 /* TextRenderer::drawString: draw any string (outline, slow) */
 void TextRenderer::drawString(const char *str)
 {
+#ifdef _WIN32
    unsigned int *idList;
    int len;
    int n;
 
-   if(!m_hDC) return;
+   if(!m_hDC)
+      return;
 
    len = MMDAgent_strlen(str);
    if(len > 0) {
@@ -277,4 +299,5 @@ void TextRenderer::drawString(const char *str)
          renderDisplayListArrayOfString(idList, n);
       free(idList);
    }
+#endif /* _WIN32 */
 }

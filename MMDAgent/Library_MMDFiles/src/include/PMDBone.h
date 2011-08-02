@@ -144,6 +144,12 @@ public:
    /* getParentBone: get parent bone */
    PMDBone *getParentBone();
 
+   /* getChildBone: get child bone */
+   PMDBone *getChildBone();
+
+   /* getTargetBone: get target bone */
+   PMDBone *getTargetBone();
+
    /* getCurrentPosition: get current position */
    void getCurrentPosition(btVector3 *v);
 

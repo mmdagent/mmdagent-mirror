@@ -1,5 +1,0 @@
-LIBRARY	"Plugin_Open_JTalk"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extAppEnd

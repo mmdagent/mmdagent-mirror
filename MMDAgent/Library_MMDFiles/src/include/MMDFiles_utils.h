@@ -41,13 +41,20 @@
 
 /* definitions */
 
-#define MMDFILESUTILS_MAXCHARBYTE 3
+#define MMDFILESUTILS_MAXCHARBYTE   3
+#define MMDFILESUTILS_DIRSEPARATORS '\\', '/'
 
 /* MMDFiles_getcharsize: get character size */
 unsigned char MMDFiles_getcharsize(const char *str);
 
+/* MMDFiles_dirseparater: check directory separator */
+bool MMDFiles_dirseparator(char c);
+
 /* MMDFiles_strequal: string matching */
 bool MMDFiles_strequal(const char *str1, const char *str2);
+
+/* MMDFiles_strheadmatch: match head string */
+bool MMDFiles_strheadmatch(const char *str1, const char *str2);
 
 /* MMDFiles_strtailmatch: match tail string */
 bool MMDFiles_strtailmatch(const char *str1, const char *str2);
@@ -58,8 +65,17 @@ int MMDFiles_strlen(const char *str);
 /* MMDFiles_strdup: strdup */
 char *MMDFiles_strdup(const char *str);
 
-/* MMDFiles_dirdup: get directory from file path */
-char *MMDFiles_dirdup(const char *file);
+/* MMDFiles_pathdup: convert charset from application to system */
+char *MMDFiles_pathdup(const char *str);
+
+/* MMDFiles_dirname: get directory name from path */
+char *MMDFiles_dirname(const char *file);
+
+/* MMDFiles_basename: get file name from path */
+char *MMDFiles_basename(const char *file);
+
+/* MMDFiles_fopen: get file pointer */
+FILE *MMDFiles_fopen(const char *file, const char *mode);
 
 /* MMDFiles_getfsize: get file size */
 size_t MMDFiles_getfsize(const char *file);

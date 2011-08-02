@@ -99,7 +99,7 @@ bool LipSync::load(const char *file)
    char buff[LIPSYNC_MAXBUFLEN];
    bool err = false;
 
-   fp = fopen(file, "r");
+   fp = MMDAgent_fopen(file, "r");
    if(fp == NULL)
       return false;
 

@@ -39,48 +39,32 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINVIMANAGER_NAME "VIManager"
 
 /* headers */
 
-#include <windows.h>
 #include <locale.h>
-
 #include "MMDAgent.h"
 #include "VIManager.h"
 #include "VIManager_Logger.h"
 #include "VIManager_Thread.h"
 
-/* definitions */
-
-#define PLUGINVIMANAGER_NAME "VIManager"
-
-/* global variance */
+/* variables */
 
 static VIManager_Thread vimanager_thread;
 static bool enable;
 static bool enable_log;
 
 /* extAppStart: load FST and start thread */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    char *buf;
    int len;
@@ -101,31 +85,31 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
 
    enable = true;
    enable_log = false;
-   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVIMANAGER_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
             enable = false;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINVIMANAGER_NAME);
          }
       }
    } else {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
             enable = true;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINVIMANAGER_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVIMANAGER_NAME);
          }
       }
    }
 }
 
 /* extProcEvent: process event message */
-void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(enable == true) {
       if (vimanager_thread.isRunning()) {
@@ -133,39 +117,24 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
             vimanager_thread.enqueueBuffer(type, args); /* enqueue */
          }
       }
-      if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
-         if(MMDAgent_strequal(args, "F")) {
-            if(enable_log == true)
-               enable_log = false;
-            else
-               enable_log = true;
-         }
+      if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY) && MMDAgent_strequal(args, "F")) {
+         if(enable_log == true)
+            enable_log = false;
+         else
+            enable_log = true;
       }
    }
 }
 
 /* extRender: render log */
-void __stdcall extRender(MMDAgent *mmdagent)
+EXPORT void extRender(MMDAgent *mmdagent)
 {
    if(enable == true && enable_log == true)
       vimanager_thread.renderLog();
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    vimanager_thread.stopAndRelease();
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

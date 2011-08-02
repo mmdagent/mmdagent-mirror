@@ -75,6 +75,8 @@ void Stage::makeFloorBody(float width, float depth)
 void Stage::releaseFloorBody()
 {
    if (m_floorBody) {
+      if(m_floorBody->getCollisionShape())
+         delete m_floorBody->getCollisionShape();
       if (m_floorBody->getMotionState())
          delete m_floorBody->getMotionState();
       if (m_bullet)

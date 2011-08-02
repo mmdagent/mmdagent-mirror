@@ -1,6 +1,0 @@
-LIBRARY	"Plugin_Audio"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extProcEvent
-	extAppEnd

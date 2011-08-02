@@ -161,4 +161,10 @@ public:
 
    /* setPreviousFrame: set previous frame */
    void setPreviousFrame(double frame);
+
+   /* getNumBoneCtrl: get number of bone controller */
+   unsigned long getNumBoneCtrl();
+
+   /* getBoneCtrlList: get list of bone controller */
+   MotionControllerBoneElement *getBoneCtrlList();
 };

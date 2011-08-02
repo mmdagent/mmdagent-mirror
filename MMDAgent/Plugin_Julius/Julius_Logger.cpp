@@ -45,16 +45,16 @@
 #include "julius/juliuslib.h"
 #include "Julius_Logger.h"
 
-/* callback_recog_begin: callback for beginning of recognition */
-static void callback_recog_begin(Recog *recog, void *data)
+/* callbackRecogBegin: callback for beginning of recognition */
+static void callbackRecogBegin(Recog *recog, void *data)
 {
    Julius_Logger *j = (Julius_Logger *) data;
 
    j->setRecognitionFlag(true);
 }
 
-/* callback_recog_end: callback for end of recognition */
-static void callback_recog_end(Recog *recog, void *data)
+/* callbackRecogEnd: callback for end of recognition */
+static void callbackRecogEnd(Recog *recog, void *data)
 {
    Julius_Logger *j = (Julius_Logger *) data;
 
@@ -62,16 +62,16 @@ static void callback_recog_end(Recog *recog, void *data)
    j->startDecay();
 }
 
-/* callback_recog_frame: callback for each input frame */
-static void callback_recog_frame(Recog *recog, void *data)
+/* callbackRecogFrame: callback for each input frame */
+static void callbackRecogFrame(Recog *recog, void *data)
 {
    Julius_Logger *j = (Julius_Logger *) data;
 
    j->setLastTrellis(recog->process_list->backtrellis->list);
 }
 
-/* callback_adin: callback for input audio segment */
-static void callback_adin(Recog *recog, SP16 *buf, int len, void *data)
+/* callbackRcogAdin: callback for input audio segment */
+static void callbackRecogAdin(Recog *recog, SP16 *buf, int len, void *data)
 {
    Julius_Logger *j = (Julius_Logger *) data;
 
@@ -121,10 +121,10 @@ void Julius_Logger::setup(Recog *recog)
 
    if (recog) {
       /* set callback */
-      callback_add(recog, CALLBACK_EVENT_RECOGNITION_BEGIN, ::callback_recog_begin, this);
-      callback_add(recog, CALLBACK_EVENT_RECOGNITION_END,   ::callback_recog_end, this);
-      callback_add(recog, CALLBACK_EVENT_PASS1_FRAME,       ::callback_recog_frame, this);
-      callback_add_adin(recog, CALLBACK_ADIN_CAPTURED,      ::callback_adin, this);
+      callback_add(recog, CALLBACK_EVENT_RECOGNITION_BEGIN, callbackRecogBegin, this);
+      callback_add(recog, CALLBACK_EVENT_RECOGNITION_END, callbackRecogEnd, this);
+      callback_add(recog, CALLBACK_EVENT_PASS1_FRAME, callbackRecogFrame, this);
+      callback_add_adin(recog, CALLBACK_ADIN_CAPTURED, callbackRecogAdin, this);
       m_numWord = recog->lmlist->winfo->num;
       m_levelThreshold = recog->jconf->detect.level_thres;
    }
@@ -173,7 +173,7 @@ bool Julius_Logger::getActiveFlag()
 }
 
 /* update: update log view per step */
-void Julius_Logger::update(double deltaFrame)
+void Julius_Logger::update(double frame)
 {
    int i;
    int currentFrame;
@@ -184,7 +184,7 @@ void Julius_Logger::update(double deltaFrame)
    if (m_active == false || m_numWord == 0)
       return;
 
-   m_adInFrameStep += deltaFrame;
+   m_adInFrameStep += frame;
    if (m_adInFrameStep >= JULIUSLOGGER_ADINMAXVOLUMEUPDATEFRAME) {
       m_adInFrameStep = 0.0;
       m_maxAdIn = m_currentMaxAdIn;
@@ -229,7 +229,7 @@ void Julius_Logger::update(double deltaFrame)
          m_pos[i*3+1] *= JULIUSLOGGER_DECAYDECREASECOEF;
    }
    if (m_decayFrame > 0.0) {
-      m_decayFrame -= deltaFrame;
+      m_decayFrame -= frame;
       if (m_decayFrame < 0.0) m_decayFrame = 0.0;
    }
 

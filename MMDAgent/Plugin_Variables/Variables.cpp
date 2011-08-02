@@ -42,18 +42,8 @@
 /* headers */
 
 #include <time.h>
-
 #include "MMDAgent.h"
 #include "Variables.h"
-
-/* Variables::sendEventMessage: send event message to MMDAgent */
-void Variables::sendEventMessage(const char *mes1, const char *mes2)
-{
-   if(mes1 == NULL || mes2 == NULL)
-      return;
-
-   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(mes1), (LPARAM) MMDAgent_strdup(mes2));
-}
 
 /* Variables::initialize: initialize */
 void Variables::initialize()
@@ -61,8 +51,7 @@ void Variables::initialize()
    m_head = NULL;
    m_tail = NULL;
 
-   m_window = 0;
-   m_event = 0;
+   m_mmdagent = NULL;
 
    srand((unsigned) time(NULL));
 }
@@ -75,6 +64,7 @@ void Variables::clear()
    for(tmp1 = m_head; tmp1 ; tmp1 = tmp2) {
       tmp2 = tmp1->next;
       free(tmp1->name);
+      free(tmp1->sval);
       free(tmp1);
    }
 
@@ -94,13 +84,12 @@ Variables::~Variables()
 }
 
 /* Variables::setup: setup variables */
-void Variables::setup(HWND hWnd, UINT event)
+void Variables::setup(MMDAgent *mmdagent)
 {
-   if(hWnd == 0 || event == 0)
+   if(mmdagent == NULL)
       return;
 
-   m_window = hWnd;
-   m_event = event;
+   m_mmdagent = mmdagent;
 }
 
 /* Variables::set: set value */
@@ -131,13 +120,22 @@ void Variables::set(const char *alias, const char *str1, const char *str2)
          val->prev = m_tail;
       }
       m_tail = val;
+   } else {
+      free(val->sval);
    }
 
-   /* set value */
+   /* set string */
    if(str2 == NULL) {
-      val->val = MMDAgent_str2float(str1);
+      val->sval = MMDAgent_strdup(str1);
    } else {
-      /* set random value */
+      val->sval = (char *) malloc(sizeof(char) * (MMDAgent_strlen(str1) + 1 + MMDAgent_strlen(str2) + 1));
+      sprintf(val->sval, "%s|%s", str1, str2);
+   }
+
+   /* set float */
+   if(str2 == NULL) {
+      val->fval = MMDAgent_str2float(str1);
+   } else {
       min = MMDAgent_str2float(str1);
       max = MMDAgent_str2float(str2);
       if(max < min) {
@@ -145,13 +143,13 @@ void Variables::set(const char *alias, const char *str1, const char *str2)
          max = min;
          min = tmp;
       }
-      val->val = min + (max - min) * (rand() - 0.0f) * (1.0f / (RAND_MAX - 0.0f)); /* 0.0f is RAND_MIN */
+      val->fval = min + (max - min) * (rand() - 0.0f) * (1.0f / (RAND_MAX - 0.0f)); /* 0.0f is RAND_MIN */
    }
 
-   sendEventMessage(VARIABLES_VALUESETEVENT, alias); /* send message */
+   m_mmdagent->sendEventMessage(VARIABLES_VALUESETEVENT, alias); /* send message */
 }
 
-/* Variables::unset: unset */
+/* Variables::unset: unset value */
 void Variables::unset(const char *alias)
 {
    Value *tmp1, *tmp2;
@@ -176,8 +174,9 @@ void Variables::unset(const char *alias)
                tmp1->prev->next = tmp1->prev;
             }
          }
-         sendEventMessage(VARIABLES_VALUEUNSETEVENT, tmp1->name); /* send message */
+         m_mmdagent->sendEventMessage(VARIABLES_VALUEUNSETEVENT, tmp1->name); /* send message */
          free(tmp1->name);
+         free(tmp1->sval);
          free(tmp1);
          break;
       }
@@ -189,13 +188,12 @@ void Variables::evaluate(const char *alias, const char *mode, const char *str)
 {
    Value *val;
    float f1, f2;
-   char buff[VARIABLES_MAXBUFLEN];
    bool ret;
 
    /* get value 1 */
    for(val = m_head; val; val = val->next) {
       if(MMDAgent_strequal(val->name, alias) == true) {
-         f1 = val->val;
+         f1 = val->fval;
          break;
       }
    }
@@ -242,9 +240,20 @@ void Variables::evaluate(const char *alias, const char *mode, const char *str)
    }
 
    if(ret == true)
-      sprintf(buff, "%s|%s|%s|%s", alias, mode, str, VARIABLES_TRUE);
+      m_mmdagent->sendEventMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_TRUE);
    else
-      sprintf(buff, "%s|%s|%s|%s", alias, mode, str, VARIABLES_FALSE);
+      m_mmdagent->sendEventMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_FALSE);
+}
 
-   sendEventMessage(VARIABLES_VALUEEVALEVENT, buff);
+/* Variables::get: get value */
+void Variables::get(const char *alias)
+{
+   Value *val;
+
+   for(val = m_head; val; val = val->next) {
+      if(MMDAgent_strequal(val->name, alias) == true) {
+         m_mmdagent->sendEventMessage(VARIABLES_VALUEGETEVENT, "%s|%s", alias, val->sval);
+         return;
+      }
+   }
 }

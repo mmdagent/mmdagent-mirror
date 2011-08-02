@@ -39,25 +39,17 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINOPENJTALK_NAME         "Open_JTalk"
+#define PLUGINOPENJTALK_STARTCOMMAND "SYNTH_START"
+#define PLUGINOPENJTALK_STOPCOMMAND  "SYNTH_STOP"
 
 /* headers */
 
@@ -83,28 +75,20 @@
 #include "Open_JTalk_Thread.h"
 #include "Open_JTalk_Manager.h"
 
-/* definitions */
-
-#define PLUGINOPENJTALK_NAME         "Open_JTalk"
-#define PLUGINOPENJTALK_DIRSEPARATOR '\\'
-
-#define PLUGINOPENJTALK_STARTCOMMAND "SYNTH_START"
-#define PLUGINOPENJTALK_STOPCOMMAND  "SYNTH_STOP"
-
-/* global variables */
+/* variables */
 
 static Open_JTalk_Manager open_jtalk_manager;
 static bool enable;
 
-/* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+/* extAppStart: load amodels and start thread */
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    int len;
-   char dic_dir[OPENJTALK_MAXBUFLEN];
+   char dic[MMDAGENT_MAXBUFLEN];
    char *config;
 
    /* get dictionary directory name */
-   sprintf(dic_dir, "%s%c%s", mmdagent->getAppDirName(), PLUGINOPENJTALK_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
+   sprintf(dic, "%s%c%s", mmdagent->getAppDirName(), MMDAGENT_DIRSEPARATOR, PLUGINOPENJTALK_NAME);
 
    /* get config file */
    config = MMDAgent_strdup(mmdagent->getConfigFileName());
@@ -116,24 +100,24 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
       config[len-3] = 'o';
       config[len-2] = 'j';
       config[len-1] = 't';
-      open_jtalk_manager.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, WM_MMDAGENT_COMMAND, dic_dir, config);
+      open_jtalk_manager.loadAndStart(mmdagent, dic, config);
    }
 
    if(config)
       free(config);
 
    enable = true;
-   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINOPENJTALK_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
             enable = false;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINOPENJTALK_NAME);
          }
       } else if (open_jtalk_manager.isRunning()) {
          if (MMDAgent_strequal(type, PLUGINOPENJTALK_STARTCOMMAND)) {
@@ -146,27 +130,14 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
             enable = true;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINOPENJTALK_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINOPENJTALK_NAME);
          }
       }
    }
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    open_jtalk_manager.stopAndRelease();
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

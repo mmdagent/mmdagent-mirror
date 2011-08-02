@@ -41,6 +41,11 @@
 
 /* headers */
 
+#ifndef _WIN32
+#include <unistd.h>
+#include <dlfcn.h>
+#include <dirent.h>
+#endif /* !_WIN32 */
 #include "MMDAgent.h"
 
 /* MMDAgent_getcharsize: get character size */
@@ -53,6 +58,12 @@ char MMDAgent_getcharsize(const char *str)
 bool MMDAgent_strequal(const char *str1, const char *str2)
 {
    return MMDFiles_strequal(str1, str2);
+}
+
+/* MMDAgent_strheadmatch: match head string */
+bool MMDAgent_strheadmatch(const char *str1, const char *str2)
+{
+   return MMDFiles_strheadmatch(str1, str2);
 }
 
 /* MMDAgent_strtailmatch: match tail string */
@@ -71,6 +82,12 @@ int MMDAgent_strlen(const char *str)
 char *MMDAgent_strdup(const char *str)
 {
    return MMDFiles_strdup(str);
+}
+
+/* MMDAgent_pathdup: convert charset from application to system */
+char *MMDAgent_pathdup(const char *str)
+{
+   return MMDFiles_pathdup(str);
 }
 
 /* MMDAgent_intdup: integer type strdup */
@@ -98,19 +115,31 @@ char *MMDAgent_intdup(const int digit)
    return p;
 }
 
-/* MMDAgent_dirdup: get directory from file path */
-char *MMDAgent_dirdup(const char *file)
+/* MMDAgent_dirname: get directory name from path */
+char *MMDAgent_dirname(const char *file)
 {
-   return MMDFiles_dirdup(file);
+   return MMDFiles_dirname(file);
+}
+
+/* MMDAgent_basename: get file name from path */
+char *MMDAgent_basename(const char *file)
+{
+   return MMDFiles_basename(file);
+}
+
+/* MMDAgent_fopen: get file pointer */
+FILE *MMDAgent_fopen(const char *file, const char *mode)
+{
+   return MMDFiles_fopen(file, mode);
 }
 
 /* MMDAgent_strtok: strtok */
 char *MMDAgent_strtok(char *str, const char *pat, char **save)
 {
-   char *s, *e, *p;
+   char *s = NULL, *e = NULL, *p;
    const char *q;
-   char mbc1[UTILS_MAXCHARBYTE];
-   char mbc2[UTILS_MAXCHARBYTE];
+   char mbc1[MMDAGENTUTILS_MAXCHARBYTE];
+   char mbc2[MMDAGENTUTILS_MAXCHARBYTE];
    int find;
    int step = 0;
    unsigned char i, size;
@@ -204,11 +233,19 @@ float MMDAgent_str2float(const char *str)
    return (float) atof(str);
 }
 
+/* MMDAgent_str2double: convert string to double */
+double MMDAgent_str2double(const char *str)
+{
+   if(str == NULL)
+      return 0.0;
+   return atof(str);
+}
+
 /* MMDAgent_str2ivec: convert string to integer vector */
 bool MMDAgent_str2ivec(const char *str, int *vec, const int size)
 {
    int i = 0;
-   char *buff, *p, *save;
+   char *buff, *p, *save = NULL;
 
    if(str == NULL)
       return false;
@@ -226,7 +263,7 @@ bool MMDAgent_str2ivec(const char *str, int *vec, const int size)
 bool MMDAgent_str2fvec(const char *str, float *vec, const int size)
 {
    int i = 0;
-   char *buff, *p, *save;
+   char *buff, *p, *save = NULL;
 
    if(str == NULL)
       return false;
@@ -300,4 +337,188 @@ int MMDAgent_fgettoken(FILE *fp, char *buff)
       fseek(fp, 0, SEEK_END);
 
    return i;
+}
+
+/* MMDAgent_chdir: change current directory */
+bool MMDAgent_chdir(const char *dir)
+{
+#ifdef _WIN32
+   return SetCurrentDirectoryA(dir) != 0 ? true : false;
+#else
+   bool result;
+   char *path;
+
+   path = MMDAgent_pathdup(dir);
+   result = chdir(path) == 0 ? true : false;
+   free(path);
+
+   return result;
+#endif /* _WIN32 */
+}
+
+/* MMDAgent_sleep: sleep in ms */
+void MMDAgent_sleep(double t)
+{
+   glfwSleep(t * 0.001);
+}
+
+/* MMDAgent_setTime: set time in ms */
+void MMDAgent_setTime(double t)
+{
+   glfwSetTime(t * 0.001);
+}
+
+/* MMDAgent_getTime: get time in ms */
+double MMDAgent_getTime()
+{
+   return glfwGetTime() * 1000.0;
+}
+
+/* MMDAgent_diffTime: get difference between two times */
+double MMDAgent_diffTime(double now, double past)
+{
+   if (past > now)
+      return past - now; /* timer overflow is not taken into account */
+   else
+      return now - past;
+}
+
+/* MMDAgent_dlopen: open dynamic library */
+void *MMDAgent_dlopen(const char *file)
+{
+#ifdef _WIN32
+   return (void *) LoadLibraryExA(file, NULL, 0);
+#else
+   char *path;
+   void *d;
+
+   if(file == NULL)
+      return NULL;
+
+   path = MMDFiles_pathdup(file);
+   d = dlopen(path, RTLD_NOW);
+   free(path);
+
+   return d;
+#endif /* _WIN32 */
+}
+
+/* MMDAgent_dlclose: close dynamic library */
+void MMDAgent_dlclose(void *handle)
+{
+#ifdef _WIN32
+   FreeLibrary((HMODULE) handle);
+#else
+   dlclose(handle);
+#endif /* _WIN32 */
+}
+
+/* MMDAgent_dlsym: get function from dynamic library */
+void *MMDAgent_dlsym(void *handle, const char *name)
+{
+#ifdef _WIN32
+   return (void *) GetProcAddress((HMODULE) handle, name);
+#else
+   return dlsym(handle, name);
+#endif /* _WIN32 */
+}
+
+/* MMDAgent_opendir: open directory */
+DIRECTORY *MMDAgent_opendir(const char *name)
+{
+#ifdef _WIN32
+   DIRECTORY *dir;
+
+   if(name == NULL)
+      return NULL;
+
+   dir = (DIRECTORY *) malloc(sizeof(DIRECTORY));
+   dir->data = malloc(sizeof(WIN32_FIND_DATAA));
+   char name2[MMDAGENT_MAXBUFLEN];
+   if(MMDAgent_strlen(name) <= 0) {
+      strcpy(name2, "*");
+   } else {
+      sprintf(name2, "%s%c*", name, MMDAGENT_DIRSEPARATOR);
+   }
+   dir->find = FindFirstFileA(name2, (WIN32_FIND_DATAA *) dir->data);
+   dir->first = true;
+   if(dir->find == INVALID_HANDLE_VALUE) {
+      free(dir->data);
+      free(dir);
+      return NULL;
+   }
+#else
+   DIRECTORY *dir;
+   char *path;
+
+   if(name == NULL)
+      return NULL;
+
+   dir = (DIRECTORY *) malloc(sizeof(DIRECTORY));
+
+   path = MMDFiles_pathdup(name);
+   dir->find = (void *) opendir(path);
+   free(path);
+   if(dir->find == NULL) {
+      free(dir);
+      return NULL;
+   }
+#endif /* _WIN32 */
+
+   return dir;
+}
+
+/* MMDAgent_closedir: close directory */
+void MMDAgent_closedir(DIRECTORY *dir)
+{
+   if(dir == NULL)
+      return;
+
+#ifdef _WIN32
+   FindClose(dir->find);
+   free(dir->data);
+#else
+   closedir((DIR *) dir->find);
+#endif /* _WIN32 */
+   free(dir);
+}
+
+/* MMDAgent_readdir: find files in directory */
+bool MMDAgent_readdir(DIRECTORY *dir, char *name)
+{
+#ifdef _WIN32
+   WIN32_FIND_DATAA *dp;
+#else
+   struct dirent *dp;
+#endif /* _WIN32 */
+
+   if(dir == NULL || name == NULL) {
+      strcpy(name, "");
+      return false;
+   }
+
+#ifdef _WIN32
+   if(dir->first == true) {
+      dir->first = false;
+      dp = (WIN32_FIND_DATAA *) dir->data;
+      strcpy(name, dp->cFileName); /* if no file, does it work well? */
+      return true;
+   } else if(FindNextFileA(dir->find, (WIN32_FIND_DATAA *) dir->data) == 0) {
+      strcpy(name, "");
+      return false;
+   } else {
+      dp = (WIN32_FIND_DATAA *) dir->data;
+      strcpy(name, dp->cFileName);
+      return true;
+   }
+#else
+   dp = readdir((DIR *) dir->find);
+   if(dp == NULL) {
+      strcpy(name, "");
+      return false;
+   } else {
+      strcpy(name, dp->d_name);
+      return true;
+   }
+#endif /* _WIN32 */
 }

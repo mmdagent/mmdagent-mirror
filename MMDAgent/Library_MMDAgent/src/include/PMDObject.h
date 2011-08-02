@@ -110,6 +110,9 @@ public:
    /* load: load model */
    bool load(const char *fileName, const char *alias, btVector3 *offsetPos, btQuaternion *offsetRot, bool forcedPosition, PMDBone *assignBone, PMDObject *assignObject, BulletPhysics *bullet, SystemTexture *systex, LipSync *sysLipSync, bool useCartoonRendering, float cartoonEdgeWidth, btVector3 *light, float commentFrame);
 
+   /* skipNextSimulation: skip next physics simulation */
+   void skipNextSimulation();
+
    /* setMotion: start a motion */
    bool startMotion(VMD *vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRepos, float priority);
 
@@ -124,6 +127,9 @@ public:
 
    /* updateAfterSimulation: update bone transforms from simulated rigid bodies */
    void updateAfterSimulation(bool physicsEnabled);
+
+   /* updateSkin: update skin and toon */
+   void updateSkin();
 
    /* updateAlpha: update global model alpha */
    bool updateAlpha(double deltaFrame);

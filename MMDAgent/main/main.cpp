@@ -39,339 +39,446 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
+/* definitions */
+
+#define MAIN_TITLE         "MMDAgent - Toolkit for building voice interaction systems"
+#define MAIN_DOUBLECLICKMS 200
+
 /* headers */
 
+#ifdef _WIN32
 #include <locale.h>
 #include <windows.h>
-
-#include "resource.h"
+#else
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#else
+#include <limits.h>
+#include <iconv.h>
+#endif /* __APPLE__ */
+#endif /* _WIN32 */
 #include "MMDAgent.h"
 
-#define MAIN_MAXBUFLEN 1024
+/* MMDAgent */
 
-MMDAgent mmdagent;
+MMDAgent *mmdagent;
+bool enable;
 
-HWND windowHandleCommandDialogBox; /* window handle of command dialog box */
+/* Key */
 
-/* copyrightDialogBox: show copyright */
-static INT_PTR CALLBACK copyrightDialogBox(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+bool shiftKeyL;
+bool shiftKeyR;
+bool ctrlKeyL;
+bool ctrlKeyR;
+
+/* Mouse */
+
+double mouseLastClick;
+int mousePosX;
+int mousePosY;
+int mouseLastWheel;
+
+/* procWindowSizeMessage: process window resize message */
+void GLFWCALL procWindowSizeMessage(int w, int h)
 {
-   UNREFERENCED_PARAMETER(lParam);
+   if(enable == false)
+      return;
 
-   switch (message) {
-   case WM_INITDIALOG:
-      return (INT_PTR) true;
-   case WM_COMMAND:
-      if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
-         EndDialog(hDlg, LOWORD(wParam));
-         return (INT_PTR) true;
-      }
-      break;
-   }
-   return (INT_PTR) false;
+   mmdagent->procWindowSizeMessage(w, h);
+   mmdagent->updateAndRender();
 }
 
-/* commandDialogBox: send command by hand */
-static INT_PTR CALLBACK commandDialogBox(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+/* procDropFileMessage: process drop files message */
+void GLFWCALL procDropFileMessage(const char *file, int x, int y)
 {
-   char buf[MAIN_MAXBUFLEN];
-   char *p;
+#ifdef __APPLE__
+   CFStringRef cfs;
+   size_t len;
+   char *buff;
 
-   switch (message) {
-   case WM_INITDIALOG:
-      strcpy(buf, "");
-      windowHandleCommandDialogBox = hDlg;
-      return (INT_PTR) true;
-   case WM_COMMAND:
-      switch (LOWORD(wParam)) {
-      case IDCANCEL:
-         DestroyWindow(hDlg);
-         windowHandleCommandDialogBox = 0;
-         return (INT_PTR) true;
-      case IDOK:
-         GetDlgItemTextA(hDlg, IDC_EDIT, buf, MAIN_MAXBUFLEN);
-         /* execute */
-         if (strlen(buf) > 0) {
-            p = strchr(buf, '|');
-            if (p) {
-               *p = '\0';
-               mmdagent.sendCommandMessage(buf, "%s", p + 1);
-            } else {
-               mmdagent.sendCommandMessage(buf, NULL);
-            }
-         }
-         SetDlgItemTextA(hDlg, IDC_EDIT, "");
-         return (INT_PTR) true;
-      }
-      break;
-   case WM_CLOSE:
-      DestroyWindow(hDlg);
-      windowHandleCommandDialogBox = 0;
-      return (INT_PTR) true;
-   case WM_DESTROY:
-      windowHandleCommandDialogBox = 0;
-      return (INT_PTR) true;
-   }
-   return (INT_PTR) false;
+   if(enable == false)
+      return;
+
+   mousePosX = x;
+   mousePosY = y;
+
+   cfs = CFStringCreateWithCString(NULL, file, kCFStringEncodingUTF8);
+   len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingDOSJapanese) + 1;
+   buff = (char *) malloc(len);
+   CFStringGetCString(cfs, buff, len, kCFStringEncodingDOSJapanese);
+   CFRelease(cfs);
+   mmdagent->procDropFileMessage(buff,  mousePosX, mousePosY);
+   free(buff);
+#else
+   if(enable == false)
+      return;
+
+   mmdagent->procDropFileMessage(file, mousePosX, mousePosY);
+#endif /* __APPLE__ */
 }
 
-/* procMessage: process all message */
-LRESULT CALLBACK procMessage(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+/* procKeyMessage: process key message */
+void GLFWCALL procKeyMessage(int key, int action)
 {
-   bool hit = true;
+   if(enable == false)
+      return;
 
-   /* process message for MMDAgent */
-   switch (message) {
-   case WM_CREATE:
-      break;
-   case WM_LBUTTONDBLCLK:
-      mmdagent.procMouseLeftButtonDoubleClickMessage(LOWORD(lParam), HIWORD(lParam));
-      break;
-   case WM_LBUTTONDOWN:
-      SetCapture(hWnd);
-      mmdagent.procMouseLeftButtonDownMessage(LOWORD(lParam), HIWORD(lParam), wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
-      break;
-   case WM_LBUTTONUP:
-      ReleaseCapture();
-      mmdagent.procMouseLeftButtonUpMessage();
-      break;
-   case WM_MOUSEWHEEL:
-      mmdagent.procMouseWheelMessage((short) HIWORD(wParam) > 0 ? true : false, wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
-      InvalidateRect(hWnd, NULL, false);
-      break;
-   case WM_MOUSEMOVE:
-      mmdagent.procMouseMoveMessage(LOWORD(lParam), HIWORD(lParam), wParam & MK_CONTROL ? true : false, wParam & MK_SHIFT ? true : false);
-      break;
-   case WM_RBUTTONDOWN:
-      mmdagent.procMouseRightButtonDownMessage();
-      break;
-   case WM_COMMAND:
-      switch (LOWORD(wParam)) {
-      case IDM_TOGGLE_FULLSCREEN:
-         mmdagent.procFullScreenMessage();
+   if(action == GLFW_PRESS) {
+      switch(key) {
+      case GLFW_KEY_LSHIFT:
+         shiftKeyL = true;
          break;
-      case IDM_TOGGLE_INFOSTRING:
-         mmdagent.procInfoStringMessage();
+      case GLFW_KEY_RSHIFT:
+         shiftKeyR = true;
          break;
-      case IDM_TOGGLE_VSYNC:
-         mmdagent.procVSyncMessage();
+      case GLFW_KEY_LCTRL:
+         ctrlKeyL = true;
          break;
-      case IDM_TOGGLE_SHADOWMAP:
-         mmdagent.procShadowMappingMessage();
+      case GLFW_KEY_RCTRL:
+         ctrlKeyR = true;
          break;
-      case IDM_TOGGLE_SHADOWMAP_ORDER:
-         mmdagent.procShadowMappingOrderMessage();
+      case GLFW_KEY_DEL:
+         mmdagent->procDeleteModelMessage();
          break;
-      case IDM_TOGGLE_DISP_RIGIDBODY:
-         mmdagent.procDisplayRigidBodyMessage();
+      case GLFW_KEY_ESC:
+         enable = false;
          break;
-      case IDM_TOGGLE_DISP_WIRE:
-         mmdagent.procDisplayWireMessage();
+      case GLFW_KEY_LEFT:
+         if(ctrlKeyL == true || ctrlKeyR == true)
+            mmdagent->procTimeAdjustMessage(false);
+         else if(shiftKeyL == true || shiftKeyR == true)
+            mmdagent->procHorizontalMoveMessage(false);
+         else
+            mmdagent->procHorizontalRotateMessage(false);
          break;
-      case IDM_TOGGLE_DISP_BONE:
-         mmdagent.procDisplayBoneMessage();
+      case GLFW_KEY_RIGHT:
+         if(ctrlKeyL == true || ctrlKeyR == true)
+            mmdagent->procTimeAdjustMessage(true);
+         else if(shiftKeyL == true || shiftKeyR == true)
+            mmdagent->procHorizontalMoveMessage(true);
+         else
+            mmdagent->procHorizontalRotateMessage(true);
          break;
-      case IDM_CARTOON_EDGE_PLUS:
-         mmdagent.procCartoonEdgeMessage(true);
+      case GLFW_KEY_UP:
+         if(shiftKeyL == true || shiftKeyR == true)
+            mmdagent->procVerticalMoveMessage(true);
+         else
+            mmdagent->procVerticalRotateMessage(true);
          break;
-      case IDM_CARTOON_EDGE_MINUS:
-         mmdagent.procCartoonEdgeMessage(false);
-         break;
-      case IDM_TIME_PLUS:
-         mmdagent.procTimeAdjustMessage(true);
-         break;
-      case IDM_TIME_MINUS:
-         mmdagent.procTimeAdjustMessage(false);
-         break;
-      case IDM_ZOOM_IN:
-         mmdagent.procMouseWheelMessage(true, false, false);
-         InvalidateRect(hWnd, NULL, false);
-         break;
-      case IDM_ZOOM_OUT:
-         mmdagent.procMouseWheelMessage(false, false, false);
-         InvalidateRect(hWnd, NULL, false);
-         break;
-      case IDM_ROTATE_LEFT:
-         mmdagent.procHorizontalRotateMessage(false);
-         break;
-      case IDM_ROTATE_RIGHT:
-         mmdagent.procHorizontalRotateMessage(true);
-         break;
-      case IDM_ROTATE_UP:
-         mmdagent.procVerticalRotateMessage(true);
-         break;
-      case IDM_ROTATE_DOWN:
-         mmdagent.procVerticalRotateMessage(false);
-         break;
-      case IDM_MOVE_LEFT:
-         mmdagent.procHorizontalMoveMessage(false);
-         break;
-      case IDM_MOVE_RIGHT:
-         mmdagent.procHorizontalMoveMessage(true);
-         break;
-      case IDM_MOVE_UP:
-         mmdagent.procVerticalMoveMessage(true);
-         break;
-      case IDM_MOVE_DOWN:
-         mmdagent.procVerticalMoveMessage(false);
-         break;
-      case IDM_DELETE_MODEL:
-         mmdagent.procDeleteModelMessage();
-         break;
-      case IDM_TOGGLE_PHYSICS:
-         mmdagent.procPhysicsMessage();
-         break;
-      case IDM_TOGGLE_DISP_LOG:
-         mmdagent.procDisplayLogMessage();
-         break;
-      case IDM_TOGGLE_HOLD:
-         mmdagent.procHoldMessage();
-         break;
-      case IDM_ABOUT:
-         DialogBox(mmdagent.getInstance(), MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, copyrightDialogBox);
-         break;
-      case IDM_TEST_COMMAND:
-         windowHandleCommandDialogBox = CreateDialogParam(mmdagent.getInstance(), MAKEINTRESOURCE(IDD_COMMANDBOX), hWnd, commandDialogBox, 0);
-         break;
-      case IDM_EXIT:
-         DestroyWindow(hWnd);
+      case GLFW_KEY_DOWN:
+         if(shiftKeyL == true || shiftKeyR == true)
+            mmdagent->procVerticalMoveMessage(false);
+         else
+            mmdagent->procVerticalRotateMessage(false);
          break;
       default:
-         hit = false;
+         break;
       }
-      break;
-   case WM_PAINT:
-      mmdagent.renderScene();
-      ValidateRect(hWnd, NULL);
-      break;
-   case WM_SIZE: {
-      RECT rc;
-      GetClientRect(hWnd, &rc);
-      mmdagent.procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
-   }
-   break;
-   case WM_MOVE:
-      mmdagent.updateScene();
-      break;
-   case WM_DROPFILES: {
-      RECT rc;
-      POINT pos;
-      char file[MMDAGENT_MAXBUFLEN];
-      int i, num;
-      /* get mouse position */
-      if(!GetWindowRect(hWnd, &rc)) break;
-      if(!GetCursorPos(&pos)) break;
-      pos.x -= rc.left;
-      pos.y -= rc.top;
-      /* num */
-      num = DragQueryFileA((HDROP) wParam, -1, file, MMDAGENT_MAXBUFLEN);
-      for(i = 0; i < num; i++) {
-         DragQueryFileA((HDROP) wParam, i, file, MMDAGENT_MAXBUFLEN);
-         mmdagent.procDropFileMessage(file, pos.x, pos.y);
+   } else {
+      switch(key) {
+      case GLFW_KEY_LSHIFT:
+         shiftKeyL = false;
+         break;
+      case GLFW_KEY_RSHIFT:
+         shiftKeyR = false;
+         break;
+      case GLFW_KEY_LCTRL:
+         ctrlKeyL = false;
+         break;
+      case GLFW_KEY_RCTRL:
+         ctrlKeyR = false;
+         break;
+      default:
+         break;
       }
    }
-   break;
-   case WM_CHAR:
-      mmdagent.procKeyMessage((char) wParam);
+}
+
+/* procCharMessage: process char message */
+void GLFWCALL procCharMessage(int key, int action)
+{
+   if(enable == false)
+      return;
+
+   if(action == GLFW_RELEASE)
+      return;
+
+   switch(key) {
+   case 'd':
+   case 'D':
+      mmdagent->procDisplayLogMessage();
       break;
-   case WM_MMDAGENT_COMMAND:
-      mmdagent.procCommandMessage((char *) wParam, (char *) lParam);
+   case 'f':
+      mmdagent->procFullScreenMessage();
       break;
-   case WM_MMDAGENT_EVENT:
-      mmdagent.procEventMessage((char *) wParam, (char *) lParam);
+   case 's':
+      mmdagent->procInfoStringMessage();
       break;
-   case WM_MMDAGENT_LOG:
-      mmdagent.procLogMessage((char *) wParam);
+   case '+':
+      mmdagent->procMouseWheelMessage(true, false, false);
       break;
-   case WM_DESTROY:
-      mmdagent.procWindowDestroyMessage();
-      PostQuitMessage(0);
+   case '-':
+      mmdagent->procMouseWheelMessage(false, false, false);
+      break;
+   case 'x':
+      mmdagent->procShadowMappingMessage();
+      break;
+   case 'X':
+      mmdagent->procShadowMappingOrderMessage();
+      break;
+   case 'W':
+      mmdagent->procDisplayRigidBodyMessage();
+      break;
+   case 'w':
+      mmdagent->procDisplayWireMessage();
+      break;
+   case 'b':
+      mmdagent->procDisplayBoneMessage();
+      break;
+   case 'e':
+      mmdagent->procCartoonEdgeMessage(true);
+      break;
+   case 'E':
+      mmdagent->procCartoonEdgeMessage(false);
+      break;
+   case 'p':
+      mmdagent->procPhysicsMessage();
+      break;
+   case 'h':
+      mmdagent->procHoldMessage();
+      break;
+   case 'V':
+      mmdagent->procVSyncMessage();
       break;
    default:
-      hit = false;
+      break;
    }
 
-   if (hit == false)
-      return DefWindowProc(hWnd, message, wParam, lParam);
+   mmdagent->procKeyMessage((char) key);
+}
 
+/* procMouseButtonMessage: process mouse button message */
+void GLFWCALL procMouseButtonMessage(int button, int action)
+{
+   if(enable == false)
+      return;
+
+   if(action == GLFW_PRESS) {
+      switch(button) {
+      case GLFW_MOUSE_BUTTON_LEFT:
+         if(MMDAgent_diffTime(MMDAgent_getTime(), mouseLastClick) <= MAIN_DOUBLECLICKMS)
+            mmdagent->procMouseLeftButtonDoubleClickMessage(mousePosX, mousePosY);
+         else
+            mmdagent->procMouseLeftButtonDownMessage(mousePosX, mousePosY, ctrlKeyL == true || ctrlKeyR == true ? true : false, shiftKeyL == true || shiftKeyR == true ? true : false);
+         mouseLastClick = MMDAgent_getTime();
+         break;
+      case GLFW_MOUSE_BUTTON_RIGHT:
+         mmdagent->procMouseRightButtonDownMessage();
+         break;
+      default:
+         break;
+      }
+   } else {
+      switch(button) {
+      case GLFW_MOUSE_BUTTON_LEFT:
+         mmdagent->procMouseLeftButtonUpMessage();
+         break;
+      default:
+         break;
+      }
+   }
+}
+
+/* procMousePosMessage: process mouse position message */
+void GLFWCALL procMousePosMessage(int x, int y, int shift, int ctrl)
+{
+   if(enable == false)
+      return;
+
+   mousePosX = x;
+   mousePosY = y;
+   shiftKeyL = shiftKeyR = shift == GLFW_PRESS ? true : false;
+   ctrlKeyL = ctrlKeyR = ctrl == GLFW_PRESS ? true : false;
+
+   mmdagent->procMousePosMessage(mousePosX, mousePosY, ctrlKeyL == true || ctrlKeyR == true ? true : false, shiftKeyL == true || shiftKeyR == true ? true : false);
+}
+
+/* procMouseWheelMessage: process mouse wheel message */
+void GLFWCALL procMouseWheelMessage(int x)
+{
+   if(enable == false)
+      return;
+
+   mmdagent->procMouseWheelMessage(x > mouseLastWheel ? true : false, ctrlKeyL == true || ctrlKeyR == true ? true : false, shiftKeyL == true || shiftKeyR == true ? true : false);
+   mouseLastWheel = x;
+}
+
+/* commonMain: common main function */
+int commonMain(int argc, char **argv)
+{
+   enable = false;
+
+   shiftKeyL = false;
+   shiftKeyR = false;
+   ctrlKeyL = false;
+   ctrlKeyR = false;
+
+   mouseLastClick = 0;
+   mousePosX = 0;
+   mousePosY = 0;
+   mouseLastWheel = 0;
+
+   /* create MMDAgent window */
+   mmdagent = new MMDAgent();
+   if(mmdagent->setup(argc, argv, MAIN_TITLE) == false) {
+      delete mmdagent;
+      glfwTerminate();
+      return -1;
+   }
+
+   /* window */
+   glfwSetWindowSizeCallback(procWindowSizeMessage);
+
+   /* drag and drop */
+   glfwSetDropFileCallback(procDropFileMessage);
+
+   /* key */
+   glfwSetKeyCallback(procKeyMessage);
+   glfwEnable(GLFW_KEY_REPEAT);
+
+   /* char */
+   glfwSetCharCallback(procCharMessage);
+
+   /* mouse */
+   glfwSetMouseButtonCallback(procMouseButtonMessage);
+   glfwSetMousePosCallback(procMousePosMessage);
+   glfwSetMouseWheelCallback(procMouseWheelMessage);
+
+   /* main loop */
+   enable = true;
+   while(enable == true && glfwGetWindowParam(GLFW_OPENED) == GL_TRUE) {
+      mmdagent->updateAndRender();
+   }
+
+   /* free */
+   mmdagent->procWindowDestroyMessage();
+   delete mmdagent;
    return 0;
 }
 
-/* WinMain: main function */
+/* main: main function */
+#ifdef _WIN32
+#ifndef __MINGW32__
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-   setlocale(LC_CTYPE, "japanese");
-
-   MSG msg;
-   HACCEL hAccelTable;
-   char szTitle[MAIN_MAXBUFLEN];
-   char szWindowClass[MAIN_MAXBUFLEN];
-
    int i;
    size_t len;
    int argc;
    wchar_t **wargv;
    char **argv;
+   int result;
 
-   WNDCLASSEXA wcex;
-   HWND hWnd;
+   setlocale(LC_CTYPE, "japanese");
 
-   UNREFERENCED_PARAMETER(hPrevInstance);
-   UNREFERENCED_PARAMETER(lpCmdLine);
-
-   LoadStringA(hInstance, IDS_APP_TITLE, szTitle, MAIN_MAXBUFLEN);
-   LoadStringA(hInstance, IDC_MMDAGENT, szWindowClass, MAIN_MAXBUFLEN);
-
-   /* register window */
-   wcex.cbSize = sizeof(WNDCLASSEX);
-   wcex.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
-   wcex.lpfnWndProc = procMessage;
-   wcex.cbClsExtra = 0;
-   wcex.cbWndExtra = 0;
-   wcex.hInstance = hInstance;
-   wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MMDAGENT));
-   wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-   wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-   wcex.lpszMenuName = 0;
-   wcex.lpszClassName = szWindowClass;
-   wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-   RegisterClassExA(&wcex);
-
-   /* create window */
    wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
-   if(argc < 1) return false;
+   if(argc < 1) return 0;
    argv = (char **) malloc(sizeof(char *) * argc);
    for(i = 0; i < argc; i++) {
-      argv[i] = (char *) malloc(sizeof(char) * MAIN_MAXBUFLEN);
-      wcstombs_s(&len, argv[i], MAIN_MAXBUFLEN, wargv[i], _TRUNCATE);
+      argv[i] = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+      wcstombs_s(&len, argv[i], MMDAGENT_MAXBUFLEN, wargv[i], _TRUNCATE);
    }
-   hWnd = mmdagent.setup(hInstance, szTitle, szWindowClass, argc, argv);
+   result = commonMain(argc, argv);
    for(i = 0; i < argc; i++)
       free(argv[i]);
    free(argv);
-   if (hWnd == 0) {
-      MessageBoxA(NULL, "Error: cannot execute MMDAgent.", "Error", MB_OK);
-      return 0;
-   }
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
 
-   hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MMDAGENT));
-
-   /* initialize variables */
-   windowHandleCommandDialogBox = 0;
-
-   while(true) {
-      if (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-         if (!GetMessage(&msg, NULL, 0, 0)) break;
-         if (windowHandleCommandDialogBox && IsDialogMessage(windowHandleCommandDialogBox, &msg)) continue;
-         TranslateAccelerator(msg.hwnd, hAccelTable, &msg);
-         TranslateMessage(&msg);
-         DispatchMessage(&msg);
-      } else {
-         mmdagent.updateScene();
-      }
-   }
-
-   return (int) msg.wParam;
+   return result;
 }
+#else
+int main(int argc, char **argv)
+{
+   return commonMain(argc, argv);
+}
+#endif /* !__MIGW32__ */
+#else
+#ifdef __APPLE__
+int main(int argc, char **argv)
+{
+   int i, j;
+   char inBuff[PATH_MAX+1];
+   CFStringRef cfs;
+   size_t len;
+   char **newArgv;
+   int result;
+
+   newArgv = (char **) malloc(sizeof(char *) * argc);
+   for(i = 0; i < argc; i++) {
+      /* prepare buffer */
+      memset(inBuff, 0, PATH_MAX + 1);
+      realpath(argv[i], inBuff);
+
+      cfs = CFStringCreateWithCString(NULL, inBuff, kCFStringEncodingUTF8);
+      len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingDOSJapanese) + 1;
+      newArgv[i] = (char *) malloc(len);
+      CFStringGetCString(cfs, newArgv[i], len, kCFStringEncodingDOSJapanese);
+      CFRelease(cfs);
+   }
+   result = commonMain(argc, newArgv);
+   for(i = 0; i < argc; i++) {
+      free(newArgv[i]);
+   }
+   free(newArgv);
+
+   return result;
+}
+#else
+int main(int argc, char **argv)
+{
+   int i;
+   iconv_t ic;
+   char **newArgv;
+   char inBuff[PATH_MAX+1], outBuff[PATH_MAX+1];
+   char *inStr, *outStr;
+   size_t inLen, outLen;
+   int result = 0;
+
+   ic = iconv_open("SHIFT-JIS", MAIN_CHARSET);
+   if(ic < 0)
+      return -1;
+
+   newArgv = (char **) malloc(sizeof(char *) * argc);
+   for(i = 0; i < argc; i++) {
+      /* prepare buffer */
+      memset(inBuff, 0, PATH_MAX + 1);
+      memset(outBuff, 0, PATH_MAX + 1);
+      realpath(argv[i], inBuff);
+
+      inStr = &inBuff[0];
+      outStr = &outBuff[0];
+
+      inLen = MMDAgent_strlen(inStr);
+      outLen = MMDAGENT_MAXBUFLEN;
+
+      if(iconv(ic, &inStr, &inLen, &outStr, &outLen) < 0) {
+         result = -1;
+         strcpy(outBuff, "");
+      }
+
+      newArgv[i] = MMDAgent_strdup(outBuff);
+   }
+
+   iconv_close(ic);
+
+   if(result >= 0)
+      result = commonMain(argc, newArgv);
+
+   for(i = 0; i < argc; i++) {
+      if(newArgv[i] != NULL)
+         free(newArgv[i]);
+   }
+   free(newArgv);
+
+   return result;
+}
+#endif /* __APPLE__ */
+#endif /* _WIN32 */

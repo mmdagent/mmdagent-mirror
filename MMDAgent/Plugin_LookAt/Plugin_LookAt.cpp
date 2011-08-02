@@ -39,36 +39,22 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINLOOKAT_NAME "LookAt"
 
 /* headers */
 
 #include "MMDAgent.h"
 #include "BoneController.h"
 
-/* definitions */
-
-#define PLUGINLOOKAT_NAME "LookAt"
-
-/* global variables */
+/* variables */
 
 typedef struct _ControllerList {
    BoneController head;
@@ -95,7 +81,7 @@ static void setEyeController(BoneController *controller, PMDModel *model)
 }
 
 /* changeLookAt: switch LookAt */
-static void changeLookAt(PMDObject *objs, int num, HWND hWnd)
+static void changeLookAt(PMDObject *objs, int num, MMDAgent *mmdagent)
 {
    int i;
    ControllerList *tmp;
@@ -116,13 +102,13 @@ static void changeLookAt(PMDObject *objs, int num, HWND hWnd)
    updating = true;
    enable = !enable;
    if(enable)
-      ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINLOOKAT_NAME));
+      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINLOOKAT_NAME);
    else
-      ::PostMessage(hWnd, WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINLOOKAT_NAME));
+      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINLOOKAT_NAME);
 }
 
 /* extAppStart: initialize controller */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    controllerList = NULL;
    enable = false;
@@ -130,29 +116,29 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
       if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == false)
-         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent->getWindowHandler());
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
    } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
       if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == true)
-         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent->getWindowHandler());
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
    }
 }
 
 /* extProcEvent: process event message */
-void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i, id;
    char *p, *buf, *save;
    PMDObject *objs;
-   ControllerList *tmp1, *tmp2;
+   ControllerList *tmp1, *tmp2 = NULL;
 
    objs = mmdagent->getModelList();
    if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
       if(MMDAgent_strequal(args, "l") || MMDAgent_strequal(args, "L")) {
-         changeLookAt(objs, mmdagent->getNumModel(), mmdagent->getWindowHandler());
+         changeLookAt(objs, mmdagent->getNumModel(), mmdagent);
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(type, MMDAGENT_EVENT_MODELADD)) {
       buf = MMDAgent_strdup(args);
@@ -186,28 +172,29 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
 }
 
 /* extUpdate: update motions */
-void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
+EXPORT void extUpdate(MMDAgent *mmdagent, double deltaFrame)
 {
    int i;
    float rate;
    PMDObject *objs;
    btVector3 targetPos, pointPos;
-   HWND hWnd = mmdagent->getWindowHandler();
-   RECT rc;
-   POINT pos;
+   int windowWidth, windowHeight;
+   int mousePosX, mousePosY;
    ControllerList *tmp;
    bool hasUpdates;
 
-   if (updating == false) return;
-   if (controllerList == NULL) return;
+   if (updating == false)
+      return;
+   if (controllerList == NULL)
+      return;
 
    /* set target position */
-   if (!GetWindowRect(hWnd, &rc)) return;
-   if (!GetCursorPos(&pos)) return;
-   pos.x -= (rc.left + rc.right) / 2;
-   pos.y -= (rc.top + rc.bottom) / 2;
-   rate = 100.0f / (float)(rc.right - rc.left);
-   pointPos.setValue(pos.x * rate, -pos.y * rate, 0.0f);
+   mmdagent->getWindowSize(&windowWidth, &windowHeight);
+   mmdagent->getMousePosition(&mousePosX, &mousePosY);
+   mousePosX -= windowWidth / 2;
+   mousePosY -= windowHeight / 2;
+   rate = 100.0f / (float)(windowWidth);
+   pointPos.setValue(mousePosX * rate, -mousePosY * rate, 0.0f);
    mmdagent->getScreenPointPosition(&targetPos, &pointPos);
 
    /* calculate direction of all controlled bones */
@@ -230,7 +217,7 @@ void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
    }
 }
 
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    ControllerList *tmp1, *tmp2;
 
@@ -240,17 +227,4 @@ void __stdcall extAppEnd(MMDAgent *mmdagent)
    }
    controllerList = NULL;
    enable = false;
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

@@ -39,65 +39,49 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINAUDIO_NAME         "Audio"
+#define PLUGINAUDIO_DEFAULTALIAS "audio"
+#define PLUGINAUDIO_STARTCOMMAND "SOUND_START"
+#define PLUGINAUDIO_STOPCOMMAND  "SOUND_STOP"
 
 /* headers */
 
 #include "MMDAgent.h"
-
 #include "Audio_Thread.h"
 #include "Audio_Manager.h"
 
-/* definitions */
-
-#define PLUGINAUDIO_NAME         "Audio"
-#define PLUGINAUDIO_DEFAULTALIAS "audio"
-
-#define PLUGINAUDIO_STARTCOMMAND "SOUND_START"
-#define PLUGINAUDIO_STOPCOMMAND  "SOUND_STOP"
-
-/* global variables */
+/* variables */
 
 static Audio_Manager audio_manager;
 static bool enable;
 static char *drop_motion;
 
 /* extAppStart: setup and start thread */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
-   audio_manager.setupAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT);
+   audio_manager.setupAndStart(mmdagent);
 
    enable = true;
    drop_motion = NULL;
-   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINAUDIO_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
             enable = false;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINAUDIO_NAME);
          }
       } else if (audio_manager.isRunning()) {
          if (MMDAgent_strequal(type, PLUGINAUDIO_STARTCOMMAND)) {
@@ -110,14 +94,14 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
             enable = true;
-            ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINAUDIO_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINAUDIO_NAME);
          }
       }
    }
 }
 
 /* extProcEvent: process event message */
-void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i;
    FILE *fp;
@@ -129,7 +113,7 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
       if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
          buf = MMDAgent_strdup(args);
          p = MMDAgent_strtok(buf, "|", &q);
-         if(MMDAgent_strtailmatch(p, ".mp3")) {
+         if(MMDAgent_strtailmatch(p, ".mp3") || MMDAgent_strtailmatch(p, ".MP3")) {
             /* if there is a motion file which have the same name, store it */
             if(drop_motion != NULL)
                free(drop_motion);
@@ -139,7 +123,7 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
             drop_motion[i-3] = 'v';
             drop_motion[i-2] = 'm';
             drop_motion[i-1] = 'd';
-            fp = fopen(drop_motion, "rb");
+            fp = MMDAgent_fopen(drop_motion, "rb");
             if(fp != NULL) {
                fclose(fp);
             } else {
@@ -181,22 +165,9 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
 }
 
 /* extAppEnd: stop and free thread */
-void __stdcall extAppEnd(MMDAgent * mmdagent)
+EXPORT void extAppEnd(MMDAgent * mmdagent)
 {
    if(drop_motion != NULL)
       free(drop_motion);
    audio_manager.stopAndRelease();
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

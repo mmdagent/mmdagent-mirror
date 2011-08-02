@@ -111,7 +111,7 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
    for (i = 0; i < m_numVertex; i++) {
       m_vertex[i].pos.setZ(- m_vertex[i].pos.z());
    }
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 }
 
 /* PMDFace::convertIndex: convert base-relative index to model vertex index */

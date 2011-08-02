@@ -62,7 +62,6 @@ void BulletPhysics::initialize()
 /* BulletPhysics::clear: free BulletPhysics */
 void BulletPhysics::clear()
 {
-#if 0
    int i, numObject;
    btCollisionObject *obj;
    btRigidBody *body;
@@ -89,7 +88,7 @@ void BulletPhysics::clear()
       delete m_dispatcher;
    if (m_collisionConfig)
       delete m_collisionConfig;
-#endif
+
    initialize();
 }
 

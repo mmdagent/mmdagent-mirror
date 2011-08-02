@@ -41,29 +41,26 @@
 
 /* headers */
 
-#include <process.h>
-#include <locale.h>
-
 #include "MMDAgent.h"
 #include "julius/juliuslib.h"
 #include "Julius_Logger.h"
 #include "Julius_Thread.h"
 
-/* callback_recog_begin: callback for beginning of recognition */
-static void callback_recog_begin(Recog *recog, void *data)
+/* callbackRecogBegin: callback for beginning of recognition */
+static void callbackRecogBegin(Recog *recog, void *data)
 {
    Julius_Thread *j = (Julius_Thread *) data;
    j->sendMessage(JULIUSTHREAD_EVENTSTART, NULL);
 }
 
-/* callback_result_final: callback for recognitional result */
-static void callback_result_final(Recog *recog, void *data)
+/* callbackRecogResult: callback for recognitional result */
+static void callbackRecogResult(Recog *recog, void *data)
 {
    int i;
    int first;
    Sentence *s;
    RecogProcess *r;
-   static char str[JULIUSTHREAD_MAXBUFLEN]; /* static buffer */
+   static char str[MMDAGENT_MAXBUFLEN]; /* static buffer */
    Julius_Thread *j = (Julius_Thread *) data;
 
    /* get status */
@@ -71,9 +68,6 @@ static void callback_result_final(Recog *recog, void *data)
    if (!r->live)
       return;
    if (r->result.status < 0) {
-      if (r->result.status == J_RESULT_STATUS_BUFFER_OVERFLOW) {
-         MessageBoxA(NULL, "Error: too long input detected (> 20 sec.)\nPlease turn down the recording volume", "Error", MB_OK);
-      }
       return;
    }
    s = &(r->result.sent[0]);
@@ -93,15 +87,11 @@ static void callback_result_final(Recog *recog, void *data)
       j->sendMessage(JULIUSTHREAD_EVENTSTOP, str);
 }
 
-/* main_thread: main thread */
-static unsigned __stdcall main_thread(void *param)
+/* mainThread: main thread */
+static void mainThread(void *param)
 {
    Julius_Thread *julius_thread = (Julius_Thread *) param;
-
-   julius_thread->start();
-
-   _endthreadex(0);
-   return 0;
+   julius_thread->run();
 }
 
 /* Julius_Thread::initialize: initialize thread */
@@ -110,10 +100,9 @@ void Julius_Thread::initialize()
    m_jconf = NULL;
    m_recog = NULL;
 
-   m_window = 0;
-   m_event = 0;
+   m_mmdagent = NULL;
 
-   m_threadHandle = 0;
+   m_thread = -1;
 
    m_languageModel = NULL;
    m_dictionary = NULL;
@@ -126,12 +115,12 @@ void Julius_Thread::initialize()
 /* Julius_Thread::clear: free thread */
 void Julius_Thread::clear()
 {
-   if(m_threadHandle != 0) {
+   if(m_thread >= 0) {
       if(m_recog)
          j_close_stream(m_recog);
-      if(WaitForSingleObject(m_threadHandle, JULIUSTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "Error: cannot stop Julius thread.", "Error", MB_OK);
-      CloseHandle(m_threadHandle);
+      glfwWaitThread(m_thread, GLFW_WAIT);
+      glfwDestroyThread(m_thread);
+      glfwTerminate();
    }
    if (m_recog) {
       j_recog_free(m_recog); /* jconf is also released in j_recog_free */
@@ -168,13 +157,12 @@ Julius_Thread::~Julius_Thread()
 }
 
 /* Julius_Thread::loadAndStart: load models and start thread */
-void Julius_Thread::loadAndStart(HWND window, UINT event, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary)
+void Julius_Thread::loadAndStart(MMDAgent *mmdagent, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary)
 {
    /* reset */
    clear();
 
-   m_window = window;
-   m_event = event;
+   m_mmdagent = mmdagent;
 
    m_languageModel = MMDAgent_strdup(languageModel);
    m_dictionary = MMDAgent_strdup(dictionary);
@@ -183,16 +171,17 @@ void Julius_Thread::loadAndStart(HWND window, UINT event, const char *languageMo
    m_configFile = MMDAgent_strdup(configFile);
    m_userDictionary = MMDAgent_strdup(userDictionary);
 
-   if(m_window == 0 || m_event == 0 || m_languageModel == NULL || m_dictionary == NULL || m_acousticModel == NULL || m_triphoneList == NULL || m_configFile == NULL) {
+   if(m_mmdagent == NULL || m_languageModel == NULL || m_dictionary == NULL || m_acousticModel == NULL || m_triphoneList == NULL || m_configFile == NULL) {
       clear();
       return;
    }
 
    /* create recognition thread */
-   m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
-   if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: cannot start Julius thread.", "Error", MB_OK);
+   glfwInit();
+   m_thread = glfwCreateThread(mainThread, this);
+   if(m_thread < 0) {
       clear();
+      return;
    }
 }
 
@@ -202,72 +191,86 @@ void Julius_Thread::stopAndRelease()
    clear();
 }
 
-/* Julius_Thread::start: main loop */
-void Julius_Thread::start()
+/* Julius_Thread::run: main loop */
+void Julius_Thread::run()
 {
-   char buff[JULIUSTHREAD_MAXBUFLEN];
+   char *tmp;
+   char buff[MMDAGENT_MAXBUFLEN];
    FILE *fp;
 
-   if(m_jconf != NULL || m_recog != NULL || m_window == 0 || m_event == 0 || m_threadHandle == 0 || m_languageModel == 0 || m_dictionary == 0 || m_acousticModel == 0 || m_triphoneList == 0 || m_configFile == 0) return;
+   if(m_jconf != NULL || m_recog != NULL || m_mmdagent == NULL || m_thread < 0 || m_languageModel == 0 || m_dictionary == 0 || m_acousticModel == 0 || m_triphoneList == 0 || m_configFile == 0)
+      return;
 
    /* set latency */
-   _snprintf(buff, JULIUSTHREAD_MAXBUFLEN - 1, "%d", JULIUSTHREAD_LATENCY);
-   _putenv_s("PA_MIN_LATENCY_MSEC", buff);
-   _putenv_s("LATENCY_MSEC", buff);
+   sprintf(buff, "PA_MIN_LATENCY_MSEC=%d", JULIUSTHREAD_LATENCY);
+   putenv(buff);
+   sprintf(buff, "LATENCY_MSEC=%d", JULIUSTHREAD_LATENCY);
+   putenv(buff);
+
+   /* turn off log */
+   jlog_set_output(NULL);
 
    /* load models */
-   sprintf(buff, "-d \"%s\"", m_languageModel);
+   tmp = MMDAgent_pathdup(m_languageModel);
+   sprintf(buff, "-d \"%s\"", tmp);
+   free(tmp);
    m_jconf = j_config_load_string_new(buff);
    if (m_jconf == NULL) {
-      MessageBoxA(NULL, "Error: cannot load language model for Julius.", "Error", MB_OK);
       return;
    }
-   sprintf(buff, "-v \"%s\"", m_dictionary);
+
+   tmp = MMDAgent_pathdup(m_dictionary);
+   sprintf(buff, "-v \"%s\"", tmp);
+   free(tmp);
    if(j_config_load_string(m_jconf, buff) < 0) {
-      MessageBoxA(NULL, "Error: cannot load system dictionary for Julius.", "Error", MB_OK);
       return;
    }
-   sprintf(buff, "-h \"%s\"", m_acousticModel);
+
+   tmp = MMDAgent_pathdup(m_acousticModel);
+   sprintf(buff, "-h \"%s\"", tmp);
+   free(tmp);
    if(j_config_load_string(m_jconf, buff) < 0) {
-      MessageBoxA(NULL, "Error: cannot load acoustic model for Julius.", "Error", MB_OK);
       return;
    }
-   sprintf(buff, "-hlist \"%s\"", m_triphoneList);
+
+   tmp = MMDAgent_pathdup(m_triphoneList);
+   sprintf(buff, "-hlist \"%s\"", tmp);
+   free(tmp);
    if(j_config_load_string(m_jconf, buff) < 0) {
-      MessageBoxA(NULL, "Error: cannot load triphone list for Julius.", "Error", MB_OK);
       return;
    }
 
    /* load config file */
-   if(j_config_load_file(m_jconf, m_configFile) < 0) {
-      MessageBoxA(NULL, "Error: cannot load config file for Julius.", "Error", MB_OK);
+   tmp = MMDAgent_pathdup(m_configFile);
+   if(j_config_load_file(m_jconf, tmp) < 0) {
+      free(tmp);
       return;
    }
+   free(tmp);
 
    /* load user dictionary */
-   fp = fopen(m_userDictionary, "r");
+   fp = MMDAgent_fopen(m_userDictionary, "r");
    if(fp != NULL) {
       fclose(fp);
-      j_add_dict(m_jconf->lm_root, m_userDictionary);
+      tmp = MMDAgent_pathdup(m_userDictionary);
+      j_add_dict(m_jconf->lm_root, tmp);
+      free(tmp);
    }
 
    /* create instance */
    m_recog = j_create_instance_from_jconf(m_jconf);
    if (m_recog == NULL) {
-      MessageBoxA(NULL, "Error: cannot create Julius instance.", "Error", MB_OK);
       return;
    }
 
    /* register callback functions */
-   callback_add(m_recog, CALLBACK_EVENT_RECOGNITION_BEGIN, callback_recog_begin, this);
-   callback_add(m_recog, CALLBACK_RESULT, callback_result_final, this);
+   callback_add(m_recog, CALLBACK_EVENT_RECOGNITION_BEGIN, callbackRecogBegin, this);
+   callback_add(m_recog, CALLBACK_RESULT, callbackRecogResult, this);
    if (!j_adin_init(m_recog)) {
-      MessageBoxA(NULL, "Error: cannot create Julius instance.", "Error", MB_OK);
       return;
    }
 
    if (j_open_stream(m_recog, NULL) != 0) {
-      MessageBoxA(NULL, "Error: cannot open recognition stream.", "Error", MB_OK);
       return;
    }
 
@@ -298,18 +301,7 @@ void Julius_Thread::resume()
 /* Julius_Thread::sendMessage: send message to MMDAgent */
 void Julius_Thread::sendMessage(const char *str1, const char *str2)
 {
-   char *mes1, *mes2;
-
-   if(str1 == NULL)
-      return;
-
-   mes1 = MMDAgent_strdup(str1);
-   if(str2 != NULL)
-      mes2 = MMDAgent_strdup(str2);
-   else
-      mes2 = MMDAgent_strdup("");
-
-   ::PostMessage(m_window, m_event, (WPARAM) mes1, (LPARAM) mes2);
+   m_mmdagent->sendEventMessage(str1, str2);
 }
 
 /* Julius_Thread::getLogActiveFlag: get active flag of logger */
@@ -325,9 +317,9 @@ void Julius_Thread::setLogActiveFlag(bool b)
 }
 
 /* Julius_Thread::updateLog: update log view per step */
-void Julius_Thread::updateLog(double deltaFrame)
+void Julius_Thread::updateLog(double frame)
 {
-   m_logger.update(deltaFrame);
+   m_logger.update(frame);
 }
 
 /* Julius_Thread::renderLog: render log view */

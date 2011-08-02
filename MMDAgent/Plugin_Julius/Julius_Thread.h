@@ -39,12 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define JULIUSTHREAD_MAXBUFLEN 2048
+/* definitions */
 
-#define JULIUSTHREAD_LOCALE  "Japanese_Japan.20932" /* EUC-JP */
-#define JULIUSTHREAD_LATENCY 50
-#define JULIUSTHREAD_WAITMS  10000                  /* 10 sec */
-
+#define JULIUSTHREAD_LATENCY    50
 #define JULIUSTHREAD_EVENTSTART "RECOG_EVENT_START"
 #define JULIUSTHREAD_EVENTSTOP  "RECOG_EVENT_STOP"
 
@@ -56,10 +53,9 @@ private :
    Jconf *m_jconf; /* configuration parameter data */
    Recog *m_recog; /* engine instance */
 
-   HWND m_window; /* window handle to post message */
-   UINT m_event;  /* message type to post message */
+   MMDAgent *m_mmdagent;
 
-   HANDLE m_threadHandle; /* thread handle */
+   GLFWthread m_thread; /* thread */
 
    char *m_languageModel;
    char *m_dictionary;
@@ -85,13 +81,13 @@ public :
    ~Julius_Thread();
 
    /* loadAndStart: load models and start thread */
-   void loadAndStart(HWND window, UINT event, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary);
+   void loadAndStart(MMDAgent *m_mmdagent, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary);
 
    /* stopAndRlease: stop thread and release julius */
    void stopAndRelease();
 
-   /* start: main loop */
-   void start();
+   /* run: main loop */
+   void run();
 
    /* pause: pause recognition process */
    void pause();
@@ -109,7 +105,7 @@ public :
    void setLogActiveFlag(bool b);
 
    /* updateLog: update log view per step */
-   void updateLog(double deltaFrame);
+   void updateLog(double frame);
 
    /* renderLog: render log view */
    void renderLog();

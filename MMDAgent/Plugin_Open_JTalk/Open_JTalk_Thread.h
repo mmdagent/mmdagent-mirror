@@ -41,7 +41,6 @@
 
 /* definitions */
 
-#define OPENJTALKTHREAD_WAITMS          10000               /* 10 sec */
 #define OPENJTALKTHREAD_EVENTSTART      "SYNTH_EVENT_START"
 #define OPENJTALKTHREAD_EVENTSTOP       "SYNTH_EVENT_STOP"
 #define OPENJTALKTHREAD_COMMANDSTARTLIP "LIPSYNC_START"
@@ -52,15 +51,13 @@ class Open_JTalk_Thread
 {
 private:
 
-   Open_JTalk m_openJTalk; /* Japanese TTS system */
+   MMDAgent *m_mmdagent;
 
-   HWND m_window;  /* window handle to post message */
-   UINT m_event;   /* message type to post event message */
-   UINT m_command; /* message type to post command message */
+   GLFWmutex m_mutex;
+   GLFWcond m_cond;
+   GLFWthread m_thread;
 
-   HANDLE m_threadHandle; /* thread handle */
-   HANDLE m_bufferMutex;  /* mutex for buffer */
-   HANDLE m_synthEvent;   /* event for synthesis */
+   int m_count;
 
    bool m_speaking;
    bool m_kill;
@@ -69,10 +66,11 @@ private:
    char *m_styleBuff;
    char *m_textBuff;
 
-   int m_numModels;     /* number of models */
-   char **m_modelNames; /* model names */
-   int m_numStyles;     /* number of styles */
-   char **m_styleNames; /* style names */
+   Open_JTalk m_openJTalk; /* Japanese TTS system */
+   int m_numModels;        /* number of models */
+   char **m_modelNames;    /* model names */
+   int m_numStyles;        /* number of styles */
+   char **m_styleNames;    /* style names */
 
    /* initialize: initialize thread */
    void initialize();
@@ -89,13 +87,13 @@ public:
    ~Open_JTalk_Thread();
 
    /* loadAndStart: load models and start thread */
-   void loadAndStart(HWND window, UINT event, UINT command, const char *dicDir, const char *config);
+   bool loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config);
 
    /* stopAndRelease: stop thread and free Open JTalk */
    void stopAndRelease();
 
-   /* start: main thread loop for TTS */
-   void start();
+   /* run: main thread loop for TTS */
+   void run();
 
    /* isRunning: check running */
    bool isRunning();
@@ -111,16 +109,4 @@ public:
 
    /* stop: stop synthesis */
    void stop();
-
-   /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(const char *str);
-
-   /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(const char *str);
-
-   /* sendStartLipCommandMessage: send lipsync command message to MMDAgent */
-   void sendStartLipCommandMessage(const char *chara, const char *lip);
-
-   /* sendStopLipCommandMessage: send lipsync command message to MMDAgent */
-   void sendStopLipCommandMessage(const char *chara);
 };

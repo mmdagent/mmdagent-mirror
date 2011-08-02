@@ -41,8 +41,6 @@
 
 /* headers */
 
-#include <process.h>
-
 #include "MMDAgent.h"
 #include "Audio_Thread.h"
 #include "Audio_Manager.h"
@@ -121,32 +119,28 @@ static void Audio_EventQueue_dequeue(Audio_EventQueue *q, char **str)
       q->tail = NULL;
 }
 
-/* main_thread: main thread */
-static unsigned __stdcall main_thread(void *param)
+/* mainThread: main thread */
+static void mainThread(void *param)
 {
    Audio_Manager *audio_manager = (Audio_Manager *) param;
-
-   audio_manager->start();
-
-   _endthreadex(0);
-   return 0;
+   audio_manager->run();
 }
 
 /* Audio_Manager::initialize: initialize */
 void Audio_Manager::initialize()
 {
-   m_list = NULL;
+   m_mmdagent = NULL;
 
-   m_window = 0;
-   m_event = 0;
+   m_mutex = NULL;
+   m_cond = NULL;
+   m_thread = -1;
 
-   m_threadHandle = 0;
-   m_bufferMutex = 0;
-   m_playingEvent = 0;
+   m_count = 0;
 
    m_kill = false;
 
    Audio_EventQueue_initialize(&m_bufferQueue);
+   m_list = NULL;
 }
 
 /* Audio_Manager::clear: clear */
@@ -164,18 +158,20 @@ void Audio_Manager::clear()
    }
 
    /* wait */
-   if(m_playingEvent)
-      SetEvent(m_playingEvent);
+   if(m_cond != NULL)
+      glfwSignalCond(m_cond);
 
-   if(m_threadHandle != 0) {
-      if(WaitForSingleObject(m_threadHandle, AUDIOMANAGER_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "Error: cannot stop audio thread.", "Error", MB_OK);
-      CloseHandle(m_threadHandle);
+   if(m_mutex != NULL || m_cond != NULL || m_thread >= 0) {
+      if(m_thread >= 0) {
+         glfwWaitThread(m_thread, GLFW_WAIT);
+         glfwDestroyThread(m_thread);
+      }
+      if(m_cond != NULL)
+         glfwDestroyCond(m_cond);
+      if(m_mutex != NULL)
+         glfwDestroyMutex(m_mutex);
+      glfwTerminate();
    }
-   if(m_bufferMutex)
-      CloseHandle(m_bufferMutex);
-   if(m_playingEvent)
-      CloseHandle(m_playingEvent);
 
    Audio_EventQueue_clear(&m_bufferQueue);
 
@@ -195,22 +191,22 @@ Audio_Manager::~Audio_Manager()
 }
 
 /* Audio_Manager::setupAndStart: setup and start thread */
-void Audio_Manager::setupAndStart(HWND hWnd, UINT event)
+void Audio_Manager::setupAndStart(MMDAgent *mmdagent)
 {
+   if(mmdagent == NULL)
+      return;
+
    clear();
 
-   m_window = hWnd;
-   m_event = event;
+   m_mmdagent = mmdagent;
 
-   if(m_window == 0 || m_event == 0) {
+   glfwInit();
+   m_mutex = glfwCreateMutex();
+   m_cond = glfwCreateCond();
+   m_thread = glfwCreateThread(mainThread, this);
+   if(m_mutex == NULL || m_cond == NULL || m_thread < 0) {
       clear();
       return;
-   }
-
-   m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
-   if(m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: cannot start audio thread.", "Error", MB_OK);
-      clear();
    }
 }
 
@@ -220,59 +216,35 @@ void Audio_Manager::stopAndRelease()
    clear();
 }
 
-/* Audio_Manager::start: main loop */
-void Audio_Manager::start()
+/* Audio_Manager::run: main loop */
+void Audio_Manager::run()
 {
    int i;
    Audio_Link *link;
    char *buff, *save;
    char *alias, *file;
 
-   /* check */
-   if(m_threadHandle == 0 || m_bufferMutex != 0 || m_playingEvent != 0) return;
-
-   /* create buffer mutex */
-   m_bufferMutex = CreateMutex(NULL, false, NULL);
-   if(m_bufferMutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create buffer mutex for audio.", "Error", MB_OK);
-      return;
-   }
-
-   /* create playing event */
-   m_playingEvent = CreateEvent(NULL, true, false, NULL);
-   if(m_playingEvent == 0) {
-      MessageBoxA(NULL, "Error: cannot create playing event for audio.", "Error", MB_OK);
-      return;
-   }
-
    /* create initial threads */
    for(i = 0; i < AUDIOMANAGER_INITIALNTHREAD; i++) {
       link = new Audio_Link;
-      link->audio_thread.setupAndStart(m_window, m_event);
+      link->audio_thread.setupAndStart(m_mmdagent);
       link->next = m_list;
       m_list = link;
    }
 
    while(m_kill == false) {
       /* wait playing event */
-      if(WaitForSingleObject(m_playingEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait playing event for audio.", "Error", MB_OK);
-         return;
-      }
-      ResetEvent(m_playingEvent);
-
-      while(m_kill == false) {
-         /* wait buffer mutex */
-         if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
-            ReleaseMutex(m_bufferMutex);
+      glfwLockMutex(m_mutex);
+      while(m_count <= 0) {
+         glfwWaitCond(m_cond, m_mutex, GLFW_INFINITY);
+         if(m_kill == true)
             return;
-         }
-         Audio_EventQueue_dequeue(&m_bufferQueue, &buff); /* get buffer */
-         ReleaseMutex(m_bufferMutex);
+      }
+      Audio_EventQueue_dequeue(&m_bufferQueue, &buff);
+      m_count--;
+      glfwUnlockMutex(m_mutex);
 
-         if(buff == NULL) break;
-
+      if(buff != NULL) {
          alias = MMDAgent_strtok(buff, "|", &save);
          file = MMDAgent_strtok(NULL, "|", &save);
 
@@ -289,7 +261,7 @@ void Audio_Manager::start()
                      break;
                if(link == NULL) {
                   link = new Audio_Link;
-                  link->audio_thread.setupAndStart(m_window, m_event);
+                  link->audio_thread.setupAndStart(m_mmdagent);
                   link->next = m_list;
                   m_list = link;
                }
@@ -297,7 +269,6 @@ void Audio_Manager::start()
             /* set */
             link->audio_thread.play(alias, file);
          }
-
          free(buff); /* free buffer */
       }
    }
@@ -306,7 +277,7 @@ void Audio_Manager::start()
 /* Audio_Manager::isRunning: check running */
 bool Audio_Manager::isRunning()
 {
-   if(m_threadHandle == 0 || m_kill == true)
+   if(m_kill == true || m_mutex == NULL || m_cond == NULL || m_thread < 0)
       return false;
    else
       return true;
@@ -316,23 +287,24 @@ bool Audio_Manager::isRunning()
 void Audio_Manager::play(const char *str)
 {
    /* check */
-   if(MMDAgent_strlen(str) <= 0 || m_bufferMutex == 0 || m_playingEvent == 0)
+   if(isRunning() == false)
+      return;
+   if(MMDAgent_strlen(str) <= 0)
       return;
 
    /* wait buffer mutex */
-   if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for audio.", "Error", MB_OK);
-      return;
-   }
+   glfwLockMutex(m_mutex);
 
    /* enqueue alias and file name */
    Audio_EventQueue_enqueue(&m_bufferQueue, str);
-
-   /* release buffer mutex */
-   ReleaseMutex(m_bufferMutex);
+   m_count++;
 
    /* start playing event */
-   SetEvent(m_playingEvent);
+   if(m_count <= 1)
+      glfwSignalCond(m_cond);
+
+   /* release buffer mutex */
+   glfwUnlockMutex(m_mutex);
 }
 
 /* Audio_Manager::stop: stop playing */

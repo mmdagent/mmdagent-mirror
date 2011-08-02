@@ -1,4 +1,4 @@
-﻿/* ----------------------------------------------------------------- */
+/* ----------------------------------------------------------------- */
 /*           The Toolkit for Building Voice Interaction Systems      */
 /*           "MMDAgent" developed by MMDAgent Project Team           */
 /*           http://www.mmdagent.jp/                                 */
@@ -75,7 +75,6 @@ void Option::initialize()
 
    m_windowSize[0] = OPTION_WINDOWSIZEW_DEF;
    m_windowSize[1] = OPTION_WINDOWSIZEH_DEF;
-   m_topMost = OPTION_TOPMOST_DEF;
    m_fullScreen = OPTION_FULLSCREEN_DEF;
 
    m_logSize[0] = OPTION_LOGSIZEW_DEF;
@@ -99,7 +98,6 @@ void Option::initialize()
    m_campusColor[2] = OPTION_CAMPUSCOLORB_DEF;
 
    m_maxMultiSampling = OPTION_MAXMULTISAMPLING_DEF;
-   m_maxMultiSamplingColor = OPTION_MAXMULTISAMPLINGCOLOR_DEF;
 
    m_motionAdjustFrame = OPTION_MOTIONADJUSTFRAME_DEF;
 
@@ -139,7 +137,7 @@ bool Option::load(const char *file)
    float fvec3[3];
    float fvec4[4];
 
-   fp = fopen(file, "r");
+   fp = MMDAgent_fopen(file, "r");
    if (fp == NULL)
       return false;
 
@@ -191,8 +189,6 @@ bool Option::load(const char *file)
       } else if(MMDAgent_strequal(buf, OPTION_WINDOWSIZE_STR)) {
          if(MMDAgent_str2ivec(p1, ivec2, 2))
             setWindowSize(ivec2);
-      } else if(MMDAgent_strequal(buf, OPTION_TOPMOST_STR)) {
-         setTopMost(MMDAgent_str2bool(p1));
       } else if(MMDAgent_strequal(buf, OPTION_FULLSCREEN_STR)) {
          setFullScreen(MMDAgent_str2bool(p1));
       } else if(MMDAgent_strequal(buf, OPTION_LOGSIZE_STR)) {
@@ -216,8 +212,6 @@ bool Option::load(const char *file)
             setCampusColor(fvec3);
       } else if(MMDAgent_strequal(buf, OPTION_MAXMULTISAMPLING_STR)) {
          setMaxMultiSampling(MMDAgent_str2int(p1));
-      } else if(MMDAgent_strequal(buf, OPTION_MAXMULTISAMPLINGCOLOR_STR)) {
-         setMaxMultiSamplingColor(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_MOTIONADJUSTFRAME_STR)) {
          setMotionAdjustFrame(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_BULLETFPS_STR)) {
@@ -524,18 +518,6 @@ void Option::setWindowSize(const int *i)
       m_windowSize[1] = i[1];
 }
 
-/* Option::getTopMost: get top most flag */
-bool Option::getTopMost()
-{
-   return m_topMost;
-}
-
-/* Option::setTopMost: set top most flag */
-void Option::setTopMost(bool b)
-{
-   m_topMost = b;
-}
-
 /* Option::getFullScreen: get full screen flag */
 bool Option::getFullScreen()
 {
@@ -712,23 +694,6 @@ void Option::setMaxMultiSampling(int i)
       m_maxMultiSampling = OPTION_MAXMULTISAMPLING_MIN;
    else
       m_maxMultiSampling = i;
-}
-
-/* Option::getMaxMultiSamplingColor: get max number of multi sampling color */
-int Option::getMaxMultiSamplingColor()
-{
-   return m_maxMultiSamplingColor;
-}
-
-/* Option::setMaxMultiSamplingColor: set max number of multi sampling color */
-void Option::setMaxMultiSamplingColor(int i)
-{
-   if(OPTION_MAXMULTISAMPLINGCOLOR_MAX < i)
-      m_maxMultiSamplingColor = OPTION_MAXMULTISAMPLINGCOLOR_MAX;
-   else if(OPTION_MAXMULTISAMPLINGCOLOR_MIN > i)
-      m_maxMultiSamplingColor = OPTION_MAXMULTISAMPLINGCOLOR_MIN;
-   else
-      m_maxMultiSamplingColor = i;
 }
 
 /* Option::getMotionAdjustFrame: get motion adjust frame */

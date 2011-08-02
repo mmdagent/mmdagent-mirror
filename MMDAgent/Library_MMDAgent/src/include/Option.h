@@ -1,4 +1,4 @@
-﻿/* ----------------------------------------------------------------- */
+/* ----------------------------------------------------------------- */
 /*           The Toolkit for Building Voice Interaction Systems      */
 /*           "MMDAgent" developed by MMDAgent Project Team           */
 /*           http://www.mmdagent.jp/                                 */
@@ -112,9 +112,6 @@
 #define OPTION_WINDOWSIZE_MAX  4096
 #define OPTION_WINDOWSIZE_MIN  1
 
-#define OPTION_TOPMOST_STR "top_most"
-#define OPTION_TOPMOST_DEF false
-
 #define OPTION_FULLSCREEN_STR "full_screen"
 #define OPTION_FULLSCREEN_DEF false
 
@@ -163,11 +160,6 @@
 #define OPTION_MAXMULTISAMPLING_DEF 4
 #define OPTION_MAXMULTISAMPLING_MAX 32
 #define OPTION_MAXMULTISAMPLING_MIN 0
-
-#define OPTION_MAXMULTISAMPLINGCOLOR_STR "max_multi_sampling_color"
-#define OPTION_MAXMULTISAMPLINGCOLOR_DEF 4
-#define OPTION_MAXMULTISAMPLINGCOLOR_MAX 32
-#define OPTION_MAXMULTISAMPLINGCOLOR_MIN 0
 
 #define OPTION_MOTIONADJUSTFRAME_STR "motion_adjust_frame"
 #define OPTION_MOTIONADJUSTFRAME_DEF 0
@@ -255,7 +247,6 @@ private:
 
    /* window */
    int m_windowSize[2];
-   bool m_topMost;
    bool m_fullScreen;
 
    /* log */
@@ -273,7 +264,6 @@ private:
 
    /* OpenGL */
    int m_maxMultiSampling;
-   int m_maxMultiSamplingColor;
 
    /* motion */
    int m_motionAdjustFrame;
@@ -389,12 +379,6 @@ public:
    /* setWindowSize: set window size */
    void setWindowSize(const int *i);
 
-   /* getTopMost: get top most flag */
-   bool getTopMost();
-
-   /* setTopMost: set top most flag */
-   void setTopMost(bool b);
-
    /* getFullScreen: get full screen flag */
    bool getFullScreen();
 
@@ -448,12 +432,6 @@ public:
 
    /* setMaxMultiSampling: set max number of multi sampling */
    void setMaxMultiSampling(int i);
-
-   /* getMaxMultiSamplingColor: get max number of multi sampling color */
-   int getMaxMultiSamplingColor();
-
-   /* setMaxMultiSamplingColor: set max number of multi sampling color */
-   void setMaxMultiSamplingColor(int i);
 
    /* getMotionAdjustFrame: get motion adjust frame */
    int getMotionAdjustFrame();

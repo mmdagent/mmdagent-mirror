@@ -41,8 +41,6 @@
 
 /* headers */
 
-#include <process.h>
-
 #include "MMDAgent.h"
 
 #include "mecab.h"
@@ -139,29 +137,25 @@ static void Open_JTalk_EventQueue_dequeue(Open_JTalk_EventQueue *q, char **str)
       q->tail = NULL;
 }
 
-/* main_thread: main thread */
-static unsigned __stdcall main_thread(void *param)
+/* mainThread: main thread */
+static void mainThread(void *param)
 {
    Open_JTalk_Manager *open_jtalk_manager = (Open_JTalk_Manager *) param;
-
-   open_jtalk_manager->start();
-
-   _endthreadex(0);
-   return 0;
+   open_jtalk_manager->run();
 }
 
 /* Open_JTalk_Manager::initialize: initialize */
 void Open_JTalk_Manager::initialize()
 {
+   m_mmdagent = NULL;
+
+   m_mutex = NULL;
+   m_cond = NULL;
+   m_thread = -1;
+
+   m_count = 0;
+
    m_list = NULL;
-
-   m_window = 0;
-   m_event = 0;
-   m_command = 0;
-
-   m_threadHandle = 0;
-   m_bufferMutex = 0;
-   m_synthEvent = 0;
 
    m_dicDir = NULL;
    m_config = NULL;
@@ -186,18 +180,20 @@ void Open_JTalk_Manager::clear()
    }
 
    /* wait */
-   if(m_synthEvent)
-      SetEvent(m_synthEvent);
+   if(m_cond != NULL)
+      glfwSignalCond(m_cond);
 
-   if(m_threadHandle != 0) {
-      if(WaitForSingleObject(m_threadHandle, OPENJTALKMANAGER_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "Error: cannot stop Open JTalk thread.", "Error", MB_OK);
-      CloseHandle(m_threadHandle);
+   if(m_mutex != NULL || m_cond != NULL || m_thread >= 0) {
+      if(m_thread >= 0) {
+         glfwWaitThread(m_thread, GLFW_WAIT);
+         glfwDestroyThread(m_thread);
+      }
+      if(m_cond != NULL)
+         glfwDestroyCond(m_cond);
+      if(m_mutex != NULL)
+         glfwDestroyMutex(m_mutex);
+      glfwTerminate();
    }
-   if(m_bufferMutex)
-      CloseHandle(m_bufferMutex);
-   if(m_synthEvent)
-      CloseHandle(m_synthEvent);
 
    if(m_dicDir)
       free(m_dicDir);
@@ -222,25 +218,26 @@ Open_JTalk_Manager::~Open_JTalk_Manager()
 }
 
 /* Open_JTalk_Manager::loadAndStart: load and start thread */
-void Open_JTalk_Manager::loadAndStart(HWND hWnd, UINT event, UINT command, const char *dicDir, const char *config)
+void Open_JTalk_Manager::loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config)
 {
    clear();
 
-   m_window = hWnd;
-   m_event = event;
-   m_command = command;
+   m_mmdagent = mmdagent;
    m_dicDir = MMDAgent_strdup(dicDir);
    m_config = MMDAgent_strdup(config);
 
-   if(m_window == 0 || m_event == 0 || m_command == 0 || m_dicDir == NULL || m_config == NULL) {
+   if(m_mmdagent == NULL || m_dicDir == NULL || m_config == NULL) {
       clear();
       return;
    }
 
-   m_threadHandle = (HANDLE) _beginthreadex(NULL, 0, main_thread, this, 0, NULL);
-   if(m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: cannot start Open JTalk thread.", "Error", MB_OK);
+   glfwInit();
+   m_mutex = glfwCreateMutex();
+   m_cond = glfwCreateCond();
+   m_thread = glfwCreateThread(mainThread, this);
+   if(m_mutex == NULL || m_cond == NULL || m_thread < 0) {
       clear();
+      return;
    }
 }
 
@@ -250,64 +247,44 @@ void Open_JTalk_Manager::stopAndRelease()
    clear();
 }
 
-/* Open_JTalk_Manager::start: main loop */
-void Open_JTalk_Manager::start()
+/* Open_JTalk_Manager::run: main loop */
+void Open_JTalk_Manager::run()
 {
    int i;
    Open_JTalk_Link *link;
    char *buff, *save;
    char *chara, *style, *text;
-
-   /* check */
-   if(m_threadHandle == 0 || m_bufferMutex != 0 || m_synthEvent != 0) return;
-
-   /* create buffer mutex */
-   m_bufferMutex = CreateMutex(NULL, false, NULL);
-   if(m_bufferMutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create buffer mutex for Open JTalk.", "Error", MB_OK);
-      return;
-   }
-
-   /* create synthesis event */
-   m_synthEvent = CreateEvent(NULL, true, false, NULL);
-   if(m_synthEvent == 0) {
-      MessageBoxA(NULL, "Error: cannot create synthesis event for Open JTalk.", "Error", MB_OK);
-      return;
-   }
+   bool ret = true;
 
    /* create initial threads */
    for(i = 0; i < OPENJTALKMANAGER_INITIALNTHREAD; i++) {
       link = new Open_JTalk_Link;
-      link->open_jtalk_thread.loadAndStart(m_window, m_event, m_command, m_dicDir, m_config);
+      if(link->open_jtalk_thread.loadAndStart(m_mmdagent, m_dicDir, m_config) == false)
+         ret = false;
       link->next = m_list;
       m_list = link;
    }
 
+   if(ret == false)
+      return;
+
    while(m_kill == false) {
-      /* wait synthesis event */
-      if(WaitForSingleObject(m_synthEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait synthesis event for Open JTalk.", "Error", MB_OK);
-         return;
-      }
-      ResetEvent(m_synthEvent);
-
-      while(m_kill == false) {
-         /* wait buffer mutex */
-         if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
-            ReleaseMutex(m_bufferMutex);
+      glfwLockMutex(m_mutex);
+      while(m_count <= 0) {
+         glfwWaitCond(m_cond, m_mutex, GLFW_INFINITY);
+         if(m_kill == true)
             return;
-         }
-         Open_JTalk_EventQueue_dequeue(&m_bufferQueue, &buff); /* get buffer */
-         ReleaseMutex(m_bufferMutex);
+      }
+      Open_JTalk_EventQueue_dequeue(&m_bufferQueue, &buff);
+      m_count--;
+      glfwUnlockMutex(m_mutex);
 
-         if(buff == NULL) break;
-
+      if(buff != NULL) {
          chara = MMDAgent_strtok(buff, "|", &save);
          style = MMDAgent_strtok(NULL, "|", &save);
          text = MMDAgent_strtok(NULL, "|", &save);
 
-         if(chara != NULL && style != NULL || text != NULL) {
+         if(chara != NULL && style != NULL && text != NULL) {
             /* check character */
             for(i = 0, link = m_list; link; link = link->next, i++)
                if(link->open_jtalk_thread.checkCharacter(chara) == true)
@@ -321,7 +298,7 @@ void Open_JTalk_Manager::start()
                      break;
                if(link == NULL) {
                   link = new Open_JTalk_Link;
-                  link->open_jtalk_thread.loadAndStart(m_window, m_event, m_command, m_dicDir, m_config);
+                  link->open_jtalk_thread.loadAndStart(m_mmdagent, m_dicDir, m_config);
                   link->next = m_list;
                   m_list = link;
                }
@@ -329,7 +306,6 @@ void Open_JTalk_Manager::start()
             /* set */
             link->open_jtalk_thread.synthesis(chara, style, text);
          }
-
          free(buff); /* free buffer */
       }
    }
@@ -338,7 +314,7 @@ void Open_JTalk_Manager::start()
 /* Open_JTalk_Manager::isRunning: check running */
 bool Open_JTalk_Manager::isRunning()
 {
-   if(m_threadHandle == 0 || m_kill == true)
+   if(m_kill == true || m_mutex == NULL || m_cond == NULL || m_thread < 0)
       return false;
    else
       return true;
@@ -348,23 +324,22 @@ bool Open_JTalk_Manager::isRunning()
 void Open_JTalk_Manager::synthesis(const char *str)
 {
    /* check */
-   if(MMDAgent_strlen(str) <= 0 || m_bufferMutex == 0 || m_synthEvent == 0)
+   if(isRunning() == false || MMDAgent_strlen(str) <= 0)
       return;
 
    /* wait buffer mutex */
-   if(WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
-      return;
-   }
+   glfwLockMutex(m_mutex);
 
    /* enqueue character name, speaking style, and text */
    Open_JTalk_EventQueue_enqueue(&m_bufferQueue, str);
-
-   /* release buffer mutex */
-   ReleaseMutex(m_bufferMutex);
+   m_count++;
 
    /* start synthesis event */
-   SetEvent(m_synthEvent);
+   if(m_count <= 1)
+      glfwSignalCond(m_cond);
+
+   /* release buffer mutex */
+   glfwUnlockMutex(m_mutex);
 }
 
 /* Open_JTalk_Manager::stop: stop synthesis */

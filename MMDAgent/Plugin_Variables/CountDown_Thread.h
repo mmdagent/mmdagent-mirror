@@ -39,16 +39,16 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define COUNTDOWNTHREAD_WAITMS  10000 /* 10 sec */
-#define COUNTDOWNTHREAD_SLEEPMS 100   /* check per 0.1 sec */
+/* definitions */
 
+#define COUNTDOWNTHREAD_SLEEPMS         100                 /* check per 0.1 sec */
 #define COUNTDOWNTHREAD_TIMERSTARTEVENT "TIMER_EVENT_START"
 #define COUNTDOWNTHREAD_TIMERSTOPEVENT  "TIMER_EVENT_STOP"
 
 /* CountDown: timer */
 typedef struct _CountDown {
    char *name;
-   float goal;
+   double goal;
    struct _CountDown *prev;
    struct _CountDown *next;
 } CountDown;
@@ -61,13 +61,12 @@ private:
    CountDown *m_head;
    CountDown *m_tail;
 
-   HWND m_window; /* window handle to post message */
-   UINT m_event;  /* message type to post event message */
+   MMDAgent *m_mmdagent;
 
-   HANDLE m_threadHandle; /* thread handle */
-   HANDLE m_mutex;        /* mutex */
+   GLFWmutex m_mutex;   /* mutex */
+   GLFWthread m_thread; /* thread */
 
-   bool m_stop;
+   bool m_kill;
 
    /* initialize: initialize thread */
    void initialize();
@@ -83,11 +82,11 @@ public:
    /* ~CountDown_Thread: thread destructor */
    ~CountDown_Thread();
 
-   /* loadAndStart: load variables and start thread */
-   void loadAndStart(HWND param1, UINT param2);
+   /* setupAndStart: load variables and start thread */
+   void setupAndStart(MMDAgent *mmdagent);
 
-   /* check: check timers */
-   void check();
+   /* run: main loop */
+   void run();
 
    /* isRunning: check running */
    bool isRunning();
@@ -100,10 +99,4 @@ public:
 
    /* unset: unset timer */
    void unset(const char *alias);
-
-   /* sendStartEventMessage: send start event message to MMDAgent */
-   void sendStartEventMessage(const char *str);
-
-   /* sendStopEventMessage: send stop event message to MMDAgent */
-   void sendStopEventMessage(const char *str);
 };

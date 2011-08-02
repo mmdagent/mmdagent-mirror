@@ -197,13 +197,19 @@ bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetP
 
    /* set temporarily all body to Kinematic */
    /* this is fixed at first simulation */
-   m_needResetKinematic = true;
-   m_pmd.setPhysicsControl(false);
+   skipNextSimulation();
 
    /* enable */
    m_isEnable = true;
 
    return true;
+}
+
+/* PMDObject::skipNextSimulation: skip next physics simulation */
+void PMDObject::skipNextSimulation()
+{
+   m_needResetKinematic = true;
+   m_pmd.setPhysicsControl(false);
 }
 
 /* PMDObject::setMotion: start a motion */
@@ -284,6 +290,13 @@ void PMDObject::updateAfterSimulation(bool physicsEnabled)
    }
    /* apply calculation result to bone */
    m_pmd.updateBoneFromSimulation();
+}
+
+/* PMDObject::updateSkin: update skin and toon */
+void PMDObject::updateSkin()
+{
+   if (m_isEnable == false) return;
+
    /* update skin */
    m_pmd.updateSkin();
    /* update toon */
@@ -623,7 +636,8 @@ void PMDObject::renderComment(TextRenderer * text)
 /* PMDObject::renderDebug: render model debug */
 void PMDObject::renderDebug(TextRenderer * text)
 {
-   btVector3 pos;
+   btVector3 pos, x, y;
+   unsigned long i, j;
    float dest;
    MotionPlayer *motionPlayer;
 
@@ -646,17 +660,95 @@ void PMDObject::renderDebug(TextRenderer * text)
    }
    glPopMatrix();
 
-   /* render motion name */
+   /* render motion names */
    glColor4f(0.0, 1.0f, 1.0f, 1.0f);
    for(dest = 0.7f, motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
       if(motionPlayer->active) {
          glPushMatrix();
-         glTranslatef(pos.x() + 2.0f + dest, m_pmd.getMaxHeight() + 2.0f - dest, pos.z() - dest);
+         glTranslatef(pos.x() + 2.0f + dest, m_pmd.getMaxHeight() + 2.0f - dest, pos.z() + dest);
          text->drawString(motionPlayer->name);
          glPopMatrix();
          dest += 0.7f;
       }
    }
+
+   /* render motion skeletons */
+   dest = 0.7f;
+   for(motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+      if(motionPlayer->active) {
+         glPushMatrix();
+         MotionControllerBoneElement *b = motionPlayer->mc.getBoneCtrlList();
+         glTranslatef(pos.x() + 7.0f + dest, m_pmd.getMaxHeight() + 1.0f - dest, pos.z() + dest);
+         glScalef(0.2f, 0.2f, 0.2f);
+         /* temporary apply bone positions / rotations of this motion to bones */
+         for (i = 0; i < motionPlayer->mc.getNumBoneCtrl(); i++) {
+            if (motionPlayer->ignoreStatic == true && b[i].motion->numKeyFrame <= 1)
+               continue;
+            b[i].bone->setCurrentPosition(&(b[i].pos));
+            b[i].bone->setCurrentRotation(&(b[i].rot));
+         }
+         /* update bone position */
+         m_pmd.updateBone();
+         /* draw bones */
+         for (i = 0; i < motionPlayer->mc.getNumBoneCtrl(); i++) {
+            if (b[i].bone->getChildBone() == NULL || b[i].bone->isSimulated() ||
+                  b[i].bone->getType() == NO_DISP || b[i].bone->getType() == IK_TARGET || b[i].bone->getType() == FOLLOW_ROTATE)
+               continue;
+            /* do not draw IK target bones if the IK chain is under simulation */
+            if (b[i].bone->getType() == IK_TARGET && b[i].bone->getParentBone() && b[i].bone->getParentBone()->isSimulated()) continue;
+            if (b[i].bone->getType() == UNDER_ROTATE) {
+               /* if target bone is also controlled in this motion, draw it */
+               for (j = 0; j < motionPlayer->mc.getNumBoneCtrl(); j++) {
+                  if (motionPlayer->ignoreStatic == true && b[j].motion->numKeyFrame <= 1)
+                     continue;
+                  if (b[i].bone->getTargetBone() == b[j].bone)
+                     break;
+               }
+               if (j >= motionPlayer->mc.getNumBoneCtrl())
+                  continue;
+            }
+            /* draw bone */
+            x = b[i].bone->getTransform()->getOrigin();
+            y = b[i].bone->getChildBone()->getTransform()->getOrigin();
+            if (motionPlayer->ignoreStatic == true && b[i].motion->numKeyFrame <= 1) {
+               glColor4f(0.4f, 0.4f, 0.4f, 1.0f);
+            } else if (b[i].bone == m_pmd.getCenterBone()) {
+               glColor4f(1.0f, 0.4f, 0.4f, 1.0f);
+            } else if (b[i].bone->getType() == IK_DESTINATION) {
+               glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
+            } else {
+               glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
+            }
+            glBegin(GL_LINES);
+            glVertex3f(x.x(), x.y(), x.z());
+            glVertex3f(y.x(), y.y(), y.z());
+            glEnd();
+            if (b[i].bone->getType() == IK_DESTINATION) {
+               /* when an IK is controlled in this motion, the releavant bones under the IK should also be drawn */
+               for (j = 0; j < motionPlayer->mc.getNumBoneCtrl(); j++) {
+                  if (motionPlayer->ignoreStatic == true && b[j].motion->numKeyFrame <= 1)
+                     continue;
+                  if (b[j].bone->getChildBone() == NULL || b[j].bone->isSimulated())
+                     continue;
+                  if (b[j].bone->getType() == UNDER_IK && b[j].bone->getTargetBone() == b[i].bone) {
+                     x = b[j].bone->getTransform()->getOrigin();
+                     y = b[j].bone->getChildBone()->getTransform()->getOrigin();
+                     glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
+                     glBegin(GL_LINES);
+                     glVertex3f(x.x(), x.y(), x.z());
+                     glVertex3f(y.x(), y.y(), y.z());
+                     glEnd();
+                  }
+               }
+            }
+         }
+         glPopMatrix();
+         dest += 0.7f;
+      }
+   }
+
+   /* restore the bone positions */
+   updateMotion(0.0);
 
    glEnable(GL_LIGHTING);
 }

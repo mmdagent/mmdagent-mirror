@@ -41,8 +41,7 @@
 
 /* definitions */
 
-#define OPENJTALKMANAGER_WAITMS         10000 /* 10 sec */
-#define OPENJTALKMANAGER_INITIALNTHREAD 1     /* initial number of thread */
+#define OPENJTALKMANAGER_INITIALNTHREAD 1 /* initial number of thread */
 
 /* Open_JTalk_Link: thread list for Open JTalk */
 typedef struct _Open_JTalk_Link {
@@ -67,22 +66,21 @@ class Open_JTalk_Manager
 {
 private:
 
-   Open_JTalk_Link *m_list;
+   MMDAgent *m_mmdagent;
 
-   HWND m_window;
-   UINT m_event;
-   UINT m_command;
+   GLFWmutex m_mutex;
+   GLFWcond m_cond;
+   GLFWthread m_thread;
 
-   HANDLE m_threadHandle;
-   HANDLE m_bufferMutex;
-   HANDLE m_synthEvent;
-
-   char *m_dicDir;
-   char *m_config;
+   int m_count;
 
    bool m_kill;
 
    Open_JTalk_EventQueue m_bufferQueue;
+   Open_JTalk_Link *m_list;
+
+   char *m_dicDir;
+   char *m_config;
 
    /* initialize: initialize */
    void initialize();
@@ -99,13 +97,13 @@ public:
    ~Open_JTalk_Manager();
 
    /* loadAndStart: load and start thread */
-   void loadAndStart(HWND hWnd, UINT event, UINT command, const char *dicDir, const char *config);
+   void loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config);
 
    /* stopAndRelease: stop and release thread */
    void stopAndRelease();
 
-   /* start: main loop */
-   void start();
+   /* run: main loop */
+   void run();
 
    /* isRunning: check running */
    bool isRunning();

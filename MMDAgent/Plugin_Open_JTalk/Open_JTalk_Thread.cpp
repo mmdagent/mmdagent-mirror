@@ -42,7 +42,6 @@
 /* headers */
 
 #include <locale.h>
-#include <process.h>
 
 #include "MMDAgent.h"
 
@@ -65,27 +64,23 @@
 #include "Open_JTalk.h"
 #include "Open_JTalk_Thread.h"
 
-/* main_thread: main thread */
-static unsigned __stdcall main_thread(void *param)
+/* mainThread: main thread */
+static void mainThread(void *param)
 {
    Open_JTalk_Thread *open_jtalk_thread = (Open_JTalk_Thread *) param;
-
-   open_jtalk_thread->start();
-
-   _endthreadex(0);
-   return 0;
+   open_jtalk_thread->run();
 }
 
 /* Open_JTalk_Thread::initialize: initialize thread */
 void Open_JTalk_Thread::initialize()
 {
-   m_window = 0;
-   m_event = 0;
-   m_command = 0;
+   m_mmdagent = NULL;
 
-   m_threadHandle = 0;
-   m_bufferMutex = 0;
-   m_synthEvent = 0;
+   m_mutex = NULL;
+   m_cond = NULL;
+   m_thread = -1;
+
+   m_count = 0;
 
    m_speaking = false;
    m_kill = false;
@@ -109,18 +104,20 @@ void Open_JTalk_Thread::clear()
    m_kill = true;
 
    /* wait */
-   if (m_synthEvent)
-      SetEvent(m_synthEvent);
+   if (m_cond != NULL)
+      glfwSignalCond(m_cond);
 
-   if(m_threadHandle != 0) {
-      if (WaitForSingleObject(m_threadHandle, OPENJTALKTHREAD_WAITMS) != WAIT_OBJECT_0)
-         MessageBoxA(NULL, "Error: cannot stop Open JTalk thread.", "Error", MB_OK);
-      CloseHandle(m_threadHandle);
+   if(m_mutex != NULL || m_cond != NULL || m_thread >= 0) {
+      if(m_thread >= 0) {
+         glfwWaitThread(m_thread, GLFW_WAIT);
+         glfwDestroyThread(m_thread);
+      }
+      if(m_cond != NULL)
+         glfwDestroyCond(m_cond);
+      if(m_mutex != NULL)
+         glfwDestroyMutex(m_mutex);
+      glfwTerminate();
    }
-   if (m_bufferMutex)
-      CloseHandle(m_bufferMutex);
-   if (m_synthEvent)
-      CloseHandle(m_synthEvent);
 
    if(m_charaBuff) free(m_charaBuff);
    if(m_styleBuff) free(m_styleBuff);
@@ -156,34 +153,31 @@ Open_JTalk_Thread::~Open_JTalk_Thread()
 }
 
 /* Open_JTalk_Thread::loadAndStart: load models and start thread */
-void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, const char *dicDir, const char *config)
+bool Open_JTalk_Thread::loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config)
 {
    int i, j, k;
-   char buff[OPENJTALK_MAXBUFLEN];
+   char buff[MMDAGENT_MAXBUFLEN];
    FILE *fp;
    bool err = false;
-
    double *weights;
 
    /* load config file */
-   fp = fopen(config, "r");
+   fp = MMDAgent_fopen(config, "r");
    if (fp == NULL)
-      return;
+      return false;
 
    /* number of speakers */
    i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
-      MessageBoxA(NULL, "Error: cannot load the number of models in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
-      return;
+      return false;
    }
    m_numModels = MMDAgent_str2int(buff);
    if (m_numModels <= 0) {
-      MessageBoxA(NULL, "Error: the number of models must be positive value.", "Error", MB_OK);
       fclose(fp);
       clear();
-      return;
+      return false;
    }
 
    /* model directory names */
@@ -195,27 +189,24 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
       m_modelNames[i] = MMDAgent_strdup(buff);
    }
    if (err) {
-      MessageBoxA(NULL, "Error: cannot load model directory names in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
-      return;
+      return false;
    }
 
    /* number of speaking styles */
    i = MMDAgent_fgettoken(fp, buff);
    if (i <= 0) {
-      MessageBoxA(NULL, "Error: cannot load the number of speaking styles in config file of Open JTalk.", "Error", MB_OK);
       fclose(fp);
       clear();
-      return;
+      return false;
    }
    m_numStyles = MMDAgent_str2int(buff);
    if (m_numStyles <= 0) {
-      MessageBoxA(NULL, "Error: the number of speaking styles must be positive value.", "Error", MB_OK);
       m_numStyles = 0;
       fclose(fp);
       clear();
-      return;
+      return false;
    }
 
    /* style names and weights */
@@ -235,50 +226,34 @@ void Open_JTalk_Thread::loadAndStart(HWND window, UINT event, UINT command, cons
    }
    fclose(fp);
    if(err) {
-      MessageBoxA(NULL, "Error: cannot load style definitions in config file of Open JTalk.", "Error", MB_OK);
       free(weights);
       clear();
-      return;
+      return false;
    }
 
    /* load models for TTS */
    if (m_openJTalk.load(dicDir, m_modelNames, m_numModels, weights, m_numStyles) != true) {
-      MessageBoxA(NULL, "Error: cannot initialize Open JTalk.", "Error", MB_OK);
       free(weights);
       clear();
-      return;
+      return false;
    }
    setlocale(LC_CTYPE, "japanese");
 
    free(weights);
 
-   m_window = window;
-   m_event = event;
-   m_command = command;
+   m_mmdagent = mmdagent;
 
-   /* create mutex */
-   m_bufferMutex = CreateMutex(NULL, false, NULL);
-   if (m_bufferMutex == 0) {
-      MessageBoxA(NULL, "Error: cannot create muffer mutex for Open JTalk.", "Error", MB_OK);
+   /* start thread */
+   glfwInit();
+   m_mutex = glfwCreateMutex();
+   m_cond = glfwCreateCond();
+   m_thread = glfwCreateThread(mainThread, this);
+   if(m_mutex == NULL || m_cond == NULL || m_thread < 0) {
       clear();
-      return;
+      return false;
    }
 
-   /* create event */
-   m_synthEvent = CreateEvent(NULL, true, false, NULL);
-   if (m_synthEvent == 0) {
-      MessageBoxA(NULL, "Error: cannot create synthesis event for Open JTalk.", "Error", MB_OK);
-      clear();
-      return;
-   }
-
-   /* thread start */
-   m_threadHandle = (HANDLE)_beginthreadex(NULL, 0, main_thread, this, 0, NULL);
-   if (m_threadHandle == 0) {
-      MessageBoxA(NULL, "Error: cannot start Open JTalk thread.", "Error", MB_OK);
-      clear();
-      return;
-   }
+   return true;
 }
 
 /* Open_JTalk_Thread::stopAndRelease: stop thread and free Open JTalk */
@@ -287,73 +262,65 @@ void Open_JTalk_Thread::stopAndRelease()
    clear();
 }
 
-/* Open_JTalk_Thread::start: main thread loop for TTS */
-void Open_JTalk_Thread::start()
+/* Open_JTalk_Thread::run: main thread loop for TTS */
+void Open_JTalk_Thread::run()
 {
-   char lip[OPENJTALK_MAXBUFLEN];
+   char lip[MMDAGENT_MAXBUFLEN];
    char *chara, *style, *text;
    int index;
 
-   /* check */
-   if(m_threadHandle == 0 || m_bufferMutex == 0 || m_synthEvent == 0)
-      return;
-
    while (m_kill == false) {
-      /* wait event */
-      if (WaitForSingleObject(m_synthEvent, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait synthesis event for Open JTalk.", "Error", MB_OK);
-         return;
-      }
-      ResetEvent(m_synthEvent);
-
-      if(m_kill == false) {
-         /* wait text */
-         if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-            MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
+      /* wait text */
+      glfwLockMutex(m_mutex);
+      while(m_count <= 0) {
+         glfwWaitCond(m_cond, m_mutex, GLFW_INFINITY);
+         if(m_kill == true)
             return;
-         }
-         m_speaking = true;
-         chara = MMDAgent_strdup(m_charaBuff);
-         style = MMDAgent_strdup(m_styleBuff);
-         text = MMDAgent_strdup(m_textBuff);
-         ReleaseMutex(m_bufferMutex);
-
-         /* search style index */
-         for (index = 0; index < m_numStyles; index++)
-            if (MMDAgent_strequal(m_styleNames[index], style))
-               break;
-         if (index >= m_numStyles) /* unknown style */
-            index = 0;
-
-         /* send SYNTH_EVENT_START */
-         sendStartEventMessage(chara);
-
-         /* synthesize */
-         m_openJTalk.setStyle(index);
-         m_openJTalk.prepare(text);
-         m_openJTalk.getPhonemeSequence(lip);
-         if (MMDAgent_strlen(lip) > 0) {
-            sendStartLipCommandMessage(chara, lip);
-            m_openJTalk.synthesis();
-         }
-
-         /* send SYNTH_EVENT_STOP */
-         sendStopEventMessage(chara);
-
-         if(chara) free(chara);
-         if(style) free(style);
-         if(text) free(text);
-         m_speaking = false;
       }
+      chara = MMDAgent_strdup(m_charaBuff);
+      style = MMDAgent_strdup(m_styleBuff);
+      text = MMDAgent_strdup(m_textBuff);
+      m_count--;
+      glfwUnlockMutex(m_mutex);
+
+      m_speaking = true;
+
+      /* search style index */
+      for (index = 0; index < m_numStyles; index++)
+         if (MMDAgent_strequal(m_styleNames[index], style))
+            break;
+      if (index >= m_numStyles) /* unknown style */
+         index = 0;
+
+      /* send SYNTH_EVENT_START */
+      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTART, chara);
+
+      /* synthesize */
+      m_openJTalk.setStyle(index);
+      m_openJTalk.prepare(text);
+      m_openJTalk.getPhonemeSequence(lip);
+      if (MMDAgent_strlen(lip) > 0) {
+         m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTARTLIP, "%s|%s", chara, lip);
+         m_openJTalk.synthesis();
+      }
+
+      /* send SYNTH_EVENT_STOP */
+      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTOP, chara);
+
+      if(chara) free(chara);
+      if(style) free(style);
+      if(text) free(text);
+      m_speaking = false;
    }
 }
 
 /* Open_JTalk_Thread::isRunning: check running */
 bool Open_JTalk_Thread::isRunning()
 {
-   if (m_threadHandle == 0 || m_kill == true)
+   if(m_kill == true || m_mutex == NULL || m_cond == NULL || m_thread < 0)
       return false;
-   return true;
+   else
+      return true;
 }
 
 /* Open_JTalk_Thread::isSpeaking: check speaking */
@@ -368,20 +335,17 @@ bool Open_JTalk_Thread::checkCharacter(const char *chara)
    bool ret;
 
    /* check */
-   if(isRunning() == false || m_bufferMutex == 0)
+   if(isRunning() == false)
       return false;
 
    /* wait buffer mutex */
-   if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
-      return false;
-   }
+   glfwLockMutex(m_mutex);
 
    /* save character name, speaking style, and text */
    ret = MMDAgent_strequal(m_charaBuff, chara);
 
    /* release buffer mutex */
-   ReleaseMutex(m_bufferMutex);
+   glfwUnlockMutex(m_mutex);
 
    return ret;
 }
@@ -390,16 +354,13 @@ bool Open_JTalk_Thread::checkCharacter(const char *chara)
 void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const char *text)
 {
    /* check */
-   if(isRunning() == false || m_bufferMutex == 0 || m_synthEvent == 0)
+   if(isRunning() == false)
       return;
    if(MMDAgent_strlen(chara) <= 0 || MMDAgent_strlen(style) <= 0 || MMDAgent_strlen(text) <= 0)
       return;
 
    /* wait buffer mutex */
-   if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-      MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
-      return;
-   }
+   glfwLockMutex(m_mutex);
 
    /* save character name, speaking style, and text */
    if(m_charaBuff) free(m_charaBuff);
@@ -408,74 +369,30 @@ void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const ch
    m_charaBuff = MMDAgent_strdup(chara);
    m_styleBuff = MMDAgent_strdup(style);
    m_textBuff = MMDAgent_strdup(text);
-
-   /* release buffer mutex */
-   ReleaseMutex(m_bufferMutex);
+   m_count++;
 
    /* start synthesis thread */
-   SetEvent(m_synthEvent);
+   if(m_count <= 1)
+      glfwSignalCond(m_cond);
+
+   /* release buffer mutex */
+   glfwUnlockMutex(m_mutex);
 }
 
 /* Open_JTalk_Thread::stop: barge-in function */
 void Open_JTalk_Thread::stop()
 {
-   if(isRunning()) {
+   if(isRunning() == true) {
       m_openJTalk.stop();
 
-      if(m_bufferMutex == 0) return;
-
       /* wait buffer mutex */
-      if (WaitForSingleObject(m_bufferMutex, INFINITE) != WAIT_OBJECT_0) {
-         MessageBoxA(NULL, "Error: cannot wait buffer mutex for Open JTalk.", "Error", MB_OK);
-         return;
-      }
+      glfwLockMutex(m_mutex);
 
       /* stop lip sync */
-      sendStopLipCommandMessage(m_charaBuff);
+      m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTOPLIP, m_charaBuff);
 
       /* release buffer mutex */
-      ReleaseMutex(m_bufferMutex);
+      glfwUnlockMutex(m_mutex);
 
    }
-}
-
-/* Open_JTalk_Thread::sendStartEventMessage: send start event message to MMDAgent */
-void Open_JTalk_Thread::sendStartEventMessage(const char *str)
-{
-   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(OPENJTALKTHREAD_EVENTSTART), (LPARAM) MMDAgent_strdup(str));
-}
-
-/* Open_JTalk_Thread::sendStopEventMessage: send stop event message to MMDAgent */
-void Open_JTalk_Thread::sendStopEventMessage(const char *str)
-{
-   ::PostMessage(m_window, m_event, (WPARAM) MMDAgent_strdup(OPENJTALKTHREAD_EVENTSTOP), (LPARAM) MMDAgent_strdup(str));
-}
-
-/* Open_JTalk_Thread::sendStartLipCommandMessage: send lipsync command message to MMDAgent */
-void Open_JTalk_Thread::sendStartLipCommandMessage(const char *chara, const char *lip)
-{
-   char *mes1;
-   char *mes2;
-
-   if(chara == NULL || lip == NULL) return;
-
-   mes1 = MMDAgent_strdup(OPENJTALKTHREAD_COMMANDSTARTLIP);
-   mes2 = (char *) malloc(sizeof(char) * (MMDAgent_strlen(chara) + 1 + MMDAgent_strlen(lip) + 1));
-   sprintf(mes2, "%s|%s", chara, lip);
-
-   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
-}
-
-/* Open_JTalk_Thread::sendStopLipCommandMessage: send lipsync command message to MMDAgent */
-void Open_JTalk_Thread::sendStopLipCommandMessage(const char *chara)
-{
-   char *mes1;
-   char *mes2;
-
-   if(chara == NULL) return;
-
-   mes1 = MMDAgent_strdup(OPENJTALKTHREAD_COMMANDSTOPLIP);
-   mes2 = MMDAgent_strdup(chara);
-
-   ::PostMessage(m_window, m_command, (WPARAM) mes1, (LPARAM) mes2);
 }

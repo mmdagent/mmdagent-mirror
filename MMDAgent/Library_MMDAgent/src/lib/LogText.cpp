@@ -1,4 +1,4 @@
-﻿/* ----------------------------------------------------------------- */
+/* ----------------------------------------------------------------- */
 /*           The Toolkit for Building Voice Interaction Systems      */
 /*           "MMDAgent" developed by MMDAgent Project Team           */
 /*           http://www.mmdagent.jp/                                 */
@@ -41,6 +41,7 @@
 
 /* headers */
 
+#include <stdarg.h>
 #include "MMDAgent.h"
 
 /* LogText::initialize: initialize logger */

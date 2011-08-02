@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;MMDAGENT"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -113,8 +113,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;MMDAGENT"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="1"
@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\lib\Message.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\lib\MMDAgent.cpp"
 				>
 			</File>
@@ -203,7 +207,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\lib\Screen.cpp"
+				RelativePath=".\src\lib\ScreenWindow.cpp"
 				>
 			</File>
 			<File
@@ -241,6 +245,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\include\Message.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\include\MMDAgent.h"
 				>
 			</File>
@@ -269,7 +277,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\include\Screen.h"
+				RelativePath=".\src\include\ScreenWindow.h"
 				>
 			</File>
 			<File

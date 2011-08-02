@@ -1,5 +1,0 @@
-LIBRARY	"Plugin_Variables"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extAppEnd

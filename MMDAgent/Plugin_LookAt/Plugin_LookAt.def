@@ -1,7 +1,0 @@
-LIBRARY	"Plugin_LookAt"
-EXPORTS
-	extAppStart
-	extProcCommand
-	extProcEvent
-	extUpdate
-	extAppEnd

@@ -39,69 +39,50 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
+/* definitions */
 
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
+#define PLUGINJULIUS_NAME          "Julius"
+#define PLUGINJULIUS_LANGUAGEMODEL MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.8-8.bingramv5.gz"
+#define PLUGINJULIUS_DICTIONARY    MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.htkdic"
+#define PLUGINJULIUS_ACOUSTICMODEL MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "clustered.mmf.16mix.all.julius.binhmm"
+#define PLUGINJULIUS_TRIPHONELIST  MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "tri_tied.list.bin"
+#define PLUGINJULIUS_CONFIGFILE    MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "jconf.txt"
 
 /* headers */
 
-#include <windows.h>
-#include <locale.h>
-
+#include "MMDAgent.h"
 #include "julius/juliuslib.h"
 #include "Julius_Logger.h"
 #include "Julius_Thread.h"
-#include "MMDAgent.h"
 
-/* definitions */
-
-#define PLUGINJULIUS_NAME         "Julius"
-#define PLUGINJULIUS_DIRSEPARATOR '\\'
-
-#define PLUGINJULIUS_LANGUAGEMODEL "lang_m\\web.60k.8-8.bingramv5.gz"
-#define PLUGINJULIUS_DICTIONARY    "lang_m\\web.60k.htkdic"
-#define PLUGINJULIUS_ACOUSTICMODEL "phone_m\\clustered.mmf.16mix.all.julius.binhmm"
-#define PLUGINJULIUS_TRIPHONELIST  "phone_m\\tri_tied.list.bin"
-#define PLUGINJULIUS_CONFIGFILE    "jconf.txt"
-
-/* global variables */
+/* variables */
 
 static Julius_Thread julius_thread;
 static bool enable;
 
 /* extAppStart: load models and start thread */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    int len;
-   char languageModel[JULIUSTHREAD_MAXBUFLEN];
-   char dictionary[JULIUSTHREAD_MAXBUFLEN];
-   char acousticModel[JULIUSTHREAD_MAXBUFLEN];
-   char triphoneList[JULIUSTHREAD_MAXBUFLEN];
-   char configFile[JULIUSTHREAD_MAXBUFLEN];
-   char userDictionary[JULIUSTHREAD_MAXBUFLEN];
+   char languageModel[MMDAGENT_MAXBUFLEN];
+   char dictionary[MMDAGENT_MAXBUFLEN];
+   char acousticModel[MMDAGENT_MAXBUFLEN];
+   char triphoneList[MMDAGENT_MAXBUFLEN];
+   char configFile[MMDAGENT_MAXBUFLEN];
+   char userDictionary[MMDAGENT_MAXBUFLEN];
 
    /* set model file names */
-   sprintf(languageModel, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_LANGUAGEMODEL);
-   sprintf(dictionary, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_DICTIONARY);
-   sprintf(acousticModel, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_ACOUSTICMODEL);
-   sprintf(triphoneList, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_TRIPHONELIST);
-   sprintf(configFile, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_NAME, PLUGINJULIUS_DIRSEPARATOR, PLUGINJULIUS_CONFIGFILE);
+   sprintf(languageModel, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_LANGUAGEMODEL);
+   sprintf(dictionary, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DICTIONARY);
+   sprintf(acousticModel, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_ACOUSTICMODEL);
+   sprintf(triphoneList, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_TRIPHONELIST);
+   sprintf(configFile, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_CONFIGFILE);
 
    /* user dictionary */
    strcpy(userDictionary, mmdagent->getConfigFileName());
@@ -116,32 +97,32 @@ void __stdcall extAppStart(MMDAgent *mmdagent)
    }
 
    /* load models and start thread */
-   julius_thread.loadAndStart(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, languageModel, dictionary, acousticModel, triphoneList, configFile, userDictionary);
+   julius_thread.loadAndStart(mmdagent, languageModel, dictionary, acousticModel, triphoneList, configFile, userDictionary);
 
    enable = true;
-   ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINJULIUS_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
       if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == true) {
          julius_thread.pause();
          enable = false;
-         ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINJULIUS_NAME);
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
       if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == false) {
          julius_thread.resume();
          enable = true;
-         ::PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINJULIUS_NAME));
+         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINJULIUS_NAME);
       }
    }
 }
 
 /* extProcEvent: process event message */
-void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
       if(MMDAgent_strequal(args, "J")) {
@@ -154,33 +135,20 @@ void __stdcall extProcEvent(MMDAgent *mmdagent, const char *type, const char *ar
 }
 
 /* extAppEnd: stop thread and free julius */
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    julius_thread.stopAndRelease();
    enable = false;
 }
 
 /* extUpdate: update log view */
-void __stdcall extUpdate(MMDAgent *mmdagent, double deltaFrame)
+EXPORT void extUpdate(MMDAgent *mmdagent, double frame)
 {
-   julius_thread.updateLog(deltaFrame);
+   julius_thread.updateLog(frame);
 }
 
 /* extRender: render log view when debug display mode */
-void __stdcall extRender(MMDAgent *mmdagent)
+EXPORT void extRender(MMDAgent *mmdagent)
 {
    julius_thread.renderLog();
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }

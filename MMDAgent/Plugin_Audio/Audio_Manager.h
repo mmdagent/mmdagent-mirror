@@ -41,8 +41,7 @@
 
 /* definitions */
 
-#define AUDIOMANAGER_WAITMS         10000 /* 10 sec */
-#define AUDIOMANAGER_INITIALNTHREAD 1     /* initial number of thread */
+#define AUDIOMANAGER_INITIALNTHREAD 1 /* initial number of thread */
 
 /* Audio_Link: thread list for audio */
 typedef struct _Audio_Link {
@@ -67,18 +66,18 @@ class Audio_Manager
 {
 private:
 
-   Audio_Link *m_list;
+   MMDAgent *m_mmdagent;
 
-   HWND m_window;
-   UINT m_event;
+   GLFWmutex m_mutex;
+   GLFWcond m_cond;
+   GLFWthread m_thread;
 
-   HANDLE m_threadHandle;
-   HANDLE m_bufferMutex;
-   HANDLE m_playingEvent;
+   int m_count;
 
    bool m_kill;
 
    Audio_EventQueue m_bufferQueue;
+   Audio_Link *m_list;
 
    /* initialize: initialize */
    void initialize();
@@ -95,13 +94,13 @@ public:
    ~Audio_Manager();
 
    /* setupAndStart: setup and start thread */
-   void setupAndStart(HWND hWnd, UINT event);
+   void setupAndStart(MMDAgent *mmdagent);
 
    /* stopAndRelease: stop and release thread */
    void stopAndRelease();
 
-   /* start: main loop */
-   void start();
+   /* run: main loop */
+   void run();
 
    /* isRunning: check running */
    bool isRunning();

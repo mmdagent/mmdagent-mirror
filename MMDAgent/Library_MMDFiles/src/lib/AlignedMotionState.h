@@ -62,4 +62,7 @@ public:
 
    /* setWorldTransform: set world transform */
    virtual void setWorldTransform(const btTransform &worldTrans);
+
+   /* setWorldTransformDirectly: set world transform directly */
+   void setWorldTransformDirectly(const btTransform &worldTrans);
 };

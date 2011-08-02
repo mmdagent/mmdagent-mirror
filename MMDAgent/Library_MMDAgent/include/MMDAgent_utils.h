@@ -41,14 +41,16 @@
 
 /* definitions */
 
-#define UTILS_DIRSEPARATOR '\\'
-#define UTILS_MAXCHARBYTE 3
+#define MMDAGENTUTILS_MAXCHARBYTE 3
 
 /* MMDAgent_getcharsize: get character size */
 char MMDAgent_getcharsize(const char *str);
 
 /* MMDAgent_strequal: string matching */
 bool MMDAgent_strequal(const char *str1, const char *str2);
+
+/* MMDAgent_strheadmatch: match head string */
+bool MMDAgent_strheadmatch(const char *str1, const char *str2);
 
 /* MMDAgent_strtailmatch: match tail string */
 bool MMDAgent_strtailmatch(const char *str1, const char *str2);
@@ -59,11 +61,20 @@ int MMDAgent_strlen(const char *str);
 /* MMDAgent_strdup: strdup */
 char *MMDAgent_strdup(const char *str);
 
+/* MMDAgent_pathdup: convert charset from application to system */
+char *MMDAgent_pathdup(const char *str);
+
 /* MMDAgent_intdup: integer type strdup */
 char *MMDAgent_intdup(const int digit);
 
-/* MMDAgent_dirdup: get directory from file path */
-char *MMDAgent_dirdup(const char *file);
+/* MMDAgent_dirname: get directory name from path */
+char *MMDAgent_dirname(const char *file);
+
+/* MMDAgent_basename: get file name from path */
+char *MMDAgent_basename(const char *file);
+
+/* MMDAgent_fopen: get file pointer */
+FILE *MMDAgent_fopen(const char *file, const char *mode);
 
 /* MMDAgent_strtok: strtok */
 char *MMDAgent_strtok(char *str, const char *pat, char **save);
@@ -76,6 +87,9 @@ int MMDAgent_str2int(const char *str);
 
 /* MMDAgent_str2float: convert string to float */
 float MMDAgent_str2float(const char *str);
+
+/* MMDAgent_str2double: convert string to double */
+double MMDAgent_str2double(const char *str);
 
 /* MMDAgent_str2ivec: convert string to integer vector */
 bool MMDAgent_str2ivec(const char *str, int *vec, const int size);
@@ -91,3 +105,43 @@ bool MMDAgent_str2rot(const char *str, btQuaternion *rot);
 
 /* MMDAgent_fgettoken: get token from file pointer */
 int MMDAgent_fgettoken(FILE *fp, char *buff);
+
+/* MMDAgent_chdir: change current directory */
+bool MMDAgent_chdir(const char *dir);
+
+/* MMDAgent_sleep: sleep in ms */
+void MMDAgent_sleep(double t);
+
+/* MMDAgent_setTime: set time in ms */
+void MMDAgent_setTime(double t);
+
+/* MMDAgent_getTime: get time in ms */
+double MMDAgent_getTime();
+
+/* MMDAgent_diffTime: get difference between two times*/
+double MMDAgent_diffTime(double now, double past);
+
+/* MMDAgent_dlopen: open dynamic library */
+void *MMDAgent_dlopen(const char *file);
+
+/* MMDAgent_dlclose: close dynamic library */
+void MMDAgent_dlclose(void *handle);
+
+/* MMDAgent_dlsym: get function from dynamic library */
+void *MMDAgent_dlsym(void *handle, const char *name);
+
+/* DIRECTORY: directory structure to find files */
+typedef struct _DIRECTORY {
+   void *find;
+   void *data;
+   bool first;
+} DIRECTORY;
+
+/* MMDAgent_opendir: open directory */
+DIRECTORY *MMDAgent_opendir(const char *name);
+
+/* MMDAgent_closedir: close directory */
+void MMDAgent_closedir(DIRECTORY *dir);
+
+/* MMDAgent_readdir: find files in directory */
+bool MMDAgent_readdir(DIRECTORY *dir, char *name);

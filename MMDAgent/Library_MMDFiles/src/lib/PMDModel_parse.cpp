@@ -108,8 +108,6 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    m_name = (char *) malloc(sizeof(char) * (20 + 1));
    strncpy(m_name, fileHeader->name, 20);
    m_name[20] = '\0';
-   /* directory */
-   m_modelDir = MMDFiles_strdup(dir);
    /* comment */
    m_comment = (char *) malloc(sizeof(char) * (256 + 1));
    strncpy(m_comment, fileHeader->comment, 256);
@@ -167,7 +165,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    for (i = 0; i < m_numBone; i++) {
       if (!m_boneList[i].setup(&(fileBone[i]), m_boneList, m_numBone, &m_rootBone))
          ret = false;
-      if (MMDFiles_strequal(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME) == true)
+      if (MMDFiles_strequal(m_boneList[i].getName(), PMDMODEL_CENTERBONENAME) == true && m_centerBone == NULL)
          m_centerBone = &(m_boneList[i]);
    }
    if (!m_centerBone && m_numBone >= 1) {
@@ -269,7 +267,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             sprintf(buf, "%s%ctoon%02d.bmp", dir, MMDFILES_DIRSEPARATOR, j);
          /* if "toon??.bmp" exist at the same directory as PMD file, use it */
          /* if not exist or failed to read, use system default toon textures */
-         fp = fopen(buf, "rb");
+         fp = MMDFiles_fopen(buf, "rb");
          if (fp != NULL) {
             fclose(fp);
             if (m_localToonTexture[j].load(buf) == true)
@@ -294,7 +292,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
       /* toon texture file list (replace toon01.bmp - toon10.bmp) */
       /* the "toon0.bmp" should be loaded separatedly */
       sprintf(buf, "%s%ctoon0.bmp", dir, MMDFILES_DIRSEPARATOR);
-      fp = fopen(buf, "rb");
+      fp = MMDFiles_fopen(buf, "rb");
       if (fp != NULL) {
          fclose(fp);
          if (m_localToonTexture[0].load(buf) == true)
@@ -303,7 +301,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
       for (i = 1; i <= 10; i++) {
          exToonBMPName = (char *) data;
          sprintf(buf, "%s%c%s", dir, MMDFILES_DIRSEPARATOR, exToonBMPName);
-         fp = fopen(buf, "rb");
+         fp = MMDFiles_fopen(buf, "rb");
          if (fp != NULL) {
             fclose(fp);
             if (m_localToonTexture[i].load(buf) == true)
@@ -380,7 +378,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
       m_surfaceList[i] = m_surfaceList[i+1];
       m_surfaceList[i+1] = j;
    }
-#endif
+#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* prepare work area */
    /* transforms for skinning */

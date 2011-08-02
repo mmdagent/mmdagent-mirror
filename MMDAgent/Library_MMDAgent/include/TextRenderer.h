@@ -56,6 +56,7 @@ class TextRenderer
 {
 private:
 
+#ifdef _WIN32
    HDC m_hDC;                    /* device context */
    HFONT m_outlineFont;          /* outline font */
    unsigned int m_outlineFontID; /* first 256 ID in ASCII font (outline) */
@@ -65,6 +66,7 @@ private:
 
    /* getID: get display list of character */
    bool getID(unsigned long mbc, unsigned int *id);
+#endif /* _WIN32 */
 
    /* initialize: initialize text renderer */
    void initialize();
@@ -81,7 +83,7 @@ public:
    ~TextRenderer();
 
    /* setup: initialize and setup text renderer */
-   void setup(HDC hDC);
+   void setup();
 
    /* drawAsciiStringBitmap: draw ascii string (bitmap) */
    void drawAsciiStringBitmap(const char *str);

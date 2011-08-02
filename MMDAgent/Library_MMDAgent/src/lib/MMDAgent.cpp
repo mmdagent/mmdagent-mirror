@@ -41,10 +41,8 @@
 
 /* headers */
 
-#include <windows.h>
+#include <stdarg.h>
 #include <locale.h>
-#include <shellapi.h>
-
 #include "MMDAgent.h"
 
 /* MMDAgent::getNewModelId: return new model ID */
@@ -224,8 +222,7 @@ bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 
    /* update for initial positions and skins */
    m_model[id].updateRootBone();
    m_model[id].updateMotion(0.0);
-   m_model[id].updateAlpha(0.0);
-   m_model[id].updateAfterSimulation(m_enablePhysicsSimulation);
+   m_model[id].updateSkin();
 
    /* send event message */
    sendEventMessage(MMDAGENT_EVENT_MODELADD, "%s", name);
@@ -273,8 +270,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
    /* update for initial positions and skins */
    m_model[id].updateRootBone();
    m_model[id].updateMotion(0.0);
-   m_model[id].updateAlpha(0.0);
-   m_model[id].updateAfterSimulation(m_enablePhysicsSimulation);
+   m_model[id].updateSkin();
 
    /* delete accessories immediately*/
    for (i = 0; i < m_numModel; i++)
@@ -363,6 +359,9 @@ bool MMDAgent::addMotion(const char *modelAlias, const char *motionAlias, const 
          free(name);
       }
    }
+
+   if (m_model[id].getMotionManager()->getMotionPlayerList() == NULL && enableSmooth == false)
+      m_model[id].skipNextSimulation();
 
    /* start motion */
    if (m_model[id].startMotion(vmd, name, full, once, enableSmooth, enableRePos, priority) == false) {
@@ -862,17 +861,17 @@ bool MMDAgent::stopLipSync(const char *modelAlias)
 /* MMDAgent::initialize: initialize MMDAgent */
 void MMDAgent::initialize()
 {
+   m_enable = false;
+
    m_configFileName = NULL;
    m_configDirName = NULL;
    m_appDirName = NULL;
 
-   m_hWnd = 0;
-   m_hInst = 0;
-
    m_option = NULL;
+   m_screen = NULL;
+   m_message = NULL;
    m_bullet = NULL;
    m_plugin = NULL;
-   m_screen = NULL;
    m_stage = NULL;
    m_systex = NULL;
    m_lipSync = NULL;
@@ -893,8 +892,8 @@ void MMDAgent::initialize()
    m_selectedModel = -1;
    m_highLightingModel = -1;
    m_doubleClicked = false;
-   m_mousepos.x = 0;
-   m_mousepos.y = 0;
+   m_mousePosY = 0;
+   m_mousePosX = 0;
    m_leftButtonPressed = false;
    m_restFrame = 0.0;
 
@@ -908,6 +907,8 @@ void MMDAgent::initialize()
 /* MMDAgent::clear: free MMDAgent */
 void MMDAgent::clear()
 {
+   m_enable = false;
+
    if(m_configFileName)
       free(m_configFileName);
    if(m_configDirName)
@@ -934,12 +935,14 @@ void MMDAgent::clear()
       delete m_systex;
    if (m_stage)
       delete m_stage;
-   if (m_screen)
-      delete m_screen;
    if (m_plugin)
       delete m_plugin;
    if (m_bullet)
       delete m_bullet;
+   if (m_message)
+      delete m_message;
+   if (m_screen)
+      delete m_screen;
    if (m_option)
       delete m_option;
 
@@ -959,7 +962,7 @@ MMDAgent::~MMDAgent()
 }
 
 /* MMDAgent::setup: initialize and setup MMDAgent */
-HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowName, int argc, char **argv)
+bool MMDAgent::setup(int argc, char **argv, const char *title)
 {
    int i;
    size_t len;
@@ -971,13 +974,13 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    if(argc < 1 || MMDAgent_strlen(argv[0]) <= 0)
       return 0;
 
+   clear();
+
    /* get binary file name */
    binaryFileName = MMDAgent_strdup(argv[0]);
 
    /* get binary directory name */
-   binaryDirName = MMDAgent_dirdup(argv[0]);
-
-   m_hInst = hInstance;
+   binaryDirName = MMDAgent_dirname(argv[0]);
 
    /* set local to japan */
    setlocale(LC_CTYPE, "jpn");
@@ -994,19 +997,15 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    /* get default config file name */
    strcpy(buff, binaryFileName);
    len = MMDAgent_strlen(buff);
-   if (len > 4) {
+   if(MMDAgent_strtailmatch(buff, ".exe") == true || MMDAgent_strtailmatch(buff, ".EXE") == true) {
       buff[len-4] = '.';
       buff[len-3] = 'm';
       buff[len-2] = 'd';
       buff[len-1] = 'f';
-
-      /* load default config file */
-      if(m_option->load(buff)) {
-         if(m_configFileName)
-            free(m_configFileName);
-         m_configFileName = MMDAgent_strdup(buff);
-      }
-   }
+   } else
+      strcat(buff, ".mdf");
+   if(m_option->load(buff))
+      m_configFileName = MMDAgent_strdup(buff);
 
    /* load additional config file name */
    for (i = 1; i < argc; i++) {
@@ -1020,14 +1019,23 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    }
 
    /* get config directory name */
-   if(m_configDirName)
-      free(m_configDirName);
    if(m_configFileName == NULL) {
       m_configFileName = MMDAgent_strdup(binaryFileName);
       m_configDirName = MMDAgent_strdup(binaryDirName);
    } else {
-      m_configDirName = MMDAgent_dirdup(m_configFileName);
+      m_configDirName = MMDAgent_dirname(m_configFileName);
    }
+
+   /* create window */
+   m_screen = new ScreenWindow();
+   if(m_screen->setup(m_option->getWindowSize(), title, m_option->getMaxMultiSampling()) == false) {
+      clear();
+      return false;
+   }
+
+   /* initialize message queue */
+   m_message = new Message();
+   m_message->setup();
 
    /* initialize BulletPhysics */
    m_bullet = new BulletPhysics();
@@ -1037,15 +1045,6 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    m_plugin = new Plugin();
    sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
    m_plugin->load(buff);
-
-   /* create window */
-   m_screen = new Screen();
-   m_hWnd = m_screen->setup(m_option->getWindowSize(), hInstance, title, windowName, m_option->getMaxMultiSampling(), m_option->getMaxMultiSamplingColor(), m_option->getTopMost());
-   if (m_hWnd == 0) {
-      clear();
-      return 0;
-   }
-   DragAcceptFiles(m_hWnd, true); /* allow drag and drop */
 
    /* create stage */
    m_stage = new Stage();
@@ -1075,12 +1074,12 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
 
    /* setup timer */
    m_timer = new Timer();
-   m_timer->setup(2); /* set timer precision to 2ms */
+   m_timer->setup();
    m_timer->startAdjustment();
 
    /* setup text render */
    m_text = new TextRenderer();
-   m_text->setup(m_screen->getDC());
+   m_text->setup();
 
    /* setup logger */
    m_logger = new LogText();
@@ -1093,14 +1092,9 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    /* setup motions */
    m_motion = new MotionStocker();
 
-   /* load model from arguments */
-   for (i = 1; i < argc; i++)
-      if (MMDAgent_strtailmatch(argv[i], ".pmd"))
-         addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
-
    /* set full screen */
-   if (m_option->getFullScreen())
-      m_screen->setFullScreen(m_hWnd);
+   if (m_option->getFullScreen() == true)
+      m_screen->setFullScreen();
 
    /* set mouse enable timer */
    m_screen->setMouseActiveTime(45.0f);
@@ -1108,18 +1102,51 @@ HWND MMDAgent::setup(HINSTANCE hInstance, const char *title, const char *windowN
    /* update light */
    updateLight();
 
-   SetCurrentDirectoryA(m_configDirName);
-
-   m_plugin->execAppStart(this);
-
    free(binaryFileName);
    free(binaryDirName);
 
-   return m_hWnd;
+   m_enable = true;
+
+   /* load model from arguments */
+   for (i = 1; i < argc; i++)
+      if (MMDAgent_strtailmatch(argv[i], ".pmd"))
+         addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
+
+   if(MMDAgent_chdir(m_configDirName) == false) {
+      clear();
+      return false;
+   }
+
+   m_plugin->execAppStart(this);
+   return true;
+}
+
+/* MMDAgent::updateAndRender: update and render the whole scene */
+void MMDAgent::updateAndRender()
+{
+   static char buf1[MMDAGENT_MAXBUFLEN];
+   static char buf2[MMDAGENT_MAXBUFLEN];
+
+   if(m_enable == false)
+      return;
+
+   /* check stored message */
+   while(m_message->dequeueCommand(buf1, buf2) == true)
+      procCommandMessage(buf1, buf2);
+   while(m_message->dequeueEvent(buf1, buf2) == true)
+      procEventMessage(buf1, buf2);
+   while(m_message->dequeueLog(buf1) == true)
+      procLogMessage(buf1);
+
+   /* update */
+   if (updateScene()) {
+      /* render */
+      renderScene();
+   }
 }
 
 /* MMDAgent::updateScene: update the whole scene */
-void MMDAgent::updateScene()
+bool MMDAgent::updateScene()
 {
    int i, ite;
    double intervalFrame;
@@ -1130,7 +1157,8 @@ void MMDAgent::updateScene()
    double adjustFrame;
    MotionPlayer *motionPlayer;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return false;
 
    /* get frame interval */
    intervalFrame = m_timer->getFrameInterval();
@@ -1144,9 +1172,9 @@ void MMDAgent::updateScene()
             m_model[i].updateMotion(0);
          }
          m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
+         m_model[i].updateSkin();
       }
-      InvalidateRect(m_hWnd, NULL, false);
-      return;
+      return true;
    }
 
    stepmax = m_option->getBulletFps();
@@ -1154,10 +1182,16 @@ void MMDAgent::updateScene()
    restFrame = intervalFrame + m_restFrame;
    m_restFrame = 0.0;
 
+   if (restFrame <= stepFrame * 0.5 && m_screen->getVSync() == true) {
+      /* skip update and render */
+      m_restFrame = restFrame;
+      return false;
+   }
+
    for (ite = 0; ite < stepmax; ite++) {
       /* determine frame amount */
       if (restFrame <= stepFrame) {
-         if (m_screen->getVSync()) {
+         if (m_screen->getVSync() == true) {
             if (restFrame > stepFrame * 0.5) {
                /* process one step in advance */
                procFrame = stepFrame;
@@ -1224,8 +1258,10 @@ void MMDAgent::updateScene()
    }
    /* update after simulation */
    for (i = 0; i < m_numModel; i++)
-      if (m_model[i].isEnable() == true)
+      if (m_model[i].isEnable() == true) {
          m_model[i].updateAfterSimulation(m_enablePhysicsSimulation);
+         m_model[i].updateSkin();
+      }
 
    /* calculate rendering range for shadow mapping */
    if(m_option->getUseShadowMapping())
@@ -1234,7 +1270,7 @@ void MMDAgent::updateScene()
    /* decrement mouse active time */
    m_screen->updateMouseActiveTime(intervalFrame);
 
-   InvalidateRect(m_hWnd, NULL, false);
+   return true;
 }
 
 /* MMDAgent::renderScene: render the whole scene */
@@ -1255,7 +1291,8 @@ void MMDAgent::renderScene()
       { 0.5f, 0.5f, -0.5f}
    };
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    /* update model position and rotation */
    fps = m_timer->getFps();
@@ -1278,7 +1315,7 @@ void MMDAgent::renderScene()
    m_render->getRenderOrder(m_renderOrder, m_model, m_numModel);
 
    /* render scene */
-   m_render->render(m_model, m_renderOrder, m_numModel, m_stage, m_option->getUseMMDLikeCartoon(), m_option->getUseCartoonRendering(), m_option->getLightIntensity(), m_option->getLightDirection(), m_option->getLightColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getShadowMappingSelfDensity(), m_option->getShadowMappingFloorDensity(), m_render->isViewMoving() ? m_timer->ellapsed() : 0);
+   m_render->render(m_model, m_renderOrder, m_numModel, m_stage, m_option->getUseMMDLikeCartoon(), m_option->getUseCartoonRendering(), m_option->getLightIntensity(), m_option->getLightDirection(), m_option->getLightColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getShadowMappingSelfDensity(), m_option->getShadowMappingFloorDensity(), m_render->isViewMoving() ? m_timer->ellapsed() : 0.0);
 
    /* show debug display */
    if (m_dispModelDebug)
@@ -1299,8 +1336,10 @@ void MMDAgent::renderScene()
 
    /* show fps */
    if (m_option->getShowFps()) {
-      sprintf(buff, "%5.1ffps ", m_timer->getFps());
-      m_screen->getInfoString(&(buff[9]));
+      if(m_screen->getNumMultiSampling() > 0)
+         sprintf(buff, "%5.1ffps %dx MSAA", m_timer->getFps(), m_screen->getNumMultiSampling());
+      else
+         sprintf(buff, "%5.1ffps No AA", m_timer->getFps());
       glDisable(GL_LIGHTING);
       glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
       glPushMatrix();
@@ -1431,13 +1470,18 @@ void MMDAgent::renderScene()
 /* MMDAgent::drawString: draw string */
 void MMDAgent::drawString(const char *str)
 {
-   if(m_text != NULL)
-      m_text->drawString(str);
+   if(m_enable == false)
+      return;
+
+   m_text->drawString(str);
 }
 
 /* resetAdjustmentTimer: reset adjustment timer */
 void MMDAgent::resetAdjustmentTimer()
 {
+   if(m_enable == false)
+      return;
+
    m_timer->setTargetAdjustmentFrame((double) m_option->getMotionAdjustFrame() * 0.03);
    m_timer->startAdjustment();
 }
@@ -1446,72 +1490,70 @@ void MMDAgent::resetAdjustmentTimer()
 void MMDAgent::sendCommandMessage(const char * type, const char * format, ...)
 {
    va_list argv;
-   char *buf1, *buf2;
+   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
 
-   if (!m_hWnd) return;
-
-   buf1 = MMDAgent_strdup(type);
+   if(m_enable == false)
+      return;
 
    if (format == NULL) {
-      ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, 0);
+      m_message->enqueueCommand(type, NULL);
       return;
    }
 
-   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
-
    va_start(argv, format);
-   vsprintf(buf2, format, argv);
+   vsprintf(buf, format, argv);
    va_end(argv);
 
-   ::PostMessage(m_hWnd, WM_MMDAGENT_COMMAND, (WPARAM) buf1, (LPARAM) buf2);
+   m_message->enqueueCommand(type, buf);
 }
 
 /* MMDAgent::sendEventMessage: send event message */
 void MMDAgent::sendEventMessage(const char * type, const char * format, ...)
 {
    va_list argv;
-   char *buf1, *buf2;
+   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
 
-   if (!m_hWnd) return;
-
-   buf1 = MMDAgent_strdup(type);
+   if(m_enable == false)
+      return;
 
    if (format == NULL) {
-      ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, 0);
+      m_message->enqueueEvent(type, NULL);
       return;
    }
 
-   buf2 = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
-
    va_start(argv, format);
-   vsprintf(buf2, format, argv);
+   vsprintf(buf, format, argv);
    va_end(argv);
 
-   ::PostMessage(m_hWnd, WM_MMDAGENT_EVENT, (WPARAM) buf1, (LPARAM) buf2);
+   m_message->enqueueEvent(type, buf);
 }
 
 /* MMDAgent::showLogMessage: show log message */
 void MMDAgent::showLogMessage(const char * format, ...)
 {
    va_list argv;
-   char *buf;
+   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
 
-   if (m_hWnd == 0 || MMDAgent_strlen(format) <= 0)
+   if(m_enable == false)
       return;
 
-   buf = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
+   if (MMDAgent_strlen(format) <= 0)
+      return;
 
    va_start(argv, format);
    vsprintf(buf, format, argv);
    va_end(argv);
 
-   ::PostMessage(m_hWnd, WM_MMDAGENT_LOG, (WPARAM) buf, 0);
+   m_message->enqueueLog(buf);
 }
 
 /* MMDAgent::findModelAlias: find a model with the specified alias */
 int MMDAgent::findModelAlias(const char * alias)
 {
    int i;
+
+   if(m_enable == false)
+      return 0;
 
    if(alias)
       for (i = 0; i < m_numModel; i++)
@@ -1524,54 +1566,86 @@ int MMDAgent::findModelAlias(const char * alias)
 /* MMDAgent::getMoelList: get model list */
 PMDObject *MMDAgent::getModelList()
 {
+   if(m_enable == false)
+      return NULL;
+
    return m_model;
 }
 
 /* MMDAgent::getNumModel: get number of models */
 short MMDAgent::getNumModel()
 {
+   if(m_enable == false)
+      return 0;
+
    return m_numModel;
+}
+
+/* MMDAgent::getMousePosition:: get mouse position */
+void MMDAgent::getMousePosition(int *x, int *y)
+{
+   if(m_enable == false)
+      return;
+
+   *x = m_mousePosX;
+   *y = m_mousePosY;
 }
 
 /* MMDAgent::getScreenPointPosition: convert screen position to object position */
 void MMDAgent::getScreenPointPosition(btVector3 * dst, btVector3 * src)
 {
+   if(m_enable == false)
+      return;
+
    m_render->getScreenPointPosition(dst, src);
 }
 
-/* MMDAgent::getWindowHandler: get window handle */
-HWND MMDAgent::getWindowHandler()
+/* MMDAgent::getWindowSize: get window size */
+void MMDAgent::getWindowSize(int *w, int *h)
 {
-   return m_hWnd;
-}
+   int *size;
 
-/* MMDAgent::getInstance: get instance */
-HINSTANCE MMDAgent::getInstance()
-{
-   return m_hInst;
+   if(m_enable == false)
+      return;
+
+   size = m_option->getWindowSize();
+   *w = size[0];
+   *h = size[1];
 }
 
 /* MMDAgent::getConfigFileName: get config file name for plugin */
 char *MMDAgent::getConfigFileName()
 {
+   if(m_enable == false)
+      return NULL;
+
    return m_configFileName;
 }
 
 /* MMDAgent::getConfigDirName: get directory of config file for plugin */
 char *MMDAgent::getConfigDirName()
 {
+   if(m_enable == false)
+      return NULL;
+
    return m_configDirName;
 }
 
 /* MMDAgent::getAppDirName: get application directory name for plugin */
 char *MMDAgent::getAppDirName()
 {
+   if(m_enable == false)
+      return NULL;
+
    return m_appDirName;
 }
 
 /* MMDAgent::procWindowDestroyMessage: process window destroy message */
 void MMDAgent::procWindowDestroyMessage()
 {
+   if(m_enable == false)
+      return;
+
    if(m_plugin)
       m_plugin->execAppEnd(this);
    clear();
@@ -1580,11 +1654,12 @@ void MMDAgent::procWindowDestroyMessage()
 /* MMDAgent::procMouseLeftButtonDoubleClickMessage: process mouse left button double click message */
 void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    /* double click */
-   m_mousepos.x = x;
-   m_mousepos.y = y;
+   m_mousePosX = x;
+   m_mousePosY = y;
    /* store model ID */
    m_selectedModel = m_render->pickModel(m_model, m_numModel, x, y, NULL);
    /* make model highlight */
@@ -1595,11 +1670,12 @@ void MMDAgent::procMouseLeftButtonDoubleClickMessage(int x, int y)
 /* MMDAgent::procMouseLeftButtonDownMessage: process mouse left button down message */
 void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool withShift)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    /* start hold */
-   m_mousepos.x = x;
-   m_mousepos.y = y;
+   m_mousePosX = x;
+   m_mousePosY = y;
    m_leftButtonPressed = true;
    m_doubleClicked = false;
    /* store model ID */
@@ -1611,7 +1687,8 @@ void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool 
 /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
 void MMDAgent::procMouseLeftButtonUpMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    /* if highlight, trun off */
    if (!m_doubleClicked)
@@ -1625,7 +1702,8 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
 {
    float tmp1, tmp2;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if (withCtrl && withShift) {
       /* move camera fovy */
@@ -1656,17 +1734,18 @@ void MMDAgent::procMouseWheelMessage(bool zoomup, bool withCtrl, bool withShift)
    }
 }
 
-/* MMDAgent::procMouseMoveMessage: process mouse move message */
-void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
+/* MMDAgent::procMousePosMessage: process mouse position message */
+void MMDAgent::procMousePosMessage(int x, int y, bool withCtrl, bool withShift)
 {
    float *f;
-   LONG r1; /* should be renamed */
-   LONG r2;
+   int r1, r2;
    btVector3 v;
    btMatrix3x3 bm;
    btTransform tr;
+   float factor;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    /* store Ctrl-key and Shift-key state for drag and drop */
    m_keyCtrl = withCtrl;
@@ -1675,12 +1754,14 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
    if (m_leftButtonPressed) {
       r1 = x;
       r2 = y;
-      r1 -= m_mousepos.x;
-      r2 -= m_mousepos.y;
+      r1 -= m_mousePosX;
+      r2 -= m_mousePosY;
       if (r1 > 32767) r1 -= 65536;
       if (r1 < -32768) r1 += 65536;
       if (r2 > 32767) r2 -= 65536;
       if (r2 < -32768) r2 += 65536;
+      factor = fabs(m_render->getDistance());
+      if (factor < 10.0f) factor = 10.0f;
       if (withShift && withCtrl && m_selectedModel == -1) {
          /* if Shift- and Ctrl-key, and no model is pointed, rotate light direction */
          f = m_option->getLightDirection();
@@ -1695,19 +1776,19 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
             m_model[m_selectedModel].getTargetPosition(&v);
             if (withShift) {
                /* with Shift-key, move on XY (coronal) plane */
-               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
-               v.setY(v.y() - r2 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
+               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor);
+               v.setY(v.y() - r2 * 0.001f * m_option->getTranslateStep() * factor);
             } else {
                /* else, move on XZ (axial) plane */
-               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
-               v.setZ(v.z() + r2 * 0.001f * m_option->getTranslateStep() * m_render->getDistance());
+               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor);
+               v.setZ(v.z() + r2 * 0.001f * m_option->getTranslateStep() * factor);
             }
             m_model[m_selectedModel].setPosition(&v);
             m_model[m_selectedModel].setMoveSpeed(-1.0f);
          }
       } else if (withShift) {
          /* if Shift-key, translate display */
-         v = btVector3(r1 * 0.0005f * m_render->getDistance(), -r2 * 0.0005f * m_render->getDistance(), 0.0f);
+         v = btVector3(r1 * 0.0005f * factor, -r2 * 0.0005f * factor, 0.0f);
          m_render->getCurrentViewTransform(&tr);
          tr.setOrigin(btVector3(0.0f, 0.0f, 0.0f));
          v = tr.inverse() * v;
@@ -1716,18 +1797,19 @@ void MMDAgent::procMouseMoveMessage(int x, int y, bool withCtrl, bool withShift)
          /* if no key, rotate display */
          m_render->rotate(r2 * 0.1f * m_option->getRotateStep(), r1 * 0.1f * m_option->getRotateStep(), 0.0f);
       }
-      m_mousepos.x = x;
-      m_mousepos.y = y;
-   } else if (m_mousepos.x != x || m_mousepos.y != y) {
+   } else if (m_mousePosX != x || m_mousePosY != y) {
       /* set mouse enable timer */
       m_screen->setMouseActiveTime(45.0f);
    }
+   m_mousePosX = x;
+   m_mousePosY = y;
 }
 
 /* MMDAgent::procMouseRightButtonDownMessage: process mouse right button down message */
 void MMDAgent::procMouseRightButtonDownMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_screen->setMouseActiveTime(45.0f);
 }
@@ -1735,26 +1817,23 @@ void MMDAgent::procMouseRightButtonDownMessage()
 /* MMDAgent::procFullScreenMessage: process full screen message */
 void MMDAgent::procFullScreenMessage()
 {
-   RECT rc;
-
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if (m_option->getFullScreen() == true) {
-      m_screen->exitFullScreen(m_hWnd);
+      m_screen->exitFullScreen();
       m_option->setFullScreen(false);
    } else {
-      m_screen->setFullScreen(m_hWnd);
+      m_screen->setFullScreen();
       m_option->setFullScreen(true);
    }
-
-   GetClientRect(m_hWnd, &rc);
-   procWindowSizeMessage(rc.right - rc.left, rc.bottom - rc.top);
 }
 
 /* MMDAgent::procInfoStringMessage: process information string message */
 void MMDAgent::procInfoStringMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(m_option->getShowFps() == true)
       m_option->setShowFps(false);
@@ -1765,7 +1844,8 @@ void MMDAgent::procInfoStringMessage()
 /* MMDAgent::procVSyncMessage: process vsync message */
 void MMDAgent::procVSyncMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_screen->toggleVSync();
 }
@@ -1773,7 +1853,8 @@ void MMDAgent::procVSyncMessage()
 /* MMDAgent::procShadowMappingMessage: process shadow mapping message */
 void MMDAgent::procShadowMappingMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(m_option->getUseShadowMapping() == true) {
       m_option->setUseShadowMapping(false);
@@ -1786,7 +1867,8 @@ void MMDAgent::procShadowMappingMessage()
 /* MMDAgent::procShadowMappingOrderMessage: process shadow mapping order message */
 void MMDAgent::procShadowMappingOrderMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(m_option->getShadowMappingLightFirst() == true)
       m_option->setShadowMappingLightFirst(false);
@@ -1798,7 +1880,8 @@ void MMDAgent::procShadowMappingOrderMessage()
 /* MMDAgent::procDisplayRigidBodyMessage: process display rigid body message */
 void MMDAgent::procDisplayRigidBodyMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_dispBulletBodyFlag = !m_dispBulletBodyFlag;
 }
@@ -1808,7 +1891,8 @@ void MMDAgent::procDisplayWireMessage()
 {
    GLint polygonMode[2];
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    glGetIntegerv(GL_POLYGON_MODE, polygonMode);
    if (polygonMode[1] == GL_LINE)
@@ -1820,7 +1904,8 @@ void MMDAgent::procDisplayWireMessage()
 /* MMDAgent::procDisplayBoneMessage: process display bone message */
 void MMDAgent::procDisplayBoneMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_dispModelDebug = !m_dispModelDebug;
 }
@@ -1830,7 +1915,8 @@ void MMDAgent::procCartoonEdgeMessage(bool plus)
 {
    int i;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(plus)
       m_option->setCartoonEdgeWidth(m_option->getCartoonEdgeWidth() * m_option->getCartoonEdgeStep());
@@ -1843,7 +1929,8 @@ void MMDAgent::procCartoonEdgeMessage(bool plus)
 /* MMDAgent::procTimeAdjustMessage: process time adjust message */
 void MMDAgent::procTimeAdjustMessage(bool plus)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(plus)
       m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() + 10);
@@ -1855,7 +1942,8 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
 /* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
 void MMDAgent::procHorizontalRotateMessage(bool right)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(right)
       m_render->rotate(0.0f, m_option->getRotateStep(), 0.0f);
@@ -1866,7 +1954,8 @@ void MMDAgent::procHorizontalRotateMessage(bool right)
 /* MMDAgent::procVerticalRotateMessage: process vertical rotate message */
 void MMDAgent::procVerticalRotateMessage(bool up)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(up)
       m_render->rotate(-m_option->getRotateStep(), 0.0f, 0.0f);
@@ -1877,7 +1966,8 @@ void MMDAgent::procVerticalRotateMessage(bool up)
 /* MMDAgent::procHorizontalMoveMessage: process horizontal move message */
 void MMDAgent::procHorizontalMoveMessage(bool right)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(right)
       m_render->translate(m_option->getTranslateStep(), 0.0f, 0.0f);
@@ -1888,7 +1978,8 @@ void MMDAgent::procHorizontalMoveMessage(bool right)
 /* MMDAgent::procVerticalMoveMessage: process vertical move message */
 void MMDAgent::procVerticalMoveMessage(bool up)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    if(up)
       m_render->translate(0.0f, m_option->getTranslateStep(), 0.0f);
@@ -1899,9 +1990,10 @@ void MMDAgent::procVerticalMoveMessage(bool up)
 /* MMDAgent::procDeleteModelMessage: process delete model message */
 void MMDAgent::procDeleteModelMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
-   if (m_doubleClicked) {
+   if (m_doubleClicked && m_selectedModel != -1) {
       deleteModel(m_model[m_selectedModel].getAlias());
       m_doubleClicked = false;
    }
@@ -1912,7 +2004,8 @@ void MMDAgent::procPhysicsMessage()
 {
    int i;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_enablePhysicsSimulation = !m_enablePhysicsSimulation;
    for (i = 0; i < m_numModel; i++)
@@ -1922,7 +2015,8 @@ void MMDAgent::procPhysicsMessage()
 /* MMDAgent::procDisplayLogMessage: process display log message */
 void MMDAgent::procDisplayLogMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_dispLog = !m_dispLog;
 }
@@ -1930,7 +2024,8 @@ void MMDAgent::procDisplayLogMessage()
 /* MMDAgent::procHoldMessage: process hold message */
 void MMDAgent::procHoldMessage()
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    m_holdMotion = !m_holdMotion;
 }
@@ -1938,7 +2033,14 @@ void MMDAgent::procHoldMessage()
 /* MMDAgent::procWindowSizeMessage: process window size message */
 void MMDAgent::procWindowSizeMessage(int x, int y)
 {
-   if (!m_hWnd) return;
+   int size[2];
+
+   if(m_enable == false)
+      return;
+
+   size[0] = x;
+   size[1] = y;
+   m_option->setWindowSize(size);
 
    m_render->setSize(x, y);
 }
@@ -1946,16 +2048,17 @@ void MMDAgent::procWindowSizeMessage(int x, int y)
 /* MMDAgent::procKeyMessage: process key message */
 void MMDAgent::procKeyMessage(char c)
 {
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
    sendEventMessage(MMDAGENT_EVENT_KEY, "%C", c);
 }
 
 /* MMDAgent::procCommandMessage: process command message */
-void MMDAgent::procCommandMessage(char * mes1, char * mes2)
+void MMDAgent::procCommandMessage(const char *type, const char *value)
 {
-   static char command[MMDAGENT_MAXBUFLEN];
-   static char argv[MMDAGENT_MAXNCOMMAND][MMDAGENT_MAXBUFLEN]; /* static buffer */
+   static char buff[MMDAGENT_MAXBUFLEN];    /* static buffer */
+   static char *argv[MMDAGENT_MAXNCOMMAND];
    int num = 0;
 
    char *str1, *str2, *str3;
@@ -1965,53 +2068,43 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
    btQuaternion rot;
    float fvec[3];
 
-   if (!m_hWnd) {
-      if(mes1 != NULL)
-         free(mes1);
-      if(mes2 != NULL)
-         free(mes2);
+   if(m_enable == false)
       return;
-   }
+
+   if(MMDAgent_strlen(type) <= 0)
+      return;
 
    /* plugin */
    if(m_plugin)
-      m_plugin->execProcCommand(this, mes1, mes2);
-
-   /* command */
-   strncpy(command, mes1, MMDAGENT_MAXBUFLEN - 1);
-   command[MMDAGENT_MAXBUFLEN - 1] = '\0';
+      m_plugin->execProcCommand(this, type, value);
 
    /* divide string into arguments */
-   if (MMDAgent_strlen(mes2) <= 0) {
-      m_logger->log("<%s>", command);
+   if (MMDAgent_strlen(value) <= 0) {
+      m_logger->log("<%s>", type);
    } else {
-      m_logger->log("<%s|%s>", command, mes2);
-      for (str1 = MMDAgent_strtok(mes2, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
+      m_logger->log("<%s|%s>", type, value);
+      strncpy(buff, value, MMDAGENT_MAXBUFLEN - 1);
+      buff[MMDAGENT_MAXBUFLEN-1] = '\0';
+      for (str1 = MMDAgent_strtok(buff, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
          if (num >= MMDAGENT_MAXNCOMMAND) {
-            m_logger->log("Error: %s: number of arguments exceed the limit.", command);
+            m_logger->log("Error: %s: number of arguments exceed the limit.", type);
             break;
          }
-         strncpy(argv[num], str1, MMDAGENT_MAXBUFLEN - 1);
-         argv[num][MMDAGENT_MAXBUFLEN - 1] = '\0';
+         argv[num] = str1;
          num++;
       }
    }
 
-   if(mes1 != NULL)
-      free(mes1);
-   if(mes2 != NULL)
-      free(mes2);
-
-   if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELADD)) {
+   if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MODELADD)) {
       str1 = NULL;
       str2 = NULL;
       if (num < 2 || num > 6) {
-         m_logger->log("Error: %s: number of arguments should be 2-6.", command);
+         m_logger->log("Error: %s: number of arguments should be 2-6.", type);
          return;
       }
       if (num >= 3) {
          if (MMDAgent_str2pos(argv[2], &pos) == false) {
-            m_logger->log("Error: %s: %s is not a position string.", command, argv[2]);
+            m_logger->log("Error: %s: %s is not a position string.", type, argv[2]);
             return;
          }
       } else {
@@ -2019,7 +2112,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
       }
       if (num >= 4) {
          if (MMDAgent_str2rot(argv[3], &rot) == false) {
-            m_logger->log("Error: %s: %s is not a rotation string.", command, argv[3]);
+            m_logger->log("Error: %s: %s is not a rotation string.", type, argv[3]);
             return;
          }
       } else {
@@ -2032,21 +2125,21 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          str2 = argv[5];
       }
       addModel(argv[0], argv[1], &pos, &rot, str1, str2);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELCHANGE)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MODELCHANGE)) {
       /* change model */
       if (num != 2) {
-         m_logger->log("Error: %s: number of arguments should be 2.", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", type);
          return;
       }
       changeModel(argv[0], argv[1]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MODELDELETE)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MODELDELETE)) {
       /* delete model */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       deleteModel(argv[0]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONADD)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONADD)) {
       /* add motion */
       bool1 = true; /* full */
       bool2 = true; /* once */
@@ -2054,7 +2147,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
       bool4 = true; /* enableRePos */
       f = MOTIONMANAGER_DEFAULTPRIORITY; /* priority */
       if (num < 3 || num > 8) {
-         m_logger->log("Error: %s: number of arguments should be 4-7.", command);
+         m_logger->log("Error: %s: number of arguments should be 4-7.", type);
          return;
       }
       if (num >= 4) {
@@ -2063,7 +2156,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[3], "PART")) {
             bool1 = false;
          } else {
-            m_logger->log("Error: %s: 4th argument should be \"FULL\" or \"PART\".", command);
+            m_logger->log("Error: %s: 4th argument should be \"FULL\" or \"PART\".", type);
             return;
          }
       }
@@ -2073,7 +2166,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[4], "LOOP")) {
             bool2 = false;
          } else {
-            m_logger->log("Error: %s: 5th argument should be \"ONCE\" or \"LOOP\".", command);
+            m_logger->log("Error: %s: 5th argument should be \"ONCE\" or \"LOOP\".", type);
             return;
          }
       }
@@ -2083,7 +2176,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[5], "OFF")) {
             bool3 = false;
          } else {
-            m_logger->log("Error: %s: 6th argument should be \"ON\" or \"OFF\".", command);
+            m_logger->log("Error: %s: 6th argument should be \"ON\" or \"OFF\".", type);
             return;
          }
       }
@@ -2093,7 +2186,7 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[6], "OFF")) {
             bool4 = false;
          } else {
-            m_logger->log("Error: %s: 7th argument should be \"ON\" or \"OFF\".", command);
+            m_logger->log("Error: %s: 7th argument should be \"ON\" or \"OFF\".", type);
             return;
          }
       }
@@ -2101,30 +2194,30 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          f = MMDAgent_str2float(argv[7]);
       }
       addMotion(argv[0], argv[1], argv[2], bool1, bool2, bool3, bool4, f);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONCHANGE)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONCHANGE)) {
       /* change motion */
       if (num != 3) {
-         m_logger->log("Error: %s: number of arguments should be 3.", command);
+         m_logger->log("Error: %s: number of arguments should be 3.", type);
          return;
       }
       changeMotion(argv[0], argv[1], argv[2]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOTIONDELETE)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONDELETE)) {
       /* delete motion */
       if (num != 2) {
-         m_logger->log("Error: %s: number of arguments should be 2.", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", type);
          return;
       }
       deleteMotion(argv[0], argv[1]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVESTART)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOVESTART)) {
       /* start moving */
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", type);
          return;
       }
       if (MMDAgent_str2pos(argv[1], &pos) == false) {
-         m_logger->log("Error: %s: %s is not a position string.", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a position string.", type, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -2133,30 +2226,30 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", type);
             return;
          }
       }
       if (num >= 4)
          f = MMDAgent_str2float(argv[3]);
       startMove(argv[0], &pos, bool1, f);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_MOVESTOP)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOVESTOP)) {
       /* stop moving */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       stopMove(argv[0]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATESTART)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_ROTATESTART)) {
       /* start rotation */
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", type);
          return;
       }
       if (MMDAgent_str2rot(argv[1], &rot) == false) {
-         m_logger->log("Error: %s: %s is not a rotation string.", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a rotation string.", type, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -2165,30 +2258,30 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", type);
             return;
          }
       }
       if (num >= 4)
          f = MMDAgent_str2float(argv[3]);
       startRotation(argv[0], &rot, bool1, f);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_ROTATESTOP)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_ROTATESTOP)) {
       /* stop rotation */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       stopRotation(argv[0]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURNSTART)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_TURNSTART)) {
       /* turn start */
       bool1 = false;
       f = -1.0;
       if (num < 2 || num > 4) {
-         m_logger->log("Error: %s: number of arguments should be 2-4.", command);
+         m_logger->log("Error: %s: number of arguments should be 2-4.", type);
          return;
       }
       if (MMDAgent_str2pos(argv[1], &pos) == false) {
-         m_logger->log("Error: %s: %s is not a position string.", command, argv[1]);
+         m_logger->log("Error: %s: %s is not a position string.", type, argv[1]);
          return;
       }
       if (num >= 3) {
@@ -2197,24 +2290,24 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          } else if (MMDAgent_strequal(argv[2], "GLOBAL")) {
             bool1 = false;
          } else {
-            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", command);
+            m_logger->log("Error: %s: 3rd argument should be \"GLOBAL\" or \"LOCAL\".", type);
             return;
          }
       }
       if (num >= 4)
          f = MMDAgent_str2float(argv[3]);
       startTurn(argv[0], &pos, bool1, f);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_TURNSTOP)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_TURNSTOP)) {
       /* stop turn */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       stopTurn(argv[0]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_STAGE)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_STAGE)) {
       /* change stage */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       /* pmd or bitmap */
@@ -2226,10 +2319,10 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
          setFloor(str1);
          setBackground(str2);
       }
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_CAMERA)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_CAMERA)) {
       /* camera */
       if((num < 4 || num > 5) && num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1 or 4-5.", command);
+         m_logger->log("Error: %s: number of arguments should be 1 or 4-5.", type);
          return;
       }
       if (num == 1) {
@@ -2237,39 +2330,39 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
       } else {
          changeCamera(argv[0], argv[1], argv[2], argv[3], (num == 5) ? argv[4] : NULL);
       }
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTCOLOR)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_LIGHTCOLOR)) {
       /* change light color */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
-         m_logger->log("Error: %s: \"%s\" is not RGB value.", command, argv[0]);
+         m_logger->log("Error: %s: \"%s\" is not RGB value.", type, argv[0]);
          return;
       }
       changeLightColor(fvec[0], fvec[1], fvec[2]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIGHTDIRECTION)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_LIGHTDIRECTION)) {
       /* change light direction */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       if (MMDAgent_str2fvec(argv[0], fvec, 3) == false) {
-         m_logger->log("Error: %s: \"%s\" is not XYZ value.", command, argv[0]);
+         m_logger->log("Error: %s: \"%s\" is not XYZ value.", type, argv[0]);
          return;
       }
       changeLightDirection(fvec[0], fvec[1], fvec[2]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTART)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_LIPSYNCSTART)) {
       /* start lip sync */
       if (num != 2) {
-         m_logger->log("Error: %s: number of arguments should be 2.", command);
+         m_logger->log("Error: %s: number of arguments should be 2.", type);
          return;
       }
       startLipSync(argv[0], argv[1]);
-   } else if (MMDAgent_strequal(command, MMDAGENT_COMMAND_LIPSYNCSTOP)) {
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_LIPSYNCSTOP)) {
       /* stop lip sync */
       if (num != 1) {
-         m_logger->log("Error: %s: number of arguments should be 1.", command);
+         m_logger->log("Error: %s: number of arguments should be 1.", type);
          return;
       }
       stopLipSync(argv[0]);
@@ -2277,48 +2370,53 @@ void MMDAgent::procCommandMessage(char * mes1, char * mes2)
 }
 
 /* MMDAgent::procEventMessage: process event message */
-void MMDAgent::procEventMessage(char * mes1, char * mes2)
+void MMDAgent::procEventMessage(const char *type, const char *value)
 {
+   if(m_enable == false)
+      return;
+
+   if (MMDAgent_strlen(type) <= 0)
+      return;
+
    /* plugin */
    if(m_plugin)
-      m_plugin->execProcEvent(this, mes1, mes2);
+      m_plugin->execProcEvent(this, type, value);
 
-   /* free strings */
-   if (m_hWnd && mes1 != NULL) {
-      if (MMDAgent_strlen(mes2) > 0)
-         m_logger->log("[%s|%s]", mes1, mes2);
-      else
-         m_logger->log("[%s]", mes1);
-   }
-   if (mes1 != NULL)
-      free(mes1);
-   if (mes2 != NULL)
-      free(mes2);
+   /* show log */
+   if (MMDAgent_strlen(value) > 0)
+      m_logger->log("[%s|%s]", type, value);
+   else
+      m_logger->log("[%s]", type);
 }
 
 /* MMDAgent::procLogMessage: process log message */
-void MMDAgent::procLogMessage(char * mes)
+void MMDAgent::procLogMessage(const char *log)
 {
-   if (m_hWnd && MMDAgent_strlen(mes) > 0)
-      m_logger->log("Log: %s", mes);
-   if (mes != NULL)
-      free(mes);
+   if(m_enable == false)
+      return;
+
+   if (MMDAgent_strlen(log) <= 0)
+      return;
+
+   m_logger->log("Log: %s", log);
 }
 
 /* MMDAgent::procDropFileMessage: process file drops message */
 void MMDAgent::procDropFileMessage(const char * file, int x, int y)
 {
    int i;
-
    int dropAllowedModelID;
    int targetModelID;
 
    /* for motion */
    MotionPlayer *motionPlayer;
 
-   if (!m_hWnd) return;
+   if(m_enable == false)
+      return;
 
-   if(file == NULL) return;
+   if(MMDAgent_strlen(file) <= 0)
+      return;
+
    sendEventMessage(MMDAGENT_EVENT_DRAGANDDROP, "%s|%d|%d", file, x, y);
 
    if (MMDAgent_strtailmatch(file, ".vmd") || MMDAgent_strtailmatch(file, ".VMD")) {

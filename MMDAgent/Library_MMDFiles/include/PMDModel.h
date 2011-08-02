@@ -66,7 +66,6 @@ private:
 
    /* model definition */
    char *m_name;     /* model name */
-   char *m_modelDir; /* where this model is located */
    char *m_comment;  /* comment string */
 
    unsigned long m_numVertex; /* number of vertices */
@@ -237,9 +236,6 @@ public:
    /* getComment: get comment of PMD */
    char *getComment();
 
-   /* getModelDir: get model directory */
-   char *getModelDir();
-
    /* setForceEdgeFlag: set force edge flag */
    void setForceEdgeFlag(bool flag);
 
@@ -275,6 +271,9 @@ public:
 
    /* renderForShadow: render for shadow */
    void renderForShadow();
+
+   /* renderForPick: render for pick */
+   void renderForPick();
 
    /* renderDebug: render for debug view */
    void renderDebug();

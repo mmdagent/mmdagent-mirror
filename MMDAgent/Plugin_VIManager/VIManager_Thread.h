@@ -39,8 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define VIMANAGERTHREAD_WAITMS 10000 /* 10 sec */
-
 /* VIManager_Event: input message buffer */
 typedef struct _VIManager_Event {
    char *type;
@@ -64,20 +62,21 @@ class VIManager_Thread
 {
 private:
 
-   VIManager m_vim;           /* voice interaction manager */
-   VIManager_Logger m_logger; /* logger */
-
-   VIManager_Link *m_sub; /* sub FST */
-
    MMDAgent *m_mmdagent;
 
-   bool m_stop;
+   GLFWmutex m_mutex;
+   GLFWcond m_cond;
+   GLFWthread m_thread;
 
-   HANDLE m_threadHandle; /* thread handle */
-   HANDLE m_queueMutex;   /* mutex for queue */
-   HANDLE m_transEvent;   /* event for transition */
+   int m_count;
+
+   bool m_kill;
 
    VIManager_EventQueue eventQueue; /* queue of input message */
+
+   VIManager m_vim;           /* main FST */
+   VIManager_Link *m_sub;     /* sub FST */
+   VIManager_Logger m_logger; /* logger */
 
    /* initialize: initialize thread */
    void initialize();
@@ -96,17 +95,17 @@ public:
    /* loadAndStart: load FST and start thread */
    void loadAndStart(MMDAgent *mmdagent, const char *file);
 
-   /* isRunning: check running */
-   bool isRunning();
-
    /* stopAndRelease: stop thread and release */
    void stopAndRelease();
 
+   /* run: main loop */
+   void run();
+
+   /* isRunning: check running */
+   bool isRunning();
+
    /* enqueueBuffer: enqueue buffer to check */
    void enqueueBuffer(const char *type, const char *args);
-
-   /* stateTransition: thread loop for VIManager */
-   void stateTransition();
 
    /* renderLog: render log message */
    void renderLog();

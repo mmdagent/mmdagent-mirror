@@ -76,3 +76,10 @@ void AlignedMotionState::setWorldTransform(const btTransform &worldTrans)
    m_graphicsWorldTrans.setOrigin(m_graphicsWorldTrans.getOrigin() + m_bone->getTransform()->getOrigin());
    m_graphicsWorldTrans.setBasis(bm);
 }
+
+
+/* AlignedMotionState::setWorldTransformDirectly: set world transform directly */
+void AlignedMotionState::setWorldTransformDirectly(const btTransform &worldTrans)
+{
+   m_graphicsWorldTrans = worldTrans;
+}

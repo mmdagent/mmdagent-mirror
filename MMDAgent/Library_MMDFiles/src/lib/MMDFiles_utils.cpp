@@ -41,6 +41,13 @@
 
 /* headers */
 
+#ifndef _WIN32
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#else
+#include <iconv.h>
+#endif /* __APPLE__ */
+#endif /* !_WIN32 */
 #include "MMDFiles.h"
 
 /* MMDFiles_charsize: number of character byte */
@@ -49,7 +56,7 @@ static const unsigned char MMDFiles_charsize[] = {
    1, 0xA1, 0xDF, /* 1 byte char */
    2, 0x81, 0x9F, /* 2 byte char */
    2, 0xE0, 0xEF, /* 2 byte char */
-   -1, -1, -1
+   0, 0, 0
 };
 
 /* MMDFiles_getcharsize: get character size */
@@ -65,6 +72,20 @@ unsigned char MMDFiles_getcharsize(const char *str)
    return 0;
 }
 
+/* MMDFiles_dirseparator: check directory separator */
+bool MMDFiles_dirseparator(char c)
+{
+   int i;
+   const char list[] = {MMDFILESUTILS_DIRSEPARATORS, 0};
+
+   for(i = 0; list[i] != 0; i++) {
+      if(c == list[i])
+         return true;
+   }
+
+   return false;
+}
+
 /* MMDFiles_strequal: string matching */
 bool MMDFiles_strequal(const char *str1, const char *str2)
 {
@@ -73,6 +94,25 @@ bool MMDFiles_strequal(const char *str1, const char *str2)
    else if(str1 == str2)
       return true;
    else if(strcmp(str1, str2) == 0)
+      return true;
+   else
+      return false;
+}
+
+/* MMDFiles_strheadmatch: match head string */
+bool MMDFiles_strheadmatch(const char *str1, const char *str2)
+{
+   int len1, len2;
+
+   if(str1 == NULL || str2 == NULL)
+      return false;
+   if(str1 == str2)
+      return true;
+   len1 = strlen(str1);
+   len2 = strlen(str2);
+   if(len1 < len2)
+      return false;
+   if(strncmp(str1, str2, len2) == 0)
       return true;
    else
       return false;
@@ -119,8 +159,84 @@ char *MMDFiles_strdup(const char *str)
    return buf;
 }
 
-/* MMDFiles_dirdup: get directory from file path */
-char *MMDFiles_dirdup(const char *file)
+/* MMDFiles_pathdup: convert charset from application to system */
+char *MMDFiles_pathdup(const char *str)
+{
+#ifdef _WIN32
+   return MMDFiles_strdup(str);
+#else
+#ifdef __APPLE__
+   size_t i, size;
+   char *inBuff, *outBuff;
+   size_t inLen, outLen;
+   CFStringRef cfs;
+
+   inLen = MMDFiles_strlen(str);
+   if(inLen <= 0)
+      return NULL;
+
+   inBuff = MMDFiles_strdup(str);
+   if(inBuff == NULL)
+      return NULL;
+
+   /* convert directory separator */
+   for(i = 0; i < inLen; i += size) {
+      size = MMDFiles_getcharsize(&inBuff[i]);
+      if(size == 1 && MMDFiles_dirseparator(inBuff[i]) == true)
+         inBuff[i] = MMDFILES_DIRSEPARATOR;
+   }
+
+   /* convert multi-byte char */
+   cfs = CFStringCreateWithCString(NULL, inBuff, kCFStringEncodingDOSJapanese);
+   outLen = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingUTF8) + 1;
+   outBuff = (char *) malloc(outLen);
+   CFStringGetCString(cfs, outBuff, outLen, kCFStringEncodingUTF8);
+   CFRelease(cfs);
+
+   return outBuff;
+#else
+   iconv_t ic;
+   size_t i, size;
+   char *inBuff, *outBuff;
+   char *inFile, *outFile;
+   size_t inLen, outLen;
+
+   inLen = MMDFiles_strlen(str);
+   if(inLen <= 0)
+      return NULL;
+   outLen = inLen * MMDFILESUTILS_MAXCHARBYTE;
+
+   ic = iconv_open(MMDFILES_CHARSET, "SJIS");
+   if(ic < 0)
+      return NULL;
+
+   inBuff = inFile = MMDFiles_strdup(str);
+   outBuff = outFile = (char *) calloc(outLen, sizeof(char));
+
+   /* convert directory separator */
+   for(i = 0; i < inLen; i += size) {
+      size = MMDFiles_getcharsize(&inFile[i]);
+      if(size == 1 && MMDFiles_dirseparator(inFile[i]) == true)
+         inFile[i] = MMDFILES_DIRSEPARATOR;
+   }
+
+   /* convert muli-byte char */
+   if(iconv(ic, &inFile, &inLen, &outFile, &outLen) >= 0) {
+      outFile = '\0';
+   } else {
+      strcpy(outBuff, "");
+   }
+
+   iconv_close(ic);
+
+   free(inBuff);
+   return outBuff;
+#endif /* __APPLE__ */
+#endif /* _WIN32 */
+}
+
+/* MMDFiles_dirname: get directory name from path */
+char *MMDFiles_dirname(const char *file)
 {
    int i, len, index = -1;
    char size;
@@ -130,7 +246,7 @@ char *MMDFiles_dirdup(const char *file)
 
    for(i = 0; i < len; i += size) {
       size = MMDFiles_getcharsize(&file[i]);
-      if(size == 1 && file[i] == MMDFILES_DIRSEPARATOR)
+      if(size == 1 && MMDFiles_dirseparator(file[i]) == true)
          index = i;
    }
 
@@ -145,13 +261,62 @@ char *MMDFiles_dirdup(const char *file)
    return dir;
 }
 
+/* MMDFiles_basename: get file name from path */
+char *MMDFiles_basename(const char *file)
+{
+   int i, len, index = -1;
+   char size;
+   char *base;
+
+   len = MMDFiles_strlen(file);
+
+   for(i = 0; i < len; i += size) {
+      size = MMDFiles_getcharsize(&file[i]);
+      if(size == 1 && MMDFiles_dirseparator(file[i]) == true)
+         index = i;
+   }
+
+   if(index >= 0) {
+      base = (char *) malloc(sizeof(char) * (len - index));
+      strncpy(base, &file[index+1], len - index - 1);
+      base[len-index-1] = '\0';
+   } else {
+      base = MMDFiles_strdup(file);
+   }
+
+   return base;
+}
+
+/* MMDFiles_fopen: get file pointer */
+FILE *MMDFiles_fopen(const char *file, const char *mode)
+{
+#ifdef _WIN32
+   if(file == NULL || mode == NULL)
+      return NULL;
+   else
+      return fopen(file, mode);
+#else
+   char *path;
+   FILE *fp;
+
+   if(file == NULL || mode == NULL)
+      return NULL;
+
+   path = MMDFiles_pathdup(file);
+   fp = fopen(path, mode);
+   free(path);
+
+   return fp;
+#endif /* _WIN32 */
+}
+
 /* MMDFiles_getfsize: get file size */
 size_t MMDFiles_getfsize(const char *file)
 {
    FILE *fp;
    fpos_t size;
 
-   fp = fopen(file, "rb");
+   fp = MMDFiles_fopen(file, "rb");
    if (!fp)
       return 0;
 
@@ -160,5 +325,9 @@ size_t MMDFiles_getfsize(const char *file)
    fseek(fp, 0, SEEK_SET);
    fclose(fp);
 
+#if defined(_WIN32) || defined(__APPLE__)
    return (size_t) size;
+#else
+   return (size_t) size.__pos;
+#endif /* _WIN32 || __APPLE__ */
 }

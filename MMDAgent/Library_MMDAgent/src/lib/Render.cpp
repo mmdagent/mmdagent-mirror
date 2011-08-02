@@ -85,7 +85,7 @@ void Render::updateModelViewMatrix()
 }
 
 /* Render::updateTransRotMatrix:  update trans and rotation matrix */
-bool Render::updateTransRotMatrix(int ellapsedTimeForMove)
+bool Render::updateTransRotMatrix(double ellapsedTimeForMove)
 {
    float diff1, diff2;
    btVector3 trans;
@@ -105,8 +105,8 @@ bool Render::updateTransRotMatrix(int ellapsedTimeForMove)
          m_currentRot = m_rot;
          m_currentTrans = m_trans;
       } else {
-         m_currentTrans = m_viewMoveStartTrans.lerp(m_trans, (btScalar) ellapsedTimeForMove / m_viewMoveTime);
-         m_currentRot = m_viewMoveStartRot.slerp(m_rot, (btScalar) ellapsedTimeForMove / m_viewMoveTime);
+         m_currentTrans = m_viewMoveStartTrans.lerp(m_trans, (btScalar) (ellapsedTimeForMove / m_viewMoveTime));
+         m_currentRot = m_viewMoveStartRot.slerp(m_rot, (btScalar) (ellapsedTimeForMove / m_viewMoveTime));
       }
    } else {
       /* calculate difference */
@@ -139,7 +139,7 @@ void Render::updateRotationFromAngle()
 }
 
 /* Render::updateDistance: update distance */
-bool Render::updateDistance(int ellapsedTimeForMove)
+bool Render::updateDistance(double ellapsedTimeForMove)
 {
    float diff;
 
@@ -155,7 +155,7 @@ bool Render::updateDistance(int ellapsedTimeForMove)
       if (ellapsedTimeForMove >= m_viewMoveTime) {
          m_currentDistance = m_distance;
       } else {
-         m_currentDistance = m_viewMoveStartDistance + (m_distance - m_viewMoveStartDistance) * ellapsedTimeForMove / m_viewMoveTime;
+         m_currentDistance = m_viewMoveStartDistance + (m_distance - m_viewMoveStartDistance) * (float)(ellapsedTimeForMove / m_viewMoveTime);
       }
    } else {
       diff = fabs(m_currentDistance - m_distance);
@@ -170,7 +170,7 @@ bool Render::updateDistance(int ellapsedTimeForMove)
 }
 
 /* Render::updateFovy: update distance */
-bool Render::updateFovy(int ellapsedTimeForMove)
+bool Render::updateFovy(double ellapsedTimeForMove)
 {
    float diff;
 
@@ -186,7 +186,7 @@ bool Render::updateFovy(int ellapsedTimeForMove)
       if (ellapsedTimeForMove >= m_viewMoveTime) {
          m_currentFovy = m_fovy;
       } else {
-         m_currentFovy = m_viewMoveStartFovy + (m_fovy - m_viewMoveStartFovy) * ellapsedTimeForMove / m_viewMoveTime;
+         m_currentFovy = m_viewMoveStartFovy + (m_fovy - m_viewMoveStartFovy) * (float)(ellapsedTimeForMove / m_viewMoveTime);
       }
    } else {
       diff = fabs(m_currentFovy - m_fovy);
@@ -236,7 +236,7 @@ void Render::initializeShadowMap(int textureSize)
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-#endif
+#endif /* RENDER_SHADOWPCF */
 
    /* tell OpenGL to compare the R texture coordinates to the (depth) texture value */
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
@@ -291,7 +291,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
 #ifdef RENDER_SHADOWAUTOVIEW
    float eyeDist;
    btVector3 v;
-#endif
+#endif /* RENDER_SHADOWAUTOVIEW */
 
    static GLfloat lightdim[] = { 0.2f, 0.2f, 0.2f, 1.0f };
    static const GLfloat lightblk[] = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -333,7 +333,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
    /* fixed view */
    gluPerspective(25.0, 1.0, 1.0, 120.0);
    gluLookAt(30.0, 77.0, 30.0, 0.0, 17.0, 0.0, 0.0, 1.0, 0.0);
-#endif
+#endif /* RENDER_SHADOWAUTOVIEW */
 
    /* keep the current model view for later process */
    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
@@ -858,7 +858,7 @@ void Render::getRenderOrder(short *order, PMDObject *objs, int num)
 }
 
 /* Render::render: render all */
-void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, int ellapsedTimeForMove)
+void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove)
 {
    bool updated;
 
@@ -889,7 +889,7 @@ int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPick
 
    GLint hits;
    GLuint *data;
-   GLuint minDepth, minDepthAllowDrop;
+   GLuint minDepth = 0, minDepthAllowDrop = 0;
    int minID, minIDAllowDrop;
    GLuint depth;
    int id;
@@ -918,7 +918,7 @@ int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPick
    for (i = 0; i < num; i++) {
       if (objs[i].isEnable() == true) {
          glLoadName(i);
-         objs[i].getPMDModel()->renderForShadow();
+         objs[i].getPMDModel()->renderForPick();
       }
    }
 

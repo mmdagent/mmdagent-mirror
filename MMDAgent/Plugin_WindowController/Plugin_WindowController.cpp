@@ -39,42 +39,28 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* for DLL */
-
-#ifndef WINVER
-#define WINVER 0x0600
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#ifndef _WIN32_WINDOWS
-#define _WIN32_WINDOWS 0x0410
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0700
-#endif
-
-#define WIN32_LEAN_AND_MEAN
-
-/* headers */
-
-#include "MMDAgent.h"
-#include <ShellAPI.h>
-
 /* definitions */
+
+#ifdef _WIN32
+#define EXPORT extern "C" __declspec(dllexport)
+#else
+#define EXPORT extern "C"
+#endif /* _WIN32 */
 
 #define PLUGINWINDOWCONTROLLER_NAME    "WindowController"
 #define PLUGINWINDOWCONTROLLER_EXECUTE "EXECUTE"
 #define PLUGINWINDOWCONTROLLER_KEYPOST "KEY_POST"
 
-/* global variables */
+/* headers */
+
+#include <windows.h>
+#include <winuser.h>
+#include <ctype.h>
+#include "MMDAgent.h"
+
+/* variables */
 
 static bool enable;
-
-/* keys */
 
 typedef struct _KeySet {
    const char *name;
@@ -252,24 +238,24 @@ static void postKeyMessage(const char *args)
 }
 
 /* extAppStart: initialize controller */
-void __stdcall extAppStart(MMDAgent *mmdagent)
+EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    enable = true;
-   PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINWINDOWCONTROLLER_NAME);
 }
 
 /* extProcCommand: process command message */
-void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
 {
    if(enable == true) {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE) == true) {
          if(MMDAgent_strequal(args, PLUGINWINDOWCONTROLLER_NAME)) {
             enable = false;
-            PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINDISABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINWINDOWCONTROLLER_NAME);
          }
       } else if(MMDAgent_strequal(type, PLUGINWINDOWCONTROLLER_EXECUTE) == true) {
          if(MMDAgent_strlen(args) > 0)
-            ShellExecuteA(mmdagent->getWindowHandler(), NULL, args, NULL, NULL, SW_SHOWNORMAL);
+            ShellExecuteA(NULL, NULL, args, NULL, NULL, SW_SHOWNORMAL);
       } else if(MMDAgent_strequal(type, PLUGINWINDOWCONTROLLER_KEYPOST) == true) {
          postKeyMessage(args);
       }
@@ -277,27 +263,14 @@ void __stdcall extProcCommand(MMDAgent *mmdagent, const char *type, const char *
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE) == true) {
          if(MMDAgent_strequal(args, PLUGINWINDOWCONTROLLER_NAME) == true) {
             enable = true;
-            PostMessage(mmdagent->getWindowHandler(), WM_MMDAGENT_EVENT, (WPARAM) MMDAgent_strdup(MMDAGENT_EVENT_PLUGINENABLE), (LPARAM) MMDAgent_strdup(PLUGINWINDOWCONTROLLER_NAME));
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINWINDOWCONTROLLER_NAME);
          }
       }
    }
 }
 
 /* extAppEnd: stop controller */
-void __stdcall extAppEnd(MMDAgent *mmdagent)
+EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    enable = false;
-}
-
-/* DllMain: main for DLL */
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
-{
-   switch (ul_reason_for_call) {
-   case DLL_PROCESS_ATTACH:
-   case DLL_THREAD_ATTACH:
-   case DLL_THREAD_DETACH:
-   case DLL_PROCESS_DETACH:
-      break;
-   }
-   return true;
 }
