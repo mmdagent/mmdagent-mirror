@@ -24,7 +24,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
+				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h;&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h;&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h;&#x0D;&#x0A;copy src\njd\njd.h include\njd.h;&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h;&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h;&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h;&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h;&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h;&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h;&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h;&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="src\jpcommon;src\mecab\src;src\mecab2njd;src\njd;src\njd2jpcommon;src\njd_set_accent_phrase;src\njd_set_accent_type;src\njd_set_digit;src\njd_set_long_vowel;src\njd_set_pronunciation;src\njd_set_unvoiced_vowel;src\text2mecab;..\Library_hts_engine_API\include;"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_SHARE_DIC;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_SHARE_DIC;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -90,7 +90,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h&#x0D;&#x0A;copy src\njd\njd.h include\njd.h&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h&#x0D;&#x0A;"
+				CommandLine="copy src\text2mecab\text2mecab.h include\text2mecab.h;&#x0D;&#x0A;copy src\mecab\src\mecab.h include\mecab.h;&#x0D;&#x0A;copy src\mecab2njd\mecab2njd.h include\mecab2njd.h;&#x0D;&#x0A;copy src\njd\njd.h include\njd.h;&#x0D;&#x0A;copy src\njd_set_pronunciation\njd_set_pronunciation.h include\njd_set_pronunciation.h;&#x0D;&#x0A;copy src\njd_set_digit\njd_set_digit.h include\njd_set_digit.h;&#x0D;&#x0A;copy src\njd_set_accent_phrase\njd_set_accent_phrase.h include\njd_set_accent_phrase.h;&#x0D;&#x0A;copy src\njd_set_accent_type\njd_set_accent_type.h include\njd_set_accent_type.h;&#x0D;&#x0A;copy src\njd_set_unvoiced_vowel\njd_set_unvoiced_vowel.h include\njd_set_unvoiced_vowel.h;&#x0D;&#x0A;copy src\njd_set_long_vowel\njd_set_long_vowel.h include\njd_set_long_vowel.h;&#x0D;&#x0A;copy src\njd2jpcommon\njd2jpcommon.h include\njd2jpcommon.h;&#x0D;&#x0A;copy src\jpcommon\jpcommon.h include\jpcommon.h;&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -113,7 +113,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="src\jpcommon;src\mecab\src;src\mecab2njd;src\njd;src\njd2jpcommon;src\njd_set_accent_phrase;src\njd_set_accent_type;src\njd_set_digit;src\njd_set_long_vowel;src\njd_set_pronunciation;src\njd_set_unvoiced_vowel;src\text2mecab;..\Library_hts_engine_API\include;"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_SHARE_DIC;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;DIC_VERSION=102;MECAB_DEFAULT_RC=\&quot;dummy\&quot;;PACKAGE=\&quot;open_jtalk\&quot;;VERSION=\&quot;1.02\&quot;;MECAB_WITHOUT_SHARE_DIC;HAVE_WINDOWS_H;CHARSET_SHIFT_JIS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
