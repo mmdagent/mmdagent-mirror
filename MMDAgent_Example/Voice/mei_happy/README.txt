@@ -1,6 +1,6 @@
 ===============================================================================
-                      HTS Voice "Mei (Happy)" version 1.0
-                              release May 1, 2011
+                      HTS Voice "Mei (Happy)" version 1.1
+                            release August 3, 2011
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).

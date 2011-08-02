@@ -1,3 +1,6 @@
+Version 1.1:
+ * remove some options in .mdf file.
+
 Version 1.0:
  * the stable release.
 
