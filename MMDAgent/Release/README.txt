@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.0
-                              release May 1, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.1
+                            release August 3, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -11,7 +11,7 @@ The Toolkit for Building Voice Interaction Systems "MMDAgent"
                                     Copying
 *******************************************************************************
 
-The MMDAgent is released under the New and Simplified BSD license (see
+The MMDAgent is released under the Modified BSD license (see
 http://www.opensource.org/). Using and distributing this software is free
 (without restriction including without limitation the rights to use, copy,
 modify, merge, publish, distribute, sublicense, and/or sell copies of this
@@ -90,8 +90,6 @@ Double click MMDAgent.exe file.
 
 Key                          Action
 -------------------------------------------------------------------------------
-ALT + /                      show copyright
-
 arrow keys                   rotate viewpoint
 SHIFT + arrow keys           translate viewpoint
 +, -                         zoom in, zoom out
@@ -114,7 +112,6 @@ SHIFT + F                    show/hide log of voice interaction manager
 SHIFT + V                    enable/disable synchronization with VSync
 SHIFT + X                    change rendering order of self-shadowing
 CTRL + left, right           adjust latency of audio file play back
-V                            excecute an command
 DELETE                       delete selected model(s) previously selected by
                              double click
 H                            hold all motions

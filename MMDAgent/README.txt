@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.0
-                              release May 1, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.1
+                            release August 3, 2011
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -11,7 +11,7 @@ The Toolkit for Building Voice Interaction Systems "MMDAgent"
                                     Copying
 *******************************************************************************
 
-The MMDAgent is released under the New and Simplified BSD license (see
+The MMDAgent is released under the Modified BSD license (see
 http://www.opensource.org/). Using and distributing this software is free
 (without restriction including without limitation the rights to use, copy,
 modify, merge, publish, distribute, sublicense, and/or sell copies of this
@@ -76,6 +76,7 @@ See also "COPYRIGHT.txt" files as follows for details.
  .\COPYRIGHT.txt
  .\Library_Bullet_Physics\COPYRIGHT.txt
  .\Library_GLee\COPYRIGHT.txt
+ .\Library_GLFW\COPYRIGHT.txt
  .\Library_hts_engine_API\COPYRIGHT.txt
  .\Library_JPEG\COPYRIGHT.txt
  .\Library_Julius\COPYRIGHT.txt

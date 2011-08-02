@@ -1,3 +1,13 @@
+Version 1.1:
+ * fix many bugs.
+ * replace OS-dependent code with GLFW.
+ * add sample Makefiles for MinGW, Mac OS X, and Unix-like systems.
+ * add bone skeleton view by B key.
+ * add VALUE_GET command and VALUE_EVENT_GET event.
+ * improve timer precisition.
+ * update libraries (Bullet Physics 2.78, hts_engine API 1.05, libpng 1.5.2, and Open JTalk 1.04).
+ * remove some OS-dependent functions.
+
 Version 1.0:
  * the stable release.
  * support camera motion file.
