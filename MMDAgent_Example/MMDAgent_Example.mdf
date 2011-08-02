@@ -67,7 +67,6 @@ fps_position=-2.5,22.0,3.0
 # Window
 
 window_size=600,600
-top_most=false
 full_screen=false
 
 # Log
@@ -89,7 +88,6 @@ campus_color=0.0,0.0,0.2
 # OpenGL
 
 max_multi_sampling=4
-max_multi_sampling_color=4
 
 # Motion
 
