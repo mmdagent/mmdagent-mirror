@@ -175,10 +175,6 @@ bool Message::setup()
       return false;
    }
 
-   glfwUnlockMutex(m_mutexCommand);
-   glfwUnlockMutex(m_mutexEvent);
-   glfwUnlockMutex(m_mutexLog);
-
    return true;
 }
 
