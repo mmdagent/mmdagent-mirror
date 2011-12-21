@@ -53,12 +53,12 @@ void PMDModel::resetBone()
    /* set zero position for IK-controlled bones before applying motion */
    for (i = 0; i < m_numBone; i++)
       switch(m_boneList[i].getType()) {
-         case UNDER_IK:
-         case IK_TARGET:
-            m_boneList[i].setCurrentPosition(&zeroPos);
-            m_boneList[i].setCurrentRotation(&zeroRot);
-            break;
-   }
+      case UNDER_IK:
+      case IK_TARGET:
+         m_boneList[i].setCurrentPosition(&zeroPos);
+         m_boneList[i].setCurrentRotation(&zeroRot);
+         break;
+      }
 }
 
 /* PMDModel::updateBone: update bones */
