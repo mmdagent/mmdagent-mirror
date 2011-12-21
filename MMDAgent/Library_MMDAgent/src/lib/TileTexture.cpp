@@ -109,6 +109,7 @@ bool TileTexture::load(const char *file)
 void TileTexture::render(bool cullFace, const float *normal)
 {
    GLfloat color[] = {0.65f, 0.65f, 0.65f, 1.0f};
+   GLfloat spec[] = {0.0f, 0.0f, 0.0f, 0.0f};
 
    if (m_isLoaded == false) return;
 
@@ -131,6 +132,7 @@ void TileTexture::render(bool cullFace, const float *normal)
    glNormal3f(normal[0], normal[1], normal[2]);
    glBindTexture(GL_TEXTURE_2D, m_texture.getID());
    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
    glBegin(GL_QUADS);
    glTexCoord2f(0.0, m_numy);
    glVertex3fv(m_vertices[0]);
