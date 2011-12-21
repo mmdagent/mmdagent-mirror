@@ -1,3 +1,7 @@
+Version 1.2:
+ * fix some bugs.
+ * update libraries (Bullet Physics 2.79, GLFW 2.7.2, hts_engine API 1.06, Julius 4.2.1, libpng 1.5.7, and Open JTalk 1.05).
+
 Version 1.1:
  * fix many bugs.
  * replace OS-dependent code with GLFW.

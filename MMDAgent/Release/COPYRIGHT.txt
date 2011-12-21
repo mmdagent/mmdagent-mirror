@@ -48,12 +48,13 @@
 #######################################################################
 
 /*
-Copyright (c) 2003-2010 Erwin Coumans  http://continuousphysics.com/Bullet/
+Bullet Continuous Collision Detection and Physics Library
+Copyright (c) 2003-2011 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -61,10 +62,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-
-Free for commercial use, please report projects in the forum at http://www.bulletphysics.org
-
-In case you want to display a Bullet logo in your software: you can download the Bullet logo in various vector formats and high resolution at the download section in http://bullet.googlecode.com
+All files in the Bullet/src folder are under this Zlib license.
+Files in the Extras and Demos folder may have a different license, see the respective files.
 
 #######################################################################
 # GLee                                                                #
@@ -365,7 +364,7 @@ this sentence.
 
 This code is released under the libpng license.
 
-libpng versions 1.2.6, August 15, 2004, through 1.5.2, March 31, 2011, are
+libpng versions 1.2.6, August 15, 2004, through 1.5.7, December 15, 2011, are
 Copyright (c) 2004, 2006-2011 Glenn Randers-Pehrson, and are
 distributed according to the same disclaimer and license as libpng-1.2.5
 with the following individual added to the list of Contributing Authors
@@ -463,7 +462,7 @@ certification mark of the Open Source Initiative.
 
 Glenn Randers-Pehrson
 glennrp at users.sourceforge.net
-March 31, 2011
+December 15, 2011
 
 #######################################################################
 # MeCab                                                               #
