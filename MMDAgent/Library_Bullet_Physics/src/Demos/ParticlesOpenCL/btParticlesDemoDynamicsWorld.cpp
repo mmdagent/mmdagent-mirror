@@ -50,7 +50,7 @@ subject to the following restrictions:
 #define LOAD_FROM_MEMORY
 #ifdef LOAD_FROM_MEMORY
 #define MSTRINGIFY(A) #A
-static char* source= 
+static const char* source= 
 #include "ParticlesOCL.cl"
 #endif //LOAD_FROM_MEMORY
 
@@ -339,8 +339,12 @@ void btParticlesDynamicsWorld::initCLKernels(int argc, char** argv)
 	{
 //		m_cxMainContext = clCreateContextFromType(0, CL_DEVICE_TYPE_ALL, NULL, NULL, &ciErrNum);
 
+#ifdef USE_INTEL_OPENCL
+		m_cxMainContext = btOclCommon::createContextFromType(CL_DEVICE_TYPE_ALL, &ciErrNum);
+#else
 		m_cxMainContext = btOclCommon::createContextFromType(CL_DEVICE_TYPE_GPU, &ciErrNum);
-		//m_cxMainContext = btOclCommon::createContextFromType(CL_DEVICE_TYPE_ALL, &ciErrNum);
+#endif
+	
 		oclCHECKERROR(ciErrNum, CL_SUCCESS);
 		m_cdDevice = btOclGetMaxFlopsDev(m_cxMainContext);
 		
@@ -359,7 +363,7 @@ void btParticlesDynamicsWorld::initCLKernels(int argc, char** argv)
 	printf("OpenCL compiles ParticlesOCL.cl ... ");
 #else
 
-	char* fileName = "ParticlesOCL.cl";
+	const char* fileName = "ParticlesOCL.cl";
 	FILE * fp = fopen(fileName, "rb");
 	char newFileName[512];
 	
@@ -422,7 +426,7 @@ void btParticlesDynamicsWorld::initCLKernels(int argc, char** argv)
 
 		    // Build the program with 'mad' Optimization option
 #ifdef MAC
-	char* flags = "-I. -DLOCAL_SIZE_MAX=1024U -cl-mad-enable -DMAC -DGUID_ARG";
+	const char* flags = "-I. -DLOCAL_SIZE_MAX=1024U -cl-mad-enable -DMAC -DGUID_ARG";
 #else
 	const char* flags = "-I. -DLOCAL_SIZE_MAX=1024U -DGUID_ARG= ";
 #endif
@@ -930,7 +934,7 @@ void btParticlesDynamicsWorld::runSortHashKernel()
 			}
 		};
 		btHashPosKey* pHash = (btHashPosKey*)(&m_hPosHash[0]);
-		pHash->quickSort(pHash, 0, m_numParticles );
+		pHash->quickSort(pHash, 0, m_numParticles-1 );
 	//	pHash->bitonicSort(pHash, 0, m_hashSize, true);
 		// write back to GPU
 		ciErrNum = clEnqueueWriteBuffer(m_cqCommandQue, m_dPosHash, CL_TRUE, 0, memSize, &(m_hPosHash[0]), 0, NULL, NULL);
@@ -1020,7 +1024,7 @@ void btParticlesDynamicsWorld::runFindCellStartKernel()
 }
 
 
-void btParticlesDynamicsWorld::initKernel(int kernelId, char* pName)
+void btParticlesDynamicsWorld::initKernel(int kernelId, const char* pName)
 {
 	
 	cl_int ciErrNum;

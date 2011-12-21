@@ -34,13 +34,15 @@ void initCL( void* glCtx, void* glDC )
 
 #if defined(CL_PLATFORM_MINI_CL)
 	cl_device_type deviceType = CL_DEVICE_TYPE_CPU;//or use CL_DEVICE_TYPE_DEBUG to debug MiniCL
+#elif defined(CL_PLATFORM_INTEL)
+	cl_device_type deviceType = CL_DEVICE_TYPE_CPU;
 #elif defined(CL_PLATFORM_AMD)
 	cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 #elif defined(CL_PLATFORM_NVIDIA)
 	cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
 #else
 #ifdef __APPLE__
-	cl_device_type deviceType = CL_DEVICE_TYPE_GPU;
+	cl_device_type deviceType = CL_DEVICE_TYPE_ALL;//GPU;
 #else
 	cl_device_type deviceType = CL_DEVICE_TYPE_CPU;//CL_DEVICE_TYPE_ALL
 #endif//__APPLE__
@@ -61,7 +63,7 @@ void initCL( void* glCtx, void* glDC )
 			break;
 			
 		default:
-			printf("createContextFromType(unknown device type %d\n",deviceType);
+			printf("createContextFromType(unknown device type %d\n",(int)deviceType);
 	};	
 
 	//#endif

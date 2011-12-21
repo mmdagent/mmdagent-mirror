@@ -18,9 +18,11 @@ subject to the following restrictions:
 #include "btOclCommon.h"
 
 
-static char* spPlatformVendor = 
+static const char* spPlatformVendor = 
 #if defined(CL_PLATFORM_MINI_CL)
 "MiniCL, SCEA";
+#elif defined(CL_PLATFORM_INTEL)
+"Intel(R) Corporation";
 #elif defined(CL_PLATFORM_AMD)
 "Advanced Micro Devices, Inc.";
 #elif defined(CL_PLATFORM_NVIDIA)

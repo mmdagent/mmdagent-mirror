@@ -107,7 +107,6 @@ SOURCES  = src/src/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp \
            src/src/BulletDynamics/ConstraintSolver/btTypedConstraint.cpp \
            src/src/BulletDynamics/ConstraintSolver/btUniversalConstraint.cpp \
            src/src/BulletDynamics/Dynamics/Bullet-C-API.cpp \
-           src/src/BulletDynamics/Dynamics/btContinuousDynamicsWorld.cpp \
            src/src/BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp \
            src/src/BulletDynamics/Dynamics/btRigidBody.cpp \
            src/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp \

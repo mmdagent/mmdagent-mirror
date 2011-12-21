@@ -1060,14 +1060,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\src\BulletDynamics\Dynamics\btContinuousDynamicsWorld.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\src\BulletDynamics\Dynamics\btDiscreteDynamicsWorld.cpp"
 				>
 			</File>
@@ -1565,6 +1557,10 @@
 			</File>
 			<File
 				RelativePath=".\src\src\LinearMath\btGeometryUtil.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\LinearMath\btGrahamScan2dConvexHull.h"
 				>
 			</File>
 			<File

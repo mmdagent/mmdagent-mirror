@@ -45,8 +45,8 @@ IF (USE_GLUT)
 #		${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenGL/GLDebugDrawer.cpp
 		../gl_win.cpp
 		../clstuff.cpp
-		../bmpLoader.cpp
-		../bmpLoader.h
+
+
 		../clstuff.h
 		../gl_win.h
 		../cloth.h
@@ -73,8 +73,7 @@ IF (NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 		ENDIF(CMAKE_CL_64)
 	ENDIF(WIN32)
 	ADD_CUSTOM_COMMAND(	TARGET AppOpenCLClothDemo_AMD	POST_BUILD
-			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenCLClothDemo/amdFlag.bmp ${CMAKE_CURRENT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenCLClothDemo/atiFlag.bmp ${CMAKE_CURRENT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/bullet_logo.png ${CMAKE_CURRENT_BINARY_DIR}
 	)
 ENDIF(NOT INTERNAL_CREATE_DISTRIBUTABLE_MSVC_PROJECTFILES)
 

@@ -20,10 +20,12 @@ subject to the following restrictions:
 
 #ifndef USE_MINICL
 #define USE_SIMDAWARE_SOLVER
+#ifndef __APPLE__
 #define USE_GPU_SOLVER
 #if defined (_WIN32)
 	#define USE_GPU_COPY //only tested on Windows
 #endif //_WIN32
+#endif //__APPLE__
 #endif //USE_MINICL
 
 
@@ -41,7 +43,7 @@ const int numFlags = 5;
 const int clothWidth = 40;
 const int clothHeight = 60;//60;
 float _windAngle = 1.0;//0.4;
-float _windStrength = 15;
+float _windStrength = 10.;
 
 
 
@@ -256,7 +258,7 @@ void createFlag( btSoftBodySolver &solver, int width, int height, btAlignedObjec
 	}
 
 	
-	float rotateAngleRoundZ = 0.5;
+	float rotateAngleRoundZ = 0.0;
 	float rotateAngleRoundX = 0.5;
 	btMatrix3x3 defaultRotate;
 	defaultRotate[0] = btVector3(cos(rotateAngleRoundZ), sin(rotateAngleRoundZ), 0.f); 
@@ -495,6 +497,13 @@ void initBullet(void)
 
 
 	g_solver->optimize( m_dynamicsWorld->getSoftBodyArray() );
+	
+	if (!g_solver->checkInitialized())
+	{
+		printf("OpenCL kernel initialization ?failed\n");
+		btAssert(0);
+		exit(0);
+	}
 
 }
 
@@ -520,12 +529,12 @@ void doFlags()
 		{
  			m_dynamicsWorld->stepSimulation(1./60.,0);
 			
-			btDefaultSerializer*	serializer = new btDefaultSerializer();
-			m_dynamicsWorld->serialize(serializer);
-		 
-			FILE* file = fopen("testFile.bullet","wb");
-			fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
-			fclose(file);
+		// Option to save a .bullet file
+		//	btDefaultSerializer*	serializer = new btDefaultSerializer();
+		//	m_dynamicsWorld->serialize(serializer);
+		//	FILE* file = fopen("testFile.bullet","wb");
+		//	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
+		//	fclose(file);
 
 			CProfileManager::dumpAll();
 		}
@@ -583,8 +592,8 @@ int main(int argc, char *argv[])
 	m_dynamicsWorld->stepSimulation(1./60.,0);
 
 	std::string flagTexs[] = {
-		"atiFlag.bmp",
-		"amdFlag.bmp",
+		"bullet_logo.png",
+		"bullet_logo.png",
 	};
 	int numFlagTexs = 2;
 

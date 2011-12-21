@@ -39,8 +39,6 @@ IF (USE_GLUT)
 		${BULLET_PHYSICS_SOURCE_DIR}/Demos/SharedOpenCL/btOclCommon.cpp
 		../gl_win.cpp
 		../clstuff.cpp
-		../bmpLoader.cpp
-		../bmpLoader.h
 		../clstuff.h
 		../gl_win.h
 
@@ -50,8 +48,7 @@ ENDIF (USE_GLUT)
 
 
 ADD_CUSTOM_COMMAND(	TARGET AppOpenCLClothDemo_Apple	POST_BUILD
-			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenCLClothDemo/amdFlag.bmp ${CMAKE_CURRENT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/Demos/OpenCLClothDemo/atiFlag.bmp ${CMAKE_CURRENT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different ${BULLET_PHYSICS_SOURCE_DIR}/bullet_logo.png ${CMAKE_CURRENT_BINARY_DIR}
 			)
 
 IF (UNIX)
