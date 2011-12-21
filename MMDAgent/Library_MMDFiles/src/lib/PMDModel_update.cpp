@@ -43,6 +43,24 @@
 
 #include "MMDFiles.h"
 
+/* PMDModel::resetBone: reset bones */
+void PMDModel::resetBone()
+{
+   unsigned short i;
+   btVector3 zeroPos = btVector3(0.0f, 0.0f, 0.0f);
+   btQuaternion zeroRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
+   /* set zero position for IK-controlled bones before applying motion */
+   for (i = 0; i < m_numBone; i++)
+      switch(m_boneList[i].getType()) {
+         case UNDER_IK:
+         case IK_TARGET:
+            m_boneList[i].setCurrentPosition(&zeroPos);
+            m_boneList[i].setCurrentRotation(&zeroRot);
+            break;
+   }
+}
+
 /* PMDModel::updateBone: update bones */
 void PMDModel::updateBone()
 {
@@ -63,7 +81,7 @@ void PMDModel::updateBone()
          m_IKList[i].solve();
    }
 
-   /* apply under-rotate or co-rotate effects */
+   /* apply under-rotate effects */
    for (i = 0; i < m_numRotateBone; i++)
       m_boneList[m_rotateBoneIDList[i]].updateRotate();
 }

@@ -239,6 +239,9 @@ public:
    /* setForceEdgeFlag: set force edge flag */
    void setForceEdgeFlag(bool flag);
 
+   /* resetBone: reset bones */
+   void resetBone();
+
    /* updateBone: update bones */
    void updateBone();
 

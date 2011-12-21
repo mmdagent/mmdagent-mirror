@@ -264,7 +264,8 @@ bool PMDObject::updateMotion(double deltaFrame)
    if (m_isEnable == false || m_motionManager == NULL) return false;
 
    /* set rotation and position to bone and face from motion */
-   ret = m_motionManager->update(deltaFrame);
+   m_pmd.resetBone();  /* reset bone position */
+   ret = m_motionManager->update(deltaFrame); /* set from motion */
    m_pmd.updateBone(); /* update bone, IK, and rotation */
    m_pmd.updateFace(); /* update face */
 
@@ -680,6 +681,7 @@ void PMDObject::renderDebug(TextRenderer * text)
          MotionControllerBoneElement *b = motionPlayer->mc.getBoneCtrlList();
          glTranslatef(pos.x() + 7.0f + dest, m_pmd.getMaxHeight() + 1.0f - dest, pos.z() + dest);
          glScalef(0.2f, 0.2f, 0.2f);
+         m_pmd.resetBone();
          /* temporary apply bone positions / rotations of this motion to bones */
          for (i = 0; i < motionPlayer->mc.getNumBoneCtrl(); i++) {
             if (motionPlayer->ignoreStatic == true && b[i].motion->numKeyFrame <= 1)

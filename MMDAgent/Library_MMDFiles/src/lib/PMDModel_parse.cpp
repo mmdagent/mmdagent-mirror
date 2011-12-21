@@ -415,18 +415,18 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
          m_hasMultipleSphereMap = true;
    }
 
-   /* make index of rotation-subjective bones (type == UNDER_ROTATE or FOLLOW_RORATE) */
+   /* make index of rotation-subjective bones (type == UNDER_ROTATE) */
    m_numRotateBone = 0;
    for (j = 0; j < m_numBone; j++) {
       type = m_boneList[j].getType();
-      if (type == UNDER_ROTATE || type == FOLLOW_ROTATE)
+      if (type == UNDER_ROTATE)
          m_numRotateBone++;
    }
    if (m_numRotateBone > 0) {
       m_rotateBoneIDList = (unsigned short *) malloc(sizeof(unsigned short) * m_numRotateBone);
       for (j = 0, k = 0; j < m_numBone; j++) {
          type = m_boneList[j].getType();
-         if (type == UNDER_ROTATE || type == FOLLOW_ROTATE)
+         if (type == UNDER_ROTATE)
             m_rotateBoneIDList[k++] = j;
       }
    }

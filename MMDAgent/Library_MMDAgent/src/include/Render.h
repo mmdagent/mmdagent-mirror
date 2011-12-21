@@ -55,7 +55,7 @@
 #define RENDER_FOVYSPEEDRATE     0.9f
 
 #define RENDER_VIEWPOINTFRUSTUMNEAR 0.5f
-#define RENDER_VIEWPOINTFRUSTUMFAR  8000.0f
+#define RENDER_VIEWPOINTFRUSTUMFAR  100000.0f
 
 /* RenderDepthData: depth data for model ordering */
 typedef struct {
