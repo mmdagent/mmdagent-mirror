@@ -95,7 +95,7 @@
  * @author Akinobu LEE
  * @date   Sat Feb 12 13:20:53 2005
  *
- * $Revision: 1.16 $
+ * $Revision: 1.17 $
  * 
  */
 /*
@@ -162,12 +162,17 @@ adin_setup_param(ADIn *adin, Jconf *jconf)
   /* calc & set internal parameter from configuration */
   freq = jconf->input.sfreq;
   samples_in_msec = (float) freq / (float)1000.0;
+  adin->chunk_size = jconf->detect.chunk_size;
   /* cycle buffer length = head margin length */
   adin->c_length = (int)((float)jconf->detect.head_margin_msec * samples_in_msec);	/* in msec. */
+  if (adin->chunk_size > adin->c_length) {
+    jlog("ERROR: adin_setup_param: chunk size (%d) > header margin (%d)\n", adin->chunk_size, adin->c_length);
+    return FALSE;
+  }
   /* compute zerocross trigger count threshold in the cycle buffer */
   adin->noise_zerocross = jconf->detect.zero_cross_num * adin->c_length / freq;
   /* variables that comes from the tail margin length (in wstep) */
-  adin->nc_max = (int)((float)(jconf->detect.tail_margin_msec * samples_in_msec / (float)DEFAULT_WSTEP)) + 2;
+  adin->nc_max = (int)((float)(jconf->detect.tail_margin_msec * samples_in_msec / (float)adin->chunk_size)) + 2;
   adin->sbsize = jconf->detect.tail_margin_msec * samples_in_msec + (adin->c_length * jconf->detect.zero_cross_num / 200);
   adin->c_offset = 0;
 
@@ -493,7 +498,7 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
     /* prepare for processing samples in temporary buffer */
     /******************************************************/
     
-    wstep = DEFAULT_WSTEP;	/* process unit (should be smaller than cycle buffer) */
+    wstep = a->chunk_size;	/* process unit (should be smaller than cycle buffer) */
 
     /* imax: total length that should be processed at one ad_read() call */
     /* if in real-time mode and not threaded, recognition process 
@@ -562,6 +567,10 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
 	    /* record time */
 	    a->last_trigger_sample = a->total_captured_len - a->current_len + i + wstep - a->zc.valid_len;
 	    callback_exec(CALLBACK_EVENT_SPEECH_START, recog);
+	    a->last_trigger_len = 0;
+	    if (a->zc.valid_len > wstep) {
+	      a->last_trigger_len += a->zc.valid_len - wstep;
+	    }
 
 	    /****************************************/
 	    /* flush samples stored in cycle buffer */
@@ -637,6 +646,10 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
 #endif
 	      /* reset noise counter */
 	      a->nc = 0;
+
+	      if (a->sblen > 0) {
+		a->last_trigger_len += a->sblen;
+	      }
 
 #ifdef TMP_FIX_200602
 	      if (ad_process != NULL
@@ -771,6 +784,8 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
 	    jlog("DEBUG: %d processed, rest_tail=%d\n", wstep, a->rest_tail);
 #endif
 	  }
+	  a->last_trigger_len += wstep;
+
 #ifdef TMP_FIX_200602
 	  if (ad_process != NULL
 #ifdef HAVE_PTHREAD
@@ -1316,6 +1331,7 @@ adin_begin(ADIn *a, char *file_or_dev_name)
   if (debug2_flag && a->input_side_segment) jlog("Stat: adin_begin: skip\n");
   if (a->input_side_segment == FALSE) {
     a->total_captured_len = 0;
+    a->last_trigger_len = 0;
     if (a->need_zmean) zmean_reset();
     if (a->ad_begin != NULL) return(a->ad_begin(file_or_dev_name));
   }

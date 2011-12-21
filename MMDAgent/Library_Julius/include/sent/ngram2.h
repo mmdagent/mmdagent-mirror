@@ -95,7 +95,7 @@
  * @author Akinobu LEE
  * @date   Fri Feb 11 15:04:02 2005
  *
- * $Revision: 1.10 $
+ * $Revision: 1.11 $
  * 
  */
 /*
@@ -245,6 +245,7 @@ void ngram_info_free(NGRAM_INFO *ngram);
 boolean init_ngram_bin(NGRAM_INFO *ndata, char *ngram_file);
 boolean init_ngram_arpa(NGRAM_INFO *ndata, char *ngram_file, int dir);
 boolean init_ngram_arpa_additional(NGRAM_INFO *ndata, char *bigram_file);
+void set_default_unknown_id(NGRAM_INFO *ndata);
 void set_unknown_id(NGRAM_INFO *ndata, char *str);
 
 void print_ngram_info(FILE *fp, NGRAM_INFO *ndata);

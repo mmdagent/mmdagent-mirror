@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Wed Aug  8 14:53:53 2007
  *
- * $Revision: 1.17 $
+ * $Revision: 1.19 $
  * 
  */
 
@@ -955,20 +955,18 @@ j_recognize_stream_core(Recog *recog)
       /******************************************************************/
       if (ret == 1 || ret == 2) {		/* segmented */
 #ifdef HAVE_PTHREAD
-	if (recog->adin->adinthread_buffer_overflowed) {
-	  jlog("Warning: input buffer overflow, disgard the input\n");
+	/* check for audio overflow */
+	if (recog->adin->enable_thread && recog->adin->adinthread_buffer_overflowed) {
+	  jlog("Warning: input buffer overflow: some input may be dropped, so disgard the input\n");
 	  result_error(recog, J_RESULT_STATUS_BUFFER_OVERFLOW);
 	  /* skip 2nd pass */
 	  goto end_recog;
 	}
 #endif
-	/* check for audio overflow */
+	/* check for long input */
 	for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
 	  if (mfcc->f >= recog->real.maxframelen) {
-	    jlog("Warning: input buffer overflow, disgard the input\n");
-	    result_error(recog, J_RESULT_STATUS_BUFFER_OVERFLOW);
-	    /* skip 2nd pass */
-	    goto end_recog;
+	    jlog("Warning: too long input (> %d frames), segment it now\n", recog->real.maxframelen);
 	  }
 	}
       }
@@ -984,6 +982,12 @@ j_recognize_stream_core(Recog *recog)
 	goto end_recog;
       }
 #endif
+
+      /* output segment status */
+      if (recog->adin->adin_cut_on && (jconf->input.speech_input == SP_RAWFILE || jconf->input.speech_input == SP_STDIN)) {
+	seclen = (float)recog->adin->last_trigger_sample / (float)jconf->input.sfreq;
+	jlog("STAT: triggered: [%d..%d] %.2fs from %02d:%02d:%02.2f\n", recog->adin->last_trigger_sample, recog->adin->last_trigger_sample + recog->adin->last_trigger_len, (float)(recog->adin->last_trigger_len) / (float)jconf->input.sfreq, (int)(seclen / 3600), (int)(seclen / 60), seclen - (int)(seclen / 60) * 60);
+      }
 
       /* execute callback for 1st pass result */
       /* result.status <0 must be skipped inside callback */

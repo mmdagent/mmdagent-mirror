@@ -20,7 +20,7 @@
  * @author Akinobu Lee
  * @date   Thu May 12 13:31:47 2005
  *
- * $Revision: 1.19 $
+ * $Revision: 1.21 $
  * 
  */
 /*
@@ -323,10 +323,14 @@ initialize_dict(JCONF_LM *lmconf, HTK_HMM_INFO *hmminfo)
       if (voca_load_line(buf, winfo, hmminfo) == FALSE) break;
     }
     if (voca_load_end(winfo) == FALSE) {
-      jlog("ERROR: m_fusion: failed to read dictionary %s\n", nl->name);
-      fclose(fp);
-      word_info_free(winfo);
-      return NULL;
+      if (lmconf->forcedict_flag) {
+	jlog("Warning: m_fusion: the error words above are ignored\n");
+      } else {
+	jlog("ERROR: m_fusion: error in reading dictionary %s\n", nl->name);
+	fclose(fp);
+	word_info_free(winfo);
+	return NULL;
+      }
     }
     if (fclose(fp) == -1) {
       jlog("ERROR: m_fusion: failed to close %s\n", nl->name);
@@ -457,7 +461,9 @@ initialize_ngram(JCONF_LM *lmconf, WORD_INFO *winfo)
   }
 
   /* set unknown (=OOV) word id */
-  set_unknown_id(ngram, lmconf->unknown_name);
+  if (strcmp(lmconf->unknown_name, UNK_WORD_DEFAULT)) {
+    set_unknown_id(ngram, lmconf->unknown_name);
+  }
 
   /* map dict item to N-gram entry */
   if (make_voca_ref(ngram, winfo) == FALSE) {

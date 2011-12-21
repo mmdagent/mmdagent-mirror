@@ -42,7 +42,7 @@
  * @author Akinobu LEE
  * @date   Tue Feb 22 17:00:45 2005
  *
- * $Revision: 1.17 $
+ * $Revision: 1.19 $
  * 
  */
 /*
@@ -219,6 +219,7 @@ link_lattice_by_time(WordGraph *root)
 static void
 re_compute_lattice_lm(WordGraph *root, WCHMM_INFO *wchmm)
 {
+  WordGraph *wg;
   int i;
   
   for(wg=root;wg;wg=wg->next) {
@@ -1707,6 +1708,10 @@ init_nodescore(HTK_Param *param, RecogProcess *r)
 	      new->last_lscore = 0.0;
 #else
 	      new->last_lscore = d->penalty1;
+#ifdef CLASS_NGRAM
+	      /* add per-word penalty */
+	      new->last_lscore += wchmm->winfo->cprob[i];
+#endif
 #endif
 	      if (wchmm->hmminfo->multipath) {
 		new->score = new->last_lscore;
@@ -2392,6 +2397,10 @@ beam_inter_word(WCHMM_INFO *wchmm, FSBeam *d, TOKEN2 **tk_ret, TRELLIS_ATOM *tre
       /* grammar: 単語挿入ペナルティを追加 */
       /* grammar: add insertion penalty */
       ngram_score_cache = d->penalty1;
+#ifdef CLASS_NGRAM
+      /* add per-word penalty of last word as delayed penalty */
+      ngram_score_cache += wchmm->winfo->cprob[last_word];
+#endif
       tmpsum += ngram_score_cache;
 
       /* grammar: deterministic factoring (in case category-tree not enabled) */

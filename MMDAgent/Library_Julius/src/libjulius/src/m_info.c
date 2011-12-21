@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Thu May 12 14:14:01 2005
  *
- * $Revision: 1.13 $
+ * $Revision: 1.14 $
  * 
  */
 /*
@@ -878,6 +878,7 @@ print_engine_info(Recog *recog)
       jlog("\t         zerocross thres = %d / sec.\n", jconf->detect.zero_cross_num);
       jlog("\t             head margin = %d msec.\n", jconf->detect.head_margin_msec);
       jlog("\t             tail margin = %d msec.\n", jconf->detect.tail_margin_msec);
+      jlog("\t              chunk size = %d samples\n", jconf->detect.chunk_size);
     } else {
       jlog("\t         silence cutting = off\n");
     }

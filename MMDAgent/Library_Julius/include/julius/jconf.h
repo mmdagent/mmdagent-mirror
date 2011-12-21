@@ -23,7 +23,7 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 13:42:28 2007
  *
- * $Revision: 1.11 $
+ * $Revision: 1.12 $
  * 
  */
 /*
@@ -904,6 +904,12 @@ typedef struct __Jconf__ {
      * (-cutsilence / -nocutsilence)
      */
     int silence_cut;
+    /**
+     * Chunk size in samples, i.e. processing unit for audio input
+     * detection.  Segmentation will be done by this unit.
+     * 
+     */
+    int chunk_size;
 #ifdef GMM_VAD
     /**
      * (GMM_VAD) Backstep margin when speech trigger is detected.

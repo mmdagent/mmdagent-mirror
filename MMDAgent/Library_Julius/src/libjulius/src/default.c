@@ -17,7 +17,7 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 15:05:43 2007
  *
- * $Revision: 1.13 $
+ * $Revision: 1.14 $
  * 
  */
 /*
@@ -77,6 +77,7 @@ jconf_set_default_values(Jconf *j)
   j->detect.tail_margin_msec		= 400;
   j->detect.zero_cross_num		= 60;
   j->detect.silence_cut			= 2; /* accept device default */
+  j->detect.chunk_size			= 1000;
 #ifdef GMM_VAD
   j->detect.gmm_margin			= DEFAULT_GMM_MARGIN;
   j->detect.gmm_uptrigger_thres		= 0.7;

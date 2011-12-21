@@ -18,7 +18,7 @@
  * @author Akinobu Lee
  * @date   Thu May 12 18:52:07 2005
  *
- * $Revision: 1.24 $
+ * $Revision: 1.25 $
  * 
  */
 /*
@@ -614,6 +614,11 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
       if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
       GET_TMPARG;
       jconf->detect.tail_margin_msec = atoi(tmparg);
+      continue;
+    } else if (strmatch(argv[i],"-chunksize")) { /* chunk size for detection */
+      if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
+      GET_TMPARG;
+      jconf->detect.chunk_size = atoi(tmparg);
       continue;
     } else if (strmatch(argv[i],"-hipass")||strmatch(argv[i],"-hifreq")) { /* frequency of upper band limit */
       if (!check_section(jconf, argv[i], JCONF_OPT_AM)) return FALSE; 

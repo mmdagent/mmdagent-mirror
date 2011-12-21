@@ -19,7 +19,7 @@
  * @author Akinobu LEE
  * @date   Thu Feb 10 17:22:36 2005
  *
- * $Revision: 1.10 $ 
+ * $Revision: 1.11 $ 
  */
 /*
  * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
@@ -59,9 +59,6 @@ enum {
   SP_INPUT_ESD,
   SP_INPUT_PULSEAUDIO
 };
-
-/// Default unit size of speech input segment in bytes
-#define DEFAULT_WSTEP 1000
 
 /**
  * @def SUPPORTED_WAVEFILE_FORMAT

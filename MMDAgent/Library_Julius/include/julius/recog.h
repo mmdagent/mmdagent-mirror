@@ -70,7 +70,7 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 13:42:28 2007
  *
- * $Revision: 1.14 $
+ * $Revision: 1.15 $
  * 
  */
 /*
@@ -362,6 +362,7 @@ typedef struct __adin__ {
   int thres;            ///< Input Level threshold (0-32767)
   int noise_zerocross;  ///< Computed threshold of zerocross num in the cycle buffer
   int nc_max;           ///< Computed number of fragments for tail margin
+  int chunk_size;	///< audio process unit
   boolean adin_cut_on;  ///< TRUE if do input segmentation by silence
   boolean silence_cut_default; ///< Device-dependent default value of adin_cut_on()
   boolean strip_flag;   ///< TRUE if skip invalid zero samples
@@ -432,6 +433,7 @@ typedef struct __adin__ {
 
   unsigned int total_captured_len; ///< Total number of recorded samples from start until now
   unsigned int last_trigger_sample; ///< Last speech area was triggeed at this sample
+  unsigned int last_trigger_len; // Length of last speech area 
 
   char current_input_name[MAXPATHLEN]; ///< File or device name of current input
 

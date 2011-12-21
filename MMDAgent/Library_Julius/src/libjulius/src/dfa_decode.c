@@ -47,7 +47,7 @@
  * @author Akinobu LEE
  * @date   Mon Mar  7 15:31:00 2005
  *
- * $Revision: 1.4 $
+ * $Revision: 1.5 $
  * 
  */
 /*
@@ -115,6 +115,10 @@ dfa_firstwords(NEXTWORD **nw, int peseqlen, int maxnw, RecogProcess *r)
 	      nw[num]->lscore = 0.0;
 #else
 	      nw[num]->lscore = r->config->lmp.penalty2;
+#ifdef CLASS_NGRAM
+	      /* add per-word penalty */
+	      nw[num]->lscore += r->wchmm->winfo->cprob[nw[num]->id];
+#endif
 #endif
 	      num++;
 	      if (num >= maxnw) return -1; /* buffer overflow */
@@ -179,6 +183,10 @@ dfa_nextwords(NODE *hypo, NEXTWORD **nw, int maxnw, RecogProcess *r)
 	  nw[num]->next_state = ns2;
 	  nw[num]->can_insert_sp = TRUE;
 	  nw[num]->lscore = r->config->lmp.penalty2;
+#ifdef CLASS_NGRAM
+	  /* add per-word penalty */
+	  nw[num]->lscore += r->wchmm->winfo->cprob[nw[num]->id];
+#endif
 	  num++;
 	  if (num >= maxnw) return -1; /* buffer overflow */
 	}
@@ -189,8 +197,11 @@ dfa_nextwords(NODE *hypo, NEXTWORD **nw, int maxnw, RecogProcess *r)
 	nw[num]->id = dfa->term.tw[cate][iw];
 	nw[num]->next_state = ns;
 	nw[num]->can_insert_sp = FALSE;
-
 	nw[num]->lscore = r->config->lmp.penalty2;
+#ifdef CLASS_NGRAM
+	/* add per-word penalty */
+	nw[num]->lscore += r->wchmm->winfo->cprob[nw[num]->id];
+#endif
 	num++;
 	if (num >= maxnw) return -1; /* buffer overflow */
       }

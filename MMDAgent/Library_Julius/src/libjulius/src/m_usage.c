@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Fri May 13 15:04:34 2005
  *
- * $Revision: 1.15 $
+ * $Revision: 1.16 $
  * 
  */
 /*
@@ -127,6 +127,7 @@ j_output_argument_help(FILE *fp)
   fprintf(fp, "    [-zc zerocrossnum]  zerocross num threshold per sec.      (%d)\n", jconf->detect.zero_cross_num);
   fprintf(fp, "    [-headmargin msec]  header margin length in msec.         (%d)\n", jconf->detect.head_margin_msec);
   fprintf(fp, "    [-tailmargin msec]  tail margin length in msec.           (%d)\n", jconf->detect.tail_margin_msec);
+  fprintf(fp, "    [-chunksize sample] unit length for processing            (%d)\n", jconf->detect.chunk_size);
 
   fprintf(fp, "\n GMM utterance verification:\n");
   fprintf(fp, "    -gmm filename       GMM definition file\n");

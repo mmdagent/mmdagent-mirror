@@ -3,7 +3,7 @@ dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technolo
 dnl Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.27 2011/04/29 01:57:20 sumomo Exp $
+dnl  $Id: configure.in,v 1.28 2011/12/05 05:42:39 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_INIT(src/phmm/outprob.c)
 AC_CONFIG_HEADER(include/sent/config.h)
 AC_CONFIG_AUX_DIR(../support)
 
-LIBSENT_VERSION=4.2
+LIBSENT_VERSION=4.2.1
 
 dnl Checks for options
 # specify mic type

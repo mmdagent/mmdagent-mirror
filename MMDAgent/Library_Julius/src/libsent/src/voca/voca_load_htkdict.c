@@ -19,7 +19,7 @@
  * @author Akinobu LEE
  * @date   Fri Feb 18 19:43:06 2005
  *
- * $Revision: 1.10 $
+ * $Revision: 1.11 $
  * 
  */
 /*
@@ -62,8 +62,8 @@
 static char buf[MAXLINELEN];	///< Local work area for input text processing
 static char bufbak[MAXLINELEN];	///< Local work area for debug message
 
-static char trbuf[3][20];	///< Local buffer for triphone convertion
-static char chbuf[30];	     ///< Another local buffer for triphone convertion
+static char trbuf[3][MAX_HMMNAME_LEN];	///< Local buffer for triphone convertion
+static char chbuf[MAX_HMMNAME_LEN];	     ///< Another local buffer for triphone convertion
 static char nophone[1];		///< Local buffer to indicate 'no phone'
 static int  trp_l;		///< Triphone cycle index
 static int  trp;		///< Triphone cycle index
@@ -509,6 +509,12 @@ voca_load_htkdict_line(char *buf, WORD_ID *vnum_p, int linenum, WORD_INFO *winfo
 	*ok_flag = FALSE;
 	return TRUE;
       }
+      if (strlen(lp) >= MAX_HMMNAME_LEN) {
+	jlog("Error: voca_load_htkdict: line %d: too long phone name: %s\n", linenum, lp);
+	winfo->errnum++;
+	*ok_flag = FALSE;
+	return TRUE;
+      }
       cycle_triphone(lp);
     }
 
@@ -517,7 +523,15 @@ voca_load_htkdict_line(char *buf, WORD_ID *vnum_p, int linenum, WORD_INFO *winfo
       if (do_conv) {
 /*	if (lp != NULL) jlog(" %d%s",len,lp);*/
 	if (lp != NULL) lp = mystrtok(NULL, " \t\n");
-	if (lp != NULL) p = cycle_triphone(lp);
+	if (lp != NULL) {
+	  if (strlen(lp) >= MAX_HMMNAME_LEN) {
+	    jlog("Error: voca_load_htkdict: line %d: too long phone name: %s\n", linenum, lp);
+	    winfo->errnum++;
+	    *ok_flag = FALSE;
+	    return TRUE;
+	  }
+	  p = cycle_triphone(lp);
+	}
 	else p = cycle_triphone_flush();
       } else {
 	p = mystrtok(NULL, " \t\n");
