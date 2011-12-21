@@ -50,7 +50,7 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
            -D DIC_VERSION=102 \
            -D MECAB_DEFAULT_RC="\"dummy\"" \
            -D PACKAGE="\"open_jtalk\"" \
-           -D VERSION="\"1.04\"" \
+           -D VERSION="\"1.05\"" \
            -D MECAB_WITHOUT_SHARE_DIC \
            -D CHARSET_SHIFT_JIS \
            -D HAVE_WINDOWS_H \
