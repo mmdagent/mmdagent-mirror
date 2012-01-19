@@ -102,9 +102,9 @@ static void changeLookAt(PMDObject *objs, int num, MMDAgent *mmdagent)
    updating = true;
    enable = !enable;
    if(enable)
-      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINLOOKAT_NAME);
+      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINLOOKAT_NAME);
    else
-      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINLOOKAT_NAME);
+      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINLOOKAT_NAME);
 }
 
 /* extAppStart: initialize controller */

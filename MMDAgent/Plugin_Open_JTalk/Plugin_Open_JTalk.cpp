@@ -107,7 +107,7 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
       free(config);
 
    enable = true;
-   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINOPENJTALK_NAME);
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINOPENJTALK_NAME);
 }
 
 /* extProcCommand: process command message */
@@ -117,7 +117,7 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
             enable = false;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINOPENJTALK_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINOPENJTALK_NAME);
          }
       } else if (open_jtalk_manager.isRunning()) {
          if (MMDAgent_strequal(type, PLUGINOPENJTALK_STARTCOMMAND)) {
@@ -130,7 +130,7 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINOPENJTALK_NAME)) {
             enable = true;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINOPENJTALK_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINOPENJTALK_NAME);
          }
       }
    }

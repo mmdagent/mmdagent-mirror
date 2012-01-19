@@ -433,13 +433,13 @@ void Audio_Thread::run()
       if(Audio_openAndStart(&audio, alias, file) == true) {
 
          /* send SOUND_EVENT_START */
-         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTART, alias);
+         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTART, "%s", alias);
 
          /* wait to stop audio */
          Audio_waitToStop(&audio, alias, &m_playing);
 
          /* send SOUND_EVENT_STOP */
-         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTOP, alias);
+         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTOP, "%s", alias);
 
          /* close audio file */
          Audio_close(&audio, alias);

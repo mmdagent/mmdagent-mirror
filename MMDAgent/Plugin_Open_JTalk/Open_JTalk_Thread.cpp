@@ -293,7 +293,7 @@ void Open_JTalk_Thread::run()
          index = 0;
 
       /* send SYNTH_EVENT_START */
-      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTART, chara);
+      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTART, "%s", chara);
 
       /* synthesize */
       m_openJTalk.setStyle(index);
@@ -305,7 +305,7 @@ void Open_JTalk_Thread::run()
       }
 
       /* send SYNTH_EVENT_STOP */
-      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTOP, chara);
+      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTOP, "%s", chara);
 
       if(chara) free(chara);
       if(style) free(style);
@@ -389,7 +389,7 @@ void Open_JTalk_Thread::stop()
       glfwLockMutex(m_mutex);
 
       /* stop lip sync */
-      m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTOPLIP, m_charaBuff);
+      m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTOPLIP, "%s", m_charaBuff);
 
       /* release buffer mutex */
       glfwUnlockMutex(m_mutex);

@@ -100,7 +100,7 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    julius_thread.loadAndStart(mmdagent, languageModel, dictionary, acousticModel, triphoneList, configFile, userDictionary);
 
    enable = true;
-   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINJULIUS_NAME);
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINJULIUS_NAME);
 }
 
 /* extProcCommand: process command message */
@@ -110,13 +110,13 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == true) {
          julius_thread.pause();
          enable = false;
-         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINJULIUS_NAME);
+         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINJULIUS_NAME);
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
       if(MMDAgent_strequal(args, PLUGINJULIUS_NAME) && enable == false) {
          julius_thread.resume();
          enable = true;
-         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINJULIUS_NAME);
+         mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINJULIUS_NAME);
       }
    }
 }

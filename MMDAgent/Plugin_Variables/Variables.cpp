@@ -146,7 +146,7 @@ void Variables::set(const char *alias, const char *str1, const char *str2)
       val->fval = min + (max - min) * (rand() - 0.0f) * (1.0f / (RAND_MAX - 0.0f)); /* 0.0f is RAND_MIN */
    }
 
-   m_mmdagent->sendEventMessage(VARIABLES_VALUESETEVENT, alias); /* send message */
+   m_mmdagent->sendEventMessage(VARIABLES_VALUESETEVENT, "%s", alias); /* send message */
 }
 
 /* Variables::unset: unset value */
@@ -174,7 +174,7 @@ void Variables::unset(const char *alias)
                tmp1->prev->next = tmp1->prev;
             }
          }
-         m_mmdagent->sendEventMessage(VARIABLES_VALUEUNSETEVENT, tmp1->name); /* send message */
+         m_mmdagent->sendEventMessage(VARIABLES_VALUEUNSETEVENT, "%s", tmp1->name); /* send message */
          free(tmp1->name);
          free(tmp1->sval);
          free(tmp1);

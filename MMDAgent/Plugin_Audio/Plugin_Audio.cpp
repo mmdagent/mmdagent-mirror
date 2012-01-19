@@ -71,7 +71,7 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
 
    enable = true;
    drop_motion = NULL;
-   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINAUDIO_NAME);
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
 }
 
 /* extProcCommand: process command message */
@@ -81,7 +81,7 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
             enable = false;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINAUDIO_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINAUDIO_NAME);
          }
       } else if (audio_manager.isRunning()) {
          if (MMDAgent_strequal(type, PLUGINAUDIO_STARTCOMMAND)) {
@@ -94,7 +94,7 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
             enable = true;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINAUDIO_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
          }
       }
    }

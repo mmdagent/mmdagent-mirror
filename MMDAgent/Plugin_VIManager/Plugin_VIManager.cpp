@@ -85,7 +85,7 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
 
    enable = true;
    enable_log = false;
-   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVIMANAGER_NAME);
+   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINVIMANAGER_NAME);
 }
 
 /* extProcCommand: process command message */
@@ -95,14 +95,14 @@ EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *arg
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
          if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
             enable = false;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, PLUGINVIMANAGER_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINVIMANAGER_NAME);
          }
       }
    } else {
       if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
          if(MMDAgent_strequal(args, PLUGINVIMANAGER_NAME)) {
             enable = true;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, PLUGINVIMANAGER_NAME);
+            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINVIMANAGER_NAME);
          }
       }
    }

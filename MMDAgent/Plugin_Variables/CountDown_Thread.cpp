@@ -151,7 +151,7 @@ void CountDown_Thread::run()
                   tmp1->next->prev = tmp1->prev;
                }
             }
-            m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, tmp1->name);
+            m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, "%s", tmp1->name);
             free(tmp1->name);
             free(tmp1);
          }
@@ -216,11 +216,11 @@ void CountDown_Thread::set(const char *alias, const char *str)
       }
       m_tail = countDown;
    } else {
-      m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, countDown->name);
+      m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, "%s", countDown->name);
    }
    countDown->goal = now + msec;
 
-   m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTARTEVENT, countDown->name);
+   m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTARTEVENT,"%s",  countDown->name);
 
    /* release */
    glfwUnlockMutex(m_mutex);
@@ -254,7 +254,7 @@ void CountDown_Thread::unset(const char *alias)
                tmp1->prev->next = tmp1->prev;
             }
          }
-         m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, tmp1->name);
+         m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, "%s", tmp1->name);
          free(tmp1->name);
          free(tmp1);
          break;
