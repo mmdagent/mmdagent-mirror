@@ -1160,6 +1160,9 @@ bool MMDAgent::updateScene()
    if(m_enable == false)
       return false;
 
+   if (m_cameraControlled == false)
+      m_render->setCameraFromController(NULL);
+
    /* get frame interval */
    intervalFrame = m_timer->getFrameInterval();
 
@@ -1247,13 +1250,11 @@ bool MMDAgent::updateScene()
 
       /* camera motion */
       if (m_cameraControlled == true) {
-         if (m_camera.advance(procFrame + adjustFrame) == true) {
+         if (m_camera.advance(procFrame + adjustFrame) == true && m_camera.getCurrentFrame() == m_camera.getPreviousFrame()) {
             /* reached end */
             m_cameraControlled = false;
          }
          m_render->setCameraFromController(&m_camera);
-      } else {
-         m_render->setCameraFromController(NULL);
       }
    }
    /* update after simulation */
