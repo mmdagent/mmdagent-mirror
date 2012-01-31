@@ -169,6 +169,11 @@
 #define OPTION_BULLETFPS_MAX 120
 #define OPTION_BULLETFPS_MIN 1
 
+#define OPTION_GRAVITYFACTOR_STR "gravity_factor"
+#define OPTION_GRAVITYFACTOR_DEF 2.0f
+#define OPTION_GRAVITYFACTOR_MAX 1024.0f
+#define OPTION_GRAVITYFACTOR_MIN 0.0f
+
 #define OPTION_ROTATESTEP_STR "rotate_step"
 #define OPTION_ROTATESTEP_DEF 4.5f
 #define OPTION_ROTATESTEP_MAX 180.0f
@@ -270,6 +275,9 @@ private:
 
    /* bullet physics */
    int m_bulletFps;
+
+   /* gravity scale */
+   float m_gravityFactor;
 
    /* move */
    float m_rotateStep;
@@ -444,6 +452,12 @@ public:
 
    /* setBulletFps: set bullet fps */
    void setBulletFps(int i);
+
+   /* setGravityFactor: set gravity factor */
+   void setGravityFactor(float f);
+
+   /* getGravityFactor: get gravity factor */
+   float getGravityFactor();
 
    /* getRotateStep: get rotate step */
    float getRotateStep();

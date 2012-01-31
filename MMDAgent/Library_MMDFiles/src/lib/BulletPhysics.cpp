@@ -105,7 +105,7 @@ BulletPhysics::~BulletPhysics()
 }
 
 /* BulletPhysics::setup: initialize and setup BulletPhysics */
-void BulletPhysics::setup(int simulationFps)
+void BulletPhysics::setup(int simulationFps, float gravityFactor)
 {
    float dist = 400.0f;
 
@@ -132,7 +132,7 @@ void BulletPhysics::setup(int simulationFps)
 
    /* set default gravity */
    /* some tweak for the simulation to match that of MMD... */
-   m_world->setGravity(btVector3(0.0f, -9.8f * 2, 0.0f));
+   m_world->setGravity(btVector3(0.0f, -9.8f * gravityFactor, 0.0f));
 
    /* a weird configuration to use 120Hz simulation */
    /* change the number of constraint solving iteration to be inversely propotional to simulation rate */

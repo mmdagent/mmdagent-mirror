@@ -102,6 +102,7 @@ void Option::initialize()
    m_motionAdjustFrame = OPTION_MOTIONADJUSTFRAME_DEF;
 
    m_bulletFps = OPTION_BULLETFPS_DEF;
+   m_gravityFactor = OPTION_GRAVITYFACTOR_DEF;
 
    m_rotateStep = OPTION_ROTATESTEP_DEF;
    m_translateStep = OPTION_TRANSLATESTEP_DEF;
@@ -144,7 +145,7 @@ bool Option::load(const char *file)
    while (fgets(buf, OPTION_MAXBUFLEN, fp)) {
       len = MMDAgent_strlen(buf);
       if(len <= 0) continue;
-      p1 = &(buf[len-1]);
+      p1 = &(buf[len - 1]);
       while (p1 >= &(buf[0]) && (*p1 == '\n' || *p1 == '\r' || *p1 == '\t' || *p1 == ' ')) {
          *p1 = L'\0';
          p1--;
@@ -216,6 +217,8 @@ bool Option::load(const char *file)
          setMotionAdjustFrame(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_BULLETFPS_STR)) {
          setBulletFps(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_GRAVITYFACTOR_STR)) {
+         setGravityFactor(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_ROTATESTEP_STR)) {
          setRotateStep(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_TRANSLATESTEP_STR)) {
@@ -723,6 +726,23 @@ void Option::setBulletFps(int i)
       m_bulletFps = OPTION_BULLETFPS_MIN;
    else
       m_bulletFps = i;
+}
+
+/* Option::getGravityFactor: get gravity factor */
+float Option::getGravityFactor()
+{
+   return m_gravityFactor;
+}
+
+/* Option::setGravityFactor: set gravity factor */
+void Option::setGravityFactor(float f)
+{
+   if(OPTION_GRAVITYFACTOR_MAX < f)
+      m_gravityFactor = OPTION_GRAVITYFACTOR_MAX;
+   else if(OPTION_GRAVITYFACTOR_MIN > f)
+      m_gravityFactor = OPTION_GRAVITYFACTOR_MIN;
+   else
+      m_gravityFactor = f;
 }
 
 /* Option::getRotateStep: get rotate step */

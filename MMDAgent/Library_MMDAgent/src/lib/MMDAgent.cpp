@@ -1039,7 +1039,7 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
 
    /* initialize BulletPhysics */
    m_bullet = new BulletPhysics();
-   m_bullet->setup(m_option->getBulletFps());
+   m_bullet->setup(m_option->getBulletFps(), m_option->getGravityFactor());
 
    /* load and start plugins */
    m_plugin = new Plugin();

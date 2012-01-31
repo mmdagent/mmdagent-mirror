@@ -75,7 +75,7 @@ public:
    ~BulletPhysics();
 
    /* setup: initialize and setup BulletPhysics */
-   void setup(int simulationFps);
+   void setup(int simulationFps, float gravityFactor);
 
    /* update: step the simulation world forward */
    void update(float deltaFrame);
