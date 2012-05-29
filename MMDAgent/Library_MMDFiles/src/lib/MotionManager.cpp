@@ -65,6 +65,12 @@ void MotionPlayer_initialize(MotionPlayer *m)
    m->endingFaceBlend = 0.0f;
    m->statusFlag = MOTION_STATUS_RUNNING;
 
+   m->targetSpeedRate = 1.0f;
+   m->currentSpeedRate = 1.0f;
+   m->remainingFramesForStartOfAcceleration = -1.0f;
+   m->remainingFramesForEndOfAcceleration = -1.0f;
+   m->accelerationStatusFlag = ACCELERATION_STATUS_CONSTANT;
+
    m->next = NULL;
 }
 
@@ -82,7 +88,7 @@ void MotionManager::purgeMotion()
          else
             m_playerList = m->next;
          tmp2 = m->next;
-         if(m->name) free(m->name);
+         if (m->name) free(m->name);
          delete m;
          m = tmp2;
       } else {
@@ -115,7 +121,7 @@ void MotionManager::clear()
 
    while (player) {
       tmp = player->next;
-      if(player->name) free(player->name);
+      if (player->name) free(player->name);
       delete player;
       player = tmp;
    }
@@ -140,7 +146,7 @@ bool MotionManager::startMotion(VMD * vmd, const char *name, bool full, bool onc
 {
    MotionPlayer *m, *tmp1, *tmp2;
 
-   if(vmd == NULL || name == NULL) return false;
+   if (vmd == NULL || name == NULL) return false;
 
    /* purge inactive motion managers */
    purgeMotion();
@@ -213,6 +219,8 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
    m->active = true;
    m->endingBoneBlend = 0.0f;
    m->endingFaceBlend = 0.0f;
+   /* when motion is changed, speed acceleration is turned off */
+   m->accelerationStatusFlag = ACCELERATION_STATUS_CONSTANT;
 
    /* set model offset */
    if (m->enableSmooth) {
@@ -247,7 +255,7 @@ bool MotionManager::swapMotion(VMD * vmd, const char * name)
 {
    MotionPlayer *m;
 
-   if(vmd == NULL || name == NULL) return false;
+   if (vmd == NULL || name == NULL) return false;
 
    /* purge inactive motion managers */
    purgeMotion();
@@ -268,12 +276,38 @@ bool MotionManager::swapMotion(VMD * vmd, const char * name)
    return true;
 }
 
+/* MotionManager::setMotionSpeedRate: set motion speed rate */
+bool MotionManager::setMotionSpeedRate(const char *name, float speedRate, float changeLength, float targetFrameIndex)
+{
+   MotionPlayer *m;
+
+   if (name == NULL || speedRate < 0.0f || changeLength < 0.0f) return false;
+
+   for (m = m_playerList; m; m = m->next) {
+      if (m->active && MMDFiles_strequal(m->name, name) == true) {
+         m->targetSpeedRate = speedRate;
+         if (targetFrameIndex < 0.0f) {
+            m->remainingFramesForStartOfAcceleration = 0.0f;
+            m->remainingFramesForEndOfAcceleration = changeLength;
+         } else {
+            m->remainingFramesForStartOfAcceleration = targetFrameIndex - (float) m->mc.getCurrentFrame();
+            if (m->remainingFramesForStartOfAcceleration < 0.0f)
+               m->remainingFramesForStartOfAcceleration += m->vmd->getMaxFrame();
+            m->remainingFramesForEndOfAcceleration = m->remainingFramesForStartOfAcceleration + changeLength;
+         }
+         m->accelerationStatusFlag = ACCELERATION_STATUS_WAITING;
+         return true;
+      }
+   }
+   return false;
+}
+
 /* MotionManager::deleteMotion: delete a motion */
 bool MotionManager::deleteMotion(const char *name)
 {
    MotionPlayer *m;
 
-   if(name == NULL) return false;
+   if (name == NULL) return false;
 
    for (m = m_playerList; m; m = m->next) {
       if (m->active && MMDFiles_strequal(m->name, name) == true) {
@@ -319,7 +353,7 @@ bool MotionManager::update(double frame)
          m->mc.setBoneBlendRate(m->motionBlendRate * m->endingBoneBlend / m->endingBoneBlendFrames);
          m->mc.setFaceBlendRate(m->endingFaceBlend / m->endingFaceBlendFrames);
          /* proceed the motion */
-         m->mc.advance(frame);
+         m->mc.advance(frame * m->currentSpeedRate);
          /* decrement the rest frames */
          m->endingBoneBlend -= (float) frame;
          m->endingFaceBlend -= (float) frame;
@@ -337,7 +371,7 @@ bool MotionManager::update(double frame)
          m->mc.setBoneBlendRate(m->motionBlendRate);
          m->mc.setFaceBlendRate(1.0f); /* does not apply blend rate for face morphs */
          /* proceed the motion */
-         if (m->mc.advance(frame)) {
+         if (m->mc.advance(frame * m->currentSpeedRate)) {
             /* this motion player has reached end */
             switch (m->onEnd) {
             case 0:
@@ -346,7 +380,7 @@ bool MotionManager::update(double frame)
             case 1:
                /* loop to a frame */
                if (m->mc.getMaxFrame() != 0.0f) { /* avoid infinite event loop when motion is void */
-                  m->mc.rewind(m->loopAt, (float) frame);
+                  m->mc.rewind(m->loopAt, (float) (frame * m->currentSpeedRate));
                   m->statusFlag = MOTION_STATUS_LOOPED;
                }
                break;
@@ -369,6 +403,43 @@ bool MotionManager::update(double frame)
    /* return true when any status change has occurred within this call */
    for (m = m_playerList; m; m = m->next)
       if (m->statusFlag != MOTION_STATUS_RUNNING)
+         return true;
+   return false;
+}
+
+/* MotionManager::updateMotionSpeedRate: update motion speed rate */
+bool MotionManager::updateMotionSpeedRate(double frame)
+{
+   MotionPlayer *m;
+   float f;
+
+   for (m = m_playerList; m; m = m->next) {
+      if (!m->active || m->accelerationStatusFlag == ACCELERATION_STATUS_CONSTANT)
+         continue;
+      if (m->accelerationStatusFlag == ACCELERATION_STATUS_ENDED) {
+         m->accelerationStatusFlag = ACCELERATION_STATUS_CONSTANT;
+         continue;
+      }
+      f = (float) frame * m->currentSpeedRate;
+      if (m->accelerationStatusFlag == ACCELERATION_STATUS_WAITING) {
+         m->remainingFramesForStartOfAcceleration -= f;
+         if (m->remainingFramesForStartOfAcceleration <= 0.0)
+            m->accelerationStatusFlag = ACCELERATION_STATUS_CHANGING;
+      }
+      m->remainingFramesForEndOfAcceleration -= f;
+      if (m->accelerationStatusFlag == ACCELERATION_STATUS_CHANGING) {
+         if (m->remainingFramesForEndOfAcceleration <= 0.0) {
+            m->currentSpeedRate = m->targetSpeedRate;
+            m->accelerationStatusFlag = ACCELERATION_STATUS_ENDED;
+         } else {
+            m->currentSpeedRate += (m->targetSpeedRate - m->currentSpeedRate) * ((float) frame / (m->remainingFramesForEndOfAcceleration + (float) frame));
+         }
+      }
+   }
+
+   /* return true when any non-constant status exists within this call */
+   for (m = m_playerList; m; m = m->next)
+      if (m->active && m->accelerationStatusFlag == ACCELERATION_STATUS_ENDED)
          return true;
    return false;
 }

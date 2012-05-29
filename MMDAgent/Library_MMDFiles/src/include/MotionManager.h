@@ -49,6 +49,14 @@ enum {
    MOTION_STATUS_DELETED, /* just reached to the end and deleted itself */
 };
 
+/* motion's speed status at last call */
+enum {
+   ACCELERATION_STATUS_CONSTANT, /* constantly running */
+   ACCELERATION_STATUS_WAITING,  /* waiting acceleration beginning frame (constant) */
+   ACCELERATION_STATUS_CHANGING, /* speed is changing */
+   ACCELERATION_STATUS_ENDED     /* just finished acceleration */
+};
+
 /* Motion player: hold a bag of data to perform a motion, holding status, manage loop and end of motion */
 typedef struct _MotionPlayer {
    char *name; /* name */
@@ -72,6 +80,12 @@ typedef struct _MotionPlayer {
    float endingBoneBlend; /* at blending down at motion end, this value keeps the rest frame */
    float endingFaceBlend; /* at blending down at motion end, this value keeps the rest frame */
    int statusFlag;        /* variable to hold status */
+
+   float targetSpeedRate;                       /* target speed rate */
+   float currentSpeedRate;                      /* current speed rate */
+   float remainingFramesForStartOfAcceleration; /* remaining frames for start of changing speed rate */
+   float remainingFramesForEndOfAcceleration;   /* remaining frames for end of changing speed rate */
+   int accelerationStatusFlag;                  /* variable to hold status for motion speed change */
 
    struct _MotionPlayer *next;
 } MotionPlayer;
@@ -117,11 +131,17 @@ public:
    /* swapMotion: swap a motion, keeping parameters */
    bool swapMotion(VMD *vmd, const char *name);
 
+   /* setMotionSpeedRate: set motion speed */
+   bool setMotionSpeedRate(const char *name, float speedRate, float changeLength, float targetFrameIndex);
+
    /* deleteMotion: delete a motion */
    bool deleteMotion(const char *name);
 
    /* update: apply all motion players */
    bool update(double frame);
+
+   /* updateMotionSpeedRate: update motion speed rate */
+   bool updateMotionSpeedRate(double frame);
 
    /* getMotionPlayerList: get list of motion players */
    MotionPlayer *getMotionPlayerList();
