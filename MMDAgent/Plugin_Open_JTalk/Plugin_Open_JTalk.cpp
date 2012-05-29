@@ -96,10 +96,10 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
 
    /* load */
    if (len > 4) {
-      config[len-4] = '.';
-      config[len-3] = 'o';
-      config[len-2] = 'j';
-      config[len-1] = 't';
+      config[len - 4] = '.';
+      config[len - 3] = 'o';
+      config[len - 2] = 'j';
+      config[len - 1] = 't';
       open_jtalk_manager.loadAndStart(mmdagent, dic, config);
    }
 
