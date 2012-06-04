@@ -77,7 +77,7 @@ private:
    bool m_absPosFlag[3];       /* absolute position flag for accessory per each axis */
    float m_moveSpeed;          /* move speed per second. if negative value, warp to m_offsetPos */
    float m_spinSpeed;          /* spin speed per second. if negative value, warp to m_offsetRot */
-   bool m_allowToonShading;    /* false if deny toon rendering for accessory or stage */
+   bool m_useCartoonRendering; /* false if deny cartoon rendering */
    bool m_allowMotionFileDrop; /* true if allow motion file drop or all motion command */
 
    bool m_isMoving;   /* true when model move */
@@ -205,6 +205,9 @@ public:
 
    /* setEnableFlag: set enable flag */
    void setEnableFlag(bool flag);
+
+   /* useCartoonRendering: return true if cartoon rendering is enabled */
+   bool useCartoonRendering();
 
    /* allowMotionFileDrop: return true if motion file drop is allowed */
    bool allowMotionFileDrop();

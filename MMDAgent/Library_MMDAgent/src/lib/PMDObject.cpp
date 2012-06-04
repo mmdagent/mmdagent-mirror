@@ -46,26 +46,39 @@
 /* PMDObject::initialize: initialize PMDObject */
 void PMDObject::initialize()
 {
-   m_isEnable = false;
+   m_alias = NULL;
    m_motionManager = NULL;
 
    m_globalLipSync = NULL;
    m_localLipSync = NULL;
 
+   m_isEnable = false;
+
+   m_lightDir = btVector3(0.0f, 0.0f, 0.0f);
+
+   m_assignTo = NULL;
+   m_baseBone = NULL;
+   m_origBasePos = btVector3(0.0f, 0.0f, 0.0f);
+
+   m_offsetPos = btVector3(0.0f, 0.0f, 0.0f);
+   m_offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   m_absPosFlag[0] = false;
+   m_absPosFlag[1] = false;
+   m_absPosFlag[2] = false;
    m_moveSpeed = -1.0f;
    m_spinSpeed = -1.0f;
+   m_useCartoonRendering = true;
+   m_allowMotionFileDrop = true;
+
    m_isMoving = false;
    m_isRotating = false;
    m_underTurn = false;
-   m_offsetPos = btVector3(0.0f, 0.0f, 0.0f);
-   m_offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+
    m_alphaAppearFrame = 0.0;
    m_alphaDisappearFrame = 0.0;
    m_displayCommentFrame = 0.0;
-   m_assignTo = NULL;
-   m_baseBone = NULL;
+
    m_needResetKinematic = false;
-   m_alias = NULL;
 }
 
 /* PMDOjbect::clear: free PMDObject */
@@ -131,7 +144,7 @@ bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetP
       m_absPosFlag[i] = false;
 
    /* copy toon rendering flag */
-   m_allowToonShading = true;
+   m_useCartoonRendering = useCartoonRendering;
 
    /* copy flag for motion file drop or all motion */
    if(assignBone || assignObject)
@@ -156,10 +169,7 @@ bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetP
    }
 
    /* set toon rendering flag */
-   if (useCartoonRendering == true && m_allowToonShading == true)
-      m_pmd.setToonFlag(true);
-   else
-      m_pmd.setToonFlag(false);
+   m_pmd.setToonFlag(useCartoonRendering);
 
    /* set edge width */
    m_pmd.setEdgeThin(cartoonEdgeWidth);
@@ -175,10 +185,10 @@ bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetP
       delete lip;
    } else {
       buf = MMDAgent_strdup(fileName);
-      buf[len-4] = '.';
-      buf[len-3] = 'l';
-      buf[len-2] = 'i';
-      buf[len-1] = 'p';
+      buf[len - 4] = '.';
+      buf[len - 3] = 'l';
+      buf[len - 2] = 'i';
+      buf[len - 1] = 'p';
       if(lip->load(buf) == true) {
          m_localLipSync = lip;
       } else
@@ -571,6 +581,12 @@ bool PMDObject::isEnable()
 void PMDObject::setEnableFlag(bool flag)
 {
    m_isEnable = flag;
+}
+
+/* PMDObject::useCartoonRendering: return true if cartoon rendering is enabled */
+bool PMDObject::useCartoonRendering()
+{
+   return m_useCartoonRendering;
 }
 
 /* PMDObject::allowMotionFileDrop: return true if motion file drop is allowed */

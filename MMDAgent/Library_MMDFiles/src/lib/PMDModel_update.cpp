@@ -83,7 +83,7 @@ void PMDModel::updateBone()
 
    /* apply under-rotate effects */
    for (i = 0; i < m_numRotateBone; i++)
-      m_boneList[m_rotateBoneIDList[i]].updateRotate();
+      m_boneList[m_rotateBoneIDList[i]].update();
 }
 
 /* PMDModel::updateBoneFromSimulation: update bone transform from rigid body */
@@ -230,4 +230,54 @@ void PMDModel::smearAllBonesToDefault(float rate)
    for (i = 0; i < m_numFace; i++) {
       m_faceList[i].setWeight(m_faceList[i].getWeight() * rate);
    }
+}
+
+#ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
+/* compareAlphaDepth: qsort function for reordering material */
+static int compareAlphaDepth(const void *a, const void *b)
+{
+   MaterialDistanceData *x = (MaterialDistanceData *) a;
+   MaterialDistanceData *y = (MaterialDistanceData *) b;
+
+   if (x->alpha < 1.0f && y->alpha < 1.0f) {
+      if (x->dist == y->dist)
+         return 0;
+      return ( (x->dist > y->dist) ? 1 : -1 );
+   } else if (x->alpha == 1.0f && y->alpha < 1.0f) {
+      return -1;
+   } else if (x->alpha < 1.0f && y->alpha == 1.0f) {
+      return 1;
+   } else {
+      return 0;
+   }
+}
+#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING */
+
+/* PMDModel::updateMaterialOrder: update material order */
+void PMDModel::updateMaterialOrder(btTransform *trans)
+{
+#ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
+   unsigned long i;
+   btVector3 pos;
+
+   for (i = 0; i < m_numMaterial; i++) {
+      pos = m_skinnedVertexList[m_material[i].getCenterPositionIndex()];
+      pos = *trans * pos;
+      m_materialDistance[i].dist = pos.z() + m_material[i].getCenterVertexRadius();
+      if (m_material[i].getAlpha() == 1.0f && m_material[i].getTexture() != NULL && m_material[i].getTexture()->isTransparent())
+         m_materialDistance[i].alpha = 0.99f;
+      else
+         m_materialDistance[i].alpha = m_material[i].getAlpha();
+      m_materialDistance[i].id = i;
+   }
+   qsort(m_materialDistance, m_numMaterial, sizeof(MaterialDistanceData), compareAlphaDepth);
+   for (i = 0; i < m_numMaterial; i++)
+      m_materialRenderOrder[i] = m_materialDistance[i].id;
+#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING */
+}
+
+/* PMDModel::getMaterialRenderOrder: get material rendering order */
+unsigned long *PMDModel::getMaterialRenderOrder()
+{
+   return m_materialRenderOrder;
 }

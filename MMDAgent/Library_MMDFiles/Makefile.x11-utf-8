@@ -30,6 +30,7 @@ CXX      = gcc
 AR       = ar
 CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
            -DMMDFILES_DONTUPDATEMATRICESFORIK \
+           -DMMDFILES_DONTSORTORDERFORALPHARENDERING \
            -DMMDFILES_CHARSET="\"UTF-8\""
 INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \

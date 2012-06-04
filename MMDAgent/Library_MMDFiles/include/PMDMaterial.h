@@ -59,6 +59,10 @@ private:
    PMDTexture *m_texture;           /* pointer to texture */
    PMDTexture *m_additionalTexture; /* pointer to additional sphere map */
 
+   unsigned short *m_surfaceList;     /* surface of this material */
+   unsigned long m_centerVertexIndex; /* center vertex index for this material */
+   float m_centerVertexRadius;        /* maximum radius from center vertex */
+
    /* initialize: initialize material */
    void initialize();
 
@@ -74,7 +78,7 @@ public:
    ~PMDMaterial();
 
    /* setup: initialize and setup material */
-   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir);
+   bool setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir, unsigned short *indices, btVector3 *vertices);
 
    /* hasSingleSphereMap: return if it has single sphere maps */
    bool hasSingleSphereMap();
@@ -114,4 +118,13 @@ public:
 
    /* getAdditionalTexture: get additional sphere map */
    PMDTexture *getAdditionalTexture();
+
+   /* getCenterPositionIndex: get center position index */
+   unsigned long getCenterPositionIndex();
+
+   /* getCenterVertexRadius: get maximum radius from center position index */
+   float getCenterVertexRadius();
+
+   /* getSurfaceList: get surface list */
+   unsigned short *getSurfaceList();
 };

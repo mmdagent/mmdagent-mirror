@@ -71,8 +71,6 @@ private:
    btVector3 m_pos;                 /* current position from parent bone, given by motion */
    btQuaternion m_rot;              /* current rotation, given by motion */
 
-private:
-
    /* initialize: initialize bone */
    void initialize();
 
@@ -99,10 +97,7 @@ public:
    /* setMotionIndependency: check if this bone does not be affected by other controller bones */
    void setMotionIndependency();
 
-   /* updateRotate: update internal transform, consulting extra rotation */
-   void updateRotate();
-
-   /* update: update internal transform for current position / rotation */
+   /* update: update internal transform for current position/rotation */
    void update();
 
    /* calcSkinningTrans: get internal transform for skinning */

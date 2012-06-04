@@ -139,7 +139,7 @@ void MMDAgent::setHighLight(int modelId)
 }
 
 /* MMDAgent::addModel: add model */
-bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, const char *baseModelAlias, const char *baseBoneName)
+bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, bool useCartoonRendering, const char *baseModelAlias, const char *baseBoneName)
 {
    int i;
    int id;
@@ -209,7 +209,7 @@ bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, useCartoonRendering, m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
       m_logger->log("Error: addModel: %s cannot be loaded.", fileName);
       m_model[id].release();
       free(name);
@@ -249,7 +249,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_option->getUseCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_model[id].useCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
       m_logger->log("Error: changeModel: %s cannot be loaded.", fileName);
       return false;
    }
@@ -272,7 +272,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
    m_model[id].updateMotion(0.0);
    m_model[id].updateSkin();
 
-   /* delete accessories immediately*/
+   /* delete accessories immediately */
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() && m_model[i].getAssignedModel() == &(m_model[id]))
          removeRelatedModels(i);
@@ -390,7 +390,7 @@ bool MMDAgent::changeMotion(const char *modelAlias, const char *motionAlias, con
 
    /* check */
    if (!motionAlias) {
-      m_logger->log("Error: changeMotion: not specified %s.", motionAlias);
+      m_logger->log("Error: changeMotion: motion alias is not specified.");
       return false;
    }
 
@@ -998,10 +998,10 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
    strcpy(buff, binaryFileName);
    len = MMDAgent_strlen(buff);
    if(MMDAgent_strtailmatch(buff, ".exe") == true || MMDAgent_strtailmatch(buff, ".EXE") == true) {
-      buff[len-4] = '.';
-      buff[len-3] = 'm';
-      buff[len-2] = 'd';
-      buff[len-1] = 'f';
+      buff[len - 4] = '.';
+      buff[len - 3] = 'm';
+      buff[len - 2] = 'd';
+      buff[len - 1] = 'f';
    } else
       strcat(buff, ".mdf");
    if(m_option->load(buff))
@@ -1110,7 +1110,7 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
    /* load model from arguments */
    for (i = 1; i < argc; i++)
       if (MMDAgent_strtailmatch(argv[i], ".pmd"))
-         addModel(NULL, argv[i], NULL, NULL, NULL, NULL);
+         addModel(NULL, argv[i], NULL, NULL, true, NULL, NULL);
 
    if(MMDAgent_chdir(m_configDirName) == false) {
       clear();
@@ -2085,7 +2085,7 @@ void MMDAgent::procCommandMessage(const char *type, const char *value)
    } else {
       m_logger->log("<%s|%s>", type, value);
       strncpy(buff, value, MMDAGENT_MAXBUFLEN - 1);
-      buff[MMDAGENT_MAXBUFLEN-1] = '\0';
+      buff[MMDAGENT_MAXBUFLEN - 1] = '\0';
       for (str1 = MMDAgent_strtok(buff, "|", &str2); str1; str1 = MMDAgent_strtok(NULL, "|", &str2)) {
          if (num >= MMDAGENT_MAXNCOMMAND) {
             m_logger->log("Error: %s: number of arguments exceed the limit.", type);
@@ -2097,10 +2097,11 @@ void MMDAgent::procCommandMessage(const char *type, const char *value)
    }
 
    if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MODELADD)) {
+      bool1 = true;
       str1 = NULL;
       str2 = NULL;
-      if (num < 2 || num > 6) {
-         m_logger->log("Error: %s: number of arguments should be 2-6.", type);
+      if (num < 2 || num > 7) {
+         m_logger->log("Error: %s: number of arguments should be 2-7.", type);
          return;
       }
       if (num >= 3) {
@@ -2119,13 +2120,23 @@ void MMDAgent::procCommandMessage(const char *type, const char *value)
       } else {
          rot.setEulerZYX(0.0, 0.0, 0.0);
       }
-      if (num >= 5) {
-         str1 = argv[4];
+      if(num >= 5) {
+         if(MMDAgent_strequal(argv[4], "ON")) {
+            bool1 = true;
+         } else if(MMDAgent_strequal(argv[4], "OFF")) {
+            bool1 = false;
+         } else {
+            m_logger->log("Error: %s: 5th argument should be \"ON\" or \"OFF\".", type);
+            return;
+         }
       }
       if (num >= 6) {
-         str2 = argv[5];
+         str1 = argv[5];
       }
-      addModel(argv[0], argv[1], &pos, &rot, str1, str2);
+      if (num >= 7) {
+         str2 = argv[6];
+      }
+      addModel(argv[0], argv[1], &pos, &rot, bool1, str1, str2);
    } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MODELCHANGE)) {
       /* change model */
       if (num != 2) {
@@ -2490,7 +2501,7 @@ void MMDAgent::procDropFileMessage(const char * file, int x, int y)
       /* drop model */
       if (m_keyCtrl) {
          /* if Ctrl-key, add model */
-         addModel(NULL, file, NULL, NULL, NULL, NULL);
+         addModel(NULL, file, NULL, NULL, true, NULL, NULL);
       } else {
          /* change model */
          if (m_doubleClicked && m_selectedModel != -1) /* already selected */

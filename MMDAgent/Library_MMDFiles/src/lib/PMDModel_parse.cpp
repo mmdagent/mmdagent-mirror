@@ -74,7 +74,6 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
 
    unsigned short j, k, l;
    unsigned short *surfaceFrom, *surfaceTo;
-   unsigned char type;
    char *name;
    PMDBone *bMatch;
    PMDFace *fMatch;
@@ -150,10 +149,12 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    data += sizeof(unsigned long);
    m_material = new PMDMaterial[m_numMaterial];
    fileMaterial = (PMDFile_Material *) data;
+   surfaceFrom = m_surfaceList;
    for (i = 0; i < m_numMaterial; i++) {
-      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader, dir)) {
+      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader, dir, surfaceFrom, m_vertexList)) {
          /* ret = false; */
       }
+      surfaceFrom += m_material[i].getNumSurface();
    }
    data += sizeof(PMDFile_Material) * m_numMaterial;
 
@@ -196,7 +197,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             if (l >= j) {
                bMatch = m_orderedBoneList[j];
                if (j < m_numBone - 1)
-                  memmove(m_orderedBoneList[j], m_orderedBoneList[j+1], sizeof(PMDBone *) * (m_numBone - 1 - j));
+                  memmove(m_orderedBoneList[j], m_orderedBoneList[j + 1], sizeof(PMDBone *) * (m_numBone - 1 - j));
                m_orderedBoneList[m_numBone - 1] = bMatch;
                i = 1;
             }
@@ -332,7 +333,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             m_rigidBodyList = new PMDRigidBody[m_numRigidBody];
             fileRigidBody = (PMDFile_RigidBody *) data;
             for (i = 0; i < m_numRigidBody; i++) {
-               if (! m_rigidBodyList[i].setup(&fileRigidBody[i], (fileRigidBody[i].boneID == 0xFFFF) ? m_centerBone : &(m_boneList[fileRigidBody[i].boneID])))
+               if (! m_rigidBodyList[i].setup(&fileRigidBody[i], (fileRigidBody[i].boneID == 0xFFFF) ? m_centerBone : & (m_boneList[fileRigidBody[i].boneID])))
                   ret = false;
                m_rigidBodyList[i].joinWorld(m_bulletPhysics->getWorld());
                /* flag the bones under simulation in order to skip IK solving for those bones */
@@ -375,8 +376,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    /* reverse surface, swapping vartex order [0] and [1] in a triangle surface */
    for (i = 0; i < m_numSurface; i += 3) {
       j = m_surfaceList[i];
-      m_surfaceList[i] = m_surfaceList[i+1];
-      m_surfaceList[i+1] = j;
+      m_surfaceList[i] = m_surfaceList[i + 1];
+      m_surfaceList[i + 1] = j;
    }
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
@@ -390,6 +391,11 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    m_toonTexCoordList = (TexCoord *) malloc(sizeof(TexCoord) * m_numVertex);
    /* calculated Vertex positions for toon edge drawing */
    m_edgeVertexList = new btVector3[m_numVertex];
+   /* initialize material order */
+   m_materialRenderOrder = new unsigned long[m_numMaterial];
+   m_materialDistance = new MaterialDistanceData[m_numMaterial];
+   for (i = 0; i < m_numMaterial; i++)
+      m_materialRenderOrder[i] = i;
    /* surface list to be rendered at edge drawing (skip non-edge materials) */
    m_numSurfaceForEdge = 0;
    for (i = 0; i < m_numMaterial; i++)
@@ -415,19 +421,32 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
          m_hasMultipleSphereMap = true;
    }
 
-   /* make index of rotation-subjective bones (type == UNDER_ROTATE) */
-   m_numRotateBone = 0;
-   for (j = 0; j < m_numBone; j++) {
-      type = m_boneList[j].getType();
-      if (type == UNDER_ROTATE)
-         m_numRotateBone++;
-   }
-   if (m_numRotateBone > 0) {
-      m_rotateBoneIDList = (unsigned short *) malloc(sizeof(unsigned short) * m_numRotateBone);
-      for (j = 0, k = 0; j < m_numBone; j++) {
-         type = m_boneList[j].getType();
-         if (type == UNDER_ROTATE)
-            m_rotateBoneIDList[k++] = j;
+   /* make index of rotation-subjective bones (type == UNDER_ROTATE) and subjective bones */
+   if (m_numBone > 0) {
+      m_rotateBoneIDList = (unsigned short *) malloc(sizeof(unsigned short) * m_numBone);
+      for (j = 0; j < m_numBone; j++) {
+         if (m_boneList[j].getType() == UNDER_ROTATE)
+            m_rotateBoneIDList[m_numRotateBone++] = j;
+      }
+      if(m_numRotateBone > 0) {
+         do {
+            i = 0;
+            for (j = 0; j < m_numBone; j++) {
+               for (k = 0; k < m_numRotateBone; k++) {
+                  if (m_rotateBoneIDList[k] == j)
+                     break;
+               }
+               if (k >= m_numRotateBone) {
+                  for (k = 0; k < m_numRotateBone; k++) {
+                     if (&(m_boneList[m_rotateBoneIDList[k]]) == m_boneList[j].getParentBone()) {
+                        m_rotateBoneIDList[m_numRotateBone++] = j;
+                        i = 1;
+                        break;
+                     }
+                  }
+               }
+            }
+         } while(i == 1);
       }
    }
 

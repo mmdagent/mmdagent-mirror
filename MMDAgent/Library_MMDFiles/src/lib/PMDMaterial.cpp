@@ -61,6 +61,9 @@ void PMDMaterial::initialize()
    m_edgeFlag = false;
    m_texture = NULL;
    m_additionalTexture = NULL;
+   m_surfaceList = NULL;
+   m_centerVertexIndex = 0;
+   m_centerVertexRadius = 0.0f;
 }
 
 /* PMDMaterial::clear: free material */
@@ -83,13 +86,15 @@ PMDMaterial::~PMDMaterial()
 }
 
 /* PMDMaterial::setup: initialize and setup material */
-bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir)
+bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir, unsigned short *indices, btVector3 *vertices)
 {
    int i, len;
    char *p;
    char buf[MMDFILES_MAXBUFLEN];
    bool ret = true;
    char name[21];
+   unsigned long j;
+   float f[3], d, tmp;
 
    clear();
 
@@ -139,6 +144,37 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
             ret = false;
       }
    }
+
+   /* store pointer to surface */
+   m_surfaceList = indices;
+
+   /* calculate for center vertex */
+   for (i = 0; i < 3; i++)
+      f[i] = 0.0f;
+   for (j = 0; j < m_numSurface; j++) {
+      f[0] += vertices[indices[j]].getX();
+      f[1] += vertices[indices[j]].getY();
+      f[2] += vertices[indices[j]].getZ();
+   }
+   for (i = 0; i < 3; i++)
+      f[i] /= (float)m_numSurface;
+   for (j = 0; j < m_numSurface; j++) {
+      d = (f[0] - vertices[indices[j]].getX()) * (f[0] - vertices[indices[j]].getX())
+          + (f[1] - vertices[indices[j]].getY()) * (f[1] - vertices[indices[j]].getY())
+          + (f[2] - vertices[indices[j]].getZ()) * (f[2] - vertices[indices[j]].getZ());
+      if (j == 0 || tmp > d) {
+         tmp = d;
+         m_centerVertexIndex = indices[j];
+      }
+   }
+   /* get maximum radius from the center vertex */
+   for (j = 0; j < m_numSurface; j++) {
+      d = vertices[m_centerVertexIndex].distance2(vertices[indices[j]]);
+      if (j == 0 || m_centerVertexRadius < d) {
+         m_centerVertexRadius = d;
+      }
+   }
+   m_centerVertexRadius = sqrt(m_centerVertexRadius);
 
    return ret;
 }
@@ -233,8 +269,27 @@ PMDTexture *PMDMaterial::getTexture()
    return m_texture;
 }
 
-/* getAdditionalTexture: get additional sphere map */
+/* PMDMaterial::getAdditionalTexture: get additional sphere map */
 PMDTexture *PMDMaterial::getAdditionalTexture()
 {
    return m_additionalTexture;
 }
+
+/* PMDMaterial::getCenterPositionIndex: get center position index */
+unsigned long PMDMaterial::getCenterPositionIndex()
+{
+   return m_centerVertexIndex;
+}
+
+/* PMDMaterial::getCenterVertexRadius: get maximum radius from center position index */
+float PMDMaterial::getCenterVertexRadius()
+{
+   return m_centerVertexRadius;
+}
+
+/* PMDMaterial::getSurfaceList: get surface list */
+unsigned short *PMDMaterial::getSurfaceList()
+{
+   return m_surfaceList;
+}
+

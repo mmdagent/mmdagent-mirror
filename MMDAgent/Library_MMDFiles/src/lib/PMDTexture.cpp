@@ -93,7 +93,6 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char *head;
    unsigned char *body;
    bool reversed = false;
-   bool haveAlpha = false;
    BMPHeader *fh;
    unsigned long len;
    BMPInfo *ih;
@@ -106,6 +105,8 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char ci;
    unsigned char mod;
    unsigned char bitmask;
+
+   m_isTransparent = false;
 
    /* open file and read whole data into buffer */
    fp = MMDFiles_fopen(fileName, "rb");
@@ -211,33 +212,33 @@ bool PMDTexture::loadBMP(const char *fileName)
          break;
          case 24:
             /* BGR -> RGB */
-            *t = tl[w*3+2];
+            *t = tl[w * 3 + 2];
             t++;
-            *t = tl[w*3+1];
+            *t = tl[w * 3 + 1];
             t++;
-            *t = tl[w*3 ];
+            *t = tl[w * 3 ];
             t++;
             *t = 255;
             t++;
             break;
          case 32:
             /* BGR0/BGRA -> RGB/RGBA */
-            *t = tl[w*4+2];
+            *t = tl[w * 4 + 2];
             t++;
-            *t = tl[w*4+1];
+            *t = tl[w * 4 + 1];
             t++;
-            *t = tl[w*4 ];
+            *t = tl[w * 4 ];
             t++;
-            *t = tl[w*4+3];
+            *t = tl[w * 4 + 3];
             if (*t != 0)
-               haveAlpha = true;
+               m_isTransparent = true;
             t++;
             break;
          }
       }
    }
 
-   if (bit == 32 && haveAlpha == false) {
+   if (bit == 32 && m_isTransparent == false) {
       /* rewrite 0 (reserved) to 255 */
       t = m_textureData + 3;
       for (h = 0; h < m_height; h++) {
@@ -332,6 +333,8 @@ bool PMDTexture::loadTGA(const char *fileName)
    m_textureData = (unsigned char *) malloc(m_width * m_height * 4);
    ptmp = m_textureData;
 
+   m_isTransparent = false;
+
    for (h = 0; h < m_height; h++) {
       if (attrib & 0x20) { /* from up to bottom */
          pLine = body + h * m_width * stride;
@@ -348,7 +351,9 @@ bool PMDTexture::loadTGA(const char *fileName)
          *(ptmp++) = pLine[idx + 2];
          *(ptmp++) = pLine[idx + 1];
          *(ptmp++) = pLine[idx ];
-         *(ptmp++) = (bit == 32) ? pLine[idx+3] : 255;
+         *(ptmp++) = (bit == 32) ? pLine[idx + 3] : 255;
+         if ( (bit == 32) && pLine[idx + 3] != 255)
+            m_isTransparent = true;
       }
    }
 
@@ -427,10 +432,13 @@ bool PMDTexture::loadPNG(const char *fileName)
       return false;
    }
 
-   if (color & PNG_COLOR_MASK_ALPHA)
+   if (color & PNG_COLOR_MASK_ALPHA) {
       m_components = 4;
-   else
+      m_isTransparent = true;
+   } else {
       m_components = 3;
+      m_isTransparent = false;
+   }
 
    png_read_end(png_ptr, NULL);
 
@@ -502,6 +510,7 @@ bool PMDTexture::loadJPG(const char *fileName)
    m_width = jpegDecompressor.output_width;
    m_height = jpegDecompressor.output_height;
    m_components = 3;
+   m_isTransparent = false;
 
    /* free decompressor */
    jpeg_destroy_decompress(&jpegDecompressor);
@@ -516,6 +525,7 @@ bool PMDTexture::loadJPG(const char *fileName)
 void PMDTexture::initialize()
 {
    m_id = PMDTEXTURE_UNINITIALIZEDID;
+   m_isTransparent = false;
    m_isSphereMap = false;
    m_isSphereMapAdd = false;
    m_width = 0;
@@ -634,6 +644,12 @@ bool PMDTexture::load(const char *fileName)
 GLuint PMDTexture::getID()
 {
    return m_id;
+}
+
+/* PMDTexture::isTransparent: return true if this texture contains transparency */
+bool PMDTexture::isTransparent()
+{
+   return m_isTransparent;
 }
 
 /* PMDTexture::isSphereMap: return true if this texture is sphere map */

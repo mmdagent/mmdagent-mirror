@@ -106,6 +106,8 @@ void PMDModel::initialize()
    m_enableSimulation = true;
    m_maxHeight = 0.0f;
    m_boundingSphereStep = PMDMODEL_BOUNDINGSPHEREPOINTSMIN;
+   m_materialRenderOrder = NULL;
+   m_materialDistance = NULL;
 
    /* initial values for variables that should be kept at model change */
    m_toon = false;
@@ -182,6 +184,11 @@ void PMDModel::clear()
       free(m_comment);
    if(m_name)
       free(m_name);
+
+   if (m_materialRenderOrder)
+      free(m_materialRenderOrder);
+   if (m_materialDistance)
+      free(m_materialDistance);
 
    for (i = 0; i < SYSTEMTEXTURE_NUMFILES; i++)
       m_localToonTexture[i].release();

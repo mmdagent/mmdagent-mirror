@@ -182,7 +182,7 @@ private:
    void renderScene();
 
    /* addModel: add model */
-   bool addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, const char *baseModelAlias, const char *baseBoneName);
+   bool addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, bool useCartoonRendering, const char *baseModelAlias, const char *baseBoneName);
 
    /* changeModel: change model */
    bool changeModel(const char *modelAlias, const char *fileName);

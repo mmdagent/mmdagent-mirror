@@ -47,6 +47,7 @@ class PMDTexture
 private:
 
    GLuint m_id;                  /* OpenGL texture id */
+   bool m_isTransparent;         /* true if this texture contains transparency */
    bool m_isSphereMap;           /* true if this texture is sphere map (.sph or .spa) */
    bool m_isSphereMapAdd;        /* true if this is sphere map to add (.spa) */
    long m_width;                 /* texture image width */
@@ -87,6 +88,9 @@ public:
 
    /* getID: get OpenGL texture ID */
    GLuint getID();
+
+   /* isTransparent: return true if this texture contains transparency */
+   bool isTransparent();
 
    /* isSphereMap: return true if this texture is sphere map */
    bool isSphereMap();

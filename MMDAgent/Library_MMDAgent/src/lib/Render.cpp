@@ -855,6 +855,10 @@ void Render::getRenderOrder(short *order, PMDObject *objs, int num)
    for (i = 0; i < num; i++)
       if (objs[i].isEnable() == false || objs[i].allowMotionFileDrop() == false)
          order[s++] = i;
+
+   for (i = 0; i < num; i++)
+      if (objs[i].isEnable() == true)
+         objs[i].getPMDModel()->updateMaterialOrder(&m_transMatrix);
 }
 
 /* Render::render: render all */

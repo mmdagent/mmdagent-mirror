@@ -59,6 +59,12 @@ typedef struct {
    float v;
 } TexCoord;
 
+typedef struct {
+   float dist;
+   float alpha;
+   unsigned long id;
+} MaterialDistanceData;
+
 /* PMDModel: model of PMD */
 class PMDModel
 {
@@ -140,6 +146,8 @@ private:
    PMDBone m_rootBone;             /* model root bone for global model offset / rotation / bone binding */
    PTree m_name2bone;              /* name-to-bone index for fast lookup */
    PTree m_name2face;              /* name-to-face index for fast lookup */
+   unsigned long *m_materialRenderOrder;
+   MaterialDistanceData *m_materialDistance;
 
    /* parse: initialize and load from data memories */
    bool parse(const unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, const char *dir);
@@ -193,6 +201,12 @@ public:
 
    /* setGlobalAlpha: set global alpha value */
    void setGlobalAlpha(float alpha);
+
+   /* updateMaterialOrder: update material order */
+   void updateMaterialOrder(btTransform *trans);
+
+   /* getMaterialRenderOrder: get material rendering order */
+   unsigned long *getMaterialRenderOrder();
 
    /* getRootBone: get root bone */
    PMDBone *getRootBone();

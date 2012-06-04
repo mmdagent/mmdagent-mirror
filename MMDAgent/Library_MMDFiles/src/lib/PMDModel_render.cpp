@@ -54,7 +54,6 @@ void PMDModel::renderModel()
    float c[4];
    PMDMaterial *m;
    float modelAlpha;
-   unsigned short *surfaceData;
 
    if (!m_vertexList) return;
 
@@ -112,11 +111,10 @@ void PMDModel::renderModel()
 
    /* calculate alpha value, applying model global alpha */
    modelAlpha = m_globalAlpha;
-   surfaceData = m_surfaceList;
 
    /* render per material */
    for (i = 0; i < m_numMaterial; i++) {
-      m = &(m_material[i]);
+      m = &(m_material[m_materialRenderOrder[i]]);
       /* set colors */
       c[3] = m->getAlpha() * modelAlpha;
       if (c[3] > 0.99f) c[3] = 1.0f; /* clamp to 1.0 */
@@ -198,10 +196,7 @@ void PMDModel::renderModel()
       }
 
       /* draw elements */
-      glDrawElements(GL_TRIANGLES, m->getNumSurface(), GL_UNSIGNED_SHORT, surfaceData);
-
-      /* move surface pointer to next material */
-      surfaceData += m->getNumSurface();
+      glDrawElements(GL_TRIANGLES, m->getNumSurface(), GL_UNSIGNED_SHORT, m->getSurfaceList());
 
       /* reset some parameters */
       if (m->getTexture() && m->getTexture()->isSphereMap() && m->getTexture()->isSphereMapAdd()) {
