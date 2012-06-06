@@ -429,6 +429,34 @@ bool MMDAgent::changeMotion(const char *modelAlias, const char *motionAlias, con
    return true;
 }
 
+/* MMDAgent::accelerateMotion: accelerate motion */
+bool MMDAgent::accelerateMotion(const char *modelAlias, const char *motionAlias, float speed, float durationTime, float targetTime)
+{
+   int id;
+
+   /* ID */
+   id = findModelAlias(modelAlias);
+   if (id < 0) {
+      m_logger->log("Error: accelerateMotion: %s is not found.", modelAlias);
+      return false;
+   }
+
+   /* check */
+   if (!motionAlias) {
+      m_logger->log("Error: accelerateMotion: motion alias is not specified.");
+      return false;
+   }
+
+   /* change motion speed */
+   if (m_model[id].getMotionManager()->setMotionSpeedRate(motionAlias, speed, durationTime, targetTime) == false) {
+      m_logger->log("Error: accelerateMotion: %s is not found.", motionAlias);
+      return false;
+   }
+
+   /* don't send event message yet */
+   return true;
+}
+
 /* MMDAgent::deleteMotion: delete motion */
 bool MMDAgent::deleteMotion(const char *modelAlias, const char *motionAlias)
 {
@@ -1222,6 +1250,17 @@ bool MMDAgent::updateScene()
       /* update motion */
       for (i = 0; i < m_numModel; i++) {
          if (m_model[i].isEnable() == false) continue;
+         /* update motion speed */
+         if (m_model[i].getMotionManager()->updateMotionSpeedRate(procFrame + adjustFrame)) {
+            /* search event in motion */
+            for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+               if (motionPlayer->accelerationStatusFlag == ACCELERATION_STATUS_ENDED) {
+                  /* send event message */
+                  sendEventMessage(MMDAGENT_EVENT_MOTIONACCELERATE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
+               }
+            }
+         }
+
          /* update root bone */
          m_model[i].updateRootBone();
          if (m_model[i].updateMotion(procFrame + adjustFrame)) {
@@ -2213,6 +2252,22 @@ void MMDAgent::procCommandMessage(const char *type, const char *value)
          return;
       }
       changeMotion(argv[0], argv[1], argv[2]);
+   } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONACCELERATE)) {
+      /* accelerate motion */
+      fvec[0] = 0.0f;  /* speed */
+      fvec[1] = 0.0f;  /* duration */
+      fvec[2] = -1.0f; /* specified frame index for end of acceleration */
+      if (num < 3 || num > 5) {
+         m_logger->log("Error: %s: number of arguments should be 3-5.", type);
+         return;
+      }
+      if(num >= 3)
+         fvec[0] = MMDAgent_str2float(argv[2]);
+      if (num >= 4)
+         fvec[1] = MMDAgent_str2float(argv[3]);
+      if (num >= 5)
+         fvec[2] = MMDAgent_str2float(argv[4]);
+      accelerateMotion(argv[0], argv[1], fvec[0], fvec[1], fvec[2]);
    } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONDELETE)) {
       /* delete motion */
       if (num != 2) {
