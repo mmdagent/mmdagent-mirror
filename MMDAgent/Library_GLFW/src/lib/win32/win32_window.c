@@ -1329,7 +1329,7 @@ static int createWindow( const _GLFWwndconfig *wndconfig,
 
 #ifdef MMDAGENT
     DragAcceptFiles( _glfwWin.window, 1 );
-#endif /* MMDAGENT*/
+#endif /* MMDAGENT */
 
     return GL_TRUE;
 }
