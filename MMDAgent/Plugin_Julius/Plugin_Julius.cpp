@@ -88,10 +88,10 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    strcpy(userDictionary, mmdagent->getConfigFileName());
    len = MMDAgent_strlen(userDictionary);
    if(len > 4) {
-      userDictionary[len-4] = '.';
-      userDictionary[len-3] = 'd';
-      userDictionary[len-2] = 'i';
-      userDictionary[len-1] = 'c';
+      userDictionary[len - 4] = '.';
+      userDictionary[len - 3] = 'd';
+      userDictionary[len - 2] = 'i';
+      userDictionary[len - 1] = 'c';
    } else {
       strcpy(userDictionary, "");
    }

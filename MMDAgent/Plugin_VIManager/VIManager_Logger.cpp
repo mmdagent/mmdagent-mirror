@@ -150,7 +150,7 @@ void VIManager_Logger::render(VIManager_State *currentState)
    for(i = 0; i < VIMANAGERLOGGER_TEXTHEIGHT; i++) {
       arc = m_history[i];
       if(arc == NULL) break;
-      prevArc = m_history[i+1];
+      prevArc = m_history[i + 1];
       glPushMatrix();
       drawArc(prevArc == NULL ? VIMANAGER_STARTSTATE : prevArc->next_state->number, arc);
       glPopMatrix();

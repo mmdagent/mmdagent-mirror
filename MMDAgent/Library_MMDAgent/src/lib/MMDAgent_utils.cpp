@@ -356,25 +356,25 @@ bool MMDAgent_chdir(const char *dir)
 #endif /* _WIN32 */
 }
 
-/* MMDAgent_sleep: sleep in ms */
+/* MMDAgent_sleep: sleep in sec */
 void MMDAgent_sleep(double t)
 {
-   glfwSleep(t * 0.001);
+   glfwSleep(t);
 }
 
-/* MMDAgent_setTime: set time in ms */
+/* MMDAgent_setTime: set time in sec */
 void MMDAgent_setTime(double t)
 {
-   glfwSetTime(t * 0.001);
+   glfwSetTime(t);
 }
 
-/* MMDAgent_getTime: get time in ms */
+/* MMDAgent_getTime: get time in sec */
 double MMDAgent_getTime()
 {
-   return glfwGetTime() * 1000.0;
+   return glfwGetTime();
 }
 
-/* MMDAgent_diffTime: get difference between two times */
+/* MMDAgent_diffTime: get difference between two times in sec */
 double MMDAgent_diffTime(double now, double past)
 {
    if (past > now)

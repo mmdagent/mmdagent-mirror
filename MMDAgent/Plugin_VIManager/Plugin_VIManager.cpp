@@ -74,10 +74,10 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    buf = MMDAgent_strdup(mmdagent->getConfigFileName());
    len = MMDAgent_strlen(buf);
    if (len > 4) {
-      buf[len-4] = '.';
-      buf[len-3] = 'f';
-      buf[len-2] = 's';
-      buf[len-1] = 't';
+      buf[len - 4] = '.';
+      buf[len - 3] = 'f';
+      buf[len - 2] = 's';
+      buf[len - 1] = 't';
       vimanager_thread.loadAndStart(mmdagent, buf);
    }
    if(buf)

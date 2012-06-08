@@ -62,8 +62,8 @@ void CameraController::control(float frameNow)
    short idx;
 
    /* clamp frame to the defined last frame */
-   if (frame > m_motion->keyFrameList[m_motion->numKeyFrame-1].keyFrame)
-      frame = m_motion->keyFrameList[m_motion->numKeyFrame-1].keyFrame;
+   if (frame > m_motion->keyFrameList[m_motion->numKeyFrame - 1].keyFrame)
+      frame = m_motion->keyFrameList[m_motion->numKeyFrame - 1].keyFrame;
 
    /* find key frames between which the given frame exists */
    if (frame >= m_motion->keyFrameList[m_lastKey].keyFrame) {
@@ -133,38 +133,38 @@ void CameraController::control(float frameNow)
          if (keyFrameForInterpolation->linear[0]) {
             x = pos1.x() * (1.0f - w) + pos2.x() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[0][idx] + (keyFrameForInterpolation->interpolationTable[0][idx+1] - keyFrameForInterpolation->interpolationTable[0][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[0][idx] + (keyFrameForInterpolation->interpolationTable[0][idx + 1] - keyFrameForInterpolation->interpolationTable[0][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             x = pos1.x() * (1.0f - ww) + pos2.x() * ww;
          }
          if (keyFrameForInterpolation->linear[1]) {
             y = pos1.y() * (1.0f - w) + pos2.y() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[1][idx] + (keyFrameForInterpolation->interpolationTable[1][idx+1] - keyFrameForInterpolation->interpolationTable[1][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[1][idx] + (keyFrameForInterpolation->interpolationTable[1][idx + 1] - keyFrameForInterpolation->interpolationTable[1][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             y = pos1.y() * (1.0f - ww) + pos2.y() * ww;
          }
          if (keyFrameForInterpolation->linear[2]) {
             z = pos1.z() * (1.0f - w) + pos2.z() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx+1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx + 1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             z = pos1.z() * (1.0f - ww) + pos2.z() * ww;
          }
          m_pos.setValue(x, y, z);
          if (keyFrameForInterpolation->linear[3]) {
             m_angle = angle1.lerp(angle2, w);
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx+1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx + 1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             m_angle = angle1.lerp(angle2, ww);
          }
          if (keyFrameForInterpolation->linear[4]) {
             m_distance = distance1 * (1.0f - w) + distance2 * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[4][idx] + (keyFrameForInterpolation->interpolationTable[4][idx+1] - keyFrameForInterpolation->interpolationTable[4][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[4][idx] + (keyFrameForInterpolation->interpolationTable[4][idx + 1] - keyFrameForInterpolation->interpolationTable[4][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             m_distance = distance1 * (1.0f - ww) + distance2 * ww;
          }
          if (keyFrameForInterpolation->linear[5]) {
             m_fovy = fovy1 * (1.0f - w) + fovy2 * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[5][idx] + (keyFrameForInterpolation->interpolationTable[5][idx+1] - keyFrameForInterpolation->interpolationTable[5][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[5][idx] + (keyFrameForInterpolation->interpolationTable[5][idx + 1] - keyFrameForInterpolation->interpolationTable[5][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             m_fovy = fovy1 * (1.0f - ww) + fovy2 * ww;
          }
       }
@@ -232,10 +232,10 @@ bool CameraController::advance(double deltaFrame)
    m_previousFrame = m_currentFrame;
    m_currentFrame += deltaFrame;
 
-   if (m_currentFrame >= m_motion->keyFrameList[m_motion->numKeyFrame-1].keyFrame) {
+   if (m_currentFrame >= m_motion->keyFrameList[m_motion->numKeyFrame - 1].keyFrame) {
       /* we have reached the last key frame of this motion */
       /* clamp the frame to the maximum */
-      m_currentFrame = m_motion->keyFrameList[m_motion->numKeyFrame-1].keyFrame;
+      m_currentFrame = m_motion->keyFrameList[m_motion->numKeyFrame - 1].keyFrame;
       /* return finished status */
       return true;
    }

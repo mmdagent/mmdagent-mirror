@@ -67,10 +67,10 @@ private :
    int m_numWord;               /* number of words in recognition dictionary */
    int m_levelThreshold;        /* audio trigger level threshold */
 
-   float m_pos[JULIUSLOGGER_MAXARCS*3];          /* position array for recognition process drawing */
-   unsigned int m_index[JULIUSLOGGER_MAXARCS*2]; /* index array for recognition process drawing */
-   int m_numPos;                                 /* length of m_posArray */
-   int m_numIndex;                               /* length of m_index */
+   float m_pos[JULIUSLOGGER_MAXARCS * 3];          /* position array for recognition process drawing */
+   unsigned int m_index[JULIUSLOGGER_MAXARCS * 2]; /* index array for recognition process drawing */
+   int m_numPos;                                   /* length of m_posArray */
+   int m_numIndex;                                 /* length of m_index */
 
    /* initialize: initialize data */
    void initialize();

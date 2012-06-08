@@ -95,11 +95,11 @@ bool Render::updateTransRotMatrix(double ellapsedTimeForMove)
    if (m_currentRot == m_rot && m_currentTrans == m_trans)
       return false;
 
-   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
+   if (m_viewMoveTime == 0.0 || m_viewControlledByMotion == true) {
       /* immediately apply the target */
       m_currentRot = m_rot;
       m_currentTrans = m_trans;
-   } else if (m_viewMoveTime > 0) {
+   } else if (m_viewMoveTime > 0.0) {
       /* constant move */
       if (ellapsedTimeForMove >= m_viewMoveTime) {
          m_currentRot = m_rot;
@@ -147,10 +147,10 @@ bool Render::updateDistance(double ellapsedTimeForMove)
    if (m_currentDistance == m_distance)
       return false;
 
-   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
+   if (m_viewMoveTime == 0.0 || m_viewControlledByMotion == true) {
       /* immediately apply the target */
       m_currentDistance = m_distance;
-   } else if (m_viewMoveTime > 0) {
+   } else if (m_viewMoveTime > 0.0) {
       /* constant move */
       if (ellapsedTimeForMove >= m_viewMoveTime) {
          m_currentDistance = m_distance;
@@ -169,7 +169,7 @@ bool Render::updateDistance(double ellapsedTimeForMove)
    return true;
 }
 
-/* Render::updateFovy: update distance */
+/* Render::updateFovy: update fovy */
 bool Render::updateFovy(double ellapsedTimeForMove)
 {
    float diff;
@@ -178,10 +178,10 @@ bool Render::updateFovy(double ellapsedTimeForMove)
    if (m_currentFovy == m_fovy)
       return false;
 
-   if (m_viewMoveTime == 0 || m_viewControlledByMotion == true) {
+   if (m_viewMoveTime == 0.0 || m_viewControlledByMotion == true) {
       /* immediately apply the target */
       m_currentFovy = m_fovy;
-   } else if (m_viewMoveTime > 0) {
+   } else if (m_viewMoveTime > 0.0) {
       /* constant move */
       if (ellapsedTimeForMove >= m_viewMoveTime) {
          m_currentFovy = m_fovy;
@@ -614,7 +614,7 @@ void Render::initialize()
    m_currentDistance = m_distance;
    m_currentFovy = m_fovy;
 
-   m_viewMoveTime = -1;
+   m_viewMoveTime = -1.0;
    m_viewControlledByMotion = false;
 
    m_transMatrix.setIdentity();
@@ -655,7 +655,7 @@ bool Render::setup(const int *size, const float *color, const float *trans, cons
       return false;
 
    resetCameraView(trans, rot, distance, fovy);
-   setViewMoveTimer(0);
+   setViewMoveTimer(0.0);
 
    /* set clear color */
    glClearColor(color[0], color[1], color[2], 0.0f);
@@ -739,11 +739,11 @@ void Render::setCameraFromController(CameraController *c)
       m_viewControlledByMotion = false;
 }
 
-/* Render::setViewMoveTimer: set timer for rotation, transition, and scale of view */
-void Render::setViewMoveTimer(int ms)
+/* Render::setViewMoveTimer: set timer in sec for rotation, transition, and scale of view */
+void Render::setViewMoveTimer(double sec)
 {
-   m_viewMoveTime = ms;
-   if (m_viewMoveTime > 0) {
+   m_viewMoveTime = sec;
+   if (m_viewMoveTime > 0.0) {
       m_viewMoveStartRot = m_currentRot;
       m_viewMoveStartTrans = m_currentTrans;
       m_viewMoveStartDistance = m_currentDistance;
@@ -754,7 +754,7 @@ void Render::setViewMoveTimer(int ms)
 /* Render::isViewMoving: return if view is moving by timer */
 bool Render::isViewMoving()
 {
-   if (m_viewMoveTime > 0 && (m_currentRot != m_rot || m_currentTrans != m_trans || m_currentDistance != m_distance || m_currentFovy != m_fovy))
+   if (m_viewMoveTime > 0.0 && (m_currentRot != m_rot || m_currentTrans != m_trans || m_currentDistance != m_distance || m_currentFovy != m_fovy))
       return true;
    return false;
 }
@@ -875,7 +875,7 @@ void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool u
       updateProjectionMatrix();
 
    if (isViewMoving() == false)
-      m_viewMoveTime = -1;
+      m_viewMoveTime = -1.0;
 
    if (useShadowMapping)
       renderSceneShadowMap(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);

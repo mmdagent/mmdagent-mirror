@@ -66,7 +66,7 @@ private:
 
    MMDAgent *m_mmdagent;
 
-   VIManager_Arc *m_history[VIMANAGERLOGGER_TEXTHEIGHT+1];
+   VIManager_Arc *m_history[VIMANAGERLOGGER_TEXTHEIGHT + 1];
 
    /* drawArc: draw arc string */
    void drawArc(unsigned int from, VIManager_Arc *arc);

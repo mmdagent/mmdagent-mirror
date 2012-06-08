@@ -41,8 +41,8 @@
 
 /* definitions */
 
-#define MAIN_TITLE         "MMDAgent - Toolkit for building voice interaction systems"
-#define MAIN_DOUBLECLICKMS 200
+#define MAIN_TITLE          "MMDAgent - Toolkit for building voice interaction systems"
+#define MAIN_DOUBLECLICKSEC 0.2
 
 /* headers */
 
@@ -266,7 +266,7 @@ void GLFWCALL procMouseButtonMessage(int button, int action)
    if(action == GLFW_PRESS) {
       switch(button) {
       case GLFW_MOUSE_BUTTON_LEFT:
-         if(MMDAgent_diffTime(MMDAgent_getTime(), mouseLastClick) <= MAIN_DOUBLECLICKMS)
+         if(MMDAgent_diffTime(MMDAgent_getTime(), mouseLastClick) <= MAIN_DOUBLECLICKSEC)
             mmdagent->procMouseLeftButtonDoubleClickMessage(mousePosX, mousePosY);
          else
             mmdagent->procMouseLeftButtonDownMessage(mousePosX, mousePosY, ctrlKeyL == true || ctrlKeyR == true ? true : false, shiftKeyL == true || shiftKeyR == true ? true : false);
@@ -323,7 +323,7 @@ int commonMain(int argc, char **argv)
    ctrlKeyL = false;
    ctrlKeyR = false;
 
-   mouseLastClick = 0;
+   mouseLastClick = 0.0;
    mousePosX = 0;
    mousePosY = 0;
    mouseLastWheel = 0;
@@ -404,8 +404,8 @@ int main(int argc, char **argv)
 #ifdef __APPLE__
 int main(int argc, char **argv)
 {
-   int i, j;
-   char inBuff[PATH_MAX+1];
+   int i;
+   char inBuff[PATH_MAX + 1];
    CFStringRef cfs;
    size_t len;
    char **newArgv;
@@ -437,7 +437,7 @@ int main(int argc, char **argv)
    int i;
    iconv_t ic;
    char **newArgv;
-   char inBuff[PATH_MAX+1], outBuff[PATH_MAX+1];
+   char inBuff[PATH_MAX + 1], outBuff[PATH_MAX + 1];
    char *inStr, *outStr;
    size_t inLen, outLen;
    int result = 0;

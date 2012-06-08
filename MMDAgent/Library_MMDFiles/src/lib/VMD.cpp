@@ -167,7 +167,7 @@ void VMD::setBoneInterpolationTable(BoneKeyFrame *bf, const char *ip)
 
    /* check if they are just a linear function */
    for (i = 0; i < 4; i++)
-      bf->linear[i] = (ip[0+i] == ip[4+i] && ip[8+i] == ip[12+i]) ? true : false;
+      bf->linear[i] = (ip[0 + i] == ip[4 + i] && ip[8 + i] == ip[12 + i]) ? true : false;
 
    /* make X (0.0 - 1.0) -> Y (0.0 - 1.0) mapping table */
    for (i = 0; i < 4; i++) {
@@ -178,9 +178,9 @@ void VMD::setBoneInterpolationTable(BoneKeyFrame *bf, const char *ip)
       }
       bf->interpolationTable[i] = (float *) malloc(sizeof(float) * (VMD_INTERPOLATIONTABLESIZE + 1));
       x1 = ip[   i] / 127.0f;
-      y1 = ip[ 4+i] / 127.0f;
-      x2 = ip[ 8+i] / 127.0f;
-      y2 = ip[12+i] / 127.0f;
+      y1 = ip[ 4 + i] / 127.0f;
+      x2 = ip[ 8 + i] / 127.0f;
+      y2 = ip[12 + i] / 127.0f;
       for (d = 0; d < VMD_INTERPOLATIONTABLESIZE; d++) {
          inval = (float) d / (float) VMD_INTERPOLATIONTABLESIZE;
          /* get Y value for given inval */
@@ -207,7 +207,7 @@ void VMD::setCameraInterpolationTable(CameraKeyFrame *cf, const char *ip)
 
    /* check if they are just a linear function */
    for (i = 0; i < 6; i++)
-      cf->linear[i] = (ip[i*4] == ip[i*4+2] && ip[i*4+1] == ip[i*4+3]) ? true : false;
+      cf->linear[i] = (ip[i * 4] == ip[i * 4 + 2] && ip[i * 4 + 1] == ip[i * 4 + 3]) ? true : false;
 
    /* make X (0.0 - 1.0) -> Y (0.0 - 1.0) mapping table */
    for (i = 0; i < 6; i++) {
@@ -217,10 +217,10 @@ void VMD::setCameraInterpolationTable(CameraKeyFrame *cf, const char *ip)
          continue;
       }
       cf->interpolationTable[i] = (float *) malloc(sizeof(float) * (VMD_INTERPOLATIONTABLESIZE + 1));
-      x1 = ip[i*4  ] / 127.0f;
-      y1 = ip[i*4+2] / 127.0f;
-      x2 = ip[i*4+1] / 127.0f;
-      y2 = ip[i*4+3] / 127.0f;
+      x1 = ip[i * 4  ] / 127.0f;
+      y1 = ip[i * 4 + 2] / 127.0f;
+      x2 = ip[i * 4 + 1] / 127.0f;
+      y2 = ip[i * 4 + 3] / 127.0f;
       for (d = 0; d < VMD_INTERPOLATIONTABLESIZE; d++) {
          inval = (float) d / (float) VMD_INTERPOLATIONTABLESIZE;
          /* get Y value for given inval */

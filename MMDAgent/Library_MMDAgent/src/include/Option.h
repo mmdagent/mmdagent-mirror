@@ -161,8 +161,10 @@
 #define OPTION_MAXMULTISAMPLING_MAX 32
 #define OPTION_MAXMULTISAMPLING_MIN 0
 
-#define OPTION_MOTIONADJUSTFRAME_STR "motion_adjust_frame"
-#define OPTION_MOTIONADJUSTFRAME_DEF 0
+#define OPTION_MOTIONADJUSTTIME_STR "motion_adjust_time"
+#define OPTION_MOTIONADJUSTTIME_DEF 0.0f
+#define OPTION_MOTIONADJUSTTIME_MAX 10.0f
+#define OPTION_MOTIONADJUSTTIME_MIN -10.0f
 
 #define OPTION_BULLETFPS_STR "bullet_fps"
 #define OPTION_BULLETFPS_DEF 120
@@ -215,10 +217,10 @@
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_STR "shadow_mapping_light_first"
 #define OPTION_SHADOWMAPPINGLIGHTFIRST_DEF true
 
-#define OPTION_DISPLAYCOMMENTFRAME_STR "display_comment_frame"
-#define OPTION_DISPLAYCOMMENTFRAME_DEF 150.0f
-#define OPTION_DISPLAYCOMMENTFRAME_MAX 1000.0f
-#define OPTION_DISPLAYCOMMENTFRAME_MIN 0.0f
+#define OPTION_DISPLAYCOMMENTTIME_STR "display_comment_time"
+#define OPTION_DISPLAYCOMMENTTIME_DEF 5.0f
+#define OPTION_DISPLAYCOMMENTTIME_MAX 30.0f
+#define OPTION_DISPLAYCOMMENTTIME_MIN 0.0f
 
 #define OPTION_MAXNUMMODEL_STR "max_num_model"
 #define OPTION_MAXNUMMODEL_DEF 10
@@ -271,7 +273,7 @@ private:
    int m_maxMultiSampling;
 
    /* motion */
-   int m_motionAdjustFrame;
+   float m_motionAdjustTime;
 
    /* bullet physics */
    int m_bulletFps;
@@ -293,7 +295,7 @@ private:
    bool m_shadowMapLightFirst;
 
    /* comment */
-   float m_displayCommentFrame;
+   float m_displayCommentTime;
 
    /* model */
    int m_maxNumModel;
@@ -441,11 +443,11 @@ public:
    /* setMaxMultiSampling: set max number of multi sampling */
    void setMaxMultiSampling(int i);
 
-   /* getMotionAdjustFrame: get motion adjust frame */
-   int getMotionAdjustFrame();
+   /* getMotionAdjustTime: get motion adjust time in sec */
+   float getMotionAdjustTime();
 
-   /* setMotionAdjustFrame: set motion adjust frame */
-   void setMotionAdjustFrame(int i);
+   /* setMotionAdjustTime: set motion adjust time in sec */
+   void setMotionAdjustTime(float f);
 
    /* getBulletFps: get bullet fps */
    int getBulletFps();
@@ -513,11 +515,11 @@ public:
    /* setShadowMappingLightFirst: set first light flag */
    void setShadowMappingLightFirst(bool b);
 
-   /* getDisplayCommentFrame: get display comment frame */
-   float getDisplayCommentFrame();
+   /* getDisplayCommentTime: get display comment time in sec */
+   float getDisplayCommentTime();
 
-   /* setDisplayCommentFrame: set display comment frame */
-   void setDisplayCommentFrame(float f);
+   /* setDisplayCommentTime: set display comment time in sec */
+   void setDisplayCommentTime(float f);
 
    /* getMaxNumModel: get maximum number of models */
    int getMaxNumModel();

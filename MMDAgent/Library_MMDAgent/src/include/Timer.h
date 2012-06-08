@@ -44,19 +44,19 @@ class Timer
 {
 private:
 
-   double m_systemStartTime; /* system start time */
-   double m_lastUpdateFrameSystem;  /* number of frames from last getTimeInterval function */
-   double m_pauseTime;       /* time from system start to last pause function */
+   double m_systemStartTime;       /* system start time in sec */
+   double m_systemLastUpdateFrame; /* number of frames from last getTimeInterval function */
+   double m_pauseTime;             /* time in sec from system start to last pause function */
 
-   float m_fps;                  /* current frame rate */
-   double m_fpsStartTime; /* start time of fps count */
-   double m_fpsCount;     /* count of calling countFrame function */
+   float m_fps;             /* current frame rate */
+   double m_fpsStartTime;   /* start time in sec of fps count */
+   unsigned int m_fpsCount; /* count of calling countFrame function */
 
    double m_targetAdjustmentFrame;  /* target frame to sync music */
    double m_currentAdjustmentFrame; /* current frame to sync music */
    bool m_enableAdjustment;         /* switch to sync music */
 
-   double m_userStartTime; /* user start time */
+   double m_userStartTime; /* user start time in sec */
 
    /* initialize: initialize timer */
    void initialize();
@@ -87,7 +87,7 @@ public:
    /* start: start user timer */
    void start();
 
-   /* ellapsed: return ellapsed time since last call of start() */
+   /* ellapsed: return ellapsed time in sec since last call of start() */
    double ellapsed();
 
    /* countFrame: increment frame count for FPS calculation */

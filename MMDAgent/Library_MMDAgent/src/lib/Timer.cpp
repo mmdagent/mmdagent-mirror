@@ -47,12 +47,12 @@
 void Timer::initialize()
 {
    m_systemStartTime = 0.0;
-   m_lastUpdateFrameSystem = 0.0;
+   m_systemLastUpdateFrame = 0.0;
    m_pauseTime = 0.0;
 
    m_fps = 0.0f;
    m_fpsStartTime = 0.0;
-   m_fpsCount = 0.0;
+   m_fpsCount = 0;
 
    m_targetAdjustmentFrame = 0.0;
    m_currentAdjustmentFrame = 0.0;
@@ -88,28 +88,28 @@ void Timer::setup()
    /* get system start time */
    m_systemStartTime = MMDAgent_getTime();
    /* reset number of frames from last getTimeInterval function */
-   m_lastUpdateFrameSystem = 0.0;
+   m_systemLastUpdateFrame = 0.0;
    /* reset start time of fps count */
    m_fpsStartTime = m_systemStartTime;
    /* reset count of calling countFrame function */
-   m_fpsCount = 0.0;
+   m_fpsCount = 0;
 }
 
 /* Timer::getFrameInterval: return time interval from last call */
 double Timer::getFrameInterval()
 {
    double currentTime;
-   double currentFrameSystem;
+   double currentSystemFrame;
    double intervalFrame;
 
-   /* get current msec */
+   /* get current sec */
    currentTime = MMDAgent_getTime();
    /* calculate time from system start time */
-   currentFrameSystem = MMDAgent_diffTime(currentTime, m_systemStartTime) * 0.03;
+   currentSystemFrame = MMDAgent_diffTime(currentTime, m_systemStartTime) * 30.0;
    /* get number of frames from last calling */
-   intervalFrame = currentFrameSystem - m_lastUpdateFrameSystem;
+   intervalFrame = currentSystemFrame - m_systemLastUpdateFrame;
    /* save number of frames for next calling */
-   m_lastUpdateFrameSystem = currentFrameSystem;
+   m_systemLastUpdateFrame = currentSystemFrame;
 
    return intervalFrame;
 }
@@ -123,7 +123,7 @@ void Timer::pause()
 /* Timer::resume: resume timer */
 void Timer::resume()
 {
-   m_lastUpdateFrameSystem += MMDAgent_diffTime(MMDAgent_getTime(), m_pauseTime) * 0.03;
+   m_systemLastUpdateFrame += MMDAgent_diffTime(MMDAgent_getTime(), m_pauseTime) * 30.0;
 }
 
 /* Timer::start: start user timer */
@@ -132,10 +132,10 @@ void Timer::start()
    m_userStartTime = MMDAgent_getTime();
 }
 
-/* Timer::ellapsed: return ellapsed time since last call of start() */
+/* Timer::ellapsed: return ellapsed time in sec since last call of start() */
 double Timer::ellapsed()
 {
-   return (MMDAgent_diffTime(MMDAgent_getTime(), m_userStartTime));
+   return MMDAgent_diffTime(MMDAgent_getTime(), m_userStartTime);
 }
 
 /* Timer::countFrame: increment frame count for FPS calculation */
@@ -148,12 +148,12 @@ void Timer::countFrame()
 
    /* update fps per second */
    t = MMDAgent_getTime();
-   if (t - m_fpsStartTime >= 1000.0) {
+   if (t - m_fpsStartTime >= 1.0) {
       /* calculate fps */
-      m_fps = 1000.0f * (float) m_fpsCount / (float)(t - m_fpsStartTime);
+      m_fps = (float) m_fpsCount / (float)(t - m_fpsStartTime);
       /* reset counter */
       m_fpsStartTime = t;
-      m_fpsCount = 0.0;
+      m_fpsCount = 0;
    }
 }
 
@@ -191,39 +191,39 @@ double Timer::getCurrentAdjustmentFrame()
 /* Timer::getAdditionalFrame: get number of additional frames to sync music */
 double Timer::getAdditionalFrame(double frame)
 {
-   double mstep = 0.0;
+   double step = 0.0;
 
    if (m_enableAdjustment == false)
       return 0.0;
 
    if (m_targetAdjustmentFrame > m_currentAdjustmentFrame) {
-      /* x2 (max=10ms) */
-      if (frame > 0.3) {
-         mstep = 0.3;
+      /* x2 (max = 0.01 sec) */
+      if (frame > 0.01 * 30.0) {
+         step = 0.01 * 30.0;
       } else {
-         mstep = frame;
+         step = frame;
       }
-      if (m_currentAdjustmentFrame + mstep > m_targetAdjustmentFrame) {
-         mstep = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
+      if (m_currentAdjustmentFrame + step > m_targetAdjustmentFrame) {
+         step = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
          m_currentAdjustmentFrame = m_targetAdjustmentFrame;
       } else {
-         m_currentAdjustmentFrame += mstep;
+         m_currentAdjustmentFrame += step;
       }
    }
    if (m_targetAdjustmentFrame < m_currentAdjustmentFrame) {
-      /* /2 (max=5ms) */
-      if (frame > 0.3) {
-         mstep = -0.15;
+      /* /2 (max = 0.005 sec) */
+      if (frame > 0.01 * 30.0) {
+         step = -0.005 * 30.0;
       } else {
-         mstep = frame * -0.5;
+         step = frame * -0.5;
       }
-      if (m_currentAdjustmentFrame + mstep < m_targetAdjustmentFrame) {
-         mstep = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
+      if (m_currentAdjustmentFrame + step < m_targetAdjustmentFrame) {
+         step = m_targetAdjustmentFrame - m_currentAdjustmentFrame;
          m_currentAdjustmentFrame = m_targetAdjustmentFrame;
       } else {
-         m_currentAdjustmentFrame += mstep;
+         m_currentAdjustmentFrame += step;
       }
    }
 
-   return mstep;
+   return step;
 }

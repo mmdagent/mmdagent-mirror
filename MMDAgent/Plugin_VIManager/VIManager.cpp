@@ -376,7 +376,7 @@ int VIManager::load(const char *file)
    while (fgets(buff, MMDAGENT_MAXBUFLEN - 3, fp) != NULL) { /* string + \r + \n + \0 */
       /* remove final \n and \r */
       len = MMDAgent_strlen(buff);
-      while (len > 0 && (buff[len-1] == '\n' || buff[len-1] == '\r'))
+      while (len > 0 && (buff[len - 1] == '\n' || buff[len - 1] == '\r'))
          buff[--len] = '\0';
 
       /* check and load arc */

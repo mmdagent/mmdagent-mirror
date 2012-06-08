@@ -119,10 +119,10 @@ EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
                free(drop_motion);
             drop_motion = MMDAgent_strdup(p);
             i = MMDAgent_strlen(drop_motion);
-            drop_motion[i-4] = '.';
-            drop_motion[i-3] = 'v';
-            drop_motion[i-2] = 'm';
-            drop_motion[i-1] = 'd';
+            drop_motion[i - 4] = '.';
+            drop_motion[i - 3] = 'v';
+            drop_motion[i - 2] = 'm';
+            drop_motion[i - 1] = 'd';
             fp = MMDAgent_fopen(drop_motion, "rb");
             if(fp != NULL) {
                fclose(fp);

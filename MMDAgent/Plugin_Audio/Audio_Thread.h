@@ -41,10 +41,10 @@
 
 /* definitions */
 
-#define AUDIOTHREAD_ENDSLEEPMS   200                 /* check per 0.2 sec at end */
-#define AUDIOTHREAD_STARTSLEEPMS 20                  /* check per 0.02 sec at start*/
-#define AUDIOTHREAD_EVENTSTART   "SOUND_EVENT_START"
-#define AUDIOTHREAD_EVENTSTOP    "SOUND_EVENT_STOP"
+#define AUDIOTHREAD_ENDSLEEPSEC   0.2                 /* check per 0.2 sec at end */
+#define AUDIOTHREAD_STARTSLEEPSEC 0.02                /* check per 0.02 sec at start*/
+#define AUDIOTHREAD_EVENTSTART    "SOUND_EVENT_START"
+#define AUDIOTHREAD_EVENTSTOP     "SOUND_EVENT_STOP"
 
 /* Audio_Thread: thread for audio */
 class Audio_Thread

@@ -61,8 +61,8 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
    short idx;
 
    /* clamp frame to the defined last frame */
-   if (frame > bm->keyFrameList[bm->numKeyFrame-1].keyFrame)
-      frame = bm->keyFrameList[bm->numKeyFrame-1].keyFrame;
+   if (frame > bm->keyFrameList[bm->numKeyFrame - 1].keyFrame)
+      frame = bm->keyFrameList[bm->numKeyFrame - 1].keyFrame;
 
    /* find key frames between which the given frame exists */
    if (frame >= bm->keyFrameList[mc->lastKey].keyFrame) {
@@ -151,26 +151,26 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
          if (keyFrameForInterpolation->linear[0]) {
             x = pos1.x() * (1.0f - w) + pos2.x() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[0][idx] + (keyFrameForInterpolation->interpolationTable[0][idx+1] - keyFrameForInterpolation->interpolationTable[0][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[0][idx] + (keyFrameForInterpolation->interpolationTable[0][idx + 1] - keyFrameForInterpolation->interpolationTable[0][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             x = pos1.x() * (1.0f - ww) + pos2.x() * ww;
          }
          if (keyFrameForInterpolation->linear[1]) {
             y = pos1.y() * (1.0f - w) + pos2.y() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[1][idx] + (keyFrameForInterpolation->interpolationTable[1][idx+1] - keyFrameForInterpolation->interpolationTable[1][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[1][idx] + (keyFrameForInterpolation->interpolationTable[1][idx + 1] - keyFrameForInterpolation->interpolationTable[1][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             y = pos1.y() * (1.0f - ww) + pos2.y() * ww;
          }
          if (keyFrameForInterpolation->linear[2]) {
             z = pos1.z() * (1.0f - w) + pos2.z() * w;
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx+1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx + 1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             z = pos1.z() * (1.0f - ww) + pos2.z() * ww;
          }
          mc->pos.setValue(x, y, z);
          if (keyFrameForInterpolation->linear[3]) {
             mc->rot = rot1.slerp(rot2, w);
          } else {
-            ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx+1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
+            ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx + 1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             mc->rot = rot1.slerp(rot2, ww);
          }
       }
@@ -192,8 +192,8 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
    float w;
 
    /* clamp frame to the defined last frame */
-   if (frame > fm->keyFrameList[fm->numKeyFrame-1].keyFrame)
-      frame = fm->keyFrameList[fm->numKeyFrame-1].keyFrame;
+   if (frame > fm->keyFrameList[fm->numKeyFrame - 1].keyFrame)
+      frame = fm->keyFrameList[fm->numKeyFrame - 1].keyFrame;
 
    /* find key frames between which the given frame exists */
    if (frame >= fm->keyFrameList[mc->lastKey].keyFrame) {

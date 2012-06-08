@@ -67,7 +67,7 @@ unsigned char MMDFiles_getcharsize(const char *str)
    if(str == NULL || *str == '\0')
       return 0;
    for(i = 0; MMDFiles_charsize[i] > 0; i += 3)
-      if((char) MMDFiles_charsize[i+1] <= *str && *str <= (char) MMDFiles_charsize[i+2])
+      if((char) MMDFiles_charsize[i + 1] <= *str && *str <= (char) MMDFiles_charsize[i + 2])
          return MMDFiles_charsize[i];
    return 0;
 }
@@ -131,7 +131,7 @@ bool MMDFiles_strtailmatch(const char *str1, const char *str2)
    len2 = strlen(str2);
    if(len1 < len2)
       return false;
-   if(strcmp(&str1[len1-len2], str2) == 0)
+   if(strcmp(&str1[len1 - len2], str2) == 0)
       return true;
    else
       return false;
@@ -278,8 +278,8 @@ char *MMDFiles_basename(const char *file)
 
    if(index >= 0) {
       base = (char *) malloc(sizeof(char) * (len - index));
-      strncpy(base, &file[index+1], len - index - 1);
-      base[len-index-1] = '\0';
+      strncpy(base, &file[index + 1], len - index - 1);
+      base[len - index - 1] = '\0';
    } else {
       base = MMDFiles_strdup(file);
    }

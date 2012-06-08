@@ -99,7 +99,7 @@ void Option::initialize()
 
    m_maxMultiSampling = OPTION_MAXMULTISAMPLING_DEF;
 
-   m_motionAdjustFrame = OPTION_MOTIONADJUSTFRAME_DEF;
+   m_motionAdjustTime = OPTION_MOTIONADJUSTTIME_DEF;
 
    m_bulletFps = OPTION_BULLETFPS_DEF;
    m_gravityFactor = OPTION_GRAVITYFACTOR_DEF;
@@ -115,7 +115,7 @@ void Option::initialize()
    m_shadowMapFloorDensity = OPTION_SHADOWMAPPINGFLOORDENSITY_DEF;
    m_shadowMapLightFirst = OPTION_SHADOWMAPPINGLIGHTFIRST_DEF;
 
-   m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_DEF;
+   m_displayCommentTime = OPTION_DISPLAYCOMMENTTIME_DEF;
 
    m_maxNumModel = OPTION_MAXNUMMODEL_DEF;
 }
@@ -213,8 +213,8 @@ bool Option::load(const char *file)
             setCampusColor(fvec3);
       } else if(MMDAgent_strequal(buf, OPTION_MAXMULTISAMPLING_STR)) {
          setMaxMultiSampling(MMDAgent_str2int(p1));
-      } else if(MMDAgent_strequal(buf, OPTION_MOTIONADJUSTFRAME_STR)) {
-         setMotionAdjustFrame(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_MOTIONADJUSTTIME_STR)) {
+         setMotionAdjustTime(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_BULLETFPS_STR)) {
          setBulletFps(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_GRAVITYFACTOR_STR)) {
@@ -237,8 +237,8 @@ bool Option::load(const char *file)
          setShadowMappingFloorDensity(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_SHADOWMAPPINGLIGHTFIRST_STR)) {
          setShadowMappingLightFirst(MMDAgent_str2bool(p1));
-      } else if(MMDAgent_strequal(buf, OPTION_DISPLAYCOMMENTFRAME_STR)) {
-         setDisplayCommentFrame(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_DISPLAYCOMMENTTIME_STR)) {
+         setDisplayCommentTime(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_MAXNUMMODEL_STR)) {
          setMaxNumModel(MMDAgent_str2int(p1));
       }
@@ -699,16 +699,16 @@ void Option::setMaxMultiSampling(int i)
       m_maxMultiSampling = i;
 }
 
-/* Option::getMotionAdjustFrame: get motion adjust frame */
-int Option::getMotionAdjustFrame()
+/* Option::getMotionAdjustTime: get motion adjust time in sec */
+float Option::getMotionAdjustTime()
 {
-   return m_motionAdjustFrame;
+   return m_motionAdjustTime;
 }
 
-/* Option::setMotionAdjustFrame: set motion adjust frame */
-void Option::setMotionAdjustFrame(int i)
+/* Option::setMotionAdjustTime: set motion adjust time in sec */
+void Option::setMotionAdjustTime(float f)
 {
-   m_motionAdjustFrame = i;
+   m_motionAdjustTime = f;
 }
 
 /* Option::getBulletFps: get bullet fps */
@@ -888,21 +888,21 @@ void Option::setShadowMappingLightFirst(bool b)
    m_shadowMapLightFirst = b;
 }
 
-/* Option::getDisplayCommentFrame: get display comment frame */
-float Option::getDisplayCommentFrame()
+/* Option::getDisplayCommentTime: get display comment time in sec */
+float Option::getDisplayCommentTime()
 {
-   return m_displayCommentFrame;
+   return m_displayCommentTime;
 }
 
-/* Option::setDisplayCommentFrame: set display comment frame */
-void Option::setDisplayCommentFrame(float f)
+/* Option::setDisplayCommentTime: set display comment frame in sec */
+void Option::setDisplayCommentTime(float f)
 {
-   if(OPTION_DISPLAYCOMMENTFRAME_MAX < f)
-      m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_MAX;
-   else if(OPTION_DISPLAYCOMMENTFRAME_MIN > f)
-      m_displayCommentFrame = OPTION_DISPLAYCOMMENTFRAME_MIN;
+   if(OPTION_DISPLAYCOMMENTTIME_MAX < f)
+      m_displayCommentTime = OPTION_DISPLAYCOMMENTTIME_MAX;
+   else if(OPTION_DISPLAYCOMMENTTIME_MIN > f)
+      m_displayCommentTime = OPTION_DISPLAYCOMMENTTIME_MIN;
    else
-      m_displayCommentFrame = f;
+      m_displayCommentTime = f;
 }
 
 /* Option::getMaxNumModel: get maximum number of models */

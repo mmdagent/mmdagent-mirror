@@ -209,7 +209,7 @@ bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 
    }
 
    /* add model */
-   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, useCartoonRendering, m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, name, &offsetPos, &offsetRot, forcedPosition, assignBone, assignObject, m_bullet, m_systex, m_lipSync, useCartoonRendering, m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentTime() * 30.0f)) {
       m_logger->log("Error: addModel: %s cannot be loaded.", fileName);
       m_model[id].release();
       free(name);
@@ -249,7 +249,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
    }
 
    /* load model */
-   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_model[id].useCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentFrame())) {
+   if (!m_model[id].load(fileName, modelAlias, NULL, NULL, false, NULL, NULL, m_bullet, m_systex, m_lipSync, m_model[id].useCartoonRendering(), m_option->getCartoonEdgeWidth(), &light, m_option->getDisplayCommentTime() * 30.0f)) {
       m_logger->log("Error: changeModel: %s cannot be loaded.", fileName);
       return false;
    }
@@ -448,7 +448,7 @@ bool MMDAgent::accelerateMotion(const char *modelAlias, const char *motionAlias,
    }
 
    /* change motion speed */
-   if (m_model[id].getMotionManager()->setMotionSpeedRate(motionAlias, speed, durationTime, targetTime) == false) {
+   if (m_model[id].getMotionManager()->setMotionSpeedRate(motionAlias, speed, durationTime * 30.0f, targetTime * 30.0f) == false) {
       m_logger->log("Error: accelerateMotion: %s is not found.", motionAlias);
       return false;
    }
@@ -761,10 +761,10 @@ bool MMDAgent::changeCamera(const char *posOrVMD, const char *rot, const char *d
    if(MMDAgent_str2fvec(posOrVMD, p, 3) == true && MMDAgent_str2fvec(rot, r, 3) == true) {
       m_render->resetCameraView(p, r, MMDAgent_str2float(distance), MMDAgent_str2float(fovy));
       if (time) {
-         m_render->setViewMoveTimer((int)(MMDAgent_str2float(time) * 1000.0f));
+         m_render->setViewMoveTimer(MMDAgent_str2double(time));
          m_timer->start();
       } else
-         m_render->setViewMoveTimer(-1);
+         m_render->setViewMoveTimer(-1.0);
       return true;
    }
 
@@ -1403,12 +1403,12 @@ void MMDAgent::renderScene()
 
    if (m_dispLog) {
       /* show adjustment time for audio */
-      if (m_option->getMotionAdjustFrame() > 0)
-         sprintf(buff, "%d msec advance (current motion: %+d)", m_option->getMotionAdjustFrame(), (int)(m_timer->getCurrentAdjustmentFrame() / 0.03));
-      else if (m_option->getMotionAdjustFrame() < 0)
-         sprintf(buff, "%d msec delay (current motion: %+d)", m_option->getMotionAdjustFrame(), (int)(m_timer->getCurrentAdjustmentFrame() / 0.03));
+      if (m_option->getMotionAdjustTime() > 0.0f)
+         sprintf(buff, "%d msec advance (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
+      else if (m_option->getMotionAdjustTime() < 0.0f)
+         sprintf(buff, "%d msec delay (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f - 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 - 0.5f));
       else
-         sprintf(buff, "%d msec (current motion: %+d)", m_option->getMotionAdjustFrame(), (int)(m_timer->getCurrentAdjustmentFrame() / 0.03));
+         sprintf(buff, "%d msec (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
       glDisable(GL_LIGHTING);
       glColor3f(1.0f, 0.0f, 0.0f);
       glPushMatrix();
@@ -1522,7 +1522,7 @@ void MMDAgent::resetAdjustmentTimer()
    if(m_enable == false)
       return;
 
-   m_timer->setTargetAdjustmentFrame((double) m_option->getMotionAdjustFrame() * 0.03);
+   m_timer->setTargetAdjustmentFrame((double) m_option->getMotionAdjustTime() * 30.0f);
    m_timer->startAdjustment();
 }
 
@@ -1973,10 +1973,10 @@ void MMDAgent::procTimeAdjustMessage(bool plus)
       return;
 
    if(plus)
-      m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() + 10);
+      m_option->setMotionAdjustTime(m_option->getMotionAdjustTime() + 0.01f);
    else
-      m_option->setMotionAdjustFrame(m_option->getMotionAdjustFrame() - 10);
-   m_timer->setTargetAdjustmentFrame((double) m_option->getMotionAdjustFrame() * 0.03);
+      m_option->setMotionAdjustTime(m_option->getMotionAdjustTime() - 0.01f);
+   m_timer->setTargetAdjustmentFrame(m_option->getMotionAdjustTime() * 30.0);
 }
 
 /* MMDAgent::procHorizontalRotateMessage: process horizontal rotate message */
@@ -2255,7 +2255,7 @@ void MMDAgent::procCommandMessage(const char *type, const char *value)
    } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_MOTIONACCELERATE)) {
       /* accelerate motion */
       fvec[0] = 0.0f;  /* speed */
-      fvec[1] = 0.0f;  /* duration */
+      fvec[1] = 0.0f;  /* duration time in sec */
       fvec[2] = -1.0f; /* specified frame index for end of acceleration */
       if (num < 3 || num > 5) {
          m_logger->log("Error: %s: number of arguments should be 3-5.", type);

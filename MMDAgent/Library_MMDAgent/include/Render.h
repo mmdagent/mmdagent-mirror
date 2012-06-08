@@ -86,7 +86,7 @@ private:
    btScalar m_rotMatrix[16];     /* current rotation + OpenGL rotation matrix */
    btScalar m_rotMatrixInv[16];  /* current rotation + inverse of OpenGL rotation matrix */
 
-   double m_viewMoveTime;           /* view length in msec */
+   double m_viewMoveTime;           /* view length in sec */
    bool m_viewControlledByMotion;   /* true when view is controlled by motion */
    btVector3 m_viewMoveStartTrans;  /* transition at start of view move */
    btQuaternion m_viewMoveStartRot; /* rotation at start of view move */
@@ -166,8 +166,8 @@ public:
    /* setCameraParam: set camera view parameter from camera controller */
    void setCameraFromController(CameraController *c);
 
-   /* setViewMoveTimer: reset timer for rotation, transition, and scale of view */
-   void setViewMoveTimer(int ms);
+   /* setViewMoveTimer: reset timer in sec for rotation, transition, and scale of view */
+   void setViewMoveTimer(double sec);
 
    /* isViewMoving: return if view is moving by timer */
    bool isViewMoving();

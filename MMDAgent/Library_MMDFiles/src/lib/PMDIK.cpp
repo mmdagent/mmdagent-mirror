@@ -131,7 +131,7 @@ void PMDIK::solve()
    for (i = m_numBone - 1; i >= 0; i--)
       m_boneList[i]->update();
    m_targetBone->update();
-#endif
+#endif /* !MMDFILES_DONTUPDATEMATRICESFORIK */
 
    /* save the current rotation of the target bone. It will be restored at the end of this function */
    m_targetBone->getCurrentRotation(&origTargetRot);

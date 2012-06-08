@@ -248,7 +248,7 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
             c2 = (unsigned char) str[i];
          } else {
             c1 = (unsigned char) str[i];
-            c2 = (unsigned char) str[i+1];
+            c2 = (unsigned char) str[i + 1];
          }
          mbc = (c1 << 8) | c2;
          /* non-ascii look for already allocated display lists */

@@ -205,13 +205,13 @@ void Julius_Logger::update(double frame)
             h2 = 1.0f - tre->wid / (float) m_numWord;
             x1 = 1.0f - (currentFrame - tre2->last_tre->endtime) / JULIUSLOGGER_FRAMESINBAR;
             x2 = 1.0f - (currentFrame - tre2->endtime) / JULIUSLOGGER_FRAMESINBAR;
-            m_pos[np*3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x1;
-            m_pos[np*3+1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h1;
-            m_pos[np*3+2] = JULIUSLOGGER_BARINDICATORZOFFSET;
+            m_pos[np * 3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x1;
+            m_pos[np * 3 + 1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h1;
+            m_pos[np * 3 + 2] = JULIUSLOGGER_BARINDICATORZOFFSET;
             np++;
-            m_pos[np*3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x2;
-            m_pos[np*3+1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h2;
-            m_pos[np*3+2] = JULIUSLOGGER_BARINDICATORZOFFSET;
+            m_pos[np * 3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x2;
+            m_pos[np * 3 + 1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h2;
+            m_pos[np * 3 + 2] = JULIUSLOGGER_BARINDICATORZOFFSET;
             np++;
             m_index[ni++] = np - 2;
             m_index[ni++] = np - 1;
@@ -226,7 +226,7 @@ void Julius_Logger::update(double frame)
       m_numIndex = ni;
    } else if (m_decayFrame > 0.0) {
       for (i = 0; i < m_numPos; i++)
-         m_pos[i*3+1] *= JULIUSLOGGER_DECAYDECREASECOEF;
+         m_pos[i * 3 + 1] *= JULIUSLOGGER_DECAYDECREASECOEF;
    }
    if (m_decayFrame > 0.0) {
       m_decayFrame -= frame;

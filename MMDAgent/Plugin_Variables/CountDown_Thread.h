@@ -41,7 +41,7 @@
 
 /* definitions */
 
-#define COUNTDOWNTHREAD_SLEEPMS         100                 /* check per 0.1 sec */
+#define COUNTDOWNTHREAD_SLEEPSEC        0.1                 /* check per 0.1 sec */
 #define COUNTDOWNTHREAD_TIMERSTARTEVENT "TIMER_EVENT_START"
 #define COUNTDOWNTHREAD_TIMERSTOPEVENT  "TIMER_EVENT_STOP"
 

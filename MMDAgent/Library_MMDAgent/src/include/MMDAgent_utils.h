@@ -109,16 +109,16 @@ int MMDAgent_fgettoken(FILE *fp, char *buff);
 /* MMDAgent_chdir: change current directory */
 bool MMDAgent_chdir(const char *dir);
 
-/* MMDAgent_sleep: sleep in ms */
+/* MMDAgent_sleep: sleep in sec */
 void MMDAgent_sleep(double t);
 
-/* MMDAgent_setTime: set time in ms */
+/* MMDAgent_setTime: set time in sec */
 void MMDAgent_setTime(double t);
 
-/* MMDAgent_getTime: get time in ms */
+/* MMDAgent_getTime: get time in sec */
 double MMDAgent_getTime();
 
-/* MMDAgent_diffTime: get difference between two times*/
+/* MMDAgent_diffTime: get difference between two times in sec */
 double MMDAgent_diffTime(double now, double past);
 
 /* MMDAgent_dlopen: open dynamic library */

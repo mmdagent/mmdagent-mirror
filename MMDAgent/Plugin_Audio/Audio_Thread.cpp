@@ -99,7 +99,7 @@ static bool Audio_openAndStart(Audio *audio, const char *alias, char *file)
       if(first == true)
          first = false;
       else
-         MMDAgent_sleep(AUDIOTHREAD_STARTSLEEPMS);
+         MMDAgent_sleep(AUDIOTHREAD_STARTSLEEPSEC);
       /* check sound start */
       sprintf(audio->buf, "status _%s mode wait", alias);
       mciSendStringA(audio->buf, audio->ret, sizeof(audio->ret), NULL);
@@ -117,7 +117,7 @@ static void Audio_waitToStop(Audio *audio, const char *alias, bool *m_playing)
          mciSendStringA(audio->buf, NULL, 0, NULL);
          break;
       }
-      MMDAgent_sleep(AUDIOTHREAD_ENDSLEEPMS);
+      MMDAgent_sleep(AUDIOTHREAD_ENDSLEEPSEC);
       /* check end of sound */
       sprintf(audio->buf, "status _%s mode wait", alias);
       mciSendStringA(audio->buf, audio->ret, sizeof(audio->ret), NULL);
@@ -301,7 +301,7 @@ static void Audio_waitToStop(Audio *audio, const char *alias, bool *m_playing)
 {
    /* wait */
    while(*m_playing == true && audio->end == false) {
-      MMDAgent_sleep(AUDIOTHREAD_ENDSLEEPMS);
+      MMDAgent_sleep(AUDIOTHREAD_ENDSLEEPSEC);
    }
 
    /* stop */
@@ -386,7 +386,7 @@ Audio_Thread::~Audio_Thread()
    clear();
 }
 
-/* Audio_Thread::setupAndStart: setup and start thread */
+/* Audio_Thread::setupAndStart: setup audio and start thread */
 void Audio_Thread::setupAndStart(MMDAgent *mmdagent)
 {
    m_mmdagent = mmdagent;
@@ -401,13 +401,13 @@ void Audio_Thread::setupAndStart(MMDAgent *mmdagent)
    }
 }
 
-/* Audio_Thread::stopAndRelease: stop thread and free Open JTalk */
+/* Audio_Thread::stopAndRelease: stop thread and free audio */
 void Audio_Thread::stopAndRelease()
 {
    clear();
 }
 
-/* Audio_Thread::run: main thread loop for TTS */
+/* Audio_Thread::run: main thread loop for audio */
 void Audio_Thread::run()
 {
    Audio audio;
@@ -479,7 +479,7 @@ bool Audio_Thread::checkAlias(const char *alias)
    /* wait buffer mutex */
    glfwLockMutex(m_mutex);
 
-   /* save character name, speaking style, and text */
+   /* check audio alias */
    ret = MMDAgent_strequal(m_alias, alias);
 
    /* release buffer mutex */
@@ -500,7 +500,7 @@ void Audio_Thread::play(const char *alias, const char *file)
    /* wait buffer mutex */
    glfwLockMutex(m_mutex);
 
-   /* save character name, speaking style, and text */
+   /* save alias */
    if(m_alias) free(m_alias);
    if(m_file) free(m_file);
    m_alias = MMDAgent_strdup(alias);

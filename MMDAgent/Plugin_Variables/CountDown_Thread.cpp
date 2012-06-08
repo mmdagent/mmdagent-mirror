@@ -160,7 +160,7 @@ void CountDown_Thread::run()
       /* release */
       glfwUnlockMutex(m_mutex);
 
-      MMDAgent_sleep(COUNTDOWNTHREAD_SLEEPMS);
+      MMDAgent_sleep(COUNTDOWNTHREAD_SLEEPSEC);
    }
 }
 
@@ -183,12 +183,12 @@ void CountDown_Thread::stopAndRelease()
 void CountDown_Thread::set(const char *alias, const char *str)
 {
    CountDown *countDown;
-   double msec, now;
+   double sec, now;
 
    if(MMDAgent_strlen(alias) <= 0)
       return;
-   msec = MMDAgent_str2double(str) * 1000.0;
-   if(msec <= 0.0)
+   sec = MMDAgent_str2double(str);
+   if(sec <= 0.0)
       return;
 
    /* wait */
@@ -218,9 +218,9 @@ void CountDown_Thread::set(const char *alias, const char *str)
    } else {
       m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTOPEVENT, "%s", countDown->name);
    }
-   countDown->goal = now + msec;
+   countDown->goal = now + sec;
 
-   m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTARTEVENT,"%s",  countDown->name);
+   m_mmdagent->sendEventMessage(COUNTDOWNTHREAD_TIMERSTARTEVENT, "%s",  countDown->name);
 
    /* release */
    glfwUnlockMutex(m_mutex);
