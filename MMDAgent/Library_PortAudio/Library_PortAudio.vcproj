@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="src\src\common;src\include;src\src\os\win;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;PA_NO_ASIO;PA_NO_WASAPI;PA_NO_WDMKS;PA_NO_WMME;_CRT_SECURE_NO_WARNINGS;"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;PS_USE_DS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -113,7 +113,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="src\src\common;src\include;src\src\os\win;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;PA_NO_ASIO;PA_NO_WASAPI;PA_NO_WDMKS;PA_NO_WMME;_CRT_SECURE_NO_WARNINGS;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;PA_USE_DS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -188,7 +188,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\src\common\pa_skeleton.c"
+				RelativePath=".\src\src\common\pa_ringbuffer.c"
 				>
 			</File>
 			<File
@@ -197,6 +197,10 @@
 			</File>
 			<File
 				RelativePath=".\src\src\common\pa_trace.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\os\win\pa_win_coinitialize.c"
 				>
 			</File>
 			<File
@@ -258,7 +262,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\src\common\pa_endianness.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\common\pa_hostapi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\common\pa_memorybarrier.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\src\common\pa_process.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\common\pa_ringbuffer.h"
 				>
 			</File>
 			<File
@@ -267,6 +287,18 @@
 			</File>
 			<File
 				RelativePath=".\src\src\common\pa_trace.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\common\pa_types.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\common\pa_util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\src\os\win\pa_win_coinitialize.h"
 				>
 			</File>
 			<File

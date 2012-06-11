@@ -9,11 +9,11 @@ SOURCES  = src/src/common/pa_allocation.c \
            src/src/common/pa_front.c \
            src/src/common/pa_process.c \
            src/src/common/pa_ringbuffer.c \
-           src/src/common/pa_skeleton.c \
            src/src/common/pa_stream.c \
            src/src/common/pa_trace.c \
            src/src/hostapi/alsa/pa_linux_alsa.c \
            src/src/hostapi/oss/pa_unix_oss.c \
+           src/src/hostapi/oss/recplay.c \
            src/src/os/unix/pa_unix_hostapis.c \
            src/src/os/unix/pa_unix_util.c
 

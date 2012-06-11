@@ -9,10 +9,10 @@ SOURCES  = src/src/common/pa_allocation.c \
            src/src/common/pa_front.c \
            src/src/common/pa_process.c \
            src/src/common/pa_ringbuffer.c \
-           src/src/common/pa_skeleton.c \
            src/src/common/pa_stream.c \
            src/src/common/pa_trace.c \
            src/src/hostapi/wmme/pa_win_wmme.c \
+           src/src/os/win/pa_win_coinitialize.c \
            src/src/os/win/pa_win_hostapis.c \
            src/src/os/win/pa_win_util.c \
            src/src/os/win/pa_win_waveformat.c
@@ -22,8 +22,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 CXX      = gcc
 AR       = ar
 CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
-           -DPA_NO_DS \
-           -DPA_NO_ASIO
+           -DPA_USE_WMME
 INCLUDE  = -I src/include \
            -I src/src/common \
            -I src/src/hostapi/wmme \
