@@ -44,7 +44,7 @@ OBJECTS  = $(SOURCES:.c=.o) $(CXXSOURCES:.cpp=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -finput-charset=cp932 \
            -fexec-charset=cp932 \
            -D DIC_VERSION=102 \

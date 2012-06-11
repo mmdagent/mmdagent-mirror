@@ -26,9 +26,8 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -fno-common \
-           -m32 \
            -DMMDAGENT
 INCLUDE  = -I src/include \
            -I src/lib \

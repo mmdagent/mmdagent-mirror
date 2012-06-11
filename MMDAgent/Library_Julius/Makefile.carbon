@@ -139,7 +139,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -DHAVE_ZLIB \
            -DHAVE_STRCASECMP
 INCLUDE  = -I src/libjulius/include \

@@ -28,7 +28,7 @@ OBJECTS  = $(SOURCES:.cpp=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -DMMDFILES_DONTUPDATEMATRICESFORIK \
            -DMMDFILES_DONTSORTORDERFORALPHARENDERING \
            -DMMDFILES_CHARSET="\"EUC-JP\""

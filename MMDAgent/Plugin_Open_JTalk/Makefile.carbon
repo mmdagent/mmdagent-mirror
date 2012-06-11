@@ -22,9 +22,8 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -dynamiclib \
-           -m32 \
            -fno-common \
            -DMMDAGENT \
            -DAUDIO_PLAY_PORTAUDIO

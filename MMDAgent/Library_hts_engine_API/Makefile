@@ -15,7 +15,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -DAUDIO_PLAY_PORTAUDIO
 INCLUDE  = -I ../Library_PortAudio/include \
            -I src/include
