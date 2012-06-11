@@ -193,6 +193,7 @@ char *MMDFiles_pathdup(const char *str)
    CFStringGetCString(cfs, outBuff, outLen, kCFStringEncodingUTF8);
    CFRelease(cfs);
 
+   free(inBuff);
    return outBuff;
 #else
    iconv_t ic;
