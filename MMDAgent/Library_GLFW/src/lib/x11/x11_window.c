@@ -34,7 +34,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -1436,24 +1436,8 @@ int _glfwPlatformOpenWindow( int width, int height,
     _GLFWfbconfig closest;
 
     // Clear platform specific GLFW window state
-    _glfwWin.visual           = (XVisualInfo*)NULL;
-    _glfwWin.colormap         = (Colormap)0;
-    _glfwWin.context          = (GLXContext)NULL;
-    _glfwWin.window           = (Window)0;
-    _glfwWin.pointerGrabbed   = GL_FALSE;
-    _glfwWin.pointerHidden    = GL_FALSE;
-    _glfwWin.keyboardGrabbed  = GL_FALSE;
-    _glfwWin.overrideRedirect = GL_FALSE;
-    _glfwWin.FS.modeChanged   = GL_FALSE;
-    _glfwWin.Saver.changed    = GL_FALSE;
     _glfwWin.refreshRate      = wndconfig->refreshRate;
     _glfwWin.windowNoResize   = wndconfig->windowNoResize;
-
-    _glfwWin.wmDeleteWindow    = None;
-    _glfwWin.wmPing            = None;
-    _glfwWin.wmState           = None;
-    _glfwWin.wmStateFullscreen = None;
-    _glfwWin.wmActiveWindow    = None;
 
     // As the 2.x API doesn't understand multiple display devices, we hardcode
     // this choice and hope for the best
@@ -1852,6 +1836,11 @@ void _glfwPlatformPollEvents( void )
     {
         _glfwPlatformSetMouseCursorPos( _glfwWin.width/2,
                                         _glfwWin.height/2 );
+
+        // NOTE: This is a temporary fix.  It works as long as you use offsets
+        //       accumulated over the course of a frame, instead of performing
+        //       the necessary actions per callback call.
+        XFlush( _glfwLibrary.display );
     }
 
     if( closeRequested && _glfwWin.windowCloseCallback )

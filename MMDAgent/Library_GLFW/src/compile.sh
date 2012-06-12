@@ -325,7 +325,7 @@ if [ "x$has_pthread" = xyes ]; then
   has_sched_yield=no
 
   LFLAGS_OLD="$GLFW_LFLAGS"
-  LFLAGS_THREAD=
+  LFLAGS_YIELD=
 
   cat > conftest.c <<EOF
 #include <pthread.h>
@@ -333,6 +333,7 @@ int main() {sched_yield(); return 0;}
 EOF
 
   if { (eval echo $self: \"$compile\") 1>&5; (eval $compile) 2>&5; }; then
+    rm -f conftest*
     has_sched_yield=yes
   else
     echo "$self: failed program was:" >&5
@@ -340,8 +341,8 @@ EOF
   fi
 
   if [ "x$has_sched_yield" = xno ]; then
-    LFLAGS_THREAD="-lrt"
-    GLFW_LFLAGS="$LFLAGS_OLD $LFLAGS_THREAD"
+    LFLAGS_YIELD="-lrt"
+    GLFW_LFLAGS="$LFLAGS_OLD $LFLAGS_YIELD"
     if { (eval echo $self: \"$link\") 1>&5; (eval $link) 2>&5; }; then
       rm -f conftest*
       has_sched_yield=yes
@@ -357,9 +358,61 @@ EOF
 
   if [ "x$has_sched_yield" = xyes ]; then
     GLFW_LIB_CFLAGS="$GLFW_LIB_CFLAGS -D_GLFW_HAS_SCHED_YIELD"
-    GLFW_LIB_LFLAGS="$GLFW_LIB_LFLAGS $LFLAGS_THREAD"
+    GLFW_LIB_LFLAGS="$GLFW_LIB_LFLAGS $LFLAGS_YIELD"
   fi
 
+fi
+
+
+##########################################################################
+# Check for clock_gettime support
+##########################################################################
+echo -n "Checking for clock_gettime... " 1>&6
+echo "$self: Checking for clock_gettime" >&5
+has_clock_gettime=no
+
+LFLAGS_OLD="$GLFW_LFLAGS"
+LFLAGS_CLOCK=
+GLFW_LFLAGS="$LFLAGS_CLOCK"
+
+cat > conftest.c <<EOF
+#include <time.h>
+#include <unistd.h>
+int main() {
+#if defined( CLOCK_MONOTONIC )
+clock_gettime(0, 0);
+#else
+#error "clock_gettime support not detected"
+#endif
+return 0;}
+EOF
+
+if { (eval echo $self: \"$link\") 1>&5; (eval $link) 2>&5; }; then
+  rm -f conftest*
+  has_clock_gettime=yes
+else
+  echo "$self: failed program was:" >&5
+  cat conftest.c >&5
+fi
+
+if [ "x$has_clock_gettime" = xno ]; then
+  LFLAGS_CLOCK="-lrt"
+  GLFW_LFLAGS="$LFLAGS_CLOCK"
+  if { (eval echo $self: \"$link\") 1>&5; (eval $link) 2>&5; }; then
+    rm -f conftest*
+    has_clock_gettime=yes
+  else
+    echo "$self: failed program was:" >&5
+    cat conftest.c >&5
+  fi
+fi
+
+GLFW_LFLAGS="$LFLAGS_OLD"
+
+echo "$has_clock_gettime" 1>&6
+
+if [ "x$has_clock_gettime" = xyes ]; then
+  GLFW_LIB_LFLAGS="$GLFW_LIB_LFLAGS $LFLAGS_CLOCK"
 fi
 
 
@@ -669,16 +722,25 @@ echo "Creating $MKNAME" 1>&6
 
 echo "$self: Creating $MKNAME" >&5
 
+if [ "x$has_xrandr" = xyes ]; then
+    PKG_LIBS="${PKG_LIBS} xrandr"
+fi
+
+if [ "x$has_xf86vm" = xyes ]; then
+    PKG_LIBS="${PKG_LIBS} xxf86vm"
+fi
+
 cat > "$MKNAME" <<EOF
 prefix=@PREFIX@
-exec_prefix=@PREFIX@
-libdir=@PREFIX@/lib
-includedir=@PREFIX@/include
+exec_prefix=\${prefix}
+includedir=\${prefix}/include
+libdir=\${exec_prefix}/lib
 
 Name: GLFW
 Description: A portable framework for OpenGL development
-Version: 2.7
+Version: 2.7.4
 URL: http://www.glfw.org/
+Requires.private: gl x11 $PKG_LIBS
 Libs: -L\${libdir} -lglfw $LFLAGS_THREAD
 Cflags: -I\${includedir} $CFLAGS_THREAD 
 EOF

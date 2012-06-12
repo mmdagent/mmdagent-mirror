@@ -36,7 +36,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -198,12 +198,7 @@ int _glfwPlatformInit( void )
         return GL_FALSE;
     }
 
-    _glfwDesktopVideoMode = CGDisplayCurrentMode( kCGDirectMainDisplay );
-    if( _glfwDesktopVideoMode == NULL )
-    {
-        fprintf( stderr, "glfwInit failing because it kind find the desktop display mode\n" );
-        return GL_FALSE;
-    }
+    _glfwPlatformGetDesktopMode( &_glfwLibrary.desktopMode );
 
     // Install atexit routine
     atexit( glfw_atexit );

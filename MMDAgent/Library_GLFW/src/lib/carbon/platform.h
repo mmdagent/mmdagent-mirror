@@ -36,7 +36,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -168,8 +168,6 @@ typedef const GLubyte * (APIENTRY *PFNGLGETSTRINGIPROC) (GLenum, GLuint);
 //------------------------------------------------------------------------
 typedef intptr_t GLFWintptr;
 
-
-GLFWGLOBAL CFDictionaryRef _glfwDesktopVideoMode;
 
 //------------------------------------------------------------------------
 // Window structure
@@ -326,6 +324,9 @@ GLFWGLOBAL struct {
     // Window opening hints
     _GLFWhints      hints;
 
+    // Initial desktop mode
+    GLFWvidmode     desktopMode;
+
 // ========= PLATFORM SPECIFIC PART ======================================
 
     // Timer data
@@ -377,5 +378,6 @@ pthread_mutex_unlock( &_glfwThrd.CriticalSection );
 //========================================================================
 
 void  _glfwChangeToResourcesDirectory( void );
+void  _glfwSaveDesktopMode( void );
 
 #endif // _platform_h_

@@ -34,7 +34,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -80,6 +80,7 @@
 // Include files
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <signal.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
@@ -411,6 +412,9 @@ GLFWGLOBAL struct {
     // Window opening hints
     _GLFWhints      hints;
 
+    // Initial desktop mode
+    GLFWvidmode     desktopMode;
+
 // ========= PLATFORM SPECIFIC PART ======================================
 
     Display        *display;
@@ -432,8 +436,9 @@ GLFWGLOBAL struct {
 
     // Timer data
     struct {
+        GLboolean   monotonic;
         double      resolution;
-        long long   t0;
+        long long   base;
     } Timer;
 
 #if defined(_GLFW_HAS_DLOPEN)

@@ -34,7 +34,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -823,7 +823,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
             {
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_PRESS );
             }
-            return 0;
+            break;
           }
 
         case WM_KEYUP:
@@ -845,7 +845,7 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 translateChar( (DWORD) wParam, (DWORD) lParam, GLFW_RELEASE );
             }
 
-            return 0;
+            break;
         }
 
         case WM_LBUTTONDOWN:
@@ -1148,16 +1148,13 @@ static void initWGLExtensions( void )
 static ATOM registerWindowClass( void )
 {
     WNDCLASS wc;
+    ZeroMemory( &wc, sizeof( wc ) );
 
     // Set window class parameters
     wc.style         = CS_HREDRAW | CS_VREDRAW | CS_OWNDC; // Redraw on...
-    wc.lpfnWndProc   = (WNDPROC)windowProc;           // Message handler
-    wc.cbClsExtra    = 0;                             // No extra class data
-    wc.cbWndExtra    = 0;                             // No extra window data
+    wc.lpfnWndProc   = (WNDPROC) windowProc;          // Message handler
     wc.hInstance     = _glfwLibrary.instance;         // Set instance
     wc.hCursor       = LoadCursor( NULL, IDC_ARROW ); // Load arrow pointer
-    wc.hbrBackground = NULL;                          // No background
-    wc.lpszMenuName  = NULL;                          // No menu
     wc.lpszClassName = _GLFW_WNDCLASSNAME;            // Set class name
 
     // Load user-provided icon if available
@@ -1385,11 +1382,8 @@ int _glfwPlatformOpenWindow( int width, int height,
 {
     GLboolean recreateContext = GL_FALSE;
 
-    // Clear platform specific GLFW window state
-    _glfwWin.classAtom         = 0;
-    _glfwWin.oldMouseLockValid = GL_FALSE;
-
     _glfwWin.desiredRefreshRate = wndconfig->refreshRate;
+    _glfwWin.windowNoResize     = wndconfig->windowNoResize;
 
     _glfwWin.classAtom = registerWindowClass();
     if( !_glfwWin.classAtom )
