@@ -227,6 +227,11 @@
 #define OPTION_MAXNUMMODEL_MAX 1024
 #define OPTION_MAXNUMMODEL_MIN 1
 
+#define OPTION_LIPSYNCPRIORITY_STR "lipsync_priority"
+#define OPTION_LIPSYNCPRIORITY_DEF 100.0f
+#define OPTION_LIPSYNCPRIORITY_MAX 1000.0f
+#define OPTION_LIPSYNCPRIORITY_MIN -1000.0f
+
 /* Option: user options */
 class Option
 {
@@ -299,6 +304,9 @@ private:
 
    /* model */
    int m_maxNumModel;
+
+   /* motion */
+   float m_lipsyncPriority;
 
    /* initialize: initialize options */
    void initialize();
@@ -526,4 +534,10 @@ public:
 
    /* setMaxNumModel: set maximum number of models */
    void setMaxNumModel(int i);
+
+   /* getLipsyncPriority: get lipsync motion priority */
+   float getLipsyncPriority();
+
+   /* setLipsyncPriority: set lipsync motion priority */
+   void setLipsyncPriority(float f);
 };

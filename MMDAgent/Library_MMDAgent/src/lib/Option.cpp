@@ -118,6 +118,8 @@ void Option::initialize()
    m_displayCommentTime = OPTION_DISPLAYCOMMENTTIME_DEF;
 
    m_maxNumModel = OPTION_MAXNUMMODEL_DEF;
+
+   m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_DEF;
 }
 
 /* Option::Option: constructor */
@@ -241,6 +243,8 @@ bool Option::load(const char *file)
          setDisplayCommentTime(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_MAXNUMMODEL_STR)) {
          setMaxNumModel(MMDAgent_str2int(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_LIPSYNCPRIORITY_STR)) {
+         setLipsyncPriority(MMDAgent_str2float(p1));
       }
    }
    fclose(fp);
@@ -920,4 +924,21 @@ void Option::setMaxNumModel(int i)
       m_maxNumModel = OPTION_MAXNUMMODEL_MIN;
    else
       m_maxNumModel = i;
+}
+
+/* Option::getLipsyncPriority: get lipsync motion priority */
+float Option::getLipsyncPriority()
+{
+   return m_lipsyncPriority;
+}
+
+/* Option::setLipsyncPriority: set lipsync motion priority */
+void Option::setLipsyncPriority(float f)
+{
+   if(OPTION_LIPSYNCPRIORITY_MAX < f)
+      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MAX;
+   else if(OPTION_LIPSYNCPRIORITY_MIN > f)
+      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MIN;
+   else
+      m_lipsyncPriority = f;
 }

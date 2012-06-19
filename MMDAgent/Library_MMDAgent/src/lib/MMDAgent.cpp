@@ -852,7 +852,7 @@ bool MMDAgent::startLipSync(const char *modelAlias, const char *seq)
       }
       sendEventMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", modelAlias);
    } else {
-      if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true, MOTIONMANAGER_DEFAULTPRIORITY) == false) {
+      if (m_model[id].startMotion(vmd, LIPSYNC_MOTIONNAME, false, true, true, true, m_option->getLipsyncPriority()) == false) {
          m_logger->log("Error: startLipSync: lip sync cannot be started.");
          m_motion->unload(vmd);
          return false;
@@ -1317,9 +1317,9 @@ bool MMDAgent::updateScene()
 void MMDAgent::renderScene()
 {
    int i;
-   char buff[MMDAGENT_MAXBUFLEN];
    btVector3 pos;
    float fps;
+   char buff[MMDAGENT_MAXBUFLEN];
    static const GLfloat vertices[8][3] = {
       { -0.5f, -0.5f, 0.5f},
       { 0.5f, -0.5f, 0.5f},
