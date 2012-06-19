@@ -129,10 +129,10 @@ private:
    void initializeShadowMap(int textureSize);
 
    /* renderSceneShadowMap: shadow mapping */
-   void renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
+   void renderSceneShadowMap(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
 
    /* renderScene: render scene */
-   void renderScene(PMDObject *objs, short *order, int num, Stage *stage, float shadowMappingFloorDensity);
+   void renderScene(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity);
 
    /* initialize: initialzie Render */
    void initialize();

@@ -281,12 +281,13 @@ void Render::initializeShadowMap(int textureSize)
 }
 
 /* Render::renderSceneShadowMap: shadow mapping */
-void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
+void Render::renderSceneShadowMap(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
 {
    short i;
    GLint viewport[4]; /* store viewport */
    GLdouble modelview[16]; /* store model view transform */
    GLdouble projection[16]; /* store projection transform */
+   bool toonLight = true;
 
 #ifdef RENDER_SHADOWAUTOVIEW
    float eyeDist;
@@ -398,9 +399,22 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
       stage->renderFloor();
       for (i = 0; i < num; i++) {
          if (objs[order[i]].isEnable() == true) {
+            if (objs[order[i]].getPMDModel()->getToonFlag() == false && toonLight == true) {
+               /* disable toon lighting */
+               updateLight(true, false, lightIntensity, lightDirection, lightColor);
+               toonLight = false;
+            } else if (objs[order[i]].getPMDModel()->getToonFlag() == true && toonLight == false) {
+               /* enable toon lighting */
+               updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
+               toonLight = true;
+            }
             objs[order[i]].getPMDModel()->renderModel();
             objs[order[i]].getPMDModel()->renderEdge();
          }
+      }
+      if (toonLight == false) {
+         /* restore toon lighting */
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
       }
    } else {
       /* render in dark setting, later render only the non-shadow part with light setting */
@@ -516,9 +530,24 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
       glAlphaFunc(GL_GEQUAL, 0.001f);
       stage->renderBackground();
       stage->renderFloor();
-      for (i = 0; i < num; i++)
-         if (objs[order[i]].isEnable() == true)
+      for (i = 0; i < num; i++) {
+         if (objs[order[i]].isEnable() == true) {
+            if (objs[order[i]].getPMDModel()->getToonFlag() == false && toonLight == true) {
+               /* disable toon lighting */
+               updateLight(true, false, lightIntensity, lightDirection, lightColor);
+               toonLight = false;
+            } else if (objs[order[i]].getPMDModel()->getToonFlag() == true && toonLight == false) {
+               /* enable toon lighting */
+               updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
+               toonLight = true;
+            }
             objs[order[i]].getPMDModel()->renderModel();
+         }
+      }
+      if (toonLight == false) {
+         /* restore toon lighting */
+         updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
+      }
    }
 
    /* reset settings */
@@ -535,9 +564,10 @@ void Render::renderSceneShadowMap(PMDObject *objs, short *order, int num, Stage 
 }
 
 /* Render::renderScene: render scene */
-void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, float shadowMappingFloorDensity)
+void Render::renderScene(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity)
 {
    short i;
+   bool toonLight = true;
 
    /* clear rendering buffer */
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -592,9 +622,22 @@ void Render::renderScene(PMDObject *objs, short *order, int num, Stage *stage, f
    /* render model */
    for (i = 0; i < num; i++) {
       if (objs[order[i]].isEnable() == true) {
+         if (objs[order[i]].getPMDModel()->getToonFlag() == false && toonLight == true) {
+            /* disable toon lighting */
+            updateLight(true, false, lightIntensity, lightDirection, lightColor);
+            toonLight = false;
+         } else if (objs[order[i]].getPMDModel()->getToonFlag() == true && toonLight == false) {
+            /* enable toon lighting */
+            updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
+            toonLight = true;
+         }
          objs[order[i]].getPMDModel()->renderModel();
          objs[order[i]].getPMDModel()->renderEdge();
       }
+   }
+   if (toonLight == false) {
+      /* restore toon lighting */
+      updateLight(useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor);
    }
 }
 
@@ -880,7 +923,7 @@ void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool u
    if (useShadowMapping)
       renderSceneShadowMap(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);
    else
-      renderScene(objs, order, num, stage, shadowMappingFloorDensity);
+      renderScene(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingFloorDensity);
 }
 
 /* Render::pickModel: pick up a model at the screen position */
