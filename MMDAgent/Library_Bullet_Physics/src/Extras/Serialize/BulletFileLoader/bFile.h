@@ -145,10 +145,6 @@ namespace bParse {
 
 		void	dumpChunks(bDNA* dna);
 		
-		int		getVersion() const
-		{
-			return mVersion;
-		}
 
 		
 	};

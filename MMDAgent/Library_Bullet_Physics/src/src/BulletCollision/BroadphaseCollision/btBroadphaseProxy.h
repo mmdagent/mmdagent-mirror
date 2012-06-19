@@ -246,7 +246,7 @@ class btBroadphasePairSortPredicate
 {
 	public:
 
-		bool operator() ( const btBroadphasePair& a, const btBroadphasePair& b ) const
+		bool operator() ( const btBroadphasePair& a, const btBroadphasePair& b )
 		{
 			const int uidA0 = a.m_pProxy0 ? a.m_pProxy0->m_uniqueId : -1;
 			const int uidB0 = b.m_pProxy0 ? b.m_pProxy0->m_uniqueId : -1;

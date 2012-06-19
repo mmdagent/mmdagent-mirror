@@ -607,7 +607,7 @@ public:
 
 	virtual void optimize( btAlignedObjectArray< btSoftBody * > &softBodies , bool forceUpdate=false);
 
-	virtual void copyBackToSoftBodies(bool bMove = true);
+	virtual void copyBackToSoftBodies();
 
 	virtual void solveConstraints( float solverdt );
 

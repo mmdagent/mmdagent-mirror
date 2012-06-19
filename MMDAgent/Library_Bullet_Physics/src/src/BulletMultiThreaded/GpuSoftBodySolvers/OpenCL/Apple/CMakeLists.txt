@@ -13,7 +13,7 @@ SET(BulletSoftBodyOpenCLSolvers_SRCS
 
 SET(BulletSoftBodyOpenCLSolvers_HDRS
 	../btSoftBodySolver_OpenCL.h
-	../../Shared/btSoftBodySolverData.h
+	../../CPU/btSoftBodySolverData.h
 	../btSoftBodySolverVertexData_OpenCL.h
 	../btSoftBodySolverTriangleData_OpenCL.h
 	../btSoftBodySolverLinkData_OpenCL.h

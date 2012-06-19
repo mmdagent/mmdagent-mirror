@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "btSoftBodySolverVertexBuffer_DX11.h"
 #include "BulletSoftBody/btSoftBody.h"
 #include "BulletCollision/CollisionShapes/btCapsuleShape.h"
-#include <stdio.h> //printf
+
 #define MSTRINGIFY(A) #A
 static char* PrepareLinksHLSLString = 
 #include "HLSL/PrepareLinks.hlsl"
@@ -308,42 +308,18 @@ bool btSoftBodyVertexDataDX11::moveToAccelerator()
 	return success;
 }
 
-bool btSoftBodyVertexDataDX11::moveFromAccelerator(bool bCopy, bool bCopyMinimum)
+bool btSoftBodyVertexDataDX11::moveFromAccelerator()
 {
 	bool success = true;
-
-	if (!bCopy)
-	{
-		success = success && m_dx11ClothIdentifier.moveFromGPU();
-		success = success && m_dx11VertexPosition.moveFromGPU();
-		success = success && m_dx11VertexPreviousPosition.moveFromGPU();
-		success = success && m_dx11VertexVelocity.moveFromGPU();
-		success = success && m_dx11VertexForceAccumulator.moveFromGPU();
-		success = success && m_dx11VertexNormal.moveFromGPU();
-		success = success && m_dx11VertexInverseMass.moveFromGPU();
-		success = success && m_dx11VertexArea.moveFromGPU();
-		success = success && m_dx11VertexTriangleCount.moveFromGPU();
-	}
-	else
-	{
-		if (bCopyMinimum)
-		{
-			success = success && m_dx11VertexPosition.copyFromGPU();
-			success = success && m_dx11VertexNormal.copyFromGPU();
-		}
-		else
-		{
-			success = success && m_dx11ClothIdentifier.copyFromGPU();
-			success = success && m_dx11VertexPosition.copyFromGPU();
-			success = success && m_dx11VertexPreviousPosition.copyFromGPU();
-			success = success && m_dx11VertexVelocity.copyFromGPU();
-			success = success && m_dx11VertexForceAccumulator.copyFromGPU();
-			success = success && m_dx11VertexNormal.copyFromGPU();
-			success = success && m_dx11VertexInverseMass.copyFromGPU();
-			success = success && m_dx11VertexArea.copyFromGPU();
-			success = success && m_dx11VertexTriangleCount.copyFromGPU();
-		}
-	}
+	success = success && m_dx11ClothIdentifier.moveFromGPU();
+	success = success && m_dx11VertexPosition.moveFromGPU();
+	success = success && m_dx11VertexPreviousPosition.moveFromGPU();
+	success = success && m_dx11VertexVelocity.moveFromGPU();
+	success = success && m_dx11VertexForceAccumulator.moveFromGPU();
+	success = success && m_dx11VertexNormal.moveFromGPU();
+	success = success && m_dx11VertexInverseMass.moveFromGPU();
+	success = success && m_dx11VertexArea.moveFromGPU();
+	success = success && m_dx11VertexTriangleCount.moveFromGPU();
 
 	if( success )
 		m_onGPU = true;
@@ -643,10 +619,10 @@ void btDX11SoftBodySolver::releaseKernels()
 }
 
 
-void btDX11SoftBodySolver::copyBackToSoftBodies(bool bMove)
+void btDX11SoftBodySolver::copyBackToSoftBodies()
 {
 	// Move the vertex data back to the host first
-	m_vertexData.moveFromAccelerator(!bMove);
+	m_vertexData.moveFromAccelerator();
 
 	// Loop over soft bodies, copying all the vertex positions back for each body in turn
 	for( int softBodyIndex = 0; softBodyIndex < m_softBodySet.size(); ++softBodyIndex )
@@ -1245,7 +1221,7 @@ void btDX11SoftBodySolver::prepareCollisionConstraints()
 	{
 		public:
 
-		bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b ) const
+		bool operator() ( const CollisionShapeDescription& a, const CollisionShapeDescription& b )
 		{
 			return ( a.softBodyIdentifier < b.softBodyIdentifier );
 		}
@@ -2190,9 +2166,7 @@ void btDX11SoftBodySolver::processCollision( btSoftBody *softBody, btCollisionOb
 			m_collisionObjectDetails.push_back( newCollisionShapeDescription );
 
 		} else {
-#ifdef _DEBUG
-			printf("Unsupported collision shape type\n");
-#endif
+			btAssert("Unsupported collision shape type\n");
 		}
 	} else {
 		btAssert("Unknown soft body");

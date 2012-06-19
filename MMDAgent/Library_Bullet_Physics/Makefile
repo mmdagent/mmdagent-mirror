@@ -112,6 +112,7 @@ SOURCES  = src/src/BulletCollision/BroadphaseCollision/btAxisSweep3.cpp \
            src/src/BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp \
            src/src/BulletDynamics/Vehicle/btRaycastVehicle.cpp \
            src/src/BulletDynamics/Vehicle/btWheelInfo.cpp \
+           src/src/BulletMultiThreaded/GpuSoftBodySolvers/CPU/btSoftBodySolver_CPU.cpp \
            src/src/BulletMultiThreaded/PosixThreadSupport.cpp \
            src/src/BulletMultiThreaded/SequentialThreadSupport.cpp \
            src/src/BulletMultiThreaded/SpuCollisionObjectWrapper.cpp \
@@ -171,6 +172,7 @@ $(TARGET): $(OBJECTS)
 	cp src/src/BulletDynamics/Dynamics/*.h include/BulletDynamics/Dynamics
 	cp src/src/BulletDynamics/Vehicle/*.h include/BulletDynamics/Vehicle
 	cp src/src/BulletMultiThreaded/*.h include/BulletMultiThreaded
+	cp src/src/BulletMultiThreaded/GpuSoftBodySolvers/CPU/*.h include/BulletMultiThreaded/GpuSoftBodySolvers/CPU
 	cp src/src/BulletMultiThreaded/GpuSoftBodySolvers/DX11/*.h include/BulletMultiThreaded/GpuSoftBodySolvers/DX11
 	cp src/src/BulletMultiThreaded/GpuSoftBodySolvers/OpenCL/*.h include/BulletMultiThreaded/GpuSoftBodySolvers/OpenCL
 	cp src/src/BulletMultiThreaded/SpuNarrowPhaseCollisionTask/*.h include/BulletMultiThreaded/SpuNarrowPhaseCollisionTask

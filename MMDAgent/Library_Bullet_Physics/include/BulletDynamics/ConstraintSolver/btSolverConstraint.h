@@ -51,8 +51,6 @@ ATTRIBUTE_ALIGNED64 (struct)	btSolverConstraint
 		btScalar	m_unusedPadding0;
 	};
 
-	int	m_overrideNumSolverIterations;
-
 	union
 	{
 		int			m_frictionIndex;

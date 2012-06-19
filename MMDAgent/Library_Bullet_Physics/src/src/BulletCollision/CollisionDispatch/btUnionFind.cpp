@@ -53,7 +53,7 @@ class btUnionFindElementSortPredicate
 {
 	public:
 
-		bool operator() ( const btElement& lhs, const btElement& rhs ) const
+		bool operator() ( const btElement& lhs, const btElement& rhs )
 		{
 			return lhs.m_id < rhs.m_id;
 		}

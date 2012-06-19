@@ -27,7 +27,8 @@ subject to the following restrictions:
 #endif //__APPLE__
 
 
-#include "btOpenCLUtils.h"
+#include "btOclCommon.h"
+#include "btOclUtils.h"
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
@@ -336,23 +337,18 @@ void btParticlesDynamicsWorld::initCLKernels(int argc, char** argv)
 
 	if (!m_cxMainContext)
 	{
-		
-		cl_device_type deviceType = CL_DEVICE_TYPE_ALL;
-		m_cxMainContext = btOpenCLUtils::createContextFromType(deviceType, &ciErrNum, 0, 0);
+//		m_cxMainContext = clCreateContextFromType(0, CL_DEVICE_TYPE_ALL, NULL, NULL, &ciErrNum);
+
+#ifdef USE_INTEL_OPENCL
+		m_cxMainContext = btOclCommon::createContextFromType(CL_DEVICE_TYPE_ALL, &ciErrNum);
+#else
+		m_cxMainContext = btOclCommon::createContextFromType(CL_DEVICE_TYPE_GPU, &ciErrNum);
+#endif
 	
-		int numDev = btOpenCLUtils::getNumDevices(m_cxMainContext);
-		if (!numDev)
-		{
-			btAssert(0);
-			exit(0);//this is just a demo, exit now
-		}
-
-		m_cdDevice =  btOpenCLUtils::getDevice(m_cxMainContext,0);
-    	oclCHECKERROR(ciErrNum, CL_SUCCESS);
-
-		btOpenCLDeviceInfo clInfo;
-		btOpenCLUtils::getDeviceInfo(m_cdDevice,clInfo);
-		btOpenCLUtils::printDeviceInfo(m_cdDevice);
+		oclCHECKERROR(ciErrNum, CL_SUCCESS);
+		m_cdDevice = btOclGetMaxFlopsDev(m_cxMainContext);
+		
+		btOclPrintDevInfo(m_cdDevice);
 
 		// create a command-queue
 		m_cqCommandQue = clCreateCommandQueue(m_cxMainContext, m_cdDevice, 0, &ciErrNum);
@@ -444,7 +440,7 @@ void btParticlesDynamicsWorld::initCLKernels(int argc, char** argv)
 		char cBuildLog[10240];
 //		char* cPtx;
 //		size_t szPtxLength;
-		clGetProgramBuildInfo(m_cpProgram, m_cdDevice, CL_PROGRAM_BUILD_LOG, 
+		clGetProgramBuildInfo(m_cpProgram, btOclGetFirstDev(m_cxMainContext), CL_PROGRAM_BUILD_LOG, 
 							  sizeof(cBuildLog), cBuildLog, NULL );
 //		oclGetProgBinary(m_cpProgram, oclGetFirstDev(m_cxMainContext), &cPtx, &szPtxLength);
 //		oclLog(LOGBOTH | CLOSELOG, 0.0, "\n\nLog:\n%s\n\n\n\n\nPtx:\n%s\n\n\n", cBuildLog, cPtx);

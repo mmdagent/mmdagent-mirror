@@ -58,18 +58,16 @@ static inline void btAlignedFreeDefault(void *ptr)
 	free(ptr);
 }
 #else
-
-
-
-
-
 static inline void *btAlignedAllocDefault(size_t size, int alignment)
 {
   void *ret;
   char *real;
+  unsigned long offset;
+
   real = (char *)sAllocFunc(size + sizeof(void *) + (alignment-1));
   if (real) {
-	ret = btAlignPointer(real + sizeof(void *),alignment);
+    offset = (alignment - (unsigned long)(real + sizeof(void *))) & (alignment-1);
+    ret = (void *)((real + sizeof(void *)) + offset);
     *((void **)(ret)-1) = (void *)(real);
   } else {
     ret = (void *)(real);
@@ -112,6 +110,7 @@ void*   btAlignedAllocInternal  (size_t size, int alignment,int line,char* filen
 {
  void *ret;
  char *real;
+ unsigned long offset;
 
  gTotalBytesAlignedAllocs += size;
  gNumAlignedAllocs++;
@@ -119,7 +118,9 @@ void*   btAlignedAllocInternal  (size_t size, int alignment,int line,char* filen
  
  real = (char *)sAllocFunc(size + 2*sizeof(void *) + (alignment-1));
  if (real) {
-   ret = (void*) btAlignPointer((real + 2*sizeof(void *), alignment);
+   offset = (alignment - (unsigned long)(real + 2*sizeof(void *))) &
+(alignment-1);
+   ret = (void *)((real + 2*sizeof(void *)) + offset);
    *((void **)(ret)-1) = (void *)(real);
        *((int*)(ret)-2) = size;
 

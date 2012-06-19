@@ -101,7 +101,7 @@ void CharacterDemo::initPhysics()
 	btTransform tr;
 	tr.setIdentity();
 
-	const char* bspfilename = "BspDemo.bsp";
+	char* bspfilename = "BspDemo.bsp";
 	void* memoryBuffer = 0;
 
 	FILE* file = fopen(bspfilename,"r");

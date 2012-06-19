@@ -208,7 +208,7 @@ const char*	btConvexHullShape::serialize(void* dataBuffer, btSerializer* seriali
 	return "btConvexHullShapeData";
 }
 
-void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const
+void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, float& min, float& max) const
 {
 #if 1
 	min = FLT_MAX;
@@ -221,7 +221,7 @@ void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, 
 	{
 		btVector3 vtx = m_unscaledPoints[i] * m_localScaling;
 		btVector3 pt = trans * vtx;
-		btScalar dp = pt.dot(dir);
+		float dp = pt.dot(dir);
 		if(dp < min)	
 		{
 			min = dp;
@@ -244,7 +244,7 @@ void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, 
 
 	if(min>max)
 	{
-		btScalar tmp = min;
+		float tmp = min;
 		min = max;
 		max = tmp;
 	}

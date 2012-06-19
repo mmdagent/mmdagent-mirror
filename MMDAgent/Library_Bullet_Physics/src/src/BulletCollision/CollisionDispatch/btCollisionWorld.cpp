@@ -155,7 +155,7 @@ void	btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	minAabb -= contactThreshold;
 	maxAabb += contactThreshold;
 
-	if(getDispatchInfo().m_useContinuous && colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY && !colObj->isStaticOrKinematicObject())
+	if(getDispatchInfo().m_useContinuous && colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY)
 	{
 		btVector3 minAabb2,maxAabb2;
 		colObj->getCollisionShape()->getAabb(colObj->getInterpolationWorldTransform(),minAabb2,maxAabb2);
@@ -1198,14 +1198,15 @@ public:
 		  wv1 = m_worldTrans*triangle[1];
 		  wv2 = m_worldTrans*triangle[2];
 		  btVector3 center = (wv0+wv1+wv2)*btScalar(1./3.);
-          
-          if (m_debugDrawer->getDebugMode() & btIDebugDraw::DBG_DrawNormals )
-          {
-		    btVector3 normal = (wv1-wv0).cross(wv2-wv0);
-		    normal.normalize();
-		    btVector3 normalColor(1,1,0);
-		    m_debugDrawer->drawLine(center,center+normal,normalColor);
-          }
+
+		  btVector3 normal = (wv1-wv0).cross(wv2-wv0);
+		  normal.normalize();
+		  btVector3 normalColor(1,1,0);
+		  m_debugDrawer->drawLine(center,center+normal,normalColor);
+
+
+
+		 
 		  m_debugDrawer->drawLine(wv0,wv1,m_color);
 		  m_debugDrawer->drawLine(wv1,wv2,m_color);
 		  m_debugDrawer->drawLine(wv2,wv0,m_color);
@@ -1256,12 +1257,11 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 						}
 					}
 					centroid*= btScalar(1.f)/btScalar(numVerts);
-                    if (getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawNormals)
-                    {
-					  btVector3 normalColor(1,1,0);
-					  btVector3 faceNormal(poly->m_faces[i].m_plane[0],poly->m_faces[i].m_plane[1],poly->m_faces[i].m_plane[2]);
-					  getDebugDrawer()->drawLine(worldTransform*centroid,worldTransform*(centroid+faceNormal),normalColor);
-                    }
+
+					btVector3 normalColor(1,1,0);
+					btVector3 faceNormal(poly->m_faces[i].m_plane[0],poly->m_faces[i].m_plane[1],poly->m_faces[i].m_plane[2]);
+					//getDebugDrawer()->drawLine(worldTransform*centroid,worldTransform*(centroid+faceNormal),normalColor);
+					
 					
 				}
 
@@ -1388,7 +1388,7 @@ void btCollisionWorld::debugDrawObject(const btTransform& worldTransform, const 
 					
 				}
 			}
-		}
+			}
 	}
 }
 
@@ -1398,7 +1398,7 @@ void	btCollisionWorld::debugDrawWorld()
 	if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & btIDebugDraw::DBG_DrawContactPoints)
 	{
 		int numManifolds = getDispatcher()->getNumManifolds();
-		btVector3 color(1,0.65,0);
+		btVector3 color(0,0,0);
 		for (int i=0;i<numManifolds;i++)
 		{
 			btPersistentManifold* contactManifold = getDispatcher()->getManifoldByIndexInternal(i);
@@ -1457,7 +1457,7 @@ void	btCollisionWorld::debugDrawWorld()
 
 					btVector3 minAabb2,maxAabb2;
 
-					if(getDispatchInfo().m_useContinuous && colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY && !colObj->isStaticOrKinematicObject())
+					if(colObj->getInternalType()==btCollisionObject::CO_RIGID_BODY)
 					{
 						colObj->getCollisionShape()->getAabb(colObj->getInterpolationWorldTransform(),minAabb2,maxAabb2);
 						minAabb2 -= contactThreshold;

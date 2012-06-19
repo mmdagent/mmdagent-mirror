@@ -2202,7 +2202,6 @@ int maxdirfiltered(const T *p,int count,const T &dir,Array<int> &allow)
 		{
 			if(m==-1 )
 			{
-				currDotm = dot(p[i], dir);
 				m=i;
 			}
 			else 

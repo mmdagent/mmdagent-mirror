@@ -64,8 +64,6 @@ class SerializeDemo : public PlatformDemoApplication
 
 	void	exitPhysics();
 
-	virtual void keyboardCallback(unsigned char key, int x, int y);
-
 	virtual void clientMoveAndDisplay();
 
 	virtual void displayCallback();

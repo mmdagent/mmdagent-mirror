@@ -25,18 +25,15 @@
 			"opengl32"
 		}
 		
-		configuration { "Windows" }
-			defines { "GLEW_STATIC"}
-	
 			configuration "x64"
 			links {
 				"glut64",
-				"glew64s"
+				"glew64"
 			}
 			configuration "x32"
 			links {
 				"glut32",
-				"glew32s"
+				"glew32"
 			}
 		
 			configuration{}
@@ -51,9 +48,10 @@
 		
 		files {
 			"../cl_cloth_demo.cpp",
-			"../../SharedOpenCL/btOpenCLUtils.cpp",
-			"../../SharedOpenCL/btOpenCLUtils.h",
-			"../../SharedOpenCL/btOpenCLInclude.h",
+			"../../SharedOpenCL/btOclUtils.h",
+			"../../SharedOpenCL/btOclCommon.h",
+			"../../SharedOpenCL/btOclUtils.cpp",
+			"../../SharedOpenCL/btOclCommon.cpp",
 			"../../OpenGL/GLDebugDrawer.cpp",
 			"../../OpenGL/stb_image.cpp",
 			"../../OpenGL/stb_image.h",			

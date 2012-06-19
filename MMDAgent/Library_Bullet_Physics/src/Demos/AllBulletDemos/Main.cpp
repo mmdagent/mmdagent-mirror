@@ -53,7 +53,6 @@ namespace
 	int tx, ty, tw, th;
 	int	gDrawAabb;
 	int	gWireFrame;
-    int gDrawNormals;
 	int gHelpText;
 	int gDebugConstraints;
 	int	gDebugContacts;
@@ -82,7 +81,6 @@ void	setDefaultSettings()
 	height = 768;//480;
 	iterationCount = 10;
 	gDrawAabb=0;
-    gDrawNormals=0;
 	gWireFrame=0;
 	gDebugContacts=0;
 	//enable constraint debug visualization for first demo, only if user hasn't overridden the setting
@@ -228,13 +226,7 @@ void SimulationLoop()
 	} else
 	{
 		demo->setDebugMode(demo->getDebugMode() & (~btIDebugDraw::DBG_DrawWireframe));
-	}
-    if (gDrawNormals)
-	{
-		demo->setDebugMode(demo->getDebugMode() |btIDebugDraw::DBG_DrawNormals);
-	} else
-	{
-		demo->setDebugMode(demo->getDebugMode() & (~btIDebugDraw::DBG_DrawNormals));
+
 	}
 	if (gHelpText)
 	{
@@ -335,7 +327,7 @@ void SimulationLoop()
                 gDebugConstraints=0;
         	} else
         	{
-                gDebugConstraints=1;
+               	  gDebugConstraints=1;
         	}
 
 		testIndex = testSelection;
@@ -539,7 +531,6 @@ int main(int argc, char** argv)
 	glui->add_checkbox_to_panel(drawPanel, "Help", &gHelpText);
 	glui->add_checkbox_to_panel(drawPanel, "AABBs", &gDrawAabb);
 	glui->add_checkbox_to_panel(drawPanel, "Wireframe", &gWireFrame);
-    glui->add_checkbox_to_panel(drawPanel, "Normals", &gDrawNormals);
 	glui->add_checkbox_to_panel(drawPanel, "Contacts", &gDebugContacts);
 	glui->add_checkbox_to_panel(drawPanel, "Constraints", &gDebugConstraints);
 

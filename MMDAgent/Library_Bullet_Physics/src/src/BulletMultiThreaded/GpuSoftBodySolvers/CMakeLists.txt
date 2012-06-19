@@ -6,6 +6,7 @@ ${BULLET_PHYSICS_SOURCE_DIR}/src
 
 SUBDIRS ( 
 	OpenCL
+	CPU 
 )
 
 IF( USE_DX11 )
