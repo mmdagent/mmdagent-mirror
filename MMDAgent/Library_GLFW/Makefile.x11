@@ -35,7 +35,6 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -D_GLFW_HAS_PTHREAD \
            -D_GLFW_HAS_SCHED_YIELD \
            -D_GLFW_HAS_GLXGETPROCADDRESS \
-           -D_GLFW_HAS_DLOPEN \
            -D_GLFW_HAS_SYSCONF
 INCLUDE  = -I src/include \
            -I src/lib \

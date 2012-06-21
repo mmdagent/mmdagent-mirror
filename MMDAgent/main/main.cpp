@@ -49,14 +49,15 @@
 #ifdef _WIN32
 #include <locale.h>
 #include <windows.h>
-#else
+#endif /* _WIN32 */
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
-#else
+#endif /* __APPLE__ */
+#if !defined(_WIN32) && !defined(__APPLE__)
 #include <limits.h>
 #include <iconv.h>
-#endif /* __APPLE__ */
-#endif /* _WIN32 */
+#endif /* !_WIN32 && !__APPLE__ */
+
 #include "MMDAgent.h"
 
 /* MMDAgent */
@@ -367,8 +368,7 @@ int commonMain(int argc, char **argv)
 }
 
 /* main: main function */
-#ifdef _WIN32
-#ifndef __MINGW32__
+#if defined(_WIN32) && !defined(__MINGW32__)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
    int i;
@@ -394,13 +394,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
    return result;
 }
-#else
+#endif /* _WIN32 && !__MINGW32__ */
+#if defined(_WIN32) && defined(__MINGW32__)
 int main(int argc, char **argv)
 {
    return commonMain(argc, argv);
 }
-#endif /* !__MIGW32__ */
-#else
+#endif /* _WIN32 && __MIGW32__ */
 #ifdef __APPLE__
 int main(int argc, char **argv)
 {
@@ -431,7 +431,8 @@ int main(int argc, char **argv)
 
    return result;
 }
-#else
+#endif /* __APPLE__ */
+#if !defined(_WIN32) && !defined(__APPLE__)
 int main(int argc, char **argv)
 {
    int i;
@@ -480,5 +481,4 @@ int main(int argc, char **argv)
 
    return result;
 }
-#endif /* __APPLE__ */
-#endif /* _WIN32 */
+#endif /* !_WIN32 && !__APPLE__ */
