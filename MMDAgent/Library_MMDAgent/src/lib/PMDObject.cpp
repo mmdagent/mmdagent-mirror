@@ -227,6 +227,9 @@ bool PMDObject::startMotion(VMD * vmd, const char *name, bool full, bool once, b
 {
    if (m_motionManager == NULL || m_motionManager->startMotion(vmd, name, full, once, enableSmooth, enableRepos, priority) == false)
       return false;
+   if (enableRepos)
+      m_pmd.getRootBone()->getOffset(&m_offsetPos);
+
    return true;
 }
 
