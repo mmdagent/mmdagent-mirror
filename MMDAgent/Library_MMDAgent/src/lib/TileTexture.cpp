@@ -55,15 +55,14 @@ void TileTexture::resetDisplayList()
 /* TileTexture::initialize: initialize texture */
 void TileTexture::initialize()
 {
-   int i, j;
+   int i;
 
    m_isLoaded = false;
    m_listIndex = 0;
    m_listIndexValid = false;
 
-   for (i = 0; i < 4; i++)
-      for (j = 0; j < 3; j++)
-         m_vertices[i][j] = 0.0f;
+   for (i = 0; i < 12; i++)
+      m_vertices[i] = 0.0f;
    m_numx = 1.0f;
    m_numy = 1.0f;
 }
@@ -110,6 +109,7 @@ void TileTexture::render(bool cullFace, const float *normal)
 {
    GLfloat color[] = {0.65f, 0.65f, 0.65f, 1.0f};
    GLfloat spec[] = {0.0f, 0.0f, 0.0f, 0.0f};
+   GLfloat texcoords[] = {0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
 
    if (m_isLoaded == false) return;
 
@@ -133,16 +133,13 @@ void TileTexture::render(bool cullFace, const float *normal)
    glBindTexture(GL_TEXTURE_2D, m_texture.getID());
    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-   glBegin(GL_QUADS);
-   glTexCoord2f(0.0, m_numy);
-   glVertex3fv(m_vertices[0]);
-   glTexCoord2f(m_numx, m_numy);
-   glVertex3fv(m_vertices[1]);
-   glTexCoord2f(m_numx, 0.0);
-   glVertex3fv(m_vertices[2]);
-   glTexCoord2f(0.0, 0.0);
-   glVertex3fv(m_vertices[3]);
-   glEnd();
+   glVertexPointer(3, GL_FLOAT, 0, m_vertices);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glDrawArrays(GL_QUADS, 0, 4);
+   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+   glDisableClientState(GL_VERTEX_ARRAY);
    glPopMatrix();
    glDisable(GL_TEXTURE_2D);
 
@@ -157,7 +154,7 @@ void TileTexture::render(bool cullFace, const float *normal)
 /* TileTexture::getSize: get texture size */
 GLfloat TileTexture::getSize(int i, int j)
 {
-   return m_vertices[i][j];
+   return m_vertices[i * 3 + j];
 }
 
 /* TileTexture::setSize: set texture size */
@@ -167,18 +164,18 @@ void TileTexture::setSize(float v00, float v01, float v02,
                           float v30, float v31, float v32,
                           float numx, float numy)
 {
-   m_vertices[0][0] = v00;
-   m_vertices[0][1] = v01;
-   m_vertices[0][2] = v02;
-   m_vertices[1][0] = v10;
-   m_vertices[1][1] = v11;
-   m_vertices[1][2] = v12;
-   m_vertices[2][0] = v20;
-   m_vertices[2][1] = v21;
-   m_vertices[2][2] = v22;
-   m_vertices[3][0] = v30;
-   m_vertices[3][1] = v31;
-   m_vertices[3][2] = v32;
+   m_vertices[0] = v00;
+   m_vertices[1] = v01;
+   m_vertices[2] = v02;
+   m_vertices[3] = v10;
+   m_vertices[4] = v11;
+   m_vertices[5] = v12;
+   m_vertices[6] = v20;
+   m_vertices[7] = v21;
+   m_vertices[8] = v22;
+   m_vertices[9] = v30;
+   m_vertices[10] = v31;
+   m_vertices[11] = v32;
 
    m_numx = numx;
    m_numy = numy;

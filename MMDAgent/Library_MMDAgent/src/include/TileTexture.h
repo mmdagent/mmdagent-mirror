@@ -49,7 +49,7 @@ private:
    GLuint m_listIndex;       /* display list */
    bool m_listIndexValid;    /* true if m_listIndex was registered */
 
-   GLfloat m_vertices[4][3]; /* position */
+   GLfloat m_vertices[12]; /* position */
    GLfloat m_numx;
    GLfloat m_numy;
 
