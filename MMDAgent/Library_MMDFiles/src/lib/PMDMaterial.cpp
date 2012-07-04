@@ -94,7 +94,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    bool ret = true;
    char name[21];
    unsigned long j;
-   float f[3], d, tmp;
+   float f[3], d, tmp = 0.0f;
 
    clear();
 
