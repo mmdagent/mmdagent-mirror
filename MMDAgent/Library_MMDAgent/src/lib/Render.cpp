@@ -70,7 +70,9 @@ void Render::updateProjectionMatrix()
 /* Render::applyProjectionMatirx: update projection matrix */
 void Render::applyProjectionMatrix()
 {
-   gluPerspective(m_currentFovy, (double) m_width / (double) m_height, RENDER_VIEWPOINTFRUSTUMNEAR, RENDER_VIEWPOINTFRUSTUMFAR);
+   double y = RENDER_VIEWPOINTFRUSTUMNEAR * tan(MMDFILES_RAD(m_currentFovy) * 0.5);
+   double x = y * m_width / m_height;
+   glFrustum(-x, x, -y, y, RENDER_VIEWPOINTFRUSTUMNEAR, RENDER_VIEWPOINTFRUSTUMFAR);
 }
 
 /* Render::updateModelViewMatrix: update model view matrix */
