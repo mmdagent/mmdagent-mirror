@@ -635,7 +635,7 @@ bool PMDTexture::load(const char *fileName)
 
    /* set highest priority to this texture to tell OpenGL to keep textures in GPU memory */
    priority = 1.0f;
-   glPrioritizeTextures(1, &m_id, &priority);
+   glPrioritizeTexturesEXT(1, &m_id, &priority);
 
    return true;
 }
