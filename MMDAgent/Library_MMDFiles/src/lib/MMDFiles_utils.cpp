@@ -41,13 +41,14 @@
 
 /* headers */
 
-#ifndef _WIN32
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
-#else
-#include <iconv.h>
 #endif /* __APPLE__ */
-#endif /* !_WIN32 */
+
+#if !defined(_WIN32) && !defined(__APPLE__)
+#include <iconv.h>
+#endif /* !_WIN32 && !__APPLE__ */
+
 #include "MMDFiles.h"
 
 /* MMDFiles_charsize: number of character byte */
@@ -164,7 +165,7 @@ char *MMDFiles_pathdup(const char *str)
 {
 #ifdef _WIN32
    return MMDFiles_strdup(str);
-#else
+#endif /* _WIN32 */
 #ifdef __APPLE__
    size_t i, size;
    char *inBuff, *outBuff;
@@ -195,7 +196,8 @@ char *MMDFiles_pathdup(const char *str)
 
    free(inBuff);
    return outBuff;
-#else
+#endif /* __APPLE__ */
+#if !defined(_WIN32) && !defined(__APPLE__)
    iconv_t ic;
    size_t i, size;
    char *inBuff, *outBuff;
@@ -232,8 +234,7 @@ char *MMDFiles_pathdup(const char *str)
 
    free(inBuff);
    return outBuff;
-#endif /* __APPLE__ */
-#endif /* _WIN32 */
+#endif /* !_WIN32 && !__APPLE__ */
 }
 
 /* MMDFiles_dirname: get directory name from path */
