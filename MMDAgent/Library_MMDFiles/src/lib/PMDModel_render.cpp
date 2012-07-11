@@ -251,6 +251,7 @@ void PMDModel::renderModel()
       glDisable(GL_TEXTURE_2D);
    }
    glActiveTextureARB(GL_TEXTURE0_ARB);
+   glClientActiveTextureARB(GL_TEXTURE0_ARB);
 
    glDisable(GL_TEXTURE_2D);
    glEnable(GL_CULL_FACE);
