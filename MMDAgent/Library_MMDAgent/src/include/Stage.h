@@ -56,17 +56,8 @@ private:
    GLuint m_listIndexPMD;    /* display lst */
    bool m_listIndexPMDValid; /* true if m_listIndexPMDValid was registered */
 
-   BulletPhysics *m_bullet;  /* BulletPhysics */
-   btRigidBody *m_floorBody; /* body for floor */
-
    /* work area */
    GLfloat m_floorShadow[4][4]; /* matrix for shadow of floor */
-
-   /* makeFloorBody: create a rigid body for floor */
-   void makeFloorBody(float width, float depth);
-
-   /* releaseFloorBody: release rigid body for floor */
-   void releaseFloorBody();
 
    /* initialize: initialize stage */
    void initialize();
@@ -86,10 +77,10 @@ public:
    void setSize(const float *size, float numx, float numy);
 
    /* loadFloor: load floor image */
-   bool loadFloor(const char *file, BulletPhysics *bullet);
+   bool loadFloor(const char *file);
 
    /* loadBackground: load background image */
-   bool loadBackground(const char *file, BulletPhysics *bullet);
+   bool loadBackground(const char *file);
 
    /* loadStagePMD: load stage pmd */
    bool loadStagePMD(const char *file, BulletPhysics *bullet, SystemTexture *systex);

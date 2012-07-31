@@ -718,7 +718,7 @@ bool MMDAgent::stopRotation(const char *modelAlias)
 bool MMDAgent::setFloor(const char *fileName)
 {
    /* load floor */
-   if (m_stage->loadFloor(fileName, m_bullet) == false) {
+   if (m_stage->loadFloor(fileName) == false) {
       m_logger->log("Error: setFloor: %s cannot be set for floor.", fileName);
       return false;
    }
@@ -731,7 +731,7 @@ bool MMDAgent::setFloor(const char *fileName)
 bool MMDAgent::setBackground(const char *fileName)
 {
    /* load background */
-   if (m_stage->loadBackground(fileName, m_bullet) == false) {
+   if (m_stage->loadBackground(fileName) == false) {
       m_logger->log("Error: setBackground: %s cannot be set for background.", fileName);
       return false;
    }

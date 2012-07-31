@@ -43,49 +43,6 @@
 
 #include "MMDAgent.h"
 
-/* Stage::makeFloorBody: create a rigid body for floor */
-void Stage::makeFloorBody(float width, float depth)
-{
-   btVector3 localInertia(0, 0, 0);
-   btScalar mass = 0.0f;
-   btCollisionShape *colShape;
-   btTransform startTransform;
-   btDefaultMotionState* myMotionState;
-
-   releaseFloorBody();
-
-   colShape = new btBoxShape(btVector3(width, 10.0f, depth)); /* <- can free memory ? */
-   if (mass != 0.0f)
-      colShape->calculateLocalInertia(mass, localInertia);
-   startTransform.setIdentity();
-   startTransform.setOrigin(btVector3(0.0f, -9.99f, 0.0f));
-   myMotionState = new btDefaultMotionState(startTransform);
-   btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, colShape, localInertia);
-   rbInfo.m_linearDamping = 0.5f;
-   rbInfo.m_angularDamping = 0.5f;
-   rbInfo.m_restitution = 0.8f;
-   rbInfo.m_friction = 0.5f;
-   m_floorBody = new btRigidBody(rbInfo);
-
-   if (m_bullet)
-      m_bullet->getWorld()->addRigidBody(m_floorBody);
-}
-
-/* Stage::releaseFloorBody: release rigid body for floor */
-void Stage::releaseFloorBody()
-{
-   if (m_floorBody) {
-      if(m_floorBody->getCollisionShape())
-         delete m_floorBody->getCollisionShape();
-      if (m_floorBody->getMotionState())
-         delete m_floorBody->getMotionState();
-      if (m_bullet)
-         m_bullet->getWorld()->removeCollisionObject(m_floorBody);
-      delete m_floorBody;
-      m_floorBody = NULL;
-   }
-}
-
 /* Stage::initialize: initialize stage */
 void Stage::initialize()
 {
@@ -94,8 +51,6 @@ void Stage::initialize()
    m_hasPMD = false;
    m_listIndexPMD = 0;
    m_listIndexPMDValid = false;
-   m_bullet = NULL;
-   m_floorBody = NULL;
    for (i = 0; i < 4 ; i++)
       for (j = 0; j < 4; j++)
          m_floorShadow[i][j] = 0.0f;
@@ -104,7 +59,6 @@ void Stage::initialize()
 /* Stage::clear: free stage */
 void Stage::clear()
 {
-   releaseFloorBody();
    initialize();
 }
 
@@ -133,15 +87,11 @@ void Stage::setSize(const float *size, float numx, float numy)
                         size[0], size[2], -size[1],
                         -size[0], size[2], -size[1],
                         numx, numy);
-   makeFloorBody(size[0], size[1]);
 }
 
 /* Stage::loadFloor: load floor image */
-bool Stage::loadFloor(const char *file, BulletPhysics *bullet)
+bool Stage::loadFloor(const char *file)
 {
-   if (m_bullet == NULL)
-      m_bullet = bullet;
-
    if(m_floor.load(file) == false)
       return false;
 
@@ -154,11 +104,8 @@ bool Stage::loadFloor(const char *file, BulletPhysics *bullet)
 }
 
 /* Stage::loadBackground: load background image */
-bool Stage::loadBackground(const char *file, BulletPhysics *bullet)
+bool Stage::loadBackground(const char *file)
 {
-   if (m_bullet == NULL)
-      m_bullet = bullet;
-
    if(m_background.load(file) == false)
       return false;
 
@@ -173,10 +120,7 @@ bool Stage::loadBackground(const char *file, BulletPhysics *bullet)
 /* Stage::loadStagePMD: load stage pmd */
 bool Stage::loadStagePMD(const char *file, BulletPhysics *bullet, SystemTexture *systex)
 {
-   if (m_bullet == NULL)
-      m_bullet = bullet;
-
-   if(m_pmd.load(file, m_bullet, systex) == false)
+   if(m_pmd.load(file, bullet, systex) == false)
       return false;
 
    m_pmd.setToonFlag(false);
@@ -281,4 +225,3 @@ GLfloat *Stage::getShadowMatrix()
 {
    return (GLfloat *) m_floorShadow;
 }
-
