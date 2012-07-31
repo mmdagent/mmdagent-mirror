@@ -49,7 +49,7 @@
 #include "MMDAgent.h"
 
 /* MMDAgent_getcharsize: get character size */
-char MMDAgent_getcharsize(const char *str)
+unsigned char MMDAgent_getcharsize(const char *str)
 {
    return MMDFiles_getcharsize(str);
 }

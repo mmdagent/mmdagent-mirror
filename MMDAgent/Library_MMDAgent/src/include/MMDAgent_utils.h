@@ -44,7 +44,7 @@
 #define MMDAGENTUTILS_MAXCHARBYTE 3
 
 /* MMDAgent_getcharsize: get character size */
-char MMDAgent_getcharsize(const char *str);
+unsigned char MMDAgent_getcharsize(const char *str);
 
 /* MMDAgent_strequal: string matching */
 bool MMDAgent_strequal(const char *str1, const char *str2);
