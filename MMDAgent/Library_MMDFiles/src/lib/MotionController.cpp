@@ -255,7 +255,7 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
       weight2 = fm->keyFrameList[k2].weight;
    }
 
-   /* get value between [time0..time1][weight1..weight2] */
+   /* get value between [time0-time1][weight1-weight2] */
    if (time1 != time2) {
       w = (frame - time1) / (time2 - time1);
       mc->weight = weight1 * (1.0f - w) + weight2 * w;

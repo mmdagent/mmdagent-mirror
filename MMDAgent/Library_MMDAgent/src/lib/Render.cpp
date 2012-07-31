@@ -1094,7 +1094,7 @@ void Render::getCurrentViewCenterPos(btVector3 *pos)
    *pos = m_currentTrans;
 }
 
-/* Render::getCurrentViewRotation: get current view translation matrix */
+/* Render::getCurrentViewTransform: get current view transform matrix */
 void Render::getCurrentViewTransform(btTransform *tr)
 {
    *tr = m_transMatrix;

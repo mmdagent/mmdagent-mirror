@@ -325,10 +325,10 @@ public:
    /* setUseCartoonRendering: set cartoon rendering flag */
    void setUseCartoonRendering(bool b);
 
-   /* getUseMMDLikeCartoon: get MMD like cartoon flag */
+   /* getUseMMDLikeCartoon: get MikuMikuDance like cartoon flag */
    bool getUseMMDLikeCartoon();
 
-   /* setUseMMDLikeCartoon: set MMD like cartoon flag */
+   /* setUseMMDLikeCartoon: set MikuMikuDance like cartoon flag */
    void setUseMMDLikeCartoon(bool b);
 
    /* getCartoonEdgeWidth: get edge width for catoon */

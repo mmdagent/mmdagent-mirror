@@ -214,7 +214,7 @@ public:
    /* getCurrentViewCenterPos: get current view center position */
    void getCurrentViewCenterPos(btVector3 *pos);
 
-   /* getCurrentViewRotation: get current view translation matrix */
+   /* getCurrentViewTransform: get current view transform matrix */
    void getCurrentViewTransform(btTransform *tr);
 
    /* getInfoString: store current view parameters to buffer */

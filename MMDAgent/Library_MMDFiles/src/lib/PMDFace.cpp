@@ -125,14 +125,14 @@ void PMDFace::convertIndex(PMDFace *base)
    if (m_type != PMD_FACE_BASE) {
       for (i = 0; i < m_numVertex; i++) {
          relID = m_vertex[i].id;
-         if (relID >= base->m_numVertex) /* a workaround for some models with corrupted face index values... */
+         if (relID >= base->m_numVertex) /* a workaround for some models with corrupted face index values */
             relID -= PMDFACE_MAXVERTEXID;
          m_vertex[i].id = base->m_vertex[relID].id;
       }
    } else {
       /* for base face, just do workaround */
       for (i = 0; i < m_numVertex; i++) {
-         if (m_vertex[i].id >= PMDFACE_MAXVERTEXID) /* a workaround for some models with corrupted face index values... */
+         if (m_vertex[i].id >= PMDFACE_MAXVERTEXID) /* a workaround for some models with corrupted face index values */
             m_vertex[i].id -= PMDFACE_MAXVERTEXID;
       }
    }

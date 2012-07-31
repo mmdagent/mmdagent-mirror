@@ -399,7 +399,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
       bl->boneMotion.keyFrameList = (BoneKeyFrame *) malloc(sizeof(BoneKeyFrame) * bl->boneMotion.numKeyFrame);
       bl->boneMotion.numKeyFrame = 0;
    }
-   /* store the key frames, parsing the data again. also compute max frame */
+   /* store the key frames, parse the data again, and compute max frame */
    for (i = 0; i < m_numTotalBoneKeyFrame; i++) {
       strncpy(name, boneFrame[i].name, 15);
       name[15] = '\0';
@@ -450,7 +450,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
       fl->faceMotion.keyFrameList = (FaceKeyFrame *) malloc(sizeof(FaceKeyFrame) * fl->faceMotion.numKeyFrame);
       fl->faceMotion.numKeyFrame = 0;
    }
-   /* store the key frames, parsing the data again. also compute max frame */
+   /* store the key frames, parse the data again, and compute max frame */
    for (i = 0; i < m_numTotalFaceKeyFrame; i++) {
       strncpy(name, faceFrame[i].name, 15);
       name[15] = '\0';

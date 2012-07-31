@@ -82,7 +82,7 @@ private:
    /* configurations */
    float m_boneBlendRate;     /* if != 1.0f, the resulting bone location will be blended upon the current bone position at this rate, else override it */
    float m_faceBlendRate;     /* if != 1.0f, the resulting face weight will be blended upon the current face at this rate, else override it */
-   bool m_ignoreSingleMotion; /* if true, motions with only one key frame for the first frame will be disgarded. This is for inserting motions */
+   bool m_ignoreSingleMotion; /* if true, motions with only one key frame for the first frame will be discarded for inserting motions */
 
    /* internal work area */
    double m_currentFrame;      /* current frame */

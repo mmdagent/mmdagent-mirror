@@ -75,8 +75,8 @@ private:
    btVector3 m_offsetPos;      /* root bone offset for accessory or moving */
    btQuaternion m_offsetRot;   /* root bone rotation for accessory or moving */
    bool m_absPosFlag[3];       /* absolute position flag for accessory per each axis */
-   float m_moveSpeed;          /* move speed per second. if negative value, warp to m_offsetPos */
-   float m_spinSpeed;          /* spin speed per second. if negative value, warp to m_offsetRot */
+   float m_moveSpeed;          /* move speed per second: if negative value, warp to m_offsetPos */
+   float m_spinSpeed;          /* spin speed per second: if negative value, warp to m_offsetRot */
    bool m_useCartoonRendering; /* false if deny cartoon rendering */
    bool m_allowMotionFileDrop; /* true if allow motion file drop or all motion command */
 

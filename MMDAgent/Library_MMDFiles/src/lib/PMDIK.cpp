@@ -133,7 +133,8 @@ void PMDIK::solve()
    m_targetBone->update();
 #endif /* !MMDFILES_DONTUPDATEMATRICESFORIK */
 
-   /* save the current rotation of the target bone. It will be restored at the end of this function */
+   /* save the current rotation of the target bone */
+   /* it will be restored at the end of this function */
    m_targetBone->getCurrentRotation(&origTargetRot);
 
    /* begin IK iteration */
@@ -179,7 +180,8 @@ void PMDIK::solve()
          /* if this bone has limitation for rotation, consult the limitation */
          if (m_boneList[j]->isLimitAngleX()) {
             if (ite == 0) {
-               /* When this is the first iteration, we force rotating to the maximum angle toward limited direction. This will help convergence the whole IK step earlier for most of models, especially for legs. */
+               /* when this is the first iteration, we force rotating to the maximum angle toward limited direction */
+               /* this will help convergence the whole IK step earlier for most of models, especially for legs */
                if (angle < 0.0f)
                   angle = - angle;
                rot = btQuaternion(btVector3(1.0f, 0.0f, 0.0f), btScalar(angle));

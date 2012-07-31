@@ -51,10 +51,10 @@ class PMDIK
 {
 private:
 
-   PMDBone *m_destBone;        /* Destination bone. IK tries to move the targetBone to this position */
-   PMDBone *m_targetBone;      /* Target bone. IK tries move this bone to the position of destBone */
-   PMDBone **m_boneList;       /* List of bones under this IK */
-   unsigned char m_numBone;    /* Number of bones under this IK */
+   PMDBone *m_destBone;        /* destination bone: IK tries to move the targetBone to this position */
+   PMDBone *m_targetBone;      /* target bone: IK tries move this bone to the position of destBone */
+   PMDBone **m_boneList;       /* list of bones under this IK */
+   unsigned char m_numBone;    /* number of bones under this IK */
    unsigned short m_iteration; /* IK value 1: maximum iteration count */
    float m_angleConstraint;    /* IK value 2: maximum angle per one step in radian */
 
