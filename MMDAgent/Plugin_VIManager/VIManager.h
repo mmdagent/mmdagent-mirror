@@ -46,13 +46,24 @@
 #define VIMANAGER_COMMENT          '#'
 #define VIMANAGER_STARTSTATE       0
 #define VIMANAGER_EPSILON          "<eps>"
-#define VIMANAGER_RECOG_EVENT_STOP "RECOG_EVENT_STOP"
+
+/* InputArguments: input for state transition */
+typedef struct _InputArguments {
+   int size;
+   char ***args;
+   int *argc;
+} InputArguments;
+
+/* InputArguments_initialize: initialize input */
+void InputArguments_initialize(InputArguments *ia, const char *str);
+
+/* InputArguments_clear: free input */
+void InputArguments_clear(InputArguments *ia);
 
 /* VIManager_Arc: arc */
 typedef struct _VIManager_Arc {
    char *input_event_type;
-   char **input_event_args;
-   int input_event_argc;
+   InputArguments input_event_args;
    char *output_command_type;
    char *output_command_args;
    struct _VIManager_State *next_state;
@@ -99,10 +110,10 @@ public:
    ~VIManager();
 
    /* load: load FST */
-   int load(const char *file);
+   bool load(const char *file);
 
    /* transition: state transition (if jumped, return arc) */
-   VIManager_Arc *transition(const char *itype, const char* iargs, char *otype, char *oargs);
+   VIManager_Arc *transition(const char *itype, const InputArguments *iargs, char *otype, char *oargs);
 
    /* getCurrentState: get current state */
    VIManager_State *getCurrentState();

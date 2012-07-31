@@ -47,106 +47,206 @@
 /* getTokenFromString: get token from string */
 static int getTokenFromString(const char *str, int *index, char *buff)
 {
-   char c;
-   int i = 0;
-
-   c = str[(*index)];
-   while (c == '\0' || c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-      if (c == '\0') {
-         buff[0] = '\0';
-         return 0;
-      }
-      c = str[++(*index)];
-   }
-
-   while (c != '\0' && c != ' ' && c != '\t' && c != '\n' && c != '\r') {
-      buff[i++] = c;
-      c = str[++(*index)];
-   }
-
-   buff[i] = '\0';
-   return i;
-}
-
-/* getArgFromString: get argument from string using separators */
-static int getArgFromString(const char *str, int *index, char *buff)
-{
-   char c;
-   int i = 0;
-
-   c = str[(*index)];
-   while (c == '\0' || c == ' ' || c == '\t' || c == '\n' || c == '\r') {
-      if (c == '\0') {
-         buff[0] = '\0';
-         return 0;
-      }
-      c = str[++(*index)];
-   }
-
-   while (c != '\0' && c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != VIMANAGER_SEPARATOR1 && c != VIMANAGER_SEPARATOR2) {
-      buff[i++] = c;
-      c = str[++(*index)];
-   }
-   if (c == VIMANAGER_SEPARATOR1 || c == VIMANAGER_SEPARATOR2)
-      (*index)++;
-
-   buff[i] = '\0';
-   return i;
-}
-
-/* getArgs: get event arguments */
-static int getArgs(const char *str, char ***args, int *argc)
-{
-   int i, j, len, idx = 0;
-   char buff[MMDAGENT_MAXBUFLEN];
+   int i, j = 0, len;
+   const char *c;
+   unsigned char size;
 
    if (str == NULL) {
-      (*argc) = 0;
-      (*args) = NULL;
+      buff[0] = '\0';
       return 0;
    }
 
    len = MMDAgent_strlen(str);
    if (len <= 0) {
-      (*argc) = 0;
-      (*args) = NULL;
+      buff[0] = '\0';
       return 0;
    }
 
-   /* get number of separator */
-   (*argc) = 1;
-   for (i = 0; i < len; i++)
-      if (str[i] == VIMANAGER_SEPARATOR1 || str[i] == VIMANAGER_SEPARATOR2)
-         (*argc)++;
-   (*args) = (char **) calloc((*argc), sizeof(char *));
-   for (i = 0; i < (*argc); i++)
-      (*args)[i] = NULL;
-
-   /* get event arguments */
-   for (i = 0; i < (*argc); i++) {
-      j = getArgFromString(str, &idx, buff);
-      (*args)[i] = (char *) calloc(j + 1, sizeof(char));
-      strcpy((*args)[i], buff);
+   c = str + (*index);
+   for (i = 0; i < len && (*c == '\0' || *c == ' ' || *c == '\t' || *c == '\n' || *c == '\r'); i += size) {
+      if (*c == '\0') {
+         buff[0] = '\0';
+         return 0;
+      }
+      size = MMDAgent_getcharsize(c);
+      (*index) += size;
+      c += size;
    }
 
-   return 1;
+   for (i = 0; i < len && *c != '\0' && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\r'; i += size) {
+      size = MMDAgent_getcharsize(c);
+      memcpy(&buff[j], c, sizeof(char) * size);
+      j += size;
+      (*index) += size;
+      c += size;
+   }
+
+   buff[j] = '\0';
+   return j;
+}
+
+/* getArgFromString: get argument from string using separators */
+static int getArgFromString(const char *str, int *index, char *buff, char separator)
+{
+   int i, j = 0, len;
+   const char *c;
+   unsigned char size;
+
+   if (str == NULL) {
+      buff[0] = '\0';
+      return 0;
+   }
+
+   len = MMDAgent_strlen(str);
+   if (len <= 0) {
+      buff[0] = '\0';
+      return 0;
+   }
+
+   c = str + (*index);
+   for (i = 0; i < len && (*c == '\0' || *c == ' ' || *c == '\t' || *c == '\n' || *c == '\r'); i += size) {
+      if (*c == '\0') {
+         buff[0] = '\0';
+         return 0;
+      }
+      size = MMDAgent_getcharsize(c);
+      (*index) += size;
+      c += size;
+   }
+
+   for (i = 0; i < len && *c != '\0' && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\r' && *c != separator; i += size) {
+      size = MMDAgent_getcharsize(c);
+      memcpy(&buff[j], c, sizeof(char) * size);
+      j += size;
+      (*index) += size;
+      c += size;
+   }
+   if (*c == separator)
+      (*index)++;
+
+   buff[j] = '\0';
+   return j;
+}
+
+/* countArgs: count arguments */
+static int countArgs(const char *str, char separator)
+{
+   int i, len, num;
+   const char *c;
+   unsigned char size;
+
+   len = MMDAgent_strlen(str);
+   if(len <= 0)
+      return 0;
+
+   num = 1;
+   c = str;
+   for(i = 0; i < len; i += size) {
+      size = MMDAgent_getcharsize(c);
+      if(*c == separator)
+         num++;
+      c += size;
+   }
+
+   return num;
+}
+
+/* InputArguments_initialize: initialize input arguments */
+void InputArguments_initialize(InputArguments *ia, const char *str)
+{
+   int i, j, idx1, idx2;
+   char buff1[MMDAGENT_MAXBUFLEN];
+   char buff2[MMDAGENT_MAXBUFLEN];
+
+   /* get number of arguments */
+   ia->size = countArgs(str, VIMANAGER_SEPARATOR1);
+   if(ia->size <= 0) {
+      ia->size = 0;
+      ia->args = NULL;
+      ia->argc = NULL;
+      return;
+   }
+
+   ia->argc = (int *) malloc(ia->size * sizeof(int));
+   ia->args = (char ***) malloc(ia->size * sizeof(char **));
+
+   /* get event arguments */
+   idx1 = 0;
+   for(i = 0; i < ia->size; i++) {
+      getArgFromString(str, &idx1, buff1, VIMANAGER_SEPARATOR1);
+
+      ia->argc[i] = countArgs(buff1, VIMANAGER_SEPARATOR2);
+      if(ia->argc[i] <= 0) {
+         ia->args[i] = NULL;
+      } else {
+         ia->args[i] = (char **) malloc(ia->argc[i] * sizeof(char *));
+         idx2 = 0;
+         for(j = 0; j < ia->argc[i]; j++) {
+            getArgFromString(buff1, &idx2, buff2, VIMANAGER_SEPARATOR2);
+            ia->args[i][j] = MMDAgent_strdup(buff2);
+         }
+      }
+   }
+}
+
+/* InputArguments_match: match input */
+static bool InputArguments_match(const InputArguments *ia, const InputArguments *input)
+{
+   int i, j, k;
+   bool match;
+
+   if(ia == NULL)
+      return false;
+   if(input == NULL) {
+      if(ia->size == 0)
+         return true;
+      else
+         return false;
+   }
+   if(ia->size != input->size)
+      return false;
+
+   for(i = 0; i < ia->size; i++) {
+      for(j = 0; j < ia->argc[i]; j++) {
+         match = false;
+         for(k = 0; k < input->argc[i]; k++) {
+            if(MMDAgent_strequal(ia->args[i][j], input->args[i][k]) == true) {
+               match = true;
+               break;
+            }
+         }
+         if(match == false)
+            return false;
+      }
+   }
+   return true;
+}
+
+/* InputArguments_clear: free input arguments */
+void InputArguments_clear(InputArguments *ia)
+{
+   int i, j;
+
+   if(ia->args != NULL) {
+      for(i = 0; i < ia->size; i++) {
+         for(j = 0; j < ia->argc[i]; j++)
+            free(ia->args[i][j]);
+         if(ia->args[i] != NULL)
+            free(ia->args[i]);
+      }
+      free(ia->args);
+      free(ia->argc);
+      ia->size = 0;
+      ia->args = NULL;
+      ia->argc = NULL;
+   }
 }
 
 /* VIManager_Arc_initialize: initialize arc */
-static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, char **input_event_args, int input_event_argc, char *output_command_type, char *output_command_args, VIManager_State *next_state)
+static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, char *input_event_args, char *output_command_type, char *output_command_args, VIManager_State *next_state)
 {
-   int i;
-
    a->input_event_type = MMDAgent_strdup(input_event_type);
-   if (input_event_argc <= 0) {
-      a->input_event_args = NULL;
-      a->input_event_argc = 0;
-   } else {
-      a->input_event_args = (char **) calloc(input_event_argc, sizeof(char *));
-      for (i = 0; i < input_event_argc; i++)
-         a->input_event_args[i] = MMDAgent_strdup(input_event_args[i]);
-      a->input_event_argc = input_event_argc;
-   }
+   InputArguments_initialize(&a->input_event_args, input_event_args);
    a->output_command_type = MMDAgent_strdup(output_command_type);
    a->output_command_args = MMDAgent_strdup(output_command_args);
    a->next_state = next_state;
@@ -156,20 +256,14 @@ static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, c
 /* VIManager_Arc_clear: free arc */
 static void VIManager_Arc_clear(VIManager_Arc * a)
 {
-   int i;
-
    if (a->input_event_type != NULL)
       free(a->input_event_type);
-   if (a->input_event_args != NULL) {
-      for (i = 0; i < a->input_event_argc; i++)
-         free(a->input_event_args[i]);
-      free(a->input_event_args);
-   }
+   InputArguments_clear(&a->input_event_args);
    if (a->output_command_type != NULL)
       free(a->output_command_type);
    if (a->output_command_args != NULL)
       free(a->output_command_args);
-   VIManager_Arc_initialize(a, NULL, NULL, 0, NULL, NULL, NULL);
+   VIManager_Arc_initialize(a, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* VIManager_AList_initialize: initialize arc list */
@@ -231,20 +325,20 @@ static VIManager_State *VIManager_SList_searchState(VIManager_SList *l, unsigned
    VIManager_State *tmp1, *tmp2, *result = NULL;
 
    if (l->head == NULL) {
-      l->head = (VIManager_State *) calloc(1, sizeof(VIManager_State));
+      l->head = (VIManager_State *) malloc(sizeof(VIManager_State));
       VIManager_State_initialize(l->head, n, NULL);
       result = l->head;
    } else if (l->head->number == n) {
       result = l->head;
    } else if (l->head->number > n) {
       tmp1 = l->head;
-      l->head = (VIManager_State *) calloc(1, sizeof(VIManager_State));
+      l->head = (VIManager_State *) malloc(sizeof(VIManager_State));
       VIManager_State_initialize(l->head, n, tmp1);
       result = l->head;
    } else {
       for (tmp1 = l->head; tmp1 != NULL; tmp1 = tmp1->next) {
          if (tmp1->next == NULL) {
-            tmp1->next = (VIManager_State *) calloc(1, sizeof(VIManager_State));
+            tmp1->next = (VIManager_State *) malloc(sizeof(VIManager_State));
             VIManager_State_initialize(tmp1->next, n, NULL);
             result = tmp1->next;
             break;
@@ -253,7 +347,7 @@ static VIManager_State *VIManager_SList_searchState(VIManager_SList *l, unsigned
             break;
          } else if (n < tmp1->next->number) {
             tmp2 = tmp1->next;
-            tmp1->next = (VIManager_State *) calloc(1, sizeof(VIManager_State));
+            tmp1->next = (VIManager_State *) malloc(sizeof(VIManager_State));
             VIManager_State_initialize(tmp1->next, n, tmp2);
             result = tmp1->next;
             break;
@@ -271,9 +365,8 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
    VIManager_Arc *a1, *a2;
    VIManager_AList *arc_list;
 
-   char type[MMDAGENT_MAXBUFLEN];
-   char **args = NULL;
-   int argc = 0;
+   char itype[MMDAGENT_MAXBUFLEN];
+   char iargs[MMDAGENT_MAXBUFLEN];
    char otype[MMDAGENT_MAXBUFLEN];
    char oargs[MMDAGENT_MAXBUFLEN];
 
@@ -283,21 +376,21 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
 
    /* analysis input symbol */
    idx = 0;
-   i = getArgFromString(isymbol, &idx, type);
+   i = getArgFromString(isymbol, &idx, itype, VIMANAGER_SEPARATOR1);
    if (i <= 0)
       return;
-   getArgs(&isymbol[idx], &args, &argc);
+   getTokenFromString(isymbol, &idx, iargs);
 
    /* analysis output symbol */
    idx = 0;
-   i = getArgFromString(osymbol, &idx, otype);
+   i = getArgFromString(osymbol, &idx, otype, VIMANAGER_SEPARATOR1);
    if (i <= 0)
       return;
    getTokenFromString(osymbol, &idx, oargs);
 
    /* create */
-   a1 = (VIManager_Arc *) calloc(1, sizeof(VIManager_Arc));
-   VIManager_Arc_initialize(a1, type, args, argc, otype, oargs, s2);
+   a1 = (VIManager_Arc *) malloc(sizeof(VIManager_Arc));
+   VIManager_Arc_initialize(a1, itype, iargs, otype, oargs, s2);
 
    /* set */
    if (arc_list->head == NULL) {
@@ -305,13 +398,6 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
    } else {
       for (a2 = arc_list->head; a2->next != NULL; a2 = a2->next);
       a2->next = a1;
-   }
-
-   /* free buffer */
-   if (argc > 0) {
-      for (i = 0; i < argc; i++)
-         free(args[i]);
-      free(args);
    }
 }
 
@@ -342,7 +428,7 @@ VIManager::~VIManager()
 }
 
 /* VIManager::load: load FST */
-int VIManager::load(const char *file)
+bool VIManager::load(const char *file)
 {
    FILE *fp;
    char buff[MMDAGENT_MAXBUFLEN];
@@ -367,7 +453,7 @@ int VIManager::load(const char *file)
    /* open */
    fp = MMDAgent_fopen(file, "r");
    if (fp == NULL)
-      return 0;
+      return false;
 
    /* unload */
    VIManager_SList_clear(&m_stateList);
@@ -403,20 +489,14 @@ int VIManager::load(const char *file)
    /* set current state to zero */
    m_currentState = VIManager_SList_searchState(&m_stateList, VIMANAGER_STARTSTATE);
 
-   return 1;
+   return true;
 }
 
 /* VIManager::transition: state transition (if jumped, return arc) */
-VIManager_Arc *VIManager::transition(const char *itype, const char *iargs, char *otype, char *oargs)
+VIManager_Arc *VIManager::transition(const char *itype, const InputArguments *iargs, char *otype, char *oargs)
 {
-   int i, j;
-   int jumped = 0;
-
    VIManager_Arc *arc;
    VIManager_AList *arc_list;
-
-   char **args;
-   int argc;
 
    strcpy(otype, VIMANAGER_EPSILON);
    strcpy(oargs, "");
@@ -430,51 +510,17 @@ VIManager_Arc *VIManager::transition(const char *itype, const char *iargs, char 
    if (arc_list->head == NULL)
       return NULL;
 
-   /* get input event args */
-   getArgs(iargs, &args, &argc);
-
-   /* matching */
+   /* match */
    for (arc = arc_list->head; arc != NULL; arc = arc->next) {
-      if (MMDAgent_strequal(itype, arc->input_event_type)) {
-         if (MMDAgent_strequal(itype, VIMANAGER_RECOG_EVENT_STOP)) {
-            /* for recognition event */
-            for (i = 0; i < arc->input_event_argc; i++) {
-               jumped = 0;
-               for (j = 0; j < argc; j++) {
-                  if (MMDAgent_strequal(arc->input_event_args[i], args[j])) {
-                     jumped = 1;
-                     break;
-                  }
-               }
-               if (jumped == 0)
-                  break;
-            }
-         } else if (argc == arc->input_event_argc) {
-            /* for others */
-            jumped = 1;
-            for (i = 0; i < argc; i++) {
-               if (MMDAgent_strequal(args[i], arc->input_event_args[i]) == false) {
-                  jumped = 0;
-                  break;
-               }
-            }
-         }
-         if (jumped) { /* state transition */
-            strcpy(otype, arc->output_command_type);
-            strcpy(oargs, arc->output_command_args);
-            m_currentState = arc->next_state;
-            break;
-         }
+      if(MMDAgent_strequal(arc->input_event_type, itype) == true && InputArguments_match(&arc->input_event_args, iargs) == true ) {
+         strcpy(otype, arc->output_command_type);
+         strcpy(oargs, arc->output_command_args);
+         m_currentState = arc->next_state;
+         return arc;
       }
    }
 
-   if (argc > 0) {
-      for (i = 0; i < argc; i++)
-         free(args[i]);
-      free(args);
-   }
-
-   return arc;
+   return NULL;
 }
 
 /* VIManager::getCurrentState: get current state */

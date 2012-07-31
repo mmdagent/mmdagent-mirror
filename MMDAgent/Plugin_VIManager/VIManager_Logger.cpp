@@ -101,15 +101,20 @@ bool VIManager_Logger::setTransition(VIManager_Arc *arc)
    return true;
 }
 
+/* VIManager_Logger::drawArk: render arc */
 void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
 {
-   int i;
+   int i, j;
    static char buf1[MMDAGENT_MAXBUFLEN], buf2[MMDAGENT_MAXBUFLEN]; /* static buffer */
 
    strcpy(buf1, arc->input_event_type);
-   for (i = 0; i < arc->input_event_argc; i++) {
+   for(i = 0; i < arc->input_event_args.size; i++) {
       strcat(buf1, "|");
-      strcat(buf1, arc->input_event_args[i]);
+      for(j = 0; j < arc->input_event_args.argc[i]; j++) {
+         if(j != 0)
+            strcat(buf1, ",");
+         strcat(buf1, arc->input_event_args.args[i][j]);
+      }
    }
    if (MMDAgent_strlen(arc->output_command_args) >= 0)
       sprintf(buf2, "%d %d %s %s|%s", from, arc->next_state->number, buf1, arc->output_command_type, arc->output_command_args);

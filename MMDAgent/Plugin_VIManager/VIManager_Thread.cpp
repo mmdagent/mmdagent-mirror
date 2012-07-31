@@ -212,7 +212,7 @@ void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
       return;
 
    /* load FST for VIManager */
-   if (m_vim.load(file) == 0)
+   if (m_vim.load(file) == false)
       return;
 
    /* setup logger */
@@ -231,7 +231,7 @@ void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
          if(MMDAgent_strequal(buf, fst) == false && MMDAgent_strheadmatch(buf, fst) == true && (MMDAgent_strtailmatch(buf, ".fst") == true || MMDAgent_strtailmatch(buf, ".FST") == true)) {
             l = new VIManager_Link;
             l->next = NULL;
-            if(l->vim.load(buf) == 0) {
+            if(l->vim.load(buf) == false) {
                delete l;
             } else {
                if(m_sub == NULL)
@@ -272,6 +272,7 @@ void VIManager_Thread::run()
    char iargs[MMDAGENT_MAXBUFLEN];
    char otype[MMDAGENT_MAXBUFLEN];
    char oargs[MMDAGENT_MAXBUFLEN];
+   InputArguments ia;
    VIManager_Link *l;
 
    /* first epsilon step */
@@ -299,8 +300,10 @@ void VIManager_Thread::run()
       m_count--;
       glfwUnlockMutex(m_mutex);
 
+      InputArguments_initialize(&ia, iargs);
+
       /* state transition with input symbol */
-      m_logger.setTransition(m_vim.transition(itype, iargs, otype, oargs));
+      m_logger.setTransition(m_vim.transition(itype, &ia, otype, oargs));
       if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
          m_mmdagent->sendCommandMessage(otype, "%s", oargs);
 
@@ -311,7 +314,7 @@ void VIManager_Thread::run()
       }
 
       for(l = m_sub; l != NULL; l = l->next) {
-         l->vim.transition(itype, iargs, otype, oargs);
+         l->vim.transition(itype, &ia, otype, oargs);
          if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
             m_mmdagent->sendCommandMessage(otype, "%s", oargs);
 
@@ -321,6 +324,8 @@ void VIManager_Thread::run()
                m_mmdagent->sendCommandMessage(otype, "%s", oargs);
          }
       }
+
+      InputArguments_clear(&ia);
    }
 }
 
