@@ -172,6 +172,12 @@ void GLFWCALL procKeyMessage(int key, int action)
          else
             mmdagent->procVerticalRotateMessage(false);
          break;
+      case GLFW_KEY_PAGEUP:
+         mmdagent->procScrollLogMessage(true);
+         break;
+      case GLFW_KEY_PAGEDOWN:
+         mmdagent->procScrollLogMessage(false);
+         break;
       default:
          break;
       }

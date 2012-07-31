@@ -398,6 +398,9 @@ public:
    /* procLogMessage: process log message */
    void procLogMessage(const char *log);
 
+   /* procScrollLogMessage: process log scroll message */
+   void procScrollLogMessage(bool up);
+
    /* procDropFileMessage: process file drops message */
    void procDropFileMessage(const char *file, int x, int y);
 };

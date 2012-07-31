@@ -58,8 +58,10 @@ void LogText::initialize()
 
    m_textList = NULL;
    m_displayList = NULL;
-   m_length = NULL;
-   m_updated = NULL;
+   m_lengthList = NULL;
+
+   m_textIndex = 0;
+   m_viewIndex = 0;
 }
 
 /* LogText::clear: free logger */
@@ -68,19 +70,18 @@ void LogText::clear()
    int i;
 
    if (m_textList) {
-      for (i = 0; i < m_textHeight; i++)
+      for (i = 0; i < LOGTEXT_MAXNLINES; i++)
          free(m_textList[i]);
       free(m_textList);
    }
    if (m_displayList) {
-      for (i = 0; i < m_textHeight; i++)
+      for (i = 0; i < LOGTEXT_MAXNLINES; i++)
          free(m_displayList[i]);
       free(m_displayList);
    }
-   if (m_length)
-      free(m_length);
-   if (m_updated)
-      free(m_updated);
+   if (m_lengthList)
+      free(m_lengthList);
+
    initialize();
 }
 
@@ -114,25 +115,19 @@ void LogText::setup(TextRenderer *text, const int *size, const float *position, 
    m_textZ = position[2];
    m_textScale = scale;
 
-   m_textList = (char **) malloc(sizeof(char *) * m_textHeight);
-   for (i = 0; i < m_textHeight; i++) {
+   m_textList = (char **) malloc(sizeof(char *) * LOGTEXT_MAXNLINES);
+   for (i = 0; i < LOGTEXT_MAXNLINES; i++) {
       m_textList[i] = (char *) malloc(sizeof(char) * m_textWidth);
       strcpy(m_textList[i], "");
    }
 
-   m_displayList = (unsigned int **) malloc(sizeof(unsigned int *) * m_textHeight);
-   for (i = 0; i < m_textHeight; i++)
+   m_displayList = (unsigned int **) malloc(sizeof(unsigned int *) * LOGTEXT_MAXNLINES);
+   for (i = 0; i < LOGTEXT_MAXNLINES; i++)
       m_displayList[i] = (unsigned int *) malloc(sizeof(unsigned int) * m_textWidth);
 
-   m_length = (int *) malloc(sizeof(int) * m_textHeight);
-   for (i = 0; i < m_textHeight; i++)
-      m_length[i] = -1;
-
-   m_updated = (bool *) malloc(sizeof(bool) * m_textHeight);
-   for (i = 0; i < m_textHeight; i++)
-      m_updated[i] = false;
-
-   m_textLine = 0;
+   m_lengthList = (int *) malloc(sizeof(int) * LOGTEXT_MAXNLINES);
+   for (i = 0; i < LOGTEXT_MAXNLINES; i++)
+      m_lengthList[i] = 0;
 }
 
 /* LogText::log: store log text */
@@ -147,26 +142,40 @@ void LogText::log(const char *format, ...)
    va_start(args, format);
    vsprintf(buff, format, args);
    for (p = MMDAgent_strtok(buff, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
-      strncpy(m_textList[m_textLine], p, m_textWidth - 1);
-      m_textList[m_textLine][m_textWidth - 1] = '\0';
-      m_updated[m_textLine] = true;
-      if (++m_textLine >= m_textHeight)
-         m_textLine = 0;
+      strncpy(m_textList[m_textIndex], p, m_textWidth - 1);
+      m_textList[m_textIndex][m_textWidth - 1] = '\0';
+      m_lengthList[m_textIndex] = -1;
+      m_textIndex++;
+      if (m_textIndex >= LOGTEXT_MAXNLINES)
+         m_textIndex = 0;
+      if(m_viewIndex != 0)
+         scroll(1);
    }
    va_end(args);
+}
+
+/* LogText::scroll: scroll text area */
+void LogText::scroll(int shift)
+{
+   if(LOGTEXT_MAXNLINES <= m_textHeight)
+      return;
+
+   m_viewIndex += shift;
+
+   if(m_viewIndex < 0)
+      m_viewIndex = 0;
+   else if(m_viewIndex >= LOGTEXT_MAXNLINES - m_textHeight)
+      m_viewIndex = LOGTEXT_MAXNLINES - m_textHeight;
 }
 
 /* LogText::render: render log text */
 void LogText::render()
 {
-   int i, j;
-   float x, y, z, w, h;
+   int i, j, size;
+   float w, h, rate;
 
    if (m_textList == NULL) return;
 
-   x = m_textX;
-   y = m_textY;
-   z = m_textZ;
    w = 0.5f * (float) (m_textWidth) * 0.85f + 1.0f;
    h = 1.0f * (float) (m_textHeight) * 0.85f + 1.0f;
 
@@ -175,32 +184,55 @@ void LogText::render()
    glDisable(GL_LIGHTING);
    glScalef(m_textScale, m_textScale, m_textScale);
    glNormal3f(0.0f, 1.0f, 0.0f);
+
+   /* background */
    glColor4f(LOGTEXT_BGCOLOR);
    glBegin(GL_QUADS);
-   glVertex3f(x    , y    , z);
-   glVertex3f(x + w, y    , z);
-   glVertex3f(x + w, y + h, z);
-   glVertex3f(x    , y + h, z);
+   glVertex3f(m_textX, m_textY, m_textZ);
+   glVertex3f(m_textX + w, m_textY, m_textZ);
+   glVertex3f(m_textX + w, m_textY + h, m_textZ);
+   glVertex3f(m_textX, m_textY + h, m_textZ);
    glEnd();
-   glTranslatef(x + 0.5f, y + h - 0.4f, z + 0.05f);
-   for (i = 0; i < m_textHeight; i++) {
-      glTranslatef(0.0f, -0.85f, 0.0f);
-      j = m_textLine + i;
-      if (j >= m_textHeight)
-         j -= m_textHeight;
-      if (MMDAgent_strlen(m_textList[j]) > 0) {
-         glColor4f(LOGTEXT_COLOR);
-         glPushMatrix();
-         if (m_updated[j]) {
-            /* cache display list array */
-            m_length[j] = m_textRenderer->getDisplayListArrayOfString(m_textList[j], m_displayList[j], m_textWidth);
-            m_updated[j] = false;
-         }
-         if (m_length[j] >= 0)
-            m_textRenderer->renderDisplayListArrayOfString(m_displayList[j], m_length[j]);
-         glPopMatrix();
-      }
+
+   /* scroll bar */
+   if(m_textHeight < LOGTEXT_MAXNLINES) {
+      glColor4f(LOGTEXT_COLOR);
+      glBegin(GL_LINE_LOOP);
+      glVertex3f(m_textX + w, m_textY, m_textZ + 0.05f);
+      glVertex3f(m_textX + w + LOGTEXT_SCROLLBARWIDTH, m_textY, m_textZ + 0.05f);
+      glVertex3f(m_textX + w + LOGTEXT_SCROLLBARWIDTH, m_textY + h, m_textZ + 0.05f);
+      glVertex3f(m_textX + w, m_textY + h, m_textZ + 0.05f);
+      glEnd();
+      rate = (float) m_viewIndex / LOGTEXT_MAXNLINES;
+      glBegin(GL_QUADS);
+      glVertex3f(m_textX + w, m_textY + h * rate, m_textZ + 0.05f);
+      glVertex3f(m_textX + w + LOGTEXT_SCROLLBARWIDTH, m_textY + h * rate, m_textZ + 0.05f);
+      rate = (float) (m_viewIndex + m_textHeight) / LOGTEXT_MAXNLINES;
+      glVertex3f(m_textX + w + LOGTEXT_SCROLLBARWIDTH, m_textY + h * rate, m_textZ + 0.05f);
+      glVertex3f(m_textX + w, m_textY + h * rate, m_textZ + 0.05f);
+      glEnd();
    }
+
+   /* text */
+   glColor4f(LOGTEXT_COLOR);
+   glTranslatef(m_textX + 0.5f, m_textY - 0.2f, m_textZ + 0.05f);
+   size = LOGTEXT_MAXNLINES < m_textHeight ? LOGTEXT_MAXNLINES : m_textHeight;
+   for(i = 0, j = m_textIndex - 1 - m_viewIndex; i < size; i++) {
+      if(j < 0)
+         j += LOGTEXT_MAXNLINES;
+      glTranslatef(0.0f, 0.85f, 0.0f);
+      if (MMDAgent_strlen(m_textList[j]) > 0) {
+         if (m_lengthList[j] < 0)
+            m_lengthList[j] = m_textRenderer->getDisplayListArrayOfString(m_textList[j], m_displayList[j], m_textWidth);
+         if (m_lengthList[j] > 0) {
+            glPushMatrix();
+            m_textRenderer->renderDisplayListArrayOfString(m_displayList[j], m_lengthList[j]);
+            glPopMatrix();
+         }
+      }
+      j--;
+   }
+
    glEnable(GL_LIGHTING);
    glEnable(GL_CULL_FACE);
    glPopMatrix();

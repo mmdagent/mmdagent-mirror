@@ -41,9 +41,11 @@
 
 /* definitions */
 
-#define LOGTEXT_MAXBUFLEN 2048
-#define LOGTEXT_COLOR     1.0f,0.7f,0.0f,0.7f /* text color */
-#define LOGTEXT_BGCOLOR   0.0f,0.0f,0.0f,0.8f /* background color */
+#define LOGTEXT_MAXBUFLEN      2048
+#define LOGTEXT_COLOR          1.0f,0.7f,0.0f,0.7f /* text color */
+#define LOGTEXT_BGCOLOR        0.0f,0.0f,0.0f,0.8f /* background color */
+#define LOGTEXT_MAXNLINES      512
+#define LOGTEXT_SCROLLBARWIDTH 0.4f                /* scroll bar width */
 
 /* LogText: log text area behind character */
 class LogText
@@ -61,9 +63,9 @@ private:
 
    char **m_textList;            /* text list */
    unsigned int **m_displayList; /* display list index for rendering */
-   int *m_length;                /* length of each line */
-   bool *m_updated;              /* true when line is uploaded */
-   int m_textLine;               /* current position */
+   int *m_lengthList;            /* length of each line */
+   int m_textIndex;              /* current position of text list */
+   int m_viewIndex;              /* relative position for rendering */
 
    /* LogText: initialize logger */
    void initialize();
@@ -84,6 +86,9 @@ public:
 
    /* log: store log text */
    void log(const char *format, ...);
+
+   /* scroll: scroll text area */
+   void scroll(int shift);
 
    /* render: render text area */
    void render();

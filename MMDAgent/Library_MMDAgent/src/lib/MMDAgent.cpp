@@ -2468,6 +2468,14 @@ void MMDAgent::procLogMessage(const char *log)
    m_logger->log("Log: %s", log);
 }
 
+/* MMDAgent::procScrollLogMessage: process log scroll message */
+void MMDAgent::procScrollLogMessage(bool up)
+{
+   int *size = m_option->getLogSize();
+
+   m_logger->scroll((int) (size[1] * (up == true ? 0.5 : -0.5)));
+}
+
 /* MMDAgent::procDropFileMessage: process file drops message */
 void MMDAgent::procDropFileMessage(const char * file, int x, int y)
 {
