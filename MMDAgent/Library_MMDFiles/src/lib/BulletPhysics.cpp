@@ -131,7 +131,7 @@ void BulletPhysics::setup(int simulationFps, float gravityFactor)
    m_world = new btDiscreteDynamicsWorld(m_dispatcher, m_overlappingPairCache, m_solver, m_collisionConfig);
 
    /* set default gravity */
-   /* some tweak for the simulation to match that of MMD... */
+   /* some tweak for the simulation to match that of MikuMikuDance */
    m_world->setGravity(btVector3(0.0f, -9.8f * gravityFactor, 0.0f));
 
    /* a weird configuration to use 120Hz simulation */
@@ -305,6 +305,7 @@ static void drawConvex(btConvexShape* shape)
 /* debugDisplay: render rigid bodies */
 void BulletPhysics::debugDisplay()
 {
+   int i;
    GLfloat color[] = {0.8f, 0.8f, 0.0f, 1.0f};
    GLint polygonMode[2];
    btRigidBody* body;
@@ -313,64 +314,78 @@ void BulletPhysics::debugDisplay()
    btVector3 halfExtent;
    const btSphereShape* sphereShape;
    float radius;
-
-
-   const int numObjects = m_world->getNumCollisionObjects();
+   int numObjects = m_world->getNumCollisionObjects();
 
    /* draw in wire frame */
    glGetIntegerv(GL_POLYGON_MODE, polygonMode);
    if (polygonMode[1] != GL_LINE)
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    glDisable(GL_TEXTURE_2D);
-   for (int i = 0; i < numObjects; i++) {
+   for (i = 0; i < numObjects; i++) {
+      body = btRigidBody::upcast(m_world->getCollisionObjectArray()[i]);
       /* set color */
-      color[1] = 0.8f / (float) ((i % 5) + 1) + 0.2f;
+      if (body->getFlags() & BULLETPHYSICS_RIGIDBODYFLAGB) {
+         color[0] = 0.3f;
+         color[1] = 0.7f;
+         color[2] = 0.0f;
+      } else if (body->getFlags() & BULLETPHYSICS_RIGIDBODYFLAGP) {
+         color[0] = 0.8f;
+         color[1] = 0.4f;
+         color[2] = 0.1f;
+      } else if (body->getFlags() & BULLETPHYSICS_RIGIDBODYFLAGA) {
+         color[0] = 0.8f;
+         color[1] = 0.8f;
+         color[2] = 0.0f;
+      } else {
+         color[0] = 0.3f;
+         color[1] = 0.8f;
+         color[2] = 0.0f;
+         break;
+      }
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
       /* draw */
-      {
-         body = btRigidBody::upcast(m_world->getCollisionObjectArray()[i]);
-         body->getWorldTransform().getOpenGLMatrix(m);
-         shape = body->getCollisionShape();
-         glPushMatrix();
-         glMultMatrixf(m);
-         switch (shape->getShapeType()) {
-         case BOX_SHAPE_PROXYTYPE: {
-            const btBoxShape* boxShape = static_cast<const btBoxShape*>(shape);
-            halfExtent = boxShape->getHalfExtentsWithMargin();
-            glScaled(2 * halfExtent[0], 2 * halfExtent[1], 2 * halfExtent[2]);
-            if (m_boxListEnabled) {
-               glCallList(m_boxList);
-            } else {
-               m_boxList = glGenLists(1);
-               glNewList(m_boxList, GL_COMPILE);
-               drawCube();
-               glEndList();
-               m_boxListEnabled = true;
-            }
-            break;
+      body->getWorldTransform().getOpenGLMatrix(m);
+      shape = body->getCollisionShape();
+      glPushMatrix();
+      glMultMatrixf(m);
+      switch (shape->getShapeType()) {
+      case BOX_SHAPE_PROXYTYPE: {
+         const btBoxShape* boxShape = static_cast<const btBoxShape*>(shape);
+         halfExtent = boxShape->getHalfExtentsWithMargin();
+         glScaled(2 * halfExtent[0], 2 * halfExtent[1], 2 * halfExtent[2]);
+         if (m_boxListEnabled) {
+            glCallList(m_boxList);
+         } else {
+            m_boxList = glGenLists(1);
+            glNewList(m_boxList, GL_COMPILE);
+            drawCube();
+            glEndList();
+            m_boxListEnabled = true;
          }
-         case SPHERE_SHAPE_PROXYTYPE: {
-            sphereShape = static_cast<const btSphereShape*>(shape);
-            radius = sphereShape->getMargin(); /* radius doesn't include the margin, so draw with margin */
-            glScaled(radius, radius, radius);
-            if (m_sphereListEnabled) {
-               glCallList(m_sphereList);
-            } else {
-               m_sphereList = glGenLists(1);
-               glNewList(m_sphereList, GL_COMPILE);
-               drawSphere(10, 10);
-               glEndList();
-               m_sphereListEnabled = true;
-            }
-            break;
-         }
-         default:
-            if (shape->isConvex()) {
-               drawConvex((btConvexShape*)shape);
-            }
-         }
-         glPopMatrix();
+         break;
       }
+      case SPHERE_SHAPE_PROXYTYPE: {
+         sphereShape = static_cast<const btSphereShape*>(shape);
+         radius = sphereShape->getMargin(); /* radius doesn't include the margin, so draw with margin */
+         glScaled(radius, radius, radius);
+         if (m_sphereListEnabled) {
+            glCallList(m_sphereList);
+         } else {
+            m_sphereList = glGenLists(1);
+            glNewList(m_sphereList, GL_COMPILE);
+            drawSphere(10, 10);
+            glEndList();
+            m_sphereListEnabled = true;
+         }
+         break;
+      }
+      default:
+         if (shape->isConvex()) {
+            drawConvex((btConvexShape*)shape);
+         }
+         break;
+      }
+      glPopMatrix();
    }
    if (polygonMode[1] != GL_LINE) {
       glPolygonMode(GL_FRONT_AND_BACK, polygonMode[1]);

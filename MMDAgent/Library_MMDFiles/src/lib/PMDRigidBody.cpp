@@ -198,6 +198,21 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    /* store inverse matrix of local transform */
    m_transInv = m_trans.inverse();
 
+   /* store type ID in body flag for debug */
+   switch(rb->type) {
+   case 0:
+      m_body->setFlags(m_body->getFlags() | BULLETPHYSICS_RIGIDBODYFLAGB);
+      break;
+   case 1:
+      m_body->setFlags(m_body->getFlags() | BULLETPHYSICS_RIGIDBODYFLAGP);
+      break;
+   case 2:
+      m_body->setFlags(m_body->getFlags() | BULLETPHYSICS_RIGIDBODYFLAGA);
+      break;
+   default:
+      break;
+   }
+
    return true;
 }
 
