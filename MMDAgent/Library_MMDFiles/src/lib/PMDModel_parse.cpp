@@ -333,7 +333,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             m_rigidBodyList = new PMDRigidBody[m_numRigidBody];
             fileRigidBody = (PMDFile_RigidBody *) data;
             for (i = 0; i < m_numRigidBody; i++) {
-               if (! m_rigidBodyList[i].setup(&fileRigidBody[i], (fileRigidBody[i].boneID == 0xFFFF) ? m_centerBone : & (m_boneList[fileRigidBody[i].boneID])))
+               if (! m_rigidBodyList[i].setup(&fileRigidBody[i], (fileRigidBody[i].boneID == 0xFFFF) ? & (m_boneList[0]) : & (m_boneList[fileRigidBody[i].boneID])))
                   ret = false;
                m_rigidBodyList[i].joinWorld(m_bulletPhysics->getWorld());
                /* flag the bones under simulation in order to skip IK solving for those bones */
