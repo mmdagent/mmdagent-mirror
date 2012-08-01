@@ -12,13 +12,13 @@
  * @author Akinobu LEE
  * @date   Fri Feb 18 21:33:29 2005
  *
- * $Revision: 1.4 $
+ * $Revision: 1.7 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -40,6 +40,15 @@ word_info_new()
   new->mroot = NULL;
   new->work = NULL;
 
+  new->wname = NULL;
+  new->woutput = NULL;
+  new->wlen = NULL;
+  new->wton = NULL;
+#ifdef CLASS_NGRAM
+  new->cprob = NULL;
+#endif
+  new->is_transparent = NULL;
+
   return(new);
 }
 
@@ -54,15 +63,14 @@ word_info_free(WORD_INFO *winfo)
   /* free each word info */
   if (winfo->mroot != NULL) mybfree2(&(winfo->mroot));
   /* free word info */
-  free(winfo->wname);
-  free(winfo->woutput);
-  free(winfo->wseq);
-  free(winfo->wlen);
-  free(winfo->wton);
+  if (winfo->wname != NULL) free(winfo->wname);
+  if (winfo->woutput != NULL) free(winfo->woutput);
+  if (winfo->wlen != NULL) free(winfo->wlen);
+  if (winfo->wton != NULL) free(winfo->wton);
 #ifdef CLASS_NGRAM
-  free(winfo->cprob);
+  if (winfo->cprob != NULL) free(winfo->cprob);
 #endif
-  free(winfo->is_transparent);
+  if (winfo->is_transparent != NULL) free(winfo->is_transparent);
   /* free whole */
   free(winfo);
 }

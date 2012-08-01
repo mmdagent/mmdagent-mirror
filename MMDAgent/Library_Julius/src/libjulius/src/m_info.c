@@ -12,13 +12,13 @@
  * @author Akinobu Lee
  * @date   Thu May 12 14:14:01 2005
  *
- * $Revision: 1.14 $
+ * $Revision: 1.15 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 

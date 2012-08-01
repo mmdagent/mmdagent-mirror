@@ -42,13 +42,13 @@
  * @author Akinobu LEE
  * @date   Tue Feb 22 17:00:45 2005
  *
- * $Revision: 1.19 $
+ * $Revision: 1.21 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -1917,6 +1917,9 @@ propagate_token(FSBeam *d, int next_node, LOGPROB next_score, TRELLIS_ATOM *last
   TOKEN2 *tknext;
   TOKENID tknextid;
 
+  /* does not propagate invalid token */
+  if (next_score <= LOG_ZERO) return;
+
   if ((tknextid = node_exist_token(d, d->tn, next_node, last_tre->wid)) != TOKENID_UNDEFINED) {
     /* 遷移先ノードには既に他ノードから伝搬済み: スコアが高いほうを残す */
     /* the destination node already has a token: compare score */
@@ -1932,9 +1935,7 @@ propagate_token(FSBeam *d, int next_node, LOGPROB next_score, TRELLIS_ATOM *last
   } else {
     /* 遷移先ノードは未伝搬: 新規トークンを作って割り付ける */
     /* token unassigned: create new token and assign */
-    if (next_score > LOG_ZERO) { /* valid token */
-      tknextid = create_token(d); /* get new token */
-    }
+    tknextid = create_token(d); /* get new token */
     tknext = &(d->tlist[d->tn][tknextid]);
     tknext->last_tre = last_tre; /* propagate last word info */
     tknext->last_cword = last_cword; /* propagate last context word info */

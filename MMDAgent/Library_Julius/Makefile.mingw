@@ -164,5 +164,5 @@ src/libjulius/include/julius/config.h:
 	cd src/libjulius; chmod +x ./configure; ./configure --disable-plugin; cd ../..;
 
 src/libsent/include/sent/config.h:
-	cd src/libsent; chmod +x ./configure; ./configure --with-mictype=libportaudio; cd ../..;
+	cd src/libsent; chmod +x ./configure; ./configure --with-mictype=libportaudio --without-sndfile; cd ../..;
 	sed -i -e 's/gzip command/zlib/g' src/libsent/include/sent/config.h

@@ -4,10 +4,10 @@
      Large Vocabulary Continuous Speech Recognition Engine Julius
 
 
- Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
 
 "Large Vocabulary Continuous Speech Recognition Engine Julius",
 including Julian, is being developed at Kawahara Lab., Kyoto
@@ -54,10 +54,10 @@ whatsoever.
 
                       Form of copyright notice:
 
- Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
 
 3. When you publish or present any results by using the Software, you
 must explicitly mention your use of "Large Vocabulary Continuous
@@ -76,9 +76,9 @@ trade secrets or proprietary rights of any third party.  You and every
 other user of the Software hereby acknowledge that the Software is
 licensed without any warranty or guaranty, and assume all risks
 arising out of the absence of any warranty or guaranty.  In the event
-the terms and conditions of this license are inconsistent with the
-obligations imposed upon you by judgment of a court or for any other
-reason, you may not use the Software.
+that obligations imposed upon you by judgment of a court would make it
+impossible for you to comply with the conditions of this license, you
+may not use the Software.
 
 The Licensers shall not have any liability to you or to any third
 party for damages or liabilities of any nature whatsoever arising out

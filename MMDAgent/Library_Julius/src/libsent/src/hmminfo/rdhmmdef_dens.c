@@ -12,17 +12,17 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 01:43:43 2005
  *
- * $Revision: 1.4 $
+ * $Revision: 1.5 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
-/* $Id: rdhmmdef_dens.c,v 1.4 2011/04/29 05:09:16 sumomo Exp $ */
+/* $Id: rdhmmdef_dens.c,v 1.5 2012/07/27 08:44:50 sumomo Exp $ */
 
 #include <sent/stddefs.h>
 #include <sent/htk_hmm.h>

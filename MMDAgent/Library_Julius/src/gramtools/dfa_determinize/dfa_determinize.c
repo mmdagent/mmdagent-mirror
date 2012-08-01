@@ -6,12 +6,12 @@
  * @author Akinobu Lee
  * @date   Wed Oct  4 17:42:16 2006
  *
- * $Revision: 1.3 $
+ * $Revision: 1.4 $
  * 
  */
 /*
- * Copyright (c) 2006-2011 Kawahara Lab., Kyoto University
- * Copyright (c) 2006-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2006-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 2006-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 #include <sent/stddefs.h>

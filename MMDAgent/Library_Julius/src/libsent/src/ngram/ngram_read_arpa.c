@@ -20,17 +20,17 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 16:52:24 2005
  *
- * $Revision: 1.18 $
+ * $Revision: 1.19 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
-/* $Id: ngram_read_arpa.c,v 1.18 2011/04/29 05:09:17 sumomo Exp $ */
+/* $Id: ngram_read_arpa.c,v 1.19 2012/07/27 08:44:57 sumomo Exp $ */
 
 /* words should be alphabetically sorted */
 

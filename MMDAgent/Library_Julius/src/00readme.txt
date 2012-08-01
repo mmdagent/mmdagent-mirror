@@ -4,6 +4,7 @@
 
                                 Julius
 
+                                                (Rev 4.2.2 2012/08/01)
                                                 (Rev 4.2.1 2011/12/25)
                                                 (Rev 4.2   2011/05/01)
                                                 (Rev 4.1.5 2010/06/04)
@@ -15,10 +16,10 @@
                                                 (Rev 2.0   1999/02/20)
                                                 (Rev 1.0   1998/02/20)
 
- Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  All rights reserved
 ======================================================================
 
@@ -47,17 +48,17 @@ on Windows (SAPI/console). Julius is distributed with open license
 together with source codes.
 
 
-What's new in Julius-4.2.1
+What's new in Julius-4.2.2
 ===========================
 
-Version 4.2.1 is a bug fix release.  Many bugs has been fixed,
-especially the C0 handling with CMN.  Additionary, per-word insertion
-penalty at grammar is newly supported.
+Version 4.2.2 is a bug fix release.  Several bugs has been fixed.  The
+grammar compiler (mkfa) now does not link flex library, so you can
+compile without flex.
 
 See the "Release.txt" file for the full list of updates.
 
 
-Contents of Julius-4.2.1
+Contents of Julius-4.2.2
 =========================
 
 	(Documents with suffix "ja" are written in Japanese)

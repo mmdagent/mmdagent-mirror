@@ -37,13 +37,13 @@
  * @author Akinobu Lee
  * @date   Thu May 12 14:16:18 2005
  *
- * $Revision: 1.8 $
+ * $Revision: 1.10 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -394,10 +394,12 @@ add_to_arglist(char *buf, char ***argv_ret, int *argc_ret, int *maxnum_ret)
     dst_from = dst;
       
     while (*p != '\0' && (!ISTOKEN(*p))) {
+#if !defined(_WIN32)
       if (*p == '\\') {     /* escape by '\' */
 	if (*(++p) == '\0') break;
 	*(dst++) = *(p++);
       } else {
+#endif
 	if (*p == '"') { /* quote by "" */
 	  p++;
 	  while (*p != '\0' && *p != '"') *(dst++) = *(p++);
@@ -414,7 +416,9 @@ add_to_arglist(char *buf, char ***argv_ret, int *argc_ret, int *maxnum_ret)
 	} else {		/* other */
 	  *(dst++) = *(p++);
 	}
+#if !defined(_WIN32)
       }
+#endif
     }
     if (dst != dst_from) {
       *dst = '\0'; dst++;

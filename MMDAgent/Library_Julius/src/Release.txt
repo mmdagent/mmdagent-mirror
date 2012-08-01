@@ -1,3 +1,14 @@
+4.2.2 (2012.08.01)
+==================
+
+Fixes:
+- Now can be compiled without flex library
+- Fix failure of reading binary N-gram when compiled with "--enable-words-int"
+- Fix incorrect handling of file paths with backslash in jconf file at Windows
+- Fix segfault when reading an errorous word dictionary.
+- Fix occasional segfault which may occur while search.
+
+
 4.2.1 (2011.12.25)
 ===================
 

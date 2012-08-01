@@ -48,13 +48,13 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 17:12:08 2005
  *
- * $Revision: 1.8 $
+ * $Revision: 1.10 $
  * 
  */
 /*
- * Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -300,9 +300,17 @@ ngram_read_bin_v5(FILE *fp, NGRAM_INFO *ndata)
 	rdn(fp, t->bgn, sizeof(NNID), t->bgnlistlen);
       }
       t->num = (WORD_ID *)mymalloc_big(sizeof(WORD_ID), t->bgnlistlen);
+#ifdef WORDS_INT
+      rdn_wordid(fp, t->num, t->bgnlistlen, need_conv);
+#else
       rdn(fp, t->num, sizeof(WORD_ID), t->bgnlistlen);
+#endif
       t->nnid2wid = (WORD_ID *)mymalloc_big(sizeof(WORD_ID), t->totalnum);
+#ifdef WORDS_INT
+      rdn_wordid(fp, t->nnid2wid, t->totalnum, need_conv);
+#else
       rdn(fp, t->nnid2wid, sizeof(WORD_ID), t->totalnum);
+#endif
     } else {
       t->bgn_upper = NULL;
       t->bgn_lower = NULL;
@@ -342,6 +350,7 @@ ngram_read_bin_v5(FILE *fp, NGRAM_INFO *ndata)
   }
   rdn(fp, &i, sizeof(int), 1);
   if (i == 1) {
+    jlog("Stat: ngram_read_bin_v5: reading additional LR 2-gram\n");
     ndata->p_2 = (LOGPROB *)mymalloc_big(sizeof(LOGPROB), ndata->d[1].totalnum);
     rdn(fp, ndata->p_2, sizeof(LOGPROB), ndata->d[1].totalnum);
   } else {
@@ -606,6 +615,8 @@ ngram_read_bin(FILE *fp, NGRAM_INFO *ndata)
 
   /* check initial header */
   if (check_header(fp) == FALSE) return FALSE;
+
+  jlog("Stat: ngram_read_bin: file version: %d\n", file_version);
   
 #ifdef WORDS_INT
   /* in retry mode, force word_id conversion  */

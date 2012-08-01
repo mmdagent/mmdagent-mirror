@@ -1,9 +1,9 @@
-dnl Copyright (c) 1991-2011 Kawahara Lab., Kyoto University
+dnl Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
 dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
-dnl Copyright (c) 2005-2011 Julius project team, Nagoya Institute of Technology
+dnl Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.28 2011/12/05 05:42:39 sumomo Exp $
+dnl  $Id: configure.in,v 1.30 2012/07/27 10:02:04 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_INIT(src/phmm/outprob.c)
 AC_CONFIG_HEADER(include/sent/config.h)
 AC_CONFIG_AUX_DIR(../support)
 
-LIBSENT_VERSION=4.2.1
+LIBSENT_VERSION=4.2.2
 
 dnl Checks for options
 # specify mic type
