@@ -166,6 +166,11 @@
 #define OPTION_MOTIONADJUSTTIME_MAX 10.0f
 #define OPTION_MOTIONADJUSTTIME_MIN -10.0f
 
+#define OPTION_LIPSYNCPRIORITY_STR "lipsync_priority"
+#define OPTION_LIPSYNCPRIORITY_DEF 100.0f
+#define OPTION_LIPSYNCPRIORITY_MAX 1000.0f
+#define OPTION_LIPSYNCPRIORITY_MIN -1000.0f
+
 #define OPTION_BULLETFPS_STR "bullet_fps"
 #define OPTION_BULLETFPS_DEF 120
 #define OPTION_BULLETFPS_MAX 120
@@ -227,11 +232,6 @@
 #define OPTION_MAXNUMMODEL_MAX 1024
 #define OPTION_MAXNUMMODEL_MIN 1
 
-#define OPTION_LIPSYNCPRIORITY_STR "lipsync_priority"
-#define OPTION_LIPSYNCPRIORITY_DEF 100.0f
-#define OPTION_LIPSYNCPRIORITY_MAX 1000.0f
-#define OPTION_LIPSYNCPRIORITY_MIN -1000.0f
-
 /* Option: user options */
 class Option
 {
@@ -279,6 +279,7 @@ private:
 
    /* motion */
    float m_motionAdjustTime;
+   float m_lipsyncPriority;
 
    /* bullet physics */
    int m_bulletFps;
@@ -304,9 +305,6 @@ private:
 
    /* model */
    int m_maxNumModel;
-
-   /* motion */
-   float m_lipsyncPriority;
 
    /* initialize: initialize options */
    void initialize();
@@ -457,6 +455,12 @@ public:
    /* setMotionAdjustTime: set motion adjust time in sec */
    void setMotionAdjustTime(float f);
 
+   /* getLipsyncPriority: get lipsync motion priority */
+   float getLipsyncPriority();
+
+   /* setLipsyncPriority: set lipsync motion priority */
+   void setLipsyncPriority(float f);
+
    /* getBulletFps: get bullet fps */
    int getBulletFps();
 
@@ -534,10 +538,4 @@ public:
 
    /* setMaxNumModel: set maximum number of models */
    void setMaxNumModel(int i);
-
-   /* getLipsyncPriority: get lipsync motion priority */
-   float getLipsyncPriority();
-
-   /* setLipsyncPriority: set lipsync motion priority */
-   void setLipsyncPriority(float f);
 };

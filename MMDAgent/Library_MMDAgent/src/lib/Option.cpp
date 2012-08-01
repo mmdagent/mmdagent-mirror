@@ -100,6 +100,7 @@ void Option::initialize()
    m_maxMultiSampling = OPTION_MAXMULTISAMPLING_DEF;
 
    m_motionAdjustTime = OPTION_MOTIONADJUSTTIME_DEF;
+   m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_DEF;
 
    m_bulletFps = OPTION_BULLETFPS_DEF;
    m_gravityFactor = OPTION_GRAVITYFACTOR_DEF;
@@ -118,8 +119,6 @@ void Option::initialize()
    m_displayCommentTime = OPTION_DISPLAYCOMMENTTIME_DEF;
 
    m_maxNumModel = OPTION_MAXNUMMODEL_DEF;
-
-   m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_DEF;
 }
 
 /* Option::Option: constructor */
@@ -217,6 +216,8 @@ bool Option::load(const char *file)
          setMaxMultiSampling(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_MOTIONADJUSTTIME_STR)) {
          setMotionAdjustTime(MMDAgent_str2float(p1));
+      } else if(MMDAgent_strequal(buf, OPTION_LIPSYNCPRIORITY_STR)) {
+         setLipsyncPriority(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_BULLETFPS_STR)) {
          setBulletFps(MMDAgent_str2int(p1));
       } else if(MMDAgent_strequal(buf, OPTION_GRAVITYFACTOR_STR)) {
@@ -243,8 +244,6 @@ bool Option::load(const char *file)
          setDisplayCommentTime(MMDAgent_str2float(p1));
       } else if(MMDAgent_strequal(buf, OPTION_MAXNUMMODEL_STR)) {
          setMaxNumModel(MMDAgent_str2int(p1));
-      } else if(MMDAgent_strequal(buf, OPTION_LIPSYNCPRIORITY_STR)) {
-         setLipsyncPriority(MMDAgent_str2float(p1));
       }
    }
    fclose(fp);
@@ -715,6 +714,23 @@ void Option::setMotionAdjustTime(float f)
    m_motionAdjustTime = f;
 }
 
+/* Option::getLipsyncPriority: get lipsync motion priority */
+float Option::getLipsyncPriority()
+{
+   return m_lipsyncPriority;
+}
+
+/* Option::setLipsyncPriority: set lipsync motion priority */
+void Option::setLipsyncPriority(float f)
+{
+   if(OPTION_LIPSYNCPRIORITY_MAX < f)
+      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MAX;
+   else if(OPTION_LIPSYNCPRIORITY_MIN > f)
+      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MIN;
+   else
+      m_lipsyncPriority = f;
+}
+
 /* Option::getBulletFps: get bullet fps */
 int Option::getBulletFps()
 {
@@ -924,21 +940,4 @@ void Option::setMaxNumModel(int i)
       m_maxNumModel = OPTION_MAXNUMMODEL_MIN;
    else
       m_maxNumModel = i;
-}
-
-/* Option::getLipsyncPriority: get lipsync motion priority */
-float Option::getLipsyncPriority()
-{
-   return m_lipsyncPriority;
-}
-
-/* Option::setLipsyncPriority: set lipsync motion priority */
-void Option::setLipsyncPriority(float f)
-{
-   if(OPTION_LIPSYNCPRIORITY_MAX < f)
-      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MAX;
-   else if(OPTION_LIPSYNCPRIORITY_MIN > f)
-      m_lipsyncPriority = OPTION_LIPSYNCPRIORITY_MIN;
-   else
-      m_lipsyncPriority = f;
 }
