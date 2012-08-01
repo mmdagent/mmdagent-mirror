@@ -41,11 +41,11 @@
 
 /* definitions */
 
-#define VIMANAGER_SEPARATOR1       '|'
-#define VIMANAGER_SEPARATOR2       ','
-#define VIMANAGER_COMMENT          '#'
-#define VIMANAGER_STARTSTATE       0
-#define VIMANAGER_EPSILON          "<eps>"
+#define VIMANAGER_SEPARATOR1 '|'
+#define VIMANAGER_SEPARATOR2 ','
+#define VIMANAGER_COMMENT    '#'
+#define VIMANAGER_STARTSTATE 0
+#define VIMANAGER_EPSILON    "<eps>"
 
 /* InputArguments: input for state transition */
 typedef struct _InputArguments {
