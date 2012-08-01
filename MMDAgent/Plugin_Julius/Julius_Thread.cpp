@@ -50,7 +50,7 @@
 static void callbackRecogBegin(Recog *recog, void *data)
 {
    Julius_Thread *j = (Julius_Thread *) data;
-   j->sendMessage(JULIUSTHREAD_EVENTSTART, NULL);
+   j->sendMessage(JULIUSTHREAD_EVENTSTART, "");
 }
 
 /* callbackRecogResult: callback for recognitional result */
