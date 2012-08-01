@@ -4,7 +4,7 @@
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2011  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2012  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
@@ -46,7 +46,7 @@
 # 4th field: command (output message)
 #
 # Model
-# MODEL_ADD|(model alias)|(model file name)|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(parent model alias)|(parent bone name)
+# MODEL_ADD|(model alias)|(model file name)|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(ON or OFF for cartoon)|(parent model alias)|(parent bone name)
 # MODEL_CHANGE|(model alias)|(model file name)
 # MODEL_DELETE|(model alias)
 # MODEL_EVENT_ADD|(model alias)
@@ -54,10 +54,12 @@
 # MODEL_EVENT_DELETE|(model alias)
 #
 # Motion
-# MOTION_ADD|(model alias)|(motion alias)|(motion file name)|(FULL or PART)|(ONCE or LOOP)|(ON or OFF for Smooth)|(ON or OFF for RePos)
+# MOTION_ADD|(model alias)|(motion alias)|(motion file name)|(FULL or PART)|(ONCE or LOOP)|(ON or OFF for smooth)|(ON or OFF for repos)
+# MOTION_ACCELERATE|(model alias)|(motion alias)|(speed)|(duration)|(specified time for end)
 # MOTION_CHANGE|(model alias)|(motion alias)|(motion file name)
 # MOTION_DELETE|(mpdel alias)|(model alias)
 # MOTION_EVENT_ADD|(model alias)|(motion alias)
+# MOTION_EVENT_ACCELERATE|(model alias)|(motion alias)
 # MOTION_EVENT_CHANGE|(model alias)|(model alias)
 # MOTION_EVENT_DELETE|(model alias)|(motion alias)
 #
@@ -90,7 +92,7 @@
 # LIGHTDIRECTION|(x position),(y position),(z position)
 # 
 # Camera
-# CAMERA|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(fovy)|(time)
+# CAMERA|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(distance)|(fovy)|(time)
 # CAMERA|(motion file name)
 #
 # Speech recognition
@@ -112,7 +114,7 @@
 # VALUE_SET|(variable alias)|(minimum value for random)|(maximum value for random)
 # VALUE_UNSET|(variable alias)
 # VALUE_EVAL|(variable alias)|EQ or NE or LE or LT or GE or GT|(value)
-# VALUE_EVENT_SET|(variable alias)|(value)
+# VALUE_EVENT_SET|(variable alias)
 # VALUE_EVENT_UNSET|(variable alias)
 # VALUE_EVENT_EVAL|(variable alias)|(EQ or NE or LE or LT or GE or GT for evaluation)|(value)|(TRUE or FALSE)
 # TIMER_START|(count down alias)|(value)
@@ -132,13 +134,13 @@
 #
 # Other commands
 # EXECUTE|(file name)
-# KEY_POST|(window class name)|(key name)|(ON or OFF for Shift-key)|(ON or OFF for Ctrl-key)|(On or OFF for Alt-key)
+# KEY_POST|(window class name)|(key name)|(ON or OFF for shift-key)|(ON or OFF for ctrl-key)|(On or OFF for alt-key)
 
 # 0011-0020 Initialization
 
-0    11   <eps>                               MODEL_ADD|bootscreen|Accessory\bootscreen\bootscreen.pmd|0.0,12.85,17.6
+0    11   <eps>                               MODEL_ADD|bootscreen|Accessory\bootscreen\bootscreen.pmd|0.0,12.85,17.6|0.0,0.0,0.0|OFF
 11   12   MODEL_EVENT_ADD|bootscreen          MODEL_ADD|mei|Model\mei\mei.pmd|0.0,0.0,-14.0
-12   13   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|mei
+12   13   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|ON|mei
 13   14   <eps>                               MOTION_ADD|menu|rotate|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
 14   15   <eps>                               STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
 15   16   <eps>                               MOTION_ADD|mei|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
@@ -197,7 +199,7 @@
 # 0071-0090 Guide
 
 1    71   RECOG_EVENT_STOP|図書館             MODEL_DELETE|menu
-71   72   <eps>                               MODEL_ADD|panel|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|mei
+71   72   <eps>                               MODEL_ADD|panel|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|ON|mei
 72   73   <eps>                               MOTION_ADD|mei|action|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
 73   74   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_normal.vmd
 74   75   <eps>                               SYNTH_START|mei|mei_voice_normal|図書館は、正面から見ると、右前の方向にあります。

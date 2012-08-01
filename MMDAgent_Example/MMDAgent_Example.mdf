@@ -4,7 +4,7 @@
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2011  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2012  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
@@ -91,11 +91,13 @@ max_multi_sampling=4
 
 # Motion
 
-motion_adjust_frame=0
+motion_adjust_time=0.0
+lypsync_priority=100.0
 
 # Bullet Physics
 
 bullet_fps=120
+gravity_factor=2.0
 
 # User interface
 
@@ -114,7 +116,7 @@ shadow_mapping_light_first=true
 
 # Comment
 
-display_comment_frame=0.0
+display_comment_time=0.0
 
 # Model
 

@@ -1,6 +1,6 @@
 ===============================================================================
-                   MMDAgent Accessory "NIT Menu" version 1.1
-                            release August 3, 2011
+                 MMDAgent Accessory "NITech Menu" version 1.3
+                            release August 1, 2012
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
@@ -10,12 +10,12 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Accessory "NIT Menu"                           #
+#           MMDAgent Accessory "NITech Menu"                        #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2011  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2012  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
