@@ -43,12 +43,12 @@
 
 #define PMDOBJECT_MAXBUFLEN 2048
 
-#define PMDOBJECT_ALPHAFRAME    15.0   /* number of frames for appear/disappear alpha blending */
+#define PMDOBJECT_ALPHAFRAME    15.0      /* number of frames for appear/disappear alpha blending */
 #define PMDOBJECT_ALIASNAMELEN  50
 #define PMDOBJECT_MINMOVEDIFF   0.0001f
-#define PMDOBJECT_MOVESPEEDRATE 0.90f /* current * 0.90 + target * 0.10 */
+#define PMDOBJECT_MOVESPEEDRATE 0.90f     /* current * 0.90 + target * 0.10 */
 #define PMDOBJECT_MINSPINDIFF   0.000001f
-#define PMDOBJECT_SPINSPEEDRATE 0.95f /* current * 0.95 + target * 0.05 */
+#define PMDOBJECT_SPINSPEEDRATE 0.95f     /* current * 0.95 + target * 0.05 */
 
 /* PMDObject: object of PMD */
 class PMDObject

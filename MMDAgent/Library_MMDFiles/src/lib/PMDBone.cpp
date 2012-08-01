@@ -185,7 +185,7 @@ void PMDBone::reset()
 {
    m_pos.setZero();
    m_rot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
-   /* default transform will be referred while loading rigid bodies in PMD... */
+   /* default transform will be referred while loading rigid bodies in PMD */
    m_trans.setIdentity();
    m_trans.setOrigin(m_originPosition);
 }
@@ -262,6 +262,18 @@ btTransform *PMDBone::getTransform()
 void PMDBone::setTransform(btTransform *tr)
 {
    m_trans = *tr;
+}
+
+/* PMDBone::saveTrans: save current transform */
+void PMDBone::saveTrans()
+{
+   m_savedTrans = m_trans;
+}
+
+/* PMDBone::getSavedTrans: get saved transform */
+void PMDBone::getSavedTrans(btTransform *tr)
+{
+   *tr = m_savedTrans;
 }
 
 /* PMDBone::getOriginPosition: get position */
@@ -346,8 +358,6 @@ void PMDBone::setCurrentRotation(btQuaternion *q)
 {
    m_rot = (*q);
 }
-
-#include "GLee.h"
 
 static void drawCube()
 {

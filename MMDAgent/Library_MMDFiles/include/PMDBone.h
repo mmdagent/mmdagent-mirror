@@ -56,16 +56,17 @@ private:
    unsigned char m_type;       /* bone type (PMD_BONE_TYPE) */
    PMDBone *m_targetBone;      /* bone ID by which this bone if affected: IK bone (type 4), under_rotate bone (type 5) */
    btVector3 m_originPosition; /* position from origin, defined in model (absolute) */
-   float m_rotateCoef;         /* Effect coef. if type == corotate */
+   float m_rotateCoef;         /* effect coefficient if type == corotate */
 
    /* definitions extracted at startup */
-   btVector3 m_offset;       /* Offset position from parent bone */
+   btVector3 m_offset;       /* offset position from parent bone */
    bool m_parentIsRoot;      /* true if parent is root bone, otherwise false */
    bool m_limitAngleX;       /* true if this bone can be bended for X axis only at IK process */
    bool m_motionIndependent; /* true if this bone is not affected by other controller bones */
 
    /* work area */
    btTransform m_trans;             /* current transform matrix, computed from m_pos and m_rot */
+   btTransform m_savedTrans;        /* saved transform matrix for physics */
    btTransform m_transMoveToOrigin; /* transform to move position to origin, for skinning */
    bool m_simulated;                /* true if this bone is controlled under physics */
    btVector3 m_pos;                 /* current position from parent bone, given by motion */
@@ -114,6 +115,12 @@ public:
 
    /* setTransform: set transform */
    void setTransform(btTransform *tr);
+
+   /* saveTrans: save current transform */
+   void saveTrans();
+
+   /* getSavedTrans: get saved transform */
+   void getSavedTrans(btTransform *tr);
 
    /* getOriginPosition: get origin position */
    void getOriginPosition(btVector3 *v);

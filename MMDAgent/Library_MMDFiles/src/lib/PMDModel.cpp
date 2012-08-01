@@ -322,12 +322,23 @@ int PMDModel::getChildBoneList(PMDBone **bone, unsigned short numBone, PMDBone *
 void PMDModel::setPhysicsControl(bool flag)
 {
    unsigned long i;
+   unsigned short j;
+
+   if(flag == m_enableSimulation)
+      return;
 
    m_enableSimulation = flag;
    /* when true, align all rigid bodies to corresponding bone by setting Kinematics flag */
    /* when false, all rigid bodies will have their own motion states according to the model definition */
    for (i = 0; i < m_numRigidBody; i++)
       m_rigidBodyList[i].setKinematic(!flag);
+
+   if (flag == false) {
+      /* save the current bone transform with no physics as a start transform for later resuming */
+      updateBone();
+      for (j = 0; j < m_numBone; j++)
+         m_boneList[j].saveTrans();
+   }
 }
 
 /* PMDModel::release: free PMDModel */

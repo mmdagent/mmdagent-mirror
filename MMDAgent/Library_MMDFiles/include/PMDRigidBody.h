@@ -56,6 +56,13 @@ private:
    btTransform m_trans;                   /* local transform of position and rotation, local to associated bone */
    btTransform m_transInv;                /* inverse of m_trans */
    btMotionState *m_kinematicMotionState; /* kinematic motion state for static moving */
+   btTransform m_savedTrans;              /* saved transform */
+   btVector3 m_savedForce;                /* saved total force */
+   btVector3 m_savedLinearFactor;         /* saved linear factor */
+   btVector3 m_savedLinearVelocity;       /* saved linear velocity */
+   btVector3 m_savedTorque;               /* saved total torque */
+   btVector3 m_savedAngularFactor;        /* saved angular factor */
+   btVector3 m_savedAngularVelocity;      /* saved angular velocity */
 
    btDiscreteDynamicsWorld *m_world; /* pointer to the simulation world where this rigid body exists */
 

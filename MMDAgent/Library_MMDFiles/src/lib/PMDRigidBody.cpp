@@ -43,7 +43,6 @@
 
 #include "MMDFiles.h"
 #include "KinematicMotionState.h"
-#include "AlignedMotionState.h"
 
 /* PMDRigidBody::initialize: initialize PMDRigidBody */
 void PMDRigidBody::initialize()
@@ -58,6 +57,13 @@ void PMDRigidBody::initialize()
    m_bone = NULL;
    m_noBone = false;
    m_kinematicMotionState = NULL;
+   m_savedTrans.setIdentity();
+   m_savedForce.setZero();
+   m_savedLinearFactor.setZero();
+   m_savedLinearVelocity.setZero();
+   m_savedTorque.setZero();
+   m_savedAngularFactor.setZero();
+   m_savedAngularVelocity.setZero();
 
    m_world = NULL;
 }
@@ -111,7 +117,7 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    if (rb->boneID == 0xFFFF)
       m_noBone = true;
 
-   /* store values*/
+   /* store type ID */
    m_type = rb->type;
 
    /* create shape */
@@ -162,13 +168,9 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
       /* kinematic body, will be moved along the motion of corresponding bone */
       m_motionState = new KinematicMotionState(startTrans, m_trans, m_bone);
       m_kinematicMotionState = NULL;
-   } else if (rb->type == 1) {
+   } else {
       /* simulated body, use default motion state */
       m_motionState = new btDefaultMotionState(startTrans);
-      m_kinematicMotionState = new KinematicMotionState(startTrans, m_trans, m_bone);
-   } else {
-      /* simulated body, will be aligned to the motion-controlled bone */
-      m_motionState = new AlignedMotionState(startTrans, m_trans, m_bone);
       m_kinematicMotionState = new KinematicMotionState(startTrans, m_trans, m_bone);
    }
 
@@ -219,7 +221,7 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
 /* PMDRigidBody::joinWorld: add the body to simulation world */
 void PMDRigidBody::joinWorld(btDiscreteDynamicsWorld *btWorld)
 {
-   if (! m_body) return;
+   if (!m_body) return;
 
    /* add the body to the simulation world, with group id and group mask for collision */
    btWorld->addRigidBody(m_body, m_groupID, m_groupMask);
@@ -235,30 +237,73 @@ void PMDRigidBody::applyTransformToBone()
 
    tr = m_body->getCenterOfMassTransform();
    tr *= m_transInv;
+   if (m_type == 2) {
+      /* align the bone position to the non-simulated position */
+      m_bone->update();
+      tr.setOrigin(m_bone->getTransform()->getOrigin());
+   }
    m_bone->setTransform(&tr);
 }
 
 /* PMDRigidBody::setKinematic: switch between Default and Kinematic body for non-simulated movement */
 void PMDRigidBody::setKinematic(bool flag)
 {
-   btTransform tr;
+   btTransform worldTrans, savedBaseTrans, tr;
+   PMDBone *base;
 
    if (m_type == 0) return; /* always kinematic */
 
    if (flag) {
       /* default to kinematic */
+      /* save current world transform, force, and torque for resuming */
+      m_savedTrans = m_body->getCenterOfMassTransform();
+      m_savedForce = m_body->getTotalForce();
+      m_savedLinearFactor = m_body->getLinearFactor();
+      m_savedLinearVelocity = m_body->getLinearVelocity();
+      m_savedTorque = m_body->getTotalTorque();
+      m_savedAngularFactor = m_body->getAngularFactor();
+      m_savedAngularVelocity = m_body->getAngularVelocity();
+      /* clear all forces and change motion state to kinematic */
+      m_body->clearForces();
       m_body->setMotionState(m_kinematicMotionState);
       m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
    } else {
       /* kinematic to default */
-      m_kinematicMotionState->getWorldTransform(tr);
-      if (m_type == 2) {
-         ((AlignedMotionState *)m_motionState)->setWorldTransformDirectly(tr);
+      /* find the first un-simulated bone in parents */
+      for (base = m_bone; base; base = base->getParentBone())
+         if (!base->isSimulated()) break;
+      /* calculate initial transform */
+      if (base) {
+         /* compute transform of bone since the start of kinematic state */
+         base->getSavedTrans(&savedBaseTrans);
+         /* compute the difference matrix */
+         tr = (*(base->getTransform())) * savedBaseTrans.inverse();
+         /* apply the transform to the last saved transform to get the initial transform */
+         worldTrans = tr * m_savedTrans;
+         /* also apply the rotation to the saved velocities */
+         tr.setOrigin(btVector3(0.0f, 0.0f, 0.0f));
+         m_savedLinearVelocity = tr * m_savedLinearVelocity;
+         m_savedAngularVelocity = tr * m_savedAngularVelocity;
       } else {
-         m_motionState->setWorldTransform(tr);
+         m_kinematicMotionState->getWorldTransform(worldTrans);
       }
+      /* set the initial tranform to the motion state */
+      /* it will be set to body by getWorldTransform() at next m_body->setMotionState() */
+      m_motionState->setWorldTransform(worldTrans);
+      /* change motion state to default */
       m_body->setMotionState(m_motionState);
       m_body->setCollisionFlags(m_body->getCollisionFlags() & ~btCollisionObject::CF_KINEMATIC_OBJECT);
+
+      /* apply the saved force and torque */
+      m_body->clearForces();
+      m_body->setLinearFactor(btVector3(1.0f, 1.0f, 1.0f));
+      m_body->applyCentralForce(m_savedForce);
+      m_body->setLinearFactor(m_savedLinearFactor);
+      m_body->setLinearVelocity(m_savedLinearVelocity);
+      m_body->setAngularFactor(btVector3(1.0f, 1.0f, 1.0f));
+      m_body->applyTorque(m_savedTorque);
+      m_body->setAngularFactor(m_savedAngularFactor);
+      m_body->setAngularVelocity(m_savedAngularVelocity);
    }
 }
 

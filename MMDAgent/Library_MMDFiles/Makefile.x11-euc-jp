@@ -1,8 +1,7 @@
 
 TARGET   = lib/MMDFiles.a
 
-SOURCES  = src/lib/AlignedMotionState.cpp \
-           src/lib/BulletPhysics.cpp \
+SOURCES  = src/lib/BulletPhysics.cpp \
            src/lib/CameraController.cpp \
            src/lib/KinematicMotionState.cpp \
            src/lib/MMDFiles_utils.cpp \

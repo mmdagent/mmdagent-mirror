@@ -360,7 +360,8 @@ bool MMDAgent::addMotion(const char *modelAlias, const char *motionAlias, const 
       }
    }
 
-   if (m_model[id].getMotionManager()->getMotionPlayerList() == NULL && enableSmooth == false)
+   /* when smoothing is disabled, skip next physics simulation for warping at beginning of motion */
+   if (enableSmooth == false)
       m_model[id].skipNextSimulation();
 
    /* start motion */
@@ -405,6 +406,9 @@ bool MMDAgent::changeMotion(const char *modelAlias, const char *motionAlias, con
    for (motionPlayer = m_model[id].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
       if (motionPlayer->active && MMDAgent_strequal(motionPlayer->name, motionAlias)) {
          old = motionPlayer->vmd;
+         /* when smoothing has been disabled, skip next physics simulation for warping at beginning of changed motion */
+         if (motionPlayer->enableSmooth == false)
+            m_model[id].skipNextSimulation();
          break;
       }
    }
@@ -1258,6 +1262,14 @@ bool MMDAgent::updateScene()
                   /* send event message */
                   sendEventMessage(MMDAGENT_EVENT_MOTIONACCELERATE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
                }
+            }
+         }
+
+         /* look through the last motion status to check if the next motion update needs physics reset */
+         for (motionPlayer = m_model[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+            if (motionPlayer->statusFlag == MOTION_STATUS_DELETED || motionPlayer->statusFlag == MOTION_STATUS_LOOPED) {
+               if (motionPlayer->enableSmooth == false)
+                  m_model[i].skipNextSimulation();
             }
          }
 
