@@ -1,3 +1,16 @@
+Version 1.3:
+ * add MOTION_ACCELERATE command for changing motion speed.
+ * add a scroll bar to the debug display.
+ * add gravity_factor and lipsync_priority in .mdf options.
+ * modify MODEL_ADD command to switch cartoon rendering.
+ * change the time unit in all options and commands from millisecond to second.
+ * change option names from *_frame to *_time.
+ * modify sample Makefiles for MinGW, Mac OS X, and Unix-like systems.
+ * change rigid body colors according to their type in debug display.
+ * keep rigid body status when they are turned off.
+ * fix some bugs.
+ * update libraries (GLFW 2.7.6, Julius 4.2.2, libpng 1.5.12, PortAudio v19_20111121, and zlib 1.2.7).
+
 Version 1.2:
  * fix some bugs.
  * update libraries (Bullet Physics 2.79, GLFW 2.7.2, hts_engine API 1.06, Julius 4.2.1, libpng 1.5.7, and Open JTalk 1.05).

@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.2
-                           release December 25, 2011
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.3
+                            release August 1, 2012
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -24,7 +24,7 @@ the conditions in the following license:
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
