@@ -1,5 +1,5 @@
 ===============================================================================
-                 MMDAgent Motion "Point of Mei" version 1.3.1
+               MMDAgent Motion "Hand shake of Mei" version 1.3.1
                            release December 25, 2012
 
 
@@ -10,7 +10,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Point of Mei"                          #
+#           MMDAgent Motion "Hand shake of Mei"                     #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #

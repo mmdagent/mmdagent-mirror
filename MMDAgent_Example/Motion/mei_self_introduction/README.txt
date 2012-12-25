@@ -1,6 +1,6 @@
 ===============================================================================
-            MMDAgent Motion "Self Introduction of Mei" version 1.3
-                            release August 1, 2012
+           MMDAgent Motion "Self Introduction of Mei" version 1.3.1
+                           release December 25, 2012
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
