@@ -41,7 +41,7 @@
 # ----------------------------------------------------------------- #
 
 # 1st field: state before transition
-# 2st field: state after transition
+# 2nd field: state after transition
 # 3rd field: event (input message)
 # 4th field: command (output message)
 #
@@ -113,7 +113,7 @@
 # VALUE_SET|(variable alias)|(value)
 # VALUE_SET|(variable alias)|(minimum value for random)|(maximum value for random)
 # VALUE_UNSET|(variable alias)
-# VALUE_EVAL|(variable alias)|EQ or NE or LE or LT or GE or GT|(value)
+# VALUE_EVAL|(variable alias)|(EQ or NE or LE or LT or GE or GT for evaluation)|(value)
 # VALUE_EVENT_SET|(variable alias)
 # VALUE_EVENT_UNSET|(variable alias)
 # VALUE_EVENT_EVAL|(variable alias)|(EQ or NE or LE or LT or GE or GT for evaluation)|(value)|(TRUE or FALSE)
@@ -141,9 +141,9 @@
 0    11   <eps>                               MODEL_ADD|bootscreen|Accessory\bootscreen\bootscreen.pmd|0.0,12.85,17.6|0.0,0.0,0.0|OFF
 11   12   MODEL_EVENT_ADD|bootscreen          MODEL_ADD|mei|Model\mei\mei.pmd|0.0,0.0,-14.0
 12   13   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|ON|mei
-13   14   <eps>                               MOTION_ADD|menu|rotate|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF
+13   14   <eps>                               MOTION_ADD|menu|rotate|Motion\menu_rotation\menu_rotation.vmd|FULL|LOOP|OFF|OFF
 14   15   <eps>                               STAGE|Stage\building2\floor.bmp,Stage\building2\background.bmp
-15   16   <eps>                               MOTION_ADD|mei|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP
+15   16   <eps>                               MOTION_ADD|mei|base|Motion\mei_wait\mei_wait.vmd|FULL|LOOP|ON|OFF
 16   17   <eps>                               TIMER_START|bootscreen|1.5
 17   2    TIMER_EVENT_STOP|bootscreen         MODEL_DELETE|bootscreen
 
