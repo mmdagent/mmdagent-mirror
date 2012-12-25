@@ -1,3 +1,6 @@
+Version 1.3.1:
+ * fix some bugs.
+
 Version 1.3:
  * add MOTION_ACCELERATE command for changing motion speed.
  * add a scroll bar to the debug display.

@@ -1,6 +1,6 @@
 ===============================================================================
-                     Acoustic Model for Julius version 1.3
-                            release August 1, 2012
+                    Acoustic Model for Julius version 1.3.1
+                           release December 25, 2012
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp). This model
