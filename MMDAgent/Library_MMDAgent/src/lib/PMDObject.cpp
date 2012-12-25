@@ -712,8 +712,7 @@ void PMDObject::renderDebug(TextRenderer * text)
          m_pmd.updateBone();
          /* draw bones */
          for (i = 0; i < motionPlayer->mc.getNumBoneCtrl(); i++) {
-            if (b[i].bone->getChildBone() == NULL || b[i].bone->isSimulated() ||
-                  b[i].bone->getType() == NO_DISP || b[i].bone->getType() == IK_TARGET || b[i].bone->getType() == FOLLOW_ROTATE)
+            if (b[i].bone->hasMotionIndependency() == true || b[i].bone->isSimulated() || b[i].bone->getType() == NO_DISP)
                continue;
             /* do not draw IK target bones if the IK chain is under simulation */
             if (b[i].bone->getType() == IK_TARGET && b[i].bone->getParentBone() && b[i].bone->getParentBone()->isSimulated()) continue;
@@ -730,7 +729,7 @@ void PMDObject::renderDebug(TextRenderer * text)
             }
             /* draw bone */
             x = b[i].bone->getTransform()->getOrigin();
-            y = b[i].bone->getChildBone()->getTransform()->getOrigin();
+            y = b[i].bone->getParentBone()->getTransform()->getOrigin();
             if (motionPlayer->ignoreStatic == true && b[i].motion->numKeyFrame <= 1) {
                glColor4f(0.4f, 0.4f, 0.4f, 1.0f);
             } else if (b[i].bone == m_pmd.getCenterBone()) {
@@ -749,11 +748,11 @@ void PMDObject::renderDebug(TextRenderer * text)
                for (j = 0; j < motionPlayer->mc.getNumBoneCtrl(); j++) {
                   if (motionPlayer->ignoreStatic == true && b[j].motion->numKeyFrame <= 1)
                      continue;
-                  if (b[j].bone->getChildBone() == NULL || b[j].bone->isSimulated())
+                  if (b[j].bone->hasMotionIndependency() == true || b[j].bone->isSimulated())
                      continue;
                   if (b[j].bone->getType() == UNDER_IK && b[j].bone->getTargetBone() == b[i].bone) {
                      x = b[j].bone->getTransform()->getOrigin();
-                     y = b[j].bone->getChildBone()->getTransform()->getOrigin();
+                     y = b[j].bone->getParentBone()->getTransform()->getOrigin();
                      glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
                      glBegin(GL_LINES);
                      glVertex3f(x.x(), x.y(), x.z());

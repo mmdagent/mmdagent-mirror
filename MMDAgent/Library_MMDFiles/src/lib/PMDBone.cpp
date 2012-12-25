@@ -131,7 +131,7 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
    }
 
    /* child bone */
-   if (b->childBoneID != -1) {
+   if (b->childBoneID >= 0) {
       if (b->childBoneID >= maxBones)
          ret = false;
       else
@@ -143,16 +143,18 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
 
    /* target bone to which this bone is subject to */
    if (m_type == UNDER_IK || m_type == UNDER_ROTATE) {
-      m_targetBone = &(boneList[b->targetBoneID]);
-      if (b->targetBoneID >= maxBones)
+      if (b->targetBoneID < 0 || b->targetBoneID >= maxBones)
          ret = false;
       else
          m_targetBone = &(boneList[b->targetBoneID]);
    }
 
    /* store the value of targetBoneID as co-rotate coef if kind == FOLLOW_ROTATE */
-   if (m_type == FOLLOW_ROTATE)
+   if (m_type == FOLLOW_ROTATE) {
+      if (m_childBone == NULL)
+         ret = false;
       m_rotateCoef = (float) b->targetBoneID * 0.01f;
+   }
 
    /* store absolute bone positions */
    /* reverse Z value on bone position */

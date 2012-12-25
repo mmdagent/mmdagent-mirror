@@ -100,6 +100,8 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
       m_vertex = (PMDFaceVertex *) malloc(sizeof(PMDFaceVertex) * m_numVertex);
       for (i = 0; i < m_numVertex; i++) {
          m_vertex[i].id = faceVertexList[i].vertexID;
+         if (m_vertex[i].id >= PMDFACE_MAXVERTEXID) /* a workaround for some models with corrupted face index values */
+            m_vertex[i].id -= PMDFACE_MAXVERTEXID;
          m_vertex[i].pos.setValue(faceVertexList[i].pos[0], faceVertexList[i].pos[1], faceVertexList[i].pos[2]);
       }
    }
@@ -122,19 +124,11 @@ void PMDFace::convertIndex(PMDFace *base)
    if (m_vertex == NULL)
       return;
 
-   if (m_type != PMD_FACE_BASE) {
-      for (i = 0; i < m_numVertex; i++) {
-         relID = m_vertex[i].id;
-         if (relID >= base->m_numVertex) /* a workaround for some models with corrupted face index values */
-            relID -= PMDFACE_MAXVERTEXID;
-         m_vertex[i].id = base->m_vertex[relID].id;
-      }
-   } else {
-      /* for base face, just do workaround */
-      for (i = 0; i < m_numVertex; i++) {
-         if (m_vertex[i].id >= PMDFACE_MAXVERTEXID) /* a workaround for some models with corrupted face index values */
-            m_vertex[i].id -= PMDFACE_MAXVERTEXID;
-      }
+   for (i = 0; i < m_numVertex; i++) {
+      relID = m_vertex[i].id;
+      if (relID >= base->m_numVertex) /* a workaround for some models with corrupted face index values */
+         relID -= PMDFACE_MAXVERTEXID;
+      m_vertex[i].id = base->m_vertex[relID].id;
    }
 }
 

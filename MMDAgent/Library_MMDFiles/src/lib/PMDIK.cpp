@@ -105,6 +105,7 @@ void PMDIK::solve()
 
    btVector3 destPos; /* destination position */
    btVector3 targetPos;
+   btVector3 currentBonePos;
 
    btTransform tr;
    btVector3 localDestVec;
@@ -143,6 +144,10 @@ void PMDIK::solve()
       for (j = 0; j < m_numBone; j++) {
          /* get current global target bone location */
          targetPos = m_targetBone->getTransform()->getOrigin();
+         /* skip if target or destination is idential to current bone */
+         currentBonePos = m_boneList[j]->getTransform()->getOrigin();
+         if (currentBonePos == targetPos || currentBonePos == destPos)
+            continue;
          /* calculate local positions of destination position and target position at current bone */
          tr = m_boneList[j]->getTransform()->inverse();
          localDestVec = tr * destPos;

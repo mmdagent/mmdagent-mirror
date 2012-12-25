@@ -230,17 +230,12 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
          fileFace = (PMDFile_Face *)data;
          data += sizeof(PMDFile_Face);
          m_faceList[i].setup(fileFace, (PMDFile_Face_Vertex *) data);
-         if (fileFace->type == PMD_FACE_BASE)
-            m_baseFace = &(m_faceList[i]); /* store base face */
          data += sizeof(PMDFile_Face_Vertex) * fileFace->numVertex;
       }
-      if (m_baseFace == NULL) {
-         ret = false;
-      } else {
-         /* convert base-relative index to the index of original vertices */
-         for (i = 0; i < m_numFace; i++)
-            m_faceList[i].convertIndex(m_baseFace);
-      }
+      m_baseFace = &(m_faceList[0]); /* store base face */
+      /* convert base-relative index to the index of original vertices */
+      for (i = 1; i < m_numFace; i++)
+         m_faceList[i].convertIndex(m_baseFace);
    }
 
    /* display names (skip) */
