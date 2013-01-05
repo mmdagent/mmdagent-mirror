@@ -71,6 +71,12 @@ private:
    /* clear: free thread */
    void clear();
 
+   /* startLipsync: start lipsync if HTK label file is existing */
+   bool startLipsync(const char *file);
+
+   /* stopLipsync: stop lipsync */
+   void stopLipsync();
+
 public:
 
    /* Audio_Thraed: thread constructor */

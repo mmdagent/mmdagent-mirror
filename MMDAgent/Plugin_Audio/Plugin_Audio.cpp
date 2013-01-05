@@ -113,7 +113,7 @@ EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
       if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
          buf = MMDAgent_strdup(args);
          p = MMDAgent_strtok(buf, "|", &q);
-         if(MMDAgent_strtailmatch(p, ".mp3") || MMDAgent_strtailmatch(p, ".MP3")) {
+         if(MMDAgent_strtailmatch(p, ".mp3") || MMDAgent_strtailmatch(p, ".MP3") || MMDAgent_strtailmatch(p, ".wav") || MMDAgent_strtailmatch(p, ".WAV")) {
             /* if there is a motion file which have the same name, store it */
             if(drop_motion != NULL)
                free(drop_motion);

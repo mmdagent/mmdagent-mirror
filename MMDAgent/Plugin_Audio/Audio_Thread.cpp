@@ -374,6 +374,79 @@ void Audio_Thread::clear()
    initialize();
 }
 
+/* Audio_Thread::startLipsync: start lipsync if HTK label file is existing */
+bool Audio_Thread::startLipsync(const char *file)
+{
+   bool result = false;
+   int i;
+   char *label;
+   size_t len;
+   FILE *fp;
+   char buff[MMDAGENT_MAXBUFLEN];
+   char message[MMDAGENT_MAXBUFLEN];
+   int startLen, startTime, endLen, endTime, phonemeLen;
+   bool first = true;
+   PMDObject *objs;
+
+   len = MMDAgent_strlen(file);
+   if(len > 4) {
+      label = MMDAgent_strdup(file);
+      label[len - 4] = '.';
+      label[len - 3] = 'l';
+      label[len - 2] = 'a';
+      label[len - 1] = 'b';
+      fp = MMDAgent_fopen(label, "r");
+      if(fp != NULL) {
+         /* load HTK label */
+         strcpy(message, "");
+         while(1) {
+            startLen = MMDAgent_fgettoken(fp, buff);
+            startTime = MMDAgent_str2int(buff);
+            endLen = MMDAgent_fgettoken(fp, buff);
+            endTime = MMDAgent_str2int(buff);
+            phonemeLen = MMDAgent_fgettoken(fp, buff);
+            if(startLen > 0 && endLen > 0 && phonemeLen > 0 && startTime < endTime) {
+               if(first)
+                  sprintf(message, "%s,%d", buff, (int) ((double) (endTime - startTime) * 1.0E-04 + 0.5));
+               else
+                  sprintf(message, "%s,%s,%d", message, buff, (int) ((double) (endTime - startTime) * 1.0E-04 + 0.5));
+               first = false;
+            } else {
+               break;
+            }
+         }
+         fclose(fp);
+         /* send lipsync message */
+         if(first == false) {
+            objs = m_mmdagent->getModelList();
+            for (i = 0; i < m_mmdagent->getNumModel(); i++) {
+               if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
+                  m_mmdagent->sendCommandMessage(MMDAGENT_COMMAND_LIPSYNCSTART, "%s|%s", objs[i].getAlias(), message);
+                  result = true;
+               }
+            }
+         }
+      }
+      free(label);
+   }
+
+   return result;
+}
+
+/* Audio_Thread::stopLipsync: stop lipsync */
+void Audio_Thread::stopLipsync()
+{
+   int i;
+   PMDObject *objs;
+
+   objs = m_mmdagent->getModelList();
+   for (i = 0; i < m_mmdagent->getNumModel(); i++) {
+      if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
+         m_mmdagent->sendCommandMessage(MMDAGENT_COMMAND_LIPSYNCSTOP, "%s", objs[i].getAlias());
+      }
+   }
+}
+
 /* Audio_Thread::Audio_Thread: thread constructor */
 Audio_Thread::Audio_Thread()
 {
@@ -412,6 +485,7 @@ void Audio_Thread::run()
 {
    Audio audio;
    char *alias, *file;
+   bool lipsync;
 
    while (m_kill == false) {
       /* wait event */
@@ -432,11 +506,15 @@ void Audio_Thread::run()
       Audio_initialize(&audio);
       if(Audio_openAndStart(&audio, alias, file) == true) {
 
+         lipsync = startLipsync(file);
+
          /* send SOUND_EVENT_START */
          m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTART, "%s", alias);
 
          /* wait to stop audio */
          Audio_waitToStop(&audio, alias, &m_playing);
+
+         if(lipsync) stopLipsync();
 
          /* send SOUND_EVENT_STOP */
          m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTOP, "%s", alias);
