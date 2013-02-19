@@ -57,10 +57,10 @@
 # MOTION_ADD|(model alias)|(motion alias)|(motion file name)|(FULL or PART)|(ONCE or LOOP)|(ON or OFF for smooth)|(ON or OFF for repos)
 # MOTION_ACCELERATE|(model alias)|(motion alias)|(speed)|(duration)|(specified time for end)
 # MOTION_CHANGE|(model alias)|(motion alias)|(motion file name)
-# MOTION_DELETE|(mpdel alias)|(model alias)
+# MOTION_DELETE|(mpdel alias)|(motion alias)
 # MOTION_EVENT_ADD|(model alias)|(motion alias)
 # MOTION_EVENT_ACCELERATE|(model alias)|(motion alias)
-# MOTION_EVENT_CHANGE|(model alias)|(model alias)
+# MOTION_EVENT_CHANGE|(model alias)|(motion alias)
 # MOTION_EVENT_DELETE|(model alias)|(motion alias)
 #
 # Move and Rotate
@@ -72,7 +72,7 @@
 # TURN_STOP|(model alias)
 # TURN_EVENT_START|(model alias)
 # TURN_EVENT_STOP|(model alias)
-# ROTATE_START|(model alias)|(x rotation),(y rotataion),(z rotation)|(GLOBAL or LOCAL rotation)|(rotation speed)
+# ROTATE_START|(model alias)|(x rotation),(y rotaion),(z rotation)|(GLOBAL or LOCAL rotation)|(rotation speed)
 # ROTATE_STOP|(model alias)
 # ROTATE_EVENT_START|(model alias)
 # ROTATE_EVENT_STOP|(model alias)
@@ -87,8 +87,8 @@
 # STAGE|(stage file name)
 # STAGE|(bitmap file name for floor),(bitmap file name for background)
 #
-# light
-# LIGHTCOLOR|(Red),(Green),(Blue)
+# Light
+# LIGHTCOLOR|(red),(green),(blue)
 # LIGHTDIRECTION|(x position),(y position),(z position)
 # 
 # Camera
@@ -104,7 +104,7 @@
 # SYNTH_STOP|(model alias)
 # SYNTH_EVENT_START|(model alias)
 # SYNTH_EVENT_STOP|(model alias)
-# LIPSYNC_START|(model alias)|(phoneme and milli second pair sequence)
+# LIPSYNC_START|(model alias)|(phoneme and millisecond pair sequence)
 # LIPSYNC_STOP|(model alias)
 # LIPSYNC_EVENT_START|(model alias)
 # LIPSYNC_EVENT_STOP|(model alias)
