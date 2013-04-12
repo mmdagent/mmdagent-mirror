@@ -50,8 +50,8 @@ private:
    bool m_isTransparent;         /* true if this texture contains transparency */
    bool m_isSphereMap;           /* true if this texture is sphere map (.sph or .spa) */
    bool m_isSphereMapAdd;        /* true if this is sphere map to add (.spa) */
-   long m_width;                 /* texture image width */
-   long m_height;                /* texture image height */
+   int m_width;                  /* texture image width */
+   int m_height;                 /* texture image height */
    unsigned char m_components;   /* number of components (3 for RGB, 4 for RGBA) */
    unsigned char *m_textureData; /* texel data */
 

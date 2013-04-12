@@ -162,7 +162,7 @@ public:
    void resetMotionManager();
 
    /* createLipSyncMotion: create LipSync motion */
-   bool createLipSyncMotion(const char *str, unsigned char **rawData, unsigned long *rawSize);
+   bool createLipSyncMotion(const char *str, unsigned char **rawData, unsigned int *rawSize);
 
    /* getPosition: get current offset */
    void getCurrentPosition(btVector3 *pos);

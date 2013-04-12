@@ -58,25 +58,25 @@ typedef struct _BMPPallete {
 /* BMPHeader: header for BMP */
 typedef struct _BMPHeader {
    unsigned short bfType;
-   unsigned long bfSize;
+   unsigned int bfSize;
    unsigned short bfReserved1;
    unsigned short bfReserved2;
-   unsigned long bfOffBits;
+   unsigned int bfOffBits;
 } BMPHeader;
 
 /* BMPInfo: info for BMP */
 typedef struct _BMPInfo {
-   unsigned long biSize;
-   long biWidth;
-   long biHeight;
+   unsigned int biSize;
+   int biWidth;
+   int biHeight;
    unsigned short biPlanes;
    unsigned short biBitCount;
-   unsigned long biCompression;
-   unsigned long biSizeImage;
-   long biXPelsPerMeter;
-   long biYPelsPerMeter;
-   unsigned long biClrUsed;
-   unsigned long biClrImportant;
+   unsigned int biCompression;
+   unsigned int biSizeImage;
+   int biXPelsPerMeter;
+   int biYPelsPerMeter;
+   unsigned int biClrUsed;
+   unsigned int biClrImportant;
 } BMPInfo;
 
 #pragma pack(pop)
@@ -94,12 +94,12 @@ bool PMDTexture::loadBMP(const char *fileName)
    unsigned char *body;
    bool reversed = false;
    BMPHeader *fh;
-   unsigned long len;
+   unsigned int len;
    BMPInfo *ih;
-   unsigned long lineByte;
+   unsigned int lineByte;
 
    unsigned char *t;
-   long h, w;
+   int h, w;
 
    unsigned char *tl;
    unsigned char ci;
@@ -126,7 +126,7 @@ bool PMDTexture::loadBMP(const char *fileName)
    fh = (BMPHeader *) head;
    body = data + fh->bfOffBits;
    head += sizeof(BMPHeader);
-   len = *((unsigned long *) head);
+   len = *((unsigned int *) head);
    if (len == 12) {
       free(data);
       return false;
@@ -268,15 +268,15 @@ bool PMDTexture::loadTGA(const char *fileName)
    int stride;
    unsigned char *body;
    unsigned char *uncompressed;
-   unsigned long datalen;
+   unsigned int datalen;
    unsigned char *src;
    unsigned char *dst;
    short i, len;
 
    unsigned char *ptmp;
    unsigned char *pLine;
-   unsigned long idx;
-   long h, w;
+   unsigned int idx;
+   int h, w;
 
    /* open file and read whole data into buffer */
    fp = MMDFiles_fopen(fileName, "rb");
@@ -563,7 +563,7 @@ bool PMDTexture::load(const char *fileName)
    size_t len;
 
    unsigned char tmp;
-   long h, w;
+   int h, w;
    unsigned char *l1, *l2;
 
    GLint format;

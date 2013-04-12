@@ -492,7 +492,7 @@ void PMDObject::resetMotionManager()
 }
 
 /* PMDObject::createLipSyncMotion: create LipSync motion */
-bool PMDObject::createLipSyncMotion(const char *str, unsigned char **rawData, unsigned long *rawSize)
+bool PMDObject::createLipSyncMotion(const char *str, unsigned char **rawData, unsigned int *rawSize)
 {
    if(m_localLipSync != NULL && m_localLipSync->createMotion(str, rawData, rawSize) == true)
       return true;
@@ -657,7 +657,7 @@ void PMDObject::renderComment(TextRenderer * text)
 void PMDObject::renderDebug(TextRenderer * text)
 {
    btVector3 pos, x, y;
-   unsigned long i, j;
+   unsigned int i, j;
    float dest;
    MotionPlayer *motionPlayer;
 

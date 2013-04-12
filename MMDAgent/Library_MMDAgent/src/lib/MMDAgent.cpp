@@ -819,7 +819,7 @@ bool MMDAgent::startLipSync(const char *modelAlias, const char *seq)
 {
    int id;
    unsigned char *vmdData;
-   unsigned long vmdSize;
+   unsigned int vmdSize;
    VMD *vmd;
    bool find = false;
    MotionPlayer *motionPlayer;

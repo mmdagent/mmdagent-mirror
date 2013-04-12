@@ -407,19 +407,19 @@ char *PMDModel::getName()
 }
 
 /* PMDModel::getNumVertex: get number of vertics */
-unsigned long PMDModel::getNumVertex()
+unsigned int PMDModel::getNumVertex()
 {
    return m_numVertex;
 }
 
 /* PMDModel::getNumSurface: get number of surface definitions */
-unsigned long PMDModel::getNumSurface()
+unsigned int PMDModel::getNumSurface()
 {
    return m_numSurface;
 }
 
 /* PMDModel::getNumMaterial: get number of material definitions */
-unsigned long PMDModel::getNumMaterial()
+unsigned int PMDModel::getNumMaterial()
 {
    return m_numMaterial;
 }
@@ -443,13 +443,13 @@ unsigned short PMDModel::getNumFace()
 }
 
 /* PMDModel::getNumRigidBody: get number of rigid bodies */
-unsigned long PMDModel::getNumRigidBody()
+unsigned int PMDModel::getNumRigidBody()
 {
    return m_numRigidBody;
 }
 
 /* PMDModel::getNumConstraint: get number of constraints */
-unsigned long PMDModel::getNumConstraint()
+unsigned int PMDModel::getNumConstraint()
 {
    return m_numConstraint;
 }

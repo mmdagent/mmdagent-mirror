@@ -93,7 +93,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    char buf[MMDFILES_MAXBUFLEN];
    bool ret = true;
    char name[21];
-   unsigned long j;
+   unsigned int j;
    float f[3], d, tmp = 0.0f;
 
    clear();
@@ -246,7 +246,7 @@ float PMDMaterial::getShiness()
 }
 
 /* PMDMaterial::getNumSurface: get number of surface */
-unsigned long PMDMaterial::getNumSurface()
+unsigned int PMDMaterial::getNumSurface()
 {
    return m_numSurface;
 }
@@ -276,7 +276,7 @@ PMDTexture *PMDMaterial::getAdditionalTexture()
 }
 
 /* PMDMaterial::getCenterPositionIndex: get center position index */
-unsigned long PMDMaterial::getCenterPositionIndex()
+unsigned int PMDMaterial::getCenterPositionIndex()
 {
    return m_centerVertexIndex;
 }

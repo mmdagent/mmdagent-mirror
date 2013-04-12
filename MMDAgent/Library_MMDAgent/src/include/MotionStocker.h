@@ -78,7 +78,7 @@ public:
    VMD *loadFromFile(const char *file);
 
    /* loadFromData: load VMD from data memories */
-   VMD *loadFromData(const unsigned char *rawData, unsigned long rawSize);
+   VMD *loadFromData(const unsigned char *rawData, unsigned int rawSize);
 
    /* unload: unload VMD */
    void unload(VMD *vmd);

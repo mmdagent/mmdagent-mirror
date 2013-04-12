@@ -51,7 +51,7 @@ typedef struct _VMDFile_Header {
 /* VMDFile_BoneFrame: bone motion element structure for VMD file reading */
 typedef struct _VMDFile_BoneFrame {
    char name[15];          /* bone name */
-   unsigned long keyFrame; /* key frame */
+   unsigned int keyFrame;  /* key frame */
    float pos[3];           /* position (x, y, z) */
    float rot[4];           /* rotation (x, y, z, w) */
    char interpolation[64]; /* interpolation parameters */
@@ -59,19 +59,19 @@ typedef struct _VMDFile_BoneFrame {
 
 /* VMDFile_FaceFrame: face motion element structure for VMD file reading */
 typedef struct _VMDFile_FaceFrame {
-   char name[15];          /* face name */
-   unsigned long keyFrame; /* key frame */
-   float weight;           /* weight (0.0 - 1.0) */
+   char name[15];         /* face name */
+   unsigned int keyFrame; /* key frame */
+   float weight;          /* weight (0.0 - 1.0) */
 } VMDFile_FaceFrame;
 
 /* VMDFile_Camera: camera motion element structure for VMD file reading */
 typedef struct _VMDFile_CameraFrame {
-   unsigned long keyFrame; /* key frame */
+   unsigned int keyFrame;  /* key frame */
    float distance;
    float pos[3];
    float angle[3];
    char interpolation[24]; /* interpolation parameters */
-   unsigned long viewAngle;
+   unsigned int viewAngle;
    unsigned char noPerspective;
 } VMDFile_CameraFrame;
 

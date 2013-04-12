@@ -130,7 +130,7 @@ VMD * MotionStocker::loadFromFile(const char *file)
 }
 
 /* MotionStocker::loadFromData: load VMD from data memories*/
-VMD * MotionStocker::loadFromData(const unsigned char *rawData, unsigned long rawSize)
+VMD * MotionStocker::loadFromData(const unsigned char *rawData, unsigned int rawSize)
 {
    VMDList *vl;
 

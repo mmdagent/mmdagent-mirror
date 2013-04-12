@@ -49,7 +49,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    const unsigned char *start = data;
    FILE *fp;
    bool ret = true;
-   unsigned long i;
+   unsigned int i;
    btQuaternion defaultRot;
 
    PMDFile_Header *fileHeader;
@@ -61,7 +61,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
 
    unsigned char numFaceDisp;
    unsigned char numBoneFrameDisp;
-   unsigned long numBoneDisp;
+   unsigned int numBoneDisp;
 
    char buf[MMDFILES_MAXBUFLEN]; /* for toon texture */
 
@@ -115,8 +115,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
 
    /* vertex data and bone weights */
    /* relocate as separated list for later OpenGL calls */
-   m_numVertex = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numVertex = *((unsigned int *) data);
+   data += sizeof(unsigned int);
    m_vertexList = new btVector3[m_numVertex];
    m_normalList = new btVector3[m_numVertex];
    m_texCoordList = (TexCoord *) malloc(sizeof(TexCoord) * m_numVertex);
@@ -138,15 +138,15 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    data += sizeof(PMDFile_Vertex) * m_numVertex;
 
    /* surface data, 3 vertex indices for each */
-   m_numSurface = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numSurface = *((unsigned int *) data);
+   data += sizeof(unsigned int);
    m_surfaceList = (unsigned short *) malloc(sizeof(unsigned short) * m_numSurface);
    memcpy(m_surfaceList, data, sizeof(unsigned short) * m_numSurface);
    data += sizeof(unsigned short) * m_numSurface;
 
    /* material data (color, texture, toon parameter, edge flag) */
-   m_numMaterial = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numMaterial = *((unsigned int *) data);
+   data += sizeof(unsigned int);
    m_material = new PMDMaterial[m_numMaterial];
    fileMaterial = (PMDFile_Material *) data;
    surfaceFrom = m_surfaceList;
@@ -246,8 +246,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    numBoneFrameDisp = *((unsigned char *) data);
    data += sizeof(unsigned char) + 50 * numBoneFrameDisp;
    /* indices for bones which should be displayed in each bone region */
-   numBoneDisp = *((unsigned long *) data);
-   data += sizeof(unsigned long) + (sizeof(short) + sizeof(unsigned char)) * numBoneDisp;
+   numBoneDisp = *((unsigned int *) data);
+   data += sizeof(unsigned int) + (sizeof(short) + sizeof(unsigned char)) * numBoneDisp;
 
    /* end of base format */
    /* check for remaining data */
@@ -322,8 +322,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             m_orderedBoneList[i]->update();
 
          /* Bullet Physics rigidbody data */
-         m_numRigidBody = *((unsigned long *) data);
-         data += sizeof(unsigned long);
+         m_numRigidBody = *((unsigned int *) data);
+         data += sizeof(unsigned int);
          if (m_numRigidBody > 0) {
             m_rigidBodyList = new PMDRigidBody[m_numRigidBody];
             fileRigidBody = (PMDFile_RigidBody *) data;
@@ -339,8 +339,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
          }
 
          /* BulletPhysics constraint data */
-         m_numConstraint = *((unsigned long *) data);
-         data += sizeof(unsigned long);
+         m_numConstraint = *((unsigned int *) data);
+         data += sizeof(unsigned int);
          if (m_numConstraint > 0) {
             m_constraintList = new PMDConstraint[m_numConstraint];
             fileConstraint = (PMDFile_Constraint *) data;
@@ -387,7 +387,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    /* calculated Vertex positions for toon edge drawing */
    m_edgeVertexList = new btVector3[m_numVertex];
    /* initialize material order */
-   m_materialRenderOrder = new unsigned long[m_numMaterial];
+   m_materialRenderOrder = new unsigned int[m_numMaterial];
    m_materialDistance = new MaterialDistanceData[m_numMaterial];
    for (i = 0; i < m_numMaterial; i++)
       m_materialRenderOrder[i] = i;

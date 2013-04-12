@@ -75,6 +75,9 @@ struct _GLFWwin_struct {
     GLFWwindowsizefun    windowSizeCallback;
     GLFWwindowclosefun   windowCloseCallback;
     GLFWwindowrefreshfun windowRefreshCallback;
+#ifdef MMDAGENT
+    GLFWdropfilefun      dropFileCallback;
+#endif /* MMDAGENT */
     GLFWmousebuttonfun   mouseButtonCallback;
     GLFWmouseposfun      mousePosCallback;
     GLFWmousewheelfun    mouseWheelCallback;

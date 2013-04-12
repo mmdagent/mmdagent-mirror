@@ -46,7 +46,7 @@
 
 #ifdef _WIN32
 /* TextRenderer::getID: get display list of character */
-bool TextRenderer::getID(unsigned long mbc, unsigned int *id)
+bool TextRenderer::getID(unsigned int mbc, unsigned int *id)
 {
    GLYPHMETRICSFLOAT gmf;
    HGDIOBJ oldfont;
@@ -225,7 +225,7 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
    unsigned int id = 0;
    unsigned char c1;
    unsigned char c2;
-   unsigned long mbc;
+   unsigned int mbc;
    char size;
    int len;
 

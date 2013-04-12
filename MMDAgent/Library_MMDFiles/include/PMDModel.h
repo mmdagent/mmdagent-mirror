@@ -62,7 +62,7 @@ typedef struct {
 typedef struct {
    float dist;
    float alpha;
-   unsigned long id;
+   unsigned int id;
 } MaterialDistanceData;
 
 /* PMDModel: model of PMD */
@@ -74,20 +74,20 @@ private:
    char *m_name;     /* model name */
    char *m_comment;  /* comment string */
 
-   unsigned long m_numVertex; /* number of vertices */
-   btVector3 *m_vertexList;   /* vertex list */
-   btVector3 *m_normalList;   /* normal list */
-   TexCoord *m_texCoordList;  /* texture coordinate list */
-   short *m_bone1List;        /* weighted bone ID list */
-   short *m_bone2List;        /* weighted bone ID list */
-   float *m_boneWeight1;      /* weight list for m_Bone1List */
-   bool *m_noEdgeFlag;        /* true if no edge should be drawn for this vertex */
+   unsigned int m_numVertex; /* number of vertices */
+   btVector3 *m_vertexList;  /* vertex list */
+   btVector3 *m_normalList;  /* normal list */
+   TexCoord *m_texCoordList; /* texture coordinate list */
+   short *m_bone1List;       /* weighted bone ID list */
+   short *m_bone2List;       /* weighted bone ID list */
+   float *m_boneWeight1;     /* weight list for m_Bone1List */
+   bool *m_noEdgeFlag;       /* true if no edge should be drawn for this vertex */
 
-   unsigned long m_numSurface;    /* number of surface definitions */
+   unsigned int m_numSurface;     /* number of surface definitions */
    unsigned short *m_surfaceList; /* list of surface definitions (index to 3 vertices per surface) */
 
-   unsigned long m_numMaterial; /* number of material definitions */
-   PMDMaterial *m_material;     /* material list */
+   unsigned int m_numMaterial; /* number of material definitions */
+   PMDMaterial *m_material;    /* material list */
 
    unsigned short m_numBone; /* number of bones */
    PMDBone *m_boneList;      /* bone list */
@@ -98,10 +98,10 @@ private:
    unsigned short m_numFace; /* number of face definitions */
    PMDFace *m_faceList;      /* face definition list */
 
-   unsigned long m_numRigidBody;  /* number of rigid bodies (Bullet Physics) */
+   unsigned int m_numRigidBody;   /* number of rigid bodies (Bullet Physics) */
    PMDRigidBody *m_rigidBodyList; /* rigid body list */
 
-   unsigned long m_numConstraint;   /* number of constraints (Bullet Physics) */
+   unsigned int m_numConstraint;    /* number of constraints (Bullet Physics) */
    PMDConstraint *m_constraintList; /* rigid body list */
 
    /* work area for toon renderling */
@@ -115,7 +115,7 @@ private:
    btVector3 *m_skinnedNormalList;           /* normal list after skinning */
    TexCoord *m_toonTexCoordList;             /* texture coordination list for toon shading */
    btVector3 *m_edgeVertexList;              /* vertex list for edge drawing */
-   unsigned long m_numSurfaceForEdge;        /* number of edge-drawing surface list */
+   unsigned int m_numSurfaceForEdge;         /* number of edge-drawing surface list */
    unsigned short *m_surfaceListForEdge;     /* surface list on which toon edge will be drawn per material */
    TexCoord *m_toonTexCoordListForShadowMap; /* texture coordinates for toon shading on shadow mapping */
 
@@ -130,7 +130,7 @@ private:
    bool *m_IKSimulated;                /* boolean list whether an IK should be disabled due to simulation */
    bool m_enableSimulation;            /* true when physics bone control is enabled and simulated IK should be skipped */
    float m_maxHeight;                  /* maximum height of this model */
-   unsigned long m_boundingSphereStep; /* vertex step to calculate bounding sphere for shadow mapping */
+   unsigned int m_boundingSphereStep;  /* vertex step to calculate bounding sphere for shadow mapping */
 
    /* configuration parameters given from outside */
    bool m_toon;                   /* true when enable toon rendering */
@@ -146,7 +146,7 @@ private:
    PMDBone m_rootBone;             /* model root bone for global model offset / rotation / bone binding */
    PTree m_name2bone;              /* name-to-bone index for fast lookup */
    PTree m_name2face;              /* name-to-face index for fast lookup */
-   unsigned long *m_materialRenderOrder;
+   unsigned int *m_materialRenderOrder;
    MaterialDistanceData *m_materialDistance;
 
    /* parse: initialize and load from data memories */
@@ -206,7 +206,7 @@ public:
    void updateMaterialOrder(btTransform *trans);
 
    /* getMaterialRenderOrder: get material rendering order */
-   unsigned long *getMaterialRenderOrder();
+   unsigned int *getMaterialRenderOrder();
 
    /* getRootBone: get root bone */
    PMDBone *getRootBone();
@@ -218,13 +218,13 @@ public:
    char * getName();
 
    /* getNumVertex: get number of vertics */
-   unsigned long getNumVertex();
+   unsigned int getNumVertex();
 
    /* getNumSurface: get number of surface definitions */
-   unsigned long getNumSurface();
+   unsigned int getNumSurface();
 
    /* getNumMaterial: get number of material definitions */
-   unsigned long getNumMaterial();
+   unsigned int getNumMaterial();
 
    /* getNumBone: get number of bones */
    unsigned short getNumBone();
@@ -236,10 +236,10 @@ public:
    unsigned short getNumFace();
 
    /* getNumRigidBody: get number of rigid bodies */
-   unsigned long getNumRigidBody();
+   unsigned int getNumRigidBody();
 
    /* getNumConstraint: get number of constraints */
-   unsigned long getNumConstraint();
+   unsigned int getNumConstraint();
 
    /* getErrorTextureList: get error texture list */
    void getErrorTextureList(char *buf, int size);

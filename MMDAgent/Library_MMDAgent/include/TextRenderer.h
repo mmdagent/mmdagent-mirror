@@ -46,7 +46,7 @@
 
 /* CharDispList: display list for character */
 typedef struct _CharDispList {
-   unsigned long c;
+   unsigned int c;
    unsigned int id;
    struct _CharDispList *next;
 } CharDispList;
@@ -65,7 +65,7 @@ private:
    CharDispList *m_list;
 
    /* getID: get display list of character */
-   bool getID(unsigned long mbc, unsigned int *id);
+   bool getID(unsigned int mbc, unsigned int *id);
 #endif /* _WIN32 */
 
    /* initialize: initialize text renderer */

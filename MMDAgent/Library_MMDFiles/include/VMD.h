@@ -53,7 +53,7 @@ typedef struct _BoneKeyFrame {
 /* BoneMotion: bone motion unit (list of key frames for a bone defined in a VMD file) */
 typedef struct _BoneMotion {
    char *name;                 /* bone name */
-   unsigned long numKeyFrame;  /* number of defined key frames */
+   unsigned int numKeyFrame;   /* number of defined key frames */
    BoneKeyFrame *keyFrameList; /* list of key frame data */
 } BoneMotion;
 
@@ -72,7 +72,7 @@ typedef struct _FaceKeyFrame {
 /* FaceMotion: face motion unit (list of key frames for a face defined in a VMD file) */
 typedef struct _FaceMotion {
    char *name;                 /* face name */
-   unsigned long numKeyFrame;  /* number of defined key frames */
+   unsigned int numKeyFrame;   /* number of defined key frames */
    FaceKeyFrame *keyFrameList; /* list of key frame data */
 } FaceMotion;
 
@@ -96,7 +96,7 @@ typedef struct _CameraKeyFrame {
 
 /* CameraMotion: camera motion unit */
 typedef struct _CameraMotion {
-   unsigned long numKeyFrame;    /* number of defined key frames */
+   unsigned int numKeyFrame;     /* number of defined key frames */
    CameraKeyFrame *keyFrameList; /* list of key frame data */
 } CameraMotion;
 
@@ -105,9 +105,9 @@ class VMD
 {
 private:
 
-   unsigned long m_numTotalBoneKeyFrame; /* total number of bone frames */
-   unsigned long m_numTotalFaceKeyFrame; /* total number of face frames */
-   unsigned long m_numTotalCameraKeyFrame; /* total number of camera frames */
+   unsigned int m_numTotalBoneKeyFrame;   /* total number of bone frames */
+   unsigned int m_numTotalFaceKeyFrame;   /* total number of face frames */
+   unsigned int m_numTotalCameraKeyFrame; /* total number of camera frames */
 
    PTree m_name2bone;
    PTree m_name2face;
@@ -116,8 +116,8 @@ private:
    FaceMotionLink *m_faceLink;   /* linked list of faces in the motion */
    CameraMotion *m_cameraMotion; /* list of camera key frame data */
 
-   unsigned long m_numBoneKind; /* number of bones in m_boneLink */
-   unsigned long m_numFaceKind; /* number of faces in m_faceLink */
+   unsigned int m_numBoneKind; /* number of bones in m_boneLink */
+   unsigned int m_numFaceKind; /* number of faces in m_faceLink */
 
    float m_maxFrame; /* max frame */
 
@@ -160,7 +160,7 @@ public:
    bool parse(const unsigned char *data, unsigned long size);
 
    /* getTotalKeyFrame: get total number of key frames */
-   unsigned long getTotalKeyFrame();
+   unsigned int getTotalKeyFrame();
 
    /* getBoneMotionLink: get list of bone motions */
    BoneMotionLink * getBoneMotionLink();
@@ -172,10 +172,10 @@ public:
    CameraMotion *getCameraMotion();
 
    /* getNumBoneKind: get number of bone motions */
-   unsigned long getNumBoneKind();
+   unsigned int getNumBoneKind();
 
    /* getNumFaceKind: get number of face motions */
-   unsigned long getNumFaceKind();
+   unsigned int getNumFaceKind();
 
    /* getMaxFrame: get max frame */
    float getMaxFrame();

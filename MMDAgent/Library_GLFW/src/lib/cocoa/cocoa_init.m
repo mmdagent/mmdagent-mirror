@@ -31,8 +31,24 @@
 
 #include "internal.h"
 
+#ifdef MMDAGENT
+#ifdef MODIFYCLASSNAME
+#define NAMECONNECTER(a,b) a##_##b
+#define CLASSNAMECONNECTER(a,b) NAMECONNECTER(a,b)
+#define CLASSNAMECONVERTER(name) CLASSNAMECONNECTER(MODIFYCLASSNAME,name)
+#else
+#define CLASSNAMECONVERTER(name) name
+#endif /* MMDAGENT_MODIFYCLASSNAME */
+#endif /* MMDAGENT */
+
+#ifdef MMDAGENT
+@interface CLASSNAMECONVERTER(GLFWThread) : NSThread
+@end
+#define GLFWThread CLASSNAMECONVERTER(GLFWThread)
+#else
 @interface GLFWThread : NSThread
 @end
+#endif /* MMDAGENT */
 
 @implementation GLFWThread
 
@@ -77,7 +93,9 @@ static void changeToResourcesDirectory( void )
 
     CFRelease( resourcesURL );
 
+#ifndef MMDAGENT
     chdir( resourcesPath );
+#endif /* !MMDAGENT */
 }
 
 

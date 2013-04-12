@@ -34,12 +34,28 @@
 // Needed for _NSGetProgname
 #include <crt_externs.h>
 
+#ifdef MMDAGENT
+#ifdef MODIFYCLASSNAME
+#define NAMECONNECTER(a,b) a##_##b
+#define CLASSNAMECONNECTER(a,b) NAMECONNECTER(a,b)
+#define CLASSNAMECONVERTER(name) CLASSNAMECONNECTER(MODIFYCLASSNAME,name)
+#else
+#define CLASSNAMECONVERTER(name) name
+#endif /* MMDAGENT_MODIFYCLASSNAME */
+#endif /* MMDAGENT */
+
 //========================================================================
 // GLFW application class
 //========================================================================
 
+#ifdef MMDAGENT
+@interface CLASSNAMECONVERTER(GLFWApplication) : NSApplication
+@end
+#define GLFWApplication CLASSNAMECONVERTER(GLFWApplication)
+#else
 @interface GLFWApplication : NSApplication
 @end
+#endif /* MMDAGENT */
 
 @implementation GLFWApplication
 
@@ -218,8 +234,14 @@ static GLboolean initializeAppKit( void )
 // (but also used as an application delegate)
 //========================================================================
 
+#ifdef MMDAGENT
+@interface CLASSNAMECONVERTER(GLFWWindowDelegate) : NSObject
+@end
+#define GLFWWindowDelegate CLASSNAMECONVERTER(GLFWWindowDelegate)
+#else
 @interface GLFWWindowDelegate : NSObject
 @end
+#endif /* MMDAGENT */
 
 @implementation GLFWWindowDelegate
 
@@ -261,7 +283,14 @@ static GLboolean initializeAppKit( void )
 
     if( _glfwWin.mousePosCallback )
     {
+#ifdef MMDAGENT
+        _glfwWin.mousePosCallback( _glfwInput.MousePosX,
+                                  _glfwInput.MousePosY,
+                                  ( _glfwInput.Key[GLFW_KEY_LSHIFT] == GLFW_PRESS || _glfwInput.Key[GLFW_KEY_RSHIFT] == GLFW_PRESS ) ? GLFW_PRESS : GLFW_RELEASE,
+                                  ( _glfwInput.Key[GLFW_KEY_LCTRL] == GLFW_PRESS || _glfwInput.Key[GLFW_KEY_RCTRL] == GLFW_PRESS ) ? GLFW_PRESS : GLFW_RELEASE );
+#else
         _glfwWin.mousePosCallback( _glfwInput.MousePosX, _glfwInput.MousePosY );
+#endif /* MMDAGENT */
     }
 }
 
@@ -458,8 +487,14 @@ static int convertMacKeyCode( unsigned int macKeyCode )
 // Content view class for the GLFW window
 //========================================================================
 
+#ifdef MMDAGENT
+@interface CLASSNAMECONVERTER(GLFWContentView) : NSView
+@end
+#define GLFWContentView CLASSNAMECONVERTER(GLFWContentView)
+#else
 @interface GLFWContentView : NSView
 @end
+#endif /* MMDAGENT */
 
 @implementation GLFWContentView
 
@@ -511,7 +546,14 @@ static int convertMacKeyCode( unsigned int macKeyCode )
 
     if( _glfwWin.mousePosCallback )
     {
+#ifdef MMDAGENT
+        _glfwWin.mousePosCallback( _glfwInput.MousePosX,
+                                  _glfwInput.MousePosY,
+                                  ( _glfwInput.Key[GLFW_KEY_LSHIFT] == GLFW_PRESS || _glfwInput.Key[GLFW_KEY_RSHIFT] == GLFW_PRESS ) ? GLFW_PRESS : GLFW_RELEASE,
+                                  ( _glfwInput.Key[GLFW_KEY_LCTRL] == GLFW_PRESS || _glfwInput.Key[GLFW_KEY_RCTRL] == GLFW_PRESS ) ? GLFW_PRESS : GLFW_RELEASE );
+#else
         _glfwWin.mousePosCallback( _glfwInput.MousePosX, _glfwInput.MousePosY );
+#endif /* MMDAGENT */
     }
 }
 
@@ -906,6 +948,14 @@ void _glfwPlatformSetWindowTitle( const char *title )
                      encoding:NSISOLatin1StringEncoding]];
 }
 
+#ifdef MMDAGENT
+void _glfwPlatformEnableFullScreen()
+{
+}
+void _glfwPlatformDisableFullScreen()
+{
+}
+#endif /* MMDAGENT */
 
 //========================================================================
 // Set the window size

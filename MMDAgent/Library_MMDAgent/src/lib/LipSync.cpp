@@ -169,7 +169,7 @@ bool LipSync::load(const char *file)
 }
 
 /* LipSync::createMotion: create motion from phoneme sequence */
-bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned long *rawSize)
+bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned int *rawSize)
 {
    int i, j, k;
    int len;
@@ -179,11 +179,11 @@ bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned lo
    float f, diff;
 
    int totalNumKey;
-   unsigned long currentFrame;
+   unsigned int currentFrame;
    unsigned char *data;
    VMDFile_Header *header;
-   unsigned long *numBoneKeyFrames;
-   unsigned long *numFaceKeyFrames;
+   unsigned int *numBoneKeyFrames;
+   unsigned int *numFaceKeyFrames;
    VMDFile_FaceFrame *face;
 
    /* check */
@@ -261,7 +261,7 @@ bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned lo
    totalNumKey = m_numMotion * len;
 
    /* create memories */
-   (*rawSize) = sizeof(VMDFile_Header) + sizeof(unsigned long) + sizeof(unsigned long) + sizeof(VMDFile_FaceFrame) * totalNumKey;
+   (*rawSize) = sizeof(VMDFile_Header) + sizeof(unsigned int) + sizeof(unsigned int) + sizeof(VMDFile_FaceFrame) * totalNumKey;
    i = (*rawSize);
    i = sizeof(unsigned char) * (*rawSize);
    (*rawData) = (unsigned char *) malloc(i);
@@ -272,13 +272,13 @@ bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned lo
    strncpy(header->header, "Vocaloid Motion Data 0002", 30);
    data += sizeof(VMDFile_Header);
    /* number of key frame for bone */
-   numBoneKeyFrames = (unsigned long *) data;
+   numBoneKeyFrames = (unsigned int *) data;
    (*numBoneKeyFrames) = 0;
-   data += sizeof(unsigned long);
+   data += sizeof(unsigned int);
    /* number of key frame for expression */
-   numFaceKeyFrames = (unsigned long *) data;
+   numFaceKeyFrames = (unsigned int *) data;
    (*numFaceKeyFrames) = totalNumKey;
-   data += sizeof(unsigned long);
+   data += sizeof(unsigned int);
    /* set key frame */
    for (i = 0; i < m_numMotion; i++) {
       currentFrame = 0;

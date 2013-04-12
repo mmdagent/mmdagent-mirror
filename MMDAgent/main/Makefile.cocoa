@@ -16,7 +16,7 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
            -DMMDAGENT
 INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
@@ -28,7 +28,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(LDADD) ../Release/MMDAgent.app/Contents/Info.plist
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDADD) -o $(TARGET) \
-	-lstdc++ -framework AGL -framework Carbon -framework OpenGL
+	-lstdc++ -framework AGL -framework Cocoa -framework OpenGL -framework IOKit
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(<:.cpp=.o) -c $<

@@ -257,7 +257,7 @@ void VMD::clear()
 {
    BoneMotionLink *bl, *bl_tmp;
    FaceMotionLink *fl, *fl_tmp;
-   unsigned long i;
+   unsigned int i;
    short j;
 
    m_name2bone.release();
@@ -355,7 +355,7 @@ bool VMD::load(const char *file)
 bool VMD::parse(const unsigned char *data, unsigned long size)
 {
    const unsigned char *start = data;
-   unsigned long i;
+   unsigned int i;
    BoneMotion *bm;
    BoneMotionLink *bl;
    FaceMotion *fm;
@@ -379,8 +379,8 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    data += sizeof(VMDFile_Header);
 
    /* bone motions */
-   m_numTotalBoneKeyFrame = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numTotalBoneKeyFrame = *((unsigned int *) data);
+   data += sizeof(unsigned int);
 
    boneFrame = (VMDFile_BoneFrame *) data;
 
@@ -430,8 +430,8 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    data += sizeof(VMDFile_BoneFrame) * m_numTotalBoneKeyFrame;
 
    /* face motions */
-   m_numTotalFaceKeyFrame = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numTotalFaceKeyFrame = *((unsigned int *) data);
+   data += sizeof(unsigned int);
 
    faceFrame = (VMDFile_FaceFrame *) data;
 
@@ -478,8 +478,8 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    }
 
    /* camera motions */
-   m_numTotalCameraKeyFrame = *((unsigned long *) data);
-   data += sizeof(unsigned long);
+   m_numTotalCameraKeyFrame = *((unsigned int *) data);
+   data += sizeof(unsigned int);
 
    cameraFrame = (VMDFile_CameraFrame *) data;
 
@@ -508,7 +508,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
 }
 
 /* VMD::getTotalKeyFrame: get total number of key frames */
-unsigned long VMD::getTotalKeyFrame()
+unsigned int VMD::getTotalKeyFrame()
 {
    return m_numTotalBoneKeyFrame + m_numTotalFaceKeyFrame;
 }
@@ -532,13 +532,13 @@ CameraMotion *VMD::getCameraMotion()
 }
 
 /* VMD::getNumBoneKind: get number of bone motions */
-unsigned long VMD::getNumBoneKind()
+unsigned int VMD::getNumBoneKind()
 {
    return m_numBoneKind;
 }
 
 /* VMD::getNumFaceKind: get number of face motions */
-unsigned long VMD::getNumFaceKind()
+unsigned int VMD::getNumFaceKind()
 {
    return m_numFaceKind;
 }

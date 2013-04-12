@@ -86,5 +86,5 @@ public:
    bool load(const char *file);
 
    /* createMotion: create motion from phoneme sequence */
-   bool createMotion(const char *str, unsigned char **rawData, unsigned long *rawSize);
+   bool createMotion(const char *str, unsigned char **rawData, unsigned int *rawSize);
 };

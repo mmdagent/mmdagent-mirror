@@ -50,7 +50,7 @@
 /* texture unit 2: additional sphere map texture, if exist */
 void PMDModel::renderModel()
 {
-   unsigned long i;
+   unsigned int i;
    float c[4];
    PMDMaterial *m;
    float modelAlpha;
@@ -264,7 +264,7 @@ void PMDModel::renderModel()
 /* PMDModel::renderEdge: render toon edge */
 void PMDModel::renderEdge()
 {
-   unsigned long numSurface;
+   unsigned int numSurface;
    unsigned short *surfaceList;
    float modelAlpha;
 

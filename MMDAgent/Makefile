@@ -1,18 +1,21 @@
 
 all:
-	@echo "--------------------------------------------------------------------------------------------"
+	@echo "-------------------------------------------------------------------------------------------------------"
 	@echo "  make mingw            to compile MMDAgent for MinGW on Windows"
 	@echo "  make mingw-clean      to remove any files generated for MinGW on Windows"
-	@echo "--------------------------------------------------------------------------------------------"
+	@echo "-------------------------------------------------------------------------------------------------------"
 	@echo "  make x11-euc-jp       to compile MMDAgent for X11 on Unix-like systems (EUC-JP file system)"
 	@echo "  make x11-euc-jp-clean to remove any files generated for X11 on Unix-like systems (EUC-JP file system)"
-	@echo "--------------------------------------------------------------------------------------------"
+	@echo "-------------------------------------------------------------------------------------------------------"
 	@echo "  make x11-utf-8        to compile MMDAgent for X11 on Unix-like systems (UTF-8 file system)"
 	@echo "  make x11-utf-8-clean  to remove any files generated for X11 on Unix-like systems (UTF-8 file system)"
-	@echo "--------------------------------------------------------------------------------------------"
+	@echo "-------------------------------------------------------------------------------------------------------"
 	@echo "  make carbon           to compile MMDAgent for Carbon on Mac OS X"
 	@echo "  make carbon-clean     to remove any files generated for Carbon on Mac OS X"
-	@echo "--------------------------------------------------------------------------------------------"
+	@echo "-------------------------------------------------------------------------------------------------------"
+	@echo "  make cocoa            to compile MMDAgent for Cocoa on Mac OS X"
+	@echo "  make cocoa-clean      to remove any files generated for Cocoa on Mac OS X"
+	@echo "-------------------------------------------------------------------------------------------------------"
 
 mingw:
 	cd Library_Bullet_Physics  && make
@@ -179,3 +182,45 @@ carbon-clean:
 	cd Plugin_LookAt          && make -f Makefile.carbon clean
 	cd Plugin_Open_JTalk      && make -f Makefile.carbon clean
 	cd Plugin_Julius          && make -f Makefile.carbon clean
+
+cocoa:
+	cd Library_Bullet_Physics && make -f Makefile.cocoa
+	cd Library_GLFW           && make -f Makefile.cocoa
+	cd Library_GLee           && make -f Makefile.cocoa
+	cd Library_JPEG           && make -f Makefile.cocoa
+	cd Library_libpng         && make -f Makefile.cocoa
+	cd Library_MMDAgent       && make -f Makefile.cocoa
+	cd Library_MMDFiles       && make -f Makefile.cocoa
+	cd Library_zlib           && make -f Makefile.cocoa
+	cd Library_PortAudio      && make -f Makefile.cocoa
+	cd Library_hts_engine_API && make -f Makefile.cocoa
+	cd Library_Open_JTalk     && make -f Makefile.cocoa
+	cd Library_Julius         && make -f Makefile.cocoa
+	cd main                   && make -f Makefile.cocoa
+	cd Plugin_VIManager       && make -f Makefile.cocoa
+	cd Plugin_Variables       && make -f Makefile.cocoa
+	cd Plugin_Audio           && make -f Makefile.cocoa
+	cd Plugin_LookAt          && make -f Makefile.cocoa
+	cd Plugin_Open_JTalk      && make -f Makefile.cocoa
+	cd Plugin_Julius          && make -f Makefile.cocoa
+
+cocoa-clean:
+	cd Library_Bullet_Physics && make -f Makefile.cocoa clean
+	cd Library_GLFW           && make -f Makefile.cocoa clean
+	cd Library_GLee           && make -f Makefile.cocoa clean
+	cd Library_JPEG           && make -f Makefile.cocoa clean
+	cd Library_libpng         && make -f Makefile.cocoa clean
+	cd Library_MMDAgent       && make -f Makefile.cocoa clean
+	cd Library_MMDFiles       && make -f Makefile.cocoa clean
+	cd Library_zlib           && make -f Makefile.cocoa clean
+	cd Library_PortAudio      && make -f Makefile.cocoa clean
+	cd Library_hts_engine_API && make -f Makefile.cocoa clean
+	cd Library_Open_JTalk     && make -f Makefile.cocoa clean
+	cd Library_Julius         && make -f Makefile.cocoa clean
+	cd main                   && make -f Makefile.cocoa clean
+	cd Plugin_VIManager       && make -f Makefile.cocoa clean
+	cd Plugin_Variables       && make -f Makefile.cocoa clean
+	cd Plugin_Audio           && make -f Makefile.cocoa clean
+	cd Plugin_LookAt          && make -f Makefile.cocoa clean
+	cd Plugin_Open_JTalk      && make -f Makefile.cocoa clean
+	cd Plugin_Julius          && make -f Makefile.cocoa clean

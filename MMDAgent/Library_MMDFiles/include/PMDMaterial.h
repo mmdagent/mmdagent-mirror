@@ -51,7 +51,7 @@ private:
    float m_alpha;       /* alpha color */
    float m_shiness;     /* shiness intensity */
 
-   unsigned long m_numSurface; /* number of surface indices for this material */
+   unsigned int m_numSurface; /* number of surface indices for this material */
 
    unsigned char m_toonID; /* toon index */
    bool m_edgeFlag;        /* true if edge should be drawn */
@@ -59,9 +59,9 @@ private:
    PMDTexture *m_texture;           /* pointer to texture */
    PMDTexture *m_additionalTexture; /* pointer to additional sphere map */
 
-   unsigned short *m_surfaceList;     /* surface of this material */
-   unsigned long m_centerVertexIndex; /* center vertex index for this material */
-   float m_centerVertexRadius;        /* maximum radius from center vertex */
+   unsigned short *m_surfaceList;    /* surface of this material */
+   unsigned int m_centerVertexIndex; /* center vertex index for this material */
+   float m_centerVertexRadius;       /* maximum radius from center vertex */
 
    /* initialize: initialize material */
    void initialize();
@@ -105,7 +105,7 @@ public:
    float getShiness();
 
    /* getNumSurface: get number of surface */
-   unsigned long getNumSurface();
+   unsigned int getNumSurface();
 
    /* getToonID: get toon index */
    unsigned char getToonID();
@@ -120,7 +120,7 @@ public:
    PMDTexture *getAdditionalTexture();
 
    /* getCenterPositionIndex: get center position index */
-   unsigned long getCenterPositionIndex();
+   unsigned int getCenterPositionIndex();
 
    /* getCenterVertexRadius: get maximum radius from center position index */
    float getCenterVertexRadius();

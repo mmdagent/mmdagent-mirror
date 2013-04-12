@@ -89,7 +89,7 @@ void PMDModel::updateBone()
 /* PMDModel::updateBoneFromSimulation: update bone transform from rigid body */
 void PMDModel::updateBoneFromSimulation()
 {
-   unsigned long i;
+   unsigned int i;
 
    for (i = 0; i < m_numRigidBody; i++)
       m_rigidBodyList[i].applyTransformToBone();
@@ -112,7 +112,7 @@ void PMDModel::updateFace()
 void PMDModel::updateSkin()
 {
    unsigned short i;
-   unsigned long j;
+   unsigned int j;
    btVector3 v, v2, n, n2;
 
    /* calculate transform matrix for skinning (global -> local) */
@@ -144,7 +144,7 @@ void PMDModel::updateSkin()
 /* PMDModel::updateToon: update toon coordinates and edge vertices */
 void PMDModel::updateToon(btVector3 *light)
 {
-   unsigned long i;
+   unsigned int i;
 
    if (m_toon) {
       /* calculate toon texture coordinates for toon shading */
@@ -166,7 +166,7 @@ void PMDModel::updateToon(btVector3 *light)
 /* PMDModel::updateShadowColorTexCoord: update / create pseudo toon coordinates for shadow rendering pass on shadow mapping */
 void PMDModel::updateShadowColorTexCoord(float coef)
 {
-   unsigned long i;
+   unsigned int i;
    bool update = false;
 
    if (!m_toon) return;
@@ -190,7 +190,7 @@ void PMDModel::updateShadowColorTexCoord(float coef)
 /* PMDModel::calculateBoundingSphereRange: calculate the bounding sphere for depth texture rendering on shadow mapping */
 float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
 {
-   unsigned long i;
+   unsigned int i;
    btVector3 centerPos = btVector3(0, 0, 0), v;
    float maxR = 0.0f, r2;
 
@@ -257,7 +257,7 @@ static int compareAlphaDepth(const void *a, const void *b)
 void PMDModel::updateMaterialOrder(btTransform *trans)
 {
 #ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
-   unsigned long i;
+   unsigned int i;
    btVector3 pos;
 
    for (i = 0; i < m_numMaterial; i++) {
@@ -277,7 +277,7 @@ void PMDModel::updateMaterialOrder(btTransform *trans)
 }
 
 /* PMDModel::getMaterialRenderOrder: get material rendering order */
-unsigned long *PMDModel::getMaterialRenderOrder()
+unsigned int *PMDModel::getMaterialRenderOrder()
 {
    return m_materialRenderOrder;
 }
