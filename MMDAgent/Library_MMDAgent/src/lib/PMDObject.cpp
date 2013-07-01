@@ -236,8 +236,18 @@ bool PMDObject::startMotion(VMD * vmd, const char *name, bool full, bool once, b
 /* PMDObject::swapMotion: swap a motion */
 bool PMDObject::swapMotion(VMD * vmd, const char *name)
 {
+   MotionPlayer *m;
+
    if (m_motionManager == NULL || m_motionManager->swapMotion(vmd, name) == false)
       return false;
+   for (m = m_motionManager->getMotionPlayerList(); m; m = m->next) {
+      if (MMDFiles_strequal(m->name, name) == true) {
+         if (m->enableRePos == true)
+            m_pmd.getRootBone()->getOffset(&m_offsetPos);
+         break;
+      }
+   }
+
    return true;
 }
 
@@ -660,6 +670,7 @@ void PMDObject::renderDebug(TextRenderer * text)
    unsigned int i, j;
    float dest;
    MotionPlayer *motionPlayer;
+   MotionControllerBoneElement *b;
 
    /* render debug */
    m_pmd.renderDebug();
@@ -697,7 +708,7 @@ void PMDObject::renderDebug(TextRenderer * text)
    for(motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
       if(motionPlayer->active) {
          glPushMatrix();
-         MotionControllerBoneElement *b = motionPlayer->mc.getBoneCtrlList();
+         b = motionPlayer->mc.getBoneCtrlList();
          glTranslatef(pos.x() + 7.0f + dest, m_pmd.getMaxHeight() + 1.0f - dest, pos.z() + dest);
          glScalef(0.2f, 0.2f, 0.2f);
          m_pmd.resetBone();

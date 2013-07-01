@@ -97,43 +97,21 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
    time1 = bm->keyFrameList[k1].keyFrame;
    time2 = bm->keyFrameList[k2].keyFrame;
    keyFrameForInterpolation = &(bm->keyFrameList[k2]);
+   pos1 = bm->keyFrameList[k1].pos;
+   rot1 = bm->keyFrameList[k1].rot;
+   pos2 = bm->keyFrameList[k2].pos;
+   rot2 = bm->keyFrameList[k2].rot;
 
-   if (m_overrideFirst && (k1 == 0 || time1 <= m_lastLoopStartFrame)) {
-      if (bm->numKeyFrame > 1 && time2 < m_lastLoopStartFrame + 60.0f) {
-         /* when this motion has more than two key frames and the next key frame is nearer than 60 frames, replace the pos/rot at first frame of the motion with the snapped ones */
-         time1 = m_lastLoopStartFrame;
-         pos1 = mc->snapPos;
-         rot1 = mc->snapRot;
-         pos2 = bm->keyFrameList[k2].pos;
-         rot2 = bm->keyFrameList[k2].rot;
-      } else if (frameNow - time1 < m_noBoneSmearFrame) {
-         /* when this motion has only one key frame at the first frame, or has more than two key frames and the second key frame is further than 60 frames, replace the first frame with snap and go to the original pos/rot specified at the motion within the MOTIONCONTROLLER_BONESTARTMARGINFRAME frames */
-         time1 = m_lastLoopStartFrame;
-         time2 = m_lastLoopStartFrame + m_noBoneSmearFrame;
-         frame = frameNow;
-         pos1 = mc->snapPos;
-         rot1 = mc->snapRot;
-         pos2 = bm->keyFrameList[k1].pos;
-         rot2 = bm->keyFrameList[k1].rot;
-         keyFrameForInterpolation = &(bm->keyFrameList[k1]);
-      } else if (bm->numKeyFrame > 1) {
-         /* when this motion has more than two key frames and 60 frames has been passed, we apply motion as if we have a virtual key frame at the 60th frame which has the same value as the original 0th frame */
-         time1 = m_lastLoopStartFrame + m_noBoneSmearFrame;
-         frame = frameNow;
-         pos1 = bm->keyFrameList[k1].pos;
-         rot1 = bm->keyFrameList[k1].rot;
-         pos2 = bm->keyFrameList[k2].pos;
-         rot2 = bm->keyFrameList[k2].rot;
-      } else {
-         /* when this motion has only one key frame and 60 frames has been passed, just use the original pos/rot */
-         pos1 = bm->keyFrameList[k1].pos;
-         rot1 = bm->keyFrameList[k1].rot;
+   if (m_overrideFirst && mc->looped) {
+      /* replace the first position/rotation at the first frame with end-of-motion ones */
+      if (k1 == 0) {
+         pos1 = bm->keyFrameList[bm->numKeyFrame - 1].pos;
+         rot1 = bm->keyFrameList[bm->numKeyFrame - 1].rot;
       }
-   } else {
-      pos1 = bm->keyFrameList[k1].pos;
-      rot1 = bm->keyFrameList[k1].rot;
-      pos2 = bm->keyFrameList[k2].pos;
-      rot2 = bm->keyFrameList[k2].rot;
+      if (k2 == 0) {
+         pos2 = bm->keyFrameList[bm->numKeyFrame - 1].pos;
+         rot2 = bm->keyFrameList[bm->numKeyFrame - 1].rot;
+      }
    }
 
    /* calculate the position and rotation */
@@ -178,6 +156,13 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
       /* both keys have the same time, just apply one of them */
       mc->pos = pos1;
       mc->rot = rot1;
+   }
+
+   if (m_overrideFirst && m_noBoneSmearFrame > 0.0f) {
+      /* lerp with the initial position/rotation at the time of starting motion */
+      w = (float) (m_noBoneSmearFrame / MOTIONCONTROLLER_BONESTARTMARGINFRAME);
+      mc->pos = mc->pos.lerp(mc->snapPos, w);
+      mc->rot = mc->rot.slerp(mc->snapRot, w);
    }
 }
 
@@ -227,32 +212,17 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
    /* get the pos/rot at each key frame */
    time1 = fm->keyFrameList[k1].keyFrame;
    time2 = fm->keyFrameList[k2].keyFrame;
+   weight1 = fm->keyFrameList[k1].weight;
+   weight2 = fm->keyFrameList[k2].weight;
 
-   if (m_overrideFirst && (k1 == 0 || time1 <= m_lastLoopStartFrame)) {
-      if (fm->numKeyFrame > 1 && time2 < m_lastLoopStartFrame + 60.0f) {
-         /* when this motion has more than two key frames and the next key frame is nearer than 60 frames, replace the pos/rot at first frame of the motion with the snapped ones */
-         time1 = m_lastLoopStartFrame;
-         weight1 = mc->snapWeight;
-         weight2 = fm->keyFrameList[k2].weight;
-      } else if (frameNow - time1 < m_noFaceSmearFrame) {
-         /* when this motion has only one key frame at the first frame, or has more than two key frames and the second key frame is further than 60 frames, replace the first frame with snap and go to the original pos/rot specified at the motion within the MOTIONCONTROLLER_BONESTARTMARGINFRAME frames */
-         time1 = m_lastLoopStartFrame;
-         time2 = m_lastLoopStartFrame + m_noFaceSmearFrame;
-         frame = frameNow;
-         weight1 = mc->snapWeight;
-         weight2 = fm->keyFrameList[k1].weight;
-      } else if (fm->numKeyFrame > 1) {
-         /* when this motion has more than two key frames and 60 frames has been passed, we apply motion as if we have a virtual key frame at the 60th frame which has the same value as the original 0th frame */
-         time1 = m_lastLoopStartFrame + m_noFaceSmearFrame;
-         weight1 = fm->keyFrameList[k1].weight;
-         weight2 = fm->keyFrameList[k2].weight;
-      } else {
-         /* when this motion has only one key frame and 60 frames has been passed, just use the original pos/rot */
-         weight1 = fm->keyFrameList[k1].weight;
+   if (m_overrideFirst && mc->looped) {
+      /* replace the first weight at the first frame with end-of-motion ones */
+      if (k1 == 0) {
+         weight1 = fm->keyFrameList[fm->numKeyFrame - 1].weight;
       }
-   } else {
-      weight1 = fm->keyFrameList[k1].weight;
-      weight2 = fm->keyFrameList[k2].weight;
+      if (k2 == 0) {
+         weight2 = fm->keyFrameList[fm->numKeyFrame - 1].weight;
+      }
    }
 
    /* get value between [time0-time1][weight1-weight2] */
@@ -262,6 +232,13 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
    } else {
       mc->weight = weight1;
    }
+
+   if (m_overrideFirst && m_noFaceSmearFrame > 0.0f) {
+      /* interpolate with the initial weight at the time of starting motion */
+      w = (float) (m_noFaceSmearFrame / MOTIONCONTROLLER_FACESTARTMARGINFRAME);
+      mc->weight = mc->weight * (1.0f - w) + mc->snapWeight * w;
+   }
+
 }
 
 /* MotionController::control: set bone position/rotation and face weights according to the motion to the specified frame */
@@ -315,7 +292,7 @@ void MotionController::control(float frameNow)
    }
 }
 
-/* MotionController::takeSnap: take a snap shot of current model pose for smooth motion insertion / loop */
+/* MotionController::takeSnap: take a snap shot of bones/faces for motion smoothing at beginning of a motion */
 void MotionController::takeSnap(btVector3 *centerPos)
 {
    unsigned long i;
@@ -337,6 +314,17 @@ void MotionController::takeSnap(btVector3 *centerPos)
    }
 }
 
+/* MotionController::setLoopedFlags: set flag if the stored end-of-motion position/rotation/weight should be applied at first frame */
+void MotionController::setLoopedFlags(bool flag)
+{
+   unsigned long i;
+
+   for (i = 0; i < m_numBoneCtrl; i++)
+      m_boneCtrlList[i].looped = flag;
+   for (i = 0; i < m_numFaceCtrl; i++)
+      m_faceCtrlList[i].looped = flag;
+}
+
 /* MotionController::initialize: initialize controller */
 void MotionController::initialize()
 {
@@ -351,18 +339,18 @@ void MotionController::initialize()
    m_ignoreSingleMotion = false;
    m_currentFrame = 0.0;
    m_previousFrame = 0.0;
-   m_lastLoopStartFrame = 0.0f;
-   m_noBoneSmearFrame = MOTIONCONTROLLER_BONESTARTMARGINFRAME;
-   m_noFaceSmearFrame = MOTIONCONTROLLER_FACESTARTMARGINFRAME;
+   m_noBoneSmearFrame = 0.0f;
+   m_noFaceSmearFrame = 0.0f;
+   m_overrideFirst = false;
 }
 
 /* MotionController::clear: free controller */
 void MotionController::clear()
 {
    if (m_boneCtrlList)
-      free(m_boneCtrlList);
+      delete [] m_boneCtrlList;
    if (m_faceCtrlList)
-      free(m_faceCtrlList);
+      delete [] m_faceCtrlList;
    initialize();
 }
 
@@ -381,6 +369,7 @@ MotionController::~MotionController()
 /* MotionController::setup: initialize and set up controller */
 void MotionController::setup(PMDModel *pmd, VMD *vmd)
 {
+   unsigned long i;
    BoneMotionLink *bmlink;
    BoneMotion *bm;
    PMDBone *b;
@@ -390,7 +379,6 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
 
    clear();
    m_hasCenterBoneMotion = false;
-   m_overrideFirst = false;
 
    /* store maximum frame len */
    m_maxFrame = vmd->getMaxFrame();
@@ -399,7 +387,17 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
    m_numBoneCtrl = vmd->getNumBoneKind();
    if (m_numBoneCtrl > pmd->getNumBone()) /* their maximum will be smaller one between pmd and vmd */
       m_numBoneCtrl = pmd->getNumBone();
-   m_boneCtrlList = (MotionControllerBoneElement *) malloc(sizeof(MotionControllerBoneElement) * m_numBoneCtrl);
+   m_boneCtrlList = new MotionControllerBoneElement[m_numBoneCtrl];
+   for(i = 0; i < m_numBoneCtrl; i++) {
+      m_boneCtrlList[i].bone = NULL;
+      m_boneCtrlList[i].motion = NULL;
+      m_boneCtrlList[i].pos = btVector3(0.0f, 0.0f, 0.0f);
+      m_boneCtrlList[i].rot = btQuaternion(0.0f, 0.0f, 0.0f, 0.0f);
+      m_boneCtrlList[i].snapPos = btVector3(0.0f, 0.0f, 0.0f);
+      m_boneCtrlList[i].snapRot = btQuaternion(0.0f, 0.0f, 0.0f, 0.0f);
+      m_boneCtrlList[i].lastKey = 0;
+      m_boneCtrlList[i].looped = false;
+   }
    /* check all bone definitions in vmd to match the pmd, and store if match */
    m_numBoneCtrl = 0;
    for (bmlink = vmd->getBoneMotionLink(); bmlink; bmlink = bmlink->next) {
@@ -419,7 +417,15 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
    m_numFaceCtrl = vmd->getNumFaceKind();
    if (m_numFaceCtrl > pmd->getNumFace()) /* their maximum will be smaller one between pmd and vmd */
       m_numFaceCtrl = pmd->getNumFace();
-   m_faceCtrlList = (MotionControllerFaceElement *) malloc(sizeof(MotionControllerFaceElement) * m_numFaceCtrl);
+   m_faceCtrlList = new MotionControllerFaceElement[m_numFaceCtrl];
+   for(i = 0; i < m_numFaceCtrl; i++) {
+      m_faceCtrlList[i].face = NULL;
+      m_faceCtrlList[i].motion = NULL;
+      m_faceCtrlList[i].weight = 0.0f;
+      m_faceCtrlList[i].snapWeight = 0.0f;
+      m_faceCtrlList[i].lastKey = 0;
+      m_faceCtrlList[i].looped = false;
+   }
    /* check all face definitions in vmd to match the pmd, and store if match */
    m_numFaceCtrl = 0;
    for (fmlink = vmd->getFaceMotionLink(); fmlink; fmlink = fmlink->next) {
@@ -443,12 +449,13 @@ void MotionController::reset()
       m_faceCtrlList[i].lastKey = 0;
    m_currentFrame = 0.0;
    m_previousFrame = 0.0;
-   m_lastLoopStartFrame = 0.0f;
-   m_noBoneSmearFrame = MOTIONCONTROLLER_BONESTARTMARGINFRAME;
-   m_noFaceSmearFrame = MOTIONCONTROLLER_FACESTARTMARGINFRAME;
+   m_noBoneSmearFrame = 0.0f;
+   m_noFaceSmearFrame = 0.0f;
    m_boneBlendRate = 1.0f;
    m_faceBlendRate = 1.0f;
    m_ignoreSingleMotion = false;
+   m_overrideFirst = false;
+   setLoopedFlags(false);
 }
 
 /* MotionController::advance: advance motion controller by the given frame, return true when reached end */
@@ -461,6 +468,16 @@ bool MotionController::advance(double deltaFrame)
    control((float) m_currentFrame);
 
    /* advance the current frame count */
+   if (m_noBoneSmearFrame > 0.0f) {
+      m_noBoneSmearFrame -= deltaFrame;
+      if (m_noBoneSmearFrame < 0.0f)
+         m_noBoneSmearFrame = 0.0f;
+   }
+   if (m_noFaceSmearFrame > 0.0f) {
+      m_noFaceSmearFrame -= deltaFrame;
+      if (m_noFaceSmearFrame < 0.0f)
+         m_noFaceSmearFrame = 0.0f;
+   }
    /* store the last frame to m_previousFrame */
    m_previousFrame = m_currentFrame;
    m_currentFrame += deltaFrame;
@@ -481,23 +498,8 @@ void MotionController::rewind(float targetFrame, float frame)
    m_currentFrame = m_previousFrame + frame - m_maxFrame + targetFrame;
    m_previousFrame = targetFrame;
    if (m_overrideFirst) {
-      /* take a snap shot of current pose to be used as initial status of this motion at frame 0 */
-      takeSnap(NULL); /* not move the center position */
-      m_lastLoopStartFrame = targetFrame;
-      if (m_maxFrame >= MOTIONCONTROLLER_BONESTARTMARGINFRAME) {
-         m_noBoneSmearFrame = MOTIONCONTROLLER_BONESTARTMARGINFRAME;
-      } else {
-         m_noBoneSmearFrame -= m_maxFrame + 1.0f;
-         if (m_noBoneSmearFrame < 0.0f)
-            m_noBoneSmearFrame = 0.0f;
-      }
-      if (m_maxFrame >= MOTIONCONTROLLER_FACESTARTMARGINFRAME) {
-         m_noFaceSmearFrame = MOTIONCONTROLLER_FACESTARTMARGINFRAME;
-      } else {
-         m_noFaceSmearFrame -= m_maxFrame + 1.0f;
-         if (m_noFaceSmearFrame < 0.0f)
-            m_noFaceSmearFrame = 0.0f;
-      }
+      /* set end-of-motion snapshot application flag */
+      setLoopedFlags(true);
    }
 }
 
@@ -506,6 +508,8 @@ void MotionController::setOverrideFirst(btVector3 *centerPos)
 {
    /* take snapshot of current pose, to be used as initial values at frame 0 */
    takeSnap(centerPos);
+   /* reset end-of-motion snapshot application flag */
+   setLoopedFlags(false);
    /* tell controller that we have snapshot, and should take snap at loop */
    m_overrideFirst = true;
    m_noBoneSmearFrame = MOTIONCONTROLLER_BONESTARTMARGINFRAME;

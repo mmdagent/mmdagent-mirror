@@ -101,7 +101,7 @@ bool VIManager_Logger::setTransition(VIManager_Arc *arc)
    return true;
 }
 
-/* VIManager_Logger::drawArk: render arc */
+/* VIManager_Logger::drawArc: render arc */
 void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
 {
    int i, j;

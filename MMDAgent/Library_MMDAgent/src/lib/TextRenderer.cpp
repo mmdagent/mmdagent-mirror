@@ -226,7 +226,7 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
    unsigned char c1;
    unsigned char c2;
    unsigned int mbc;
-   char size;
+   unsigned char size;
    int len;
 
    if(!m_hDC)
@@ -235,7 +235,7 @@ int TextRenderer::getDisplayListArrayOfString(const char *str, unsigned int *idL
    len = MMDAgent_strlen(str);
    for (i = 0; i < len && n < maxlen;) {
       size = MMDAgent_getcharsize(&str[i]);
-      if(size <= 0) {
+      if(size == 0) {
          break;
       } else if(size == 1 && isascii(str[i])) {
          /* ascii, use display list whose id number equals to ascii code */

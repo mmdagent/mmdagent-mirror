@@ -39,8 +39,8 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define MOTIONCONTROLLER_BONESTARTMARGINFRAME 20.0f /* frame lengths for bone motion smoothing at loop head */
-#define MOTIONCONTROLLER_FACESTARTMARGINFRAME 6.0f  /* frame lengths for face motion smoothing at loop head */
+#define MOTIONCONTROLLER_BONESTARTMARGINFRAME 20.0 /* frame lengths for bone motion smoothing at loop head */
+#define MOTIONCONTROLLER_FACESTARTMARGINFRAME 6.0  /* frame lengths for face motion smoothing at loop head */
 
 #define MOTIONCONTROLLER_CENTERBONENAME "ÉZÉìÉ^Å["
 
@@ -50,9 +50,10 @@ typedef struct _MotionControllerBoneElement {
    BoneMotion *motion;    /* bone motion to be played */
    btVector3 pos;         /* calculated position */
    btQuaternion rot;      /* calculated rotation */
+   btVector3 snapPos;     /* snapped position at beginning of motion for smoothing */
+   btQuaternion snapRot;  /* snapped rotation at beginning of motion for smoothing */
    unsigned long lastKey; /* last key frame number */
-   btVector3 snapPos;     /* snapped position, to be used as initial position at frame 0 */
-   btQuaternion snapRot;  /* snapped rotation, to be used as initial rotation at frame 0 */
+   bool looped;           /* true if the stored end-of-motion position/rotation should be applied as keyframs at first frame */
 } MotionControllerBoneElement;
 
 /* MotionControllerFaceElement: Motion control element for face */
@@ -60,8 +61,9 @@ typedef struct _MotionControllerFaceElement {
    PMDFace *face;         /* face to be managed */
    FaceMotion *motion;    /* face motion to be played */
    float weight;          /* calculated weight */
-   float snapWeight;      /* snapped face weight, to be used as initial weight at frame 0 */
+   float snapWeight;      /* snapped face weight at beginning of motion for smoothing */
    unsigned long lastKey; /* last key frame number */
+   bool looped;           /* true if the stored end-of-motion weight should be applied as keyframs at first frame */
 } MotionControllerFaceElement;
 
 /* MotionController: motion controller class, to handle one motion to a list of bones and faces */
@@ -87,9 +89,8 @@ private:
    /* internal work area */
    double m_currentFrame;      /* current frame */
    double m_previousFrame;     /* current frame at last call to advance() */
-   float m_lastLoopStartFrame; /* m_firstFrame frame where the last motion loop starts, used for motion smoothing at loop head */
-   float m_noBoneSmearFrame;   /* remaining frames for bone motion smoothing at loop head */
-   float m_noFaceSmearFrame;   /* remaining frames for face motion smoothing at loop head */
+   double m_noBoneSmearFrame;  /* remaining frames for bone motion smoothing at loop head */
+   double m_noFaceSmearFrame;  /* remaining frames for face motion smoothing at loop head */
 
    /* internal work area for initial pose snapshot */
    bool m_overrideFirst; /* when true, the initial bone pos/rot and face weights in the motion at the first frame will be replaced by the runtime pose snapshot */
@@ -103,8 +104,11 @@ private:
    /* control: set bone position/rotation and face weights according to the motion to the specified frame */
    void control(float frameNow);
 
-   /* takeSnap: take a snap shot of current model pose for smooth motion insertion / loop */
+   /* takeSnap: take a snap shot of bones/faces for motion smoothing at beginning of a motion */
    void takeSnap(btVector3 *centerPos);
+
+   /* setLoopedFlags: set flag if the stored end-of-motion position/rotation/weight should be applied at first frame */
+   void setLoopedFlags(bool flag);
 
    /* initialize: initialize controller */
    void initialize();

@@ -260,7 +260,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
          if (motionPlayer->active) {
             currentFrame = motionPlayer->mc.getCurrentFrame();
             previousFrame = motionPlayer->mc.getPreviousFrame();
-            m_model[id].getMotionManager()->startMotionSub(motionPlayer->vmd, motionPlayer);
+            motionPlayer->mc.setup(m_model[id].getPMDModel(), motionPlayer->vmd);
             motionPlayer->mc.setCurrentFrame(currentFrame);
             motionPlayer->mc.setPreviousFrame(previousFrame);
          }

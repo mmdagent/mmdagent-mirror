@@ -39,8 +39,10 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define MOTIONMANAGER_DEFAULTPRIORITY    0.0f /* motion priority */
-#define MOTIONMANAGER_DEFAULTLOOPATFRAME 0.0f /* when specified with loop, motion will rewind at this frame when reached end */
+#define MOTIONMANAGER_DEFAULTPRIORITY       0.0f  /* motion priority */
+#define MOTIONMANAGER_DEFAULTLOOPATFRAME    0.0f  /* when specified with loop, motion will rewind at this frame when reached end */
+#define MOTIONCONTROLLER_BONEENDMARGINFRAME 20.0f /* frame lengths for bone motion smoothing at loop tail */
+#define MOTIONCONTROLLER_FACEENDMARGINFRAME 6.0f  /* frame lengths for face motion smoothing at loop tail */
 
 /* motions's status at last call */
 enum {
@@ -108,6 +110,9 @@ private:
    /* setup: initialize and setup motion manager */
    void setup(PMDModel *pmd);
 
+   /* startMotionSub: initialize a motion */
+   void startMotionSub(VMD *vmd, MotionPlayer *m);
+
    /* initialize: initialize motion manager */
    void initialize();
 
@@ -124,9 +129,6 @@ public:
 
    /* startMotion: start a motion */
    bool startMotion(VMD *vmd, const char *name, bool full, bool once, bool enableSmooth, bool enableRePos, float priority);
-
-   /* startMotionSub: initialize a motion */
-   void startMotionSub(VMD *vmd, MotionPlayer *m);
 
    /* swapMotion: swap a motion, keeping parameters */
    bool swapMotion(VMD *vmd, const char *name);

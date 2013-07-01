@@ -189,16 +189,13 @@ void PTree::add(const char *str, void *data, char *matchstr)
 void * PTree::findNearest(const char *str)
 {
    PTreeNode *n;
-   PTreeNode *branch;
    int maxbitplace;
 
    if (m_root == NULL) return NULL;
 
    n = m_root;
-   branch = NULL;
    maxbitplace = MMDFiles_strlen(str) * 8 + 8;
    while (n->left0 != NULL || n->right1 != NULL) {
-      branch = n;
       if (testBitMax(str, n->value.thres_bit, maxbitplace) != 0)
          n = n->right1;
       else

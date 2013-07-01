@@ -56,8 +56,8 @@ void MotionPlayer_initialize(MotionPlayer *m)
    m->loopAt = MOTIONMANAGER_DEFAULTLOOPATFRAME;
    m->enableSmooth = true;
    m->enableRePos = true;
-   m->endingBoneBlendFrames = 20.0f;
-   m->endingFaceBlendFrames = 5.0f;
+   m->endingBoneBlendFrames = MOTIONCONTROLLER_BONEENDMARGINFRAME;
+   m->endingFaceBlendFrames = MOTIONCONTROLLER_FACEENDMARGINFRAME;
    m->motionBlendRate = 1.0f;
 
    m->active = true;
@@ -103,6 +103,62 @@ void MotionManager::setup(PMDModel * pmd)
 {
    clear();
    m_pmd = pmd;
+}
+
+/* MotionManager::startMotionSub: initialize a motion */
+void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
+{
+   btVector3 offset;
+   PMDBone *centerBone;
+   btTransform tr;
+   btVector3 pos;
+
+   btVector3 centerPos;
+   btVector3 rootOffset;
+
+   /* initialize and setup motion controller */
+   m->mc.setup(m_pmd, vmd);
+
+   /* reset values */
+   m->mc.reset();
+
+   /* base motion does treat the bones with single motion frame at 0th frame as the same as normal bones */
+   m->mc.setIgnoreSingleMotion(m->ignoreStatic);
+
+   /* reset work area */
+   m->vmd = vmd;
+   m->active = true;
+   m->endingBoneBlend = 0.0f;
+   m->endingFaceBlend = 0.0f;
+   /* when motion is changed, speed acceleration is turned off */
+   m->accelerationStatusFlag = ACCELERATION_STATUS_CONSTANT;
+
+   /* set model offset */
+   if (m->enableSmooth) {
+      offset.setZero();
+      if (m->mc.hasCenter() && m->enableRePos) {
+         /* when the started motion has center motion, the center position of the model will be moved to the current position */
+         /* The current global position of the center bone will become the new offset of the root bone, and the local center position will be reset */
+         centerBone = m_pmd->getCenterBone();
+         /* calculate relative origin of center bone from model root bone */
+         tr = m_pmd->getRootBone()->getTransform()->inverse();
+         pos = tr * centerBone->getTransform()->getOrigin();
+         /* get the translation vector */
+         centerBone->getOriginPosition(&centerPos);
+         offset = pos - centerPos;
+         offset.setY(0.0f); /* Y axis should be set to zero to place model on ground */
+         /* save the current pos/rot for smooth motion changing, resetting center location */
+         m->mc.setOverrideFirst(&offset);
+         /* add the offset to the root bone */
+         m_pmd->getRootBone()->getOffset(&rootOffset);
+         rootOffset += offset;
+         m_pmd->getRootBone()->setOffset(&rootOffset);
+         m_pmd->getRootBone()->update();
+      } else {
+         /* save the current pos/rot for smooth motion changing */
+         m->mc.setOverrideFirst(NULL) ;
+      }
+   }
 }
 
 /* MotionManager::initialize: initialize motion manager */
@@ -192,62 +248,6 @@ bool MotionManager::startMotion(VMD * vmd, const char *name, bool full, bool onc
    }
 
    return true;
-}
-
-/* MotionManager::startMotionSub: initialize a motion */
-void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
-{
-   btVector3 offset;
-   PMDBone *centerBone;
-   btTransform tr;
-   btVector3 pos;
-
-   btVector3 centerPos;
-   btVector3 rootOffset;
-
-   /* initialize and setup motion controller */
-   m->mc.setup(m_pmd, vmd);
-
-   /* reset values */
-   m->mc.reset();
-
-   /* base motion does treat the bones with single motion frame at 0th frame as the same as normal bones */
-   m->mc.setIgnoreSingleMotion(m->ignoreStatic);
-
-   /* reset work area */
-   m->vmd = vmd;
-   m->active = true;
-   m->endingBoneBlend = 0.0f;
-   m->endingFaceBlend = 0.0f;
-   /* when motion is changed, speed acceleration is turned off */
-   m->accelerationStatusFlag = ACCELERATION_STATUS_CONSTANT;
-
-   /* set model offset */
-   if (m->enableSmooth) {
-      offset.setZero();
-      if (m->mc.hasCenter() && m->enableRePos) {
-         /* when the started motion has center motion, the center position of the model will be moved to the current position */
-         /* The current global position of the center bone will become the new offset of the root bone, and the local center position will be reset */
-         centerBone = m_pmd->getCenterBone();
-         /* calculate relative origin of center bone from model root bone */
-         tr = m_pmd->getRootBone()->getTransform()->inverse();
-         pos = tr * centerBone->getTransform()->getOrigin();
-         /* get the translation vector */
-         centerBone->getOriginPosition(&centerPos);
-         offset = pos - centerPos;
-         offset.setY(0.0f); /* Y axis should be set to zero to place model on ground */
-         /* save the current pos/rot for smooth motion changing, resetting center location */
-         m->mc.setOverrideFirst(&offset);
-         /* add the offset to the root bone */
-         m_pmd->getRootBone()->getOffset(&rootOffset);
-         rootOffset += offset;
-         m_pmd->getRootBone()->setOffset(&rootOffset);
-         m_pmd->getRootBone()->update();
-      } else {
-         /* save the current pos/rot for smooth motion changing */
-         m->mc.setOverrideFirst(NULL) ;
-      }
-   }
 }
 
 /* MotionManager::swapMotion: swap a motion, keeping parameters */
