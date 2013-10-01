@@ -108,82 +108,97 @@ void PMDModel::updateFace()
    }
 }
 
-/* PMDModel::updateSkin: update skin data from bone orientation */
+/* PMDModel::updateSkin: update skin data from bone orientation, toon and edges */
 void PMDModel::updateSkin()
 {
    unsigned short i;
    unsigned int j;
-   btVector3 v, v2, n, n2;
+   btVector3 v, v2, n, n2, vv, nn;
+   btVector3 *vertexList, *normalList, *edgeVertexList = NULL;
+   TexCoord *texCoordList = NULL;
+   char *ptr;
 
    /* calculate transform matrix for skinning (global -> local) */
    for (i = 0; i < m_numBone; i++)
       m_boneList[i].calcSkinningTrans(&(m_boneSkinningTrans[i]));
 
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+   glBufferData(GL_ARRAY_BUFFER, m_vboBufDynamicLen, NULL, GL_DYNAMIC_DRAW);
+   ptr = (char *) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+   if (!ptr) {
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      return;
+   }
+   vertexList = (btVector3 *)(ptr + m_vboOffsetVertex);
+   normalList = (btVector3 *)(ptr + m_vboOffsetNormal);
+   if (m_toon) {
+      texCoordList = (TexCoord *)(ptr + m_vboOffsetToon);
+      edgeVertexList = (btVector3 *)(ptr + m_vboOffsetEdge);
+   }
+
    /* do skinning */
    for (j = 0; j < m_numVertex; j++) {
       if (m_boneWeight1[j] >= 1.0f - PMDMODEL_MINBONEWEIGHT) {
          /* bone 1 */
-         m_skinnedVertexList[j] = m_boneSkinningTrans[m_bone1List[j]] * m_vertexList[j];
-         m_skinnedNormalList[j] = m_boneSkinningTrans[m_bone1List[j]].getBasis() * m_normalList[j];
+         vv = m_boneSkinningTrans[m_bone1List[j]] * m_vertexList[j];
+         nn = m_boneSkinningTrans[m_bone1List[j]].getBasis() * m_normalList[j];
       } else if (m_boneWeight1[j] <= PMDMODEL_MINBONEWEIGHT) {
          /* bone 2 */
-         m_skinnedVertexList[j] = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
-         m_skinnedNormalList[j] = m_boneSkinningTrans[m_bone2List[j]].getBasis() * m_normalList[j];
+         vv = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
+         nn = m_boneSkinningTrans[m_bone2List[j]].getBasis() * m_normalList[j];
       } else {
          /* lerp */
          v = m_boneSkinningTrans[m_bone1List[j]] * m_vertexList[j];
          n = m_boneSkinningTrans[m_bone1List[j]].getBasis() * m_normalList[j];
          v2 = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
          n2 = m_boneSkinningTrans[m_bone2List[j]].getBasis() * m_normalList[j];
-         m_skinnedVertexList[j] = v2.lerp(v, m_boneWeight1[j]);
-         m_skinnedNormalList[j] = n2.lerp(n, m_boneWeight1[j]);
+         vv = v2.lerp(v, m_boneWeight1[j]);
+         nn = n2.lerp(n, m_boneWeight1[j]);
+      }
+      vertexList[j] = vv;
+      normalList[j] = nn;
+      if (m_toon) {
+         texCoordList[j].u = 0.0f;
+         texCoordList[j].v = (1.0f - m_light.dot(nn)) * 0.5f;
+         if (m_noEdgeFlag[j] == 1)
+            edgeVertexList[j] = vv;
+         else
+            edgeVertexList[j] = vv + nn * m_edgeOffset;
       }
    }
+
+   glUnmapBuffer(GL_ARRAY_BUFFER);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-/* PMDModel::updateToon: update toon coordinates and edge vertices */
-void PMDModel::updateToon(btVector3 *light)
+/* PMDModel::setToonLight: set light direction for toon coordinates */
+void PMDModel::setToonLight(btVector3 *light)
 {
-   unsigned int i;
-
-   if (m_toon) {
-      /* calculate toon texture coordinates for toon shading */
-      for (i = 0; i < m_numVertex; i++) {
-         m_toonTexCoordList[i].u = 0.0f;
-         m_toonTexCoordList[i].v = (1.0f - light->dot(m_skinnedNormalList[i])) * 0.5f;
-      }
-      /* calculate vertices for edge drawing */
-      for (i = 0; i < m_numVertex; i++) {
-         /* not push vertices with no edge flag */
-         if (m_noEdgeFlag[i] == 1)
-            m_edgeVertexList[i] = m_skinnedVertexList[i];
-         else
-            m_edgeVertexList[i] = m_skinnedVertexList[i] + m_skinnedNormalList[i] * m_edgeOffset;
-      }
-   }
+   m_light = *light;
 }
 
 /* PMDModel::updateShadowColorTexCoord: update / create pseudo toon coordinates for shadow rendering pass on shadow mapping */
 void PMDModel::updateShadowColorTexCoord(float coef)
 {
    unsigned int i;
-   bool update = false;
+   TexCoord *tmp;
 
    if (!m_toon) return;
 
-   if (m_toonTexCoordListForShadowMap == NULL) {
-      m_toonTexCoordListForShadowMap = (TexCoord *) malloc(sizeof(TexCoord) * m_numVertex);
-      update = true;
-   } else if (m_selfShadowDensityCoef != coef) {
-      update = true;
-   }
-
-   if (update) {
+   if (m_vboOffsetCoordForShadowMap == 0 || m_selfShadowDensityCoef != coef) {
+      glBindBuffer(GL_ARRAY_BUFFER, m_vboBufStatic);
+      glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoord) * m_numVertex * 2, NULL, GL_STATIC_DRAW);
+      glBufferSubData(GL_ARRAY_BUFFER, (GLintptr) NULL, sizeof(TexCoord) * m_numVertex, m_texCoordList);
+      m_vboOffsetCoordForShadowMap =  sizeof(TexCoord) * m_numVertex;
+      tmp = (TexCoord *) malloc(sizeof(TexCoord) * m_numVertex);
       for (i = 0 ; i < m_numVertex ; i++) {
-         m_toonTexCoordListForShadowMap[i].u = 0.0f;
-         m_toonTexCoordListForShadowMap[i].v = coef;
+         tmp[i].u = 0.0f;
+         tmp[i].v = coef;
       }
+      glBufferSubData(GL_ARRAY_BUFFER, (GLintptr) m_vboOffsetCoordForShadowMap, sizeof(TexCoord) * m_numVertex, tmp);
+      free(tmp);
       m_selfShadowDensityCoef = coef;
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
    }
 }
 
@@ -193,11 +208,21 @@ float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
    unsigned int i;
    btVector3 centerPos = btVector3(0, 0, 0), v;
    float maxR = 0.0f, r2;
+   btVector3 *vertexList;
+   char *ptr;
+
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+   ptr = (char *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+   if (!ptr) {
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      return 0.0f;
+   }
+   vertexList = (btVector3 *)(ptr + m_vboOffsetVertex);
 
    if (m_centerBone) {
       centerPos = m_centerBone->getTransform()->getOrigin();
       for (i = 0; i < m_numVertex; i += m_boundingSphereStep) {
-         r2 = centerPos.distance2(m_skinnedVertexList[i]);
+         r2 = centerPos.distance2(vertexList[i]);
          if (maxR < r2) maxR = r2;
       }
       maxR = sqrtf(maxR) * 1.1f;
@@ -206,6 +231,9 @@ float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
    }
 
    if (cpos) *cpos = centerPos;
+
+   glUnmapBuffer(GL_ARRAY_BUFFER);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
    return maxR;
 }
@@ -259,9 +287,19 @@ void PMDModel::updateMaterialOrder(btTransform *trans)
 #ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
    unsigned int i;
    btVector3 pos;
+   btVector3 *vertexList;
+   char *ptr;
+
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+   ptr = (char *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+   if (!ptr) {
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      return;
+   }
+   vertexList = (btVector3 *)(ptr + m_vboOffsetVertex);
 
    for (i = 0; i < m_numMaterial; i++) {
-      pos = m_skinnedVertexList[m_material[i].getCenterPositionIndex()];
+      pos = vertexList[m_material[i].getCenterPositionIndex()];
       pos = *trans * pos;
       m_materialDistance[i].dist = pos.z() + m_material[i].getCenterVertexRadius();
       if (m_material[i].getAlpha() == 1.0f && m_material[i].getTexture() != NULL && m_material[i].getTexture()->isTransparent())
@@ -270,6 +308,10 @@ void PMDModel::updateMaterialOrder(btTransform *trans)
          m_materialDistance[i].alpha = m_material[i].getAlpha();
       m_materialDistance[i].id = i;
    }
+
+   glUnmapBuffer(GL_ARRAY_BUFFER);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
    qsort(m_materialDistance, m_numMaterial, sizeof(MaterialDistanceData), compareAlphaDepth);
    for (i = 0; i < m_numMaterial; i++)
       m_materialRenderOrder[i] = m_materialDistance[i].id;

@@ -54,6 +54,9 @@ void PMDModel::renderModel()
    float c[4];
    PMDMaterial *m;
    float modelAlpha;
+   unsigned int numSurface;
+   unsigned int surfaceOffset;
+   bool drawEdge;
 
    if (!m_vertexList) return;
 
@@ -67,26 +70,29 @@ void PMDModel::renderModel()
    glActiveTextureARB(GL_TEXTURE0_ARB);
    glClientActiveTextureARB(GL_TEXTURE0_ARB);
 
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufStatic);
+   glTexCoordPointer(2, GL_FLOAT, 0, (const GLvoid *) NULL);
+
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+
    /* set lists */
    glEnableClientState(GL_VERTEX_ARRAY);
    glEnableClientState(GL_NORMAL_ARRAY);
-   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_skinnedVertexList);
-   glNormalPointer(GL_FLOAT, sizeof(btVector3), m_skinnedNormalList);
-   /* set model texture coordinates to texture unit 0 */
-   glClientActiveTextureARB(GL_TEXTURE0_ARB);
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, 0, m_texCoordList);
+   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetVertex);
+   glNormalPointer(GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetNormal);
    if (m_toon) {
       /* set toon texture coordinates to texture unit 1 */
       glActiveTextureARB(GL_TEXTURE1_ARB);
       glEnable(GL_TEXTURE_2D);
       glClientActiveTextureARB(GL_TEXTURE1_ARB);
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-      if (m_selfShadowDrawing)
-         /* when drawing a shadow part in shadow mapping, force toon texture coordinates to (0, 0) */
-         glTexCoordPointer(2, GL_FLOAT, 0, m_toonTexCoordListForShadowMap);
-      else
-         glTexCoordPointer(2, GL_FLOAT, 0, m_toonTexCoordList);
+      if (m_selfShadowDrawing) {
+         glBindBuffer(GL_ARRAY_BUFFER, m_vboBufStatic);
+         glTexCoordPointer(2, GL_FLOAT, 0, (const GLvoid *) m_vboOffsetCoordForShadowMap);
+         glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+      } else
+         glTexCoordPointer(2, GL_FLOAT, 0, (const GLvoid *) m_vboOffsetToon);
       glActiveTextureARB(GL_TEXTURE0_ARB);
       glClientActiveTextureARB(GL_TEXTURE0_ARB);
    }
@@ -111,6 +117,8 @@ void PMDModel::renderModel()
 
    /* calculate alpha value, applying model global alpha */
    modelAlpha = m_globalAlpha;
+
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vboBufElement);
 
    /* render per material */
    for (i = 0; i < m_numMaterial; i++) {
@@ -196,7 +204,7 @@ void PMDModel::renderModel()
       }
 
       /* draw elements */
-      glDrawElements(GL_TRIANGLES, m->getNumSurface(), GL_UNSIGNED_SHORT, m->getSurfaceList());
+      glDrawElements(GL_TRIANGLES, m->getNumSurface(), GL_UNSIGNED_SHORT, (const GLvoid *) (sizeof(unsigned short) * m->getSurfaceListIndex()));
 
       /* reset some parameters */
       if (m->getTexture() && m->getTexture()->isSphereMap() && m->getTexture()->isSphereMapAdd()) {
@@ -206,7 +214,6 @@ void PMDModel::renderModel()
       }
    }
 
-   glDisableClientState(GL_VERTEX_ARRAY);
    glDisableClientState(GL_NORMAL_ARRAY);
    if (m_toon) {
       glClientActiveTextureARB(GL_TEXTURE0_ARB);
@@ -259,61 +266,59 @@ void PMDModel::renderModel()
    glCullFace(GL_BACK);
    glPopMatrix();
 #endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
-}
 
-/* PMDModel::renderEdge: render toon edge */
-void PMDModel::renderEdge()
-{
-   unsigned int numSurface;
-   unsigned short *surfaceList;
-   float modelAlpha;
 
-   if (!m_vertexList) return;
-
+   /* draw edge */
+   drawEdge = true;
    if (m_forceEdge) {
       /* force edge drawing even if this model has no edge surface or no-toon mode */
       if (m_numSurfaceForEdge == 0) {
          numSurface = m_numSurface;
-         surfaceList = m_surfaceList;
+         surfaceOffset = 0;
       } else {
          numSurface = m_numSurfaceForEdge;
-         surfaceList = m_surfaceListForEdge;
+         surfaceOffset = m_vboOffsetSurfaceForEdge;
       }
    } else {
       /* draw edge when toon mode, skip when this model has no edge surface */
-      if (!m_toon) return;
-      if (m_numSurfaceForEdge == 0) return;
+      if (!m_toon)
+         drawEdge = false;
+      if (m_numSurfaceForEdge == 0)
+         drawEdge = false;
       numSurface = m_numSurfaceForEdge;
-      surfaceList = m_surfaceListForEdge;
+      surfaceOffset = m_vboOffsetSurfaceForEdge;
    }
 
+   if (drawEdge) {
+
 #ifndef MMDFILES_CONVERTCOORDINATESYSTEM
-   glPushMatrix();
-   glScalef(1.0f, 1.0f, -1.0f);
-   glCullFace(GL_BACK);
+      glPushMatrix();
+      glScalef(1.0f, 1.0f, -1.0f);
+      glCullFace(GL_BACK);
 #else
-   /* draw back surface only */
-   glCullFace(GL_FRONT);
+      /* draw back surface only */
+      glCullFace(GL_FRONT);
 #endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
 
-   /* calculate alpha value */
-   modelAlpha = m_globalAlpha;
+      glDisable(GL_LIGHTING);
+      glColor4f(m_edgeColor[0], m_edgeColor[1], m_edgeColor[2], m_edgeColor[3] * modelAlpha);
+      glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetEdge);
+      glDrawElements(GL_TRIANGLES, numSurface, GL_UNSIGNED_SHORT, (const GLvoid *) surfaceOffset);
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glEnable(GL_LIGHTING);
 
-   glDisable(GL_LIGHTING);
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_edgeVertexList);
-   glColor4f(m_edgeColor[0], m_edgeColor[1], m_edgeColor[2], m_edgeColor[3] * modelAlpha);
-   glDrawElements(GL_TRIANGLES, numSurface, GL_UNSIGNED_SHORT, surfaceList);
-   glDisableClientState(GL_VERTEX_ARRAY);
-   glEnable(GL_LIGHTING);
-
-   /* draw front again */
+      /* draw front again */
 #ifndef MMDFILES_CONVERTCOORDINATESYSTEM
-   glPopMatrix();
-   glCullFace(GL_FRONT);
+      glPopMatrix();
+      glCullFace(GL_FRONT);
 #else
-   glCullFace(GL_BACK);
+      glCullFace(GL_BACK);
 #endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
+   }
+
+   /* unbind buffer */
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 /* PMDModel::renderForShadow: render for shadow */
@@ -325,10 +330,14 @@ void PMDModel::renderForShadow()
    if (m_numSurfaceForEdge == 0) return;
 
    glDisable(GL_CULL_FACE);
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
    glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_skinnedVertexList);
-   glDrawElements(GL_TRIANGLES, m_numSurfaceForEdge, GL_UNSIGNED_SHORT, m_surfaceListForEdge);
+   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetVertex);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vboBufElement);
+   glDrawElements(GL_TRIANGLES, m_numSurfaceForEdge, GL_UNSIGNED_SHORT, (const GLvoid *) m_vboOffsetSurfaceForEdge);
    glDisableClientState(GL_VERTEX_ARRAY);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
    glEnable(GL_CULL_FACE);
 }
 
@@ -339,10 +348,14 @@ void PMDModel::renderForPick()
 
    /* plain drawing of all surfaces */
    glDisable(GL_CULL_FACE);
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
    glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), m_skinnedVertexList);
-   glDrawElements(GL_TRIANGLES, m_numSurface, GL_UNSIGNED_SHORT, m_surfaceList);
+   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetVertex);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vboBufElement);
+   glDrawElements(GL_TRIANGLES, m_numSurface, GL_UNSIGNED_SHORT, (const GLvoid *) NULL);
    glDisableClientState(GL_VERTEX_ARRAY);
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
    glEnable(GL_CULL_FACE);
 }
 

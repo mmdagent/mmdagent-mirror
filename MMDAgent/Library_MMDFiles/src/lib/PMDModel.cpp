@@ -87,13 +87,17 @@ void PMDModel::initialize()
    }
 
    m_boneSkinningTrans = NULL;
-   m_skinnedVertexList = NULL;
-   m_skinnedNormalList = NULL;
-   m_toonTexCoordList = NULL;
-   m_edgeVertexList = NULL;
    m_numSurfaceForEdge = 0;
-   m_surfaceListForEdge = NULL;
-   m_toonTexCoordListForShadowMap = NULL;
+   m_vboBufDynamic = 0;
+   m_vboBufStatic = 0;
+   m_vboBufElement = 0;
+   m_vboBufDynamicLen = 0;
+   m_vboOffsetVertex = 0;
+   m_vboOffsetNormal = 0;
+   m_vboOffsetToon = 0;
+   m_vboOffsetEdge = 0;
+   m_vboOffsetSurfaceForEdge = 0;
+   m_vboOffsetCoordForShadowMap = 0;
 
    m_centerBone = NULL;
    m_baseFace = NULL;
@@ -111,6 +115,7 @@ void PMDModel::initialize()
 
    /* initial values for variables that should be kept at model change */
    m_toon = false;
+   m_light.setZero();
    m_globalAlpha = 1.0f;
    m_edgeOffset = 0.03f;
    m_selfShadowDrawing = false;
@@ -162,18 +167,12 @@ void PMDModel::clear()
 
    if (m_boneSkinningTrans)
       delete [] m_boneSkinningTrans;
-   if (m_skinnedVertexList)
-      delete [] m_skinnedVertexList;
-   if (m_skinnedNormalList)
-      delete [] m_skinnedNormalList;
-   if (m_toonTexCoordList)
-      free(m_toonTexCoordList);
-   if (m_edgeVertexList)
-      delete [] m_edgeVertexList;
-   if (m_surfaceListForEdge)
-      free(m_surfaceListForEdge);
-   if (m_toonTexCoordListForShadowMap)
-      free(m_toonTexCoordListForShadowMap);
+   if (m_vboBufDynamic != 0)
+      glDeleteBuffers(1, &m_vboBufDynamic);
+   if (m_vboBufStatic != 0)
+      glDeleteBuffers(1, &m_vboBufStatic);
+   if (m_vboBufElement != 0)
+      glDeleteBuffers(1, &m_vboBufElement);
    if (m_orderedBoneList)
       free(m_orderedBoneList);
    if (m_rotateBoneIDList)

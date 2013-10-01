@@ -321,10 +321,9 @@ void PMDObject::updateSkin()
 {
    if (m_isEnable == false) return;
 
-   /* update skin */
+   /* update skin and toon */
+   m_pmd.setToonLight(&m_lightDir);
    m_pmd.updateSkin();
-   /* update toon */
-   m_pmd.updateToon(&m_lightDir);
 }
 
 /* PMDObject::updateAlpha: update global model alpha */

@@ -43,23 +43,12 @@
 
 #include "MMDAgent.h"
 
-/* TileTexture::resetDisplayList: reset display list */
-void TileTexture::resetDisplayList()
-{
-   if (m_listIndexValid) {
-      glDeleteLists(m_listIndex, 1);
-      m_listIndexValid = false;
-   }
-}
-
 /* TileTexture::initialize: initialize texture */
 void TileTexture::initialize()
 {
    int i;
 
    m_isLoaded = false;
-   m_listIndex = 0;
-   m_listIndexValid = false;
 
    for (i = 0; i < 12; i++)
       m_vertices[i] = 0.0f;
@@ -70,7 +59,6 @@ void TileTexture::initialize()
 /* TileTexture::clear: free texture */
 void TileTexture::clear()
 {
-   resetDisplayList();
    if (m_isLoaded)
       m_texture.release();
 
@@ -99,7 +87,6 @@ bool TileTexture::load(const char *file)
       return false;
 
    m_isLoaded = true;
-   resetDisplayList();
 
    return true;
 }
@@ -107,48 +94,40 @@ bool TileTexture::load(const char *file)
 /* TileTexture::render: render the textures */
 void TileTexture::render(bool cullFace, const float *normal)
 {
-   GLfloat color[] = {0.65f, 0.65f, 0.65f, 1.0f};
+   GLfloat color[] = {1.0f, 1.0f, 1.0f, 1.0f};
    GLfloat spec[] = {0.0f, 0.0f, 0.0f, 0.0f};
-   GLfloat texcoords[] = {0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
+   GLfloat coords[] = {0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f};
+   GLfloat vers[] = { m_vertices[0], m_vertices[1], m_vertices[2],
+                      m_vertices[3], m_vertices[4], m_vertices[5],
+                      m_vertices[9], m_vertices[10], m_vertices[11],
+                      m_vertices[6], m_vertices[7], m_vertices[8]
+                    };
 
    if (m_isLoaded == false) return;
 
-   if (m_listIndexValid) {
-      /* call display list */
-      glCallList(m_listIndex);
-      return;
-   }
-
-   /* create display list  */
-   m_listIndex = glGenLists(1); /* get display list index */
-   glNewList(m_listIndex, GL_COMPILE);
-
-   /* register rendering command */
    if (!cullFace)
       glDisable(GL_CULL_FACE);
 
-   glEnable(GL_TEXTURE_2D);
    glPushMatrix();
-   glNormal3f(normal[0], normal[1], normal[2]);
+   glEnable(GL_TEXTURE_2D);
+   glActiveTexture(GL_TEXTURE0);
+   glClientActiveTexture(GL_TEXTURE0);
+   glVertexPointer(3, GL_FLOAT, 0, vers);
+   glEnableClientState(GL_VERTEX_ARRAY);
    glBindTexture(GL_TEXTURE_2D, m_texture.getID());
+   glTexCoordPointer(2, GL_FLOAT, 0, coords);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glNormal3f(normal[0], normal[1], normal[2]);
    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
-   glVertexPointer(3, GL_FLOAT, 0, m_vertices);
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-   glDrawArrays(GL_QUADS, 0, 4);
+   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
    glDisableClientState(GL_VERTEX_ARRAY);
-   glPopMatrix();
    glDisable(GL_TEXTURE_2D);
+   glPopMatrix();
 
    if (!cullFace)
       glEnable(GL_CULL_FACE);
-
-   /* end of regist */
-   glEndList();
-   m_listIndexValid = true;
 }
 
 /* TileTexture::getSize: get texture size */
@@ -179,6 +158,4 @@ void TileTexture::setSize(float v00, float v01, float v02,
 
    m_numx = numx;
    m_numy = numy;
-
-   resetDisplayList();
 }

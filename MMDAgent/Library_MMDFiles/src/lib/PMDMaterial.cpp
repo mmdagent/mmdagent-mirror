@@ -61,7 +61,7 @@ void PMDMaterial::initialize()
    m_edgeFlag = false;
    m_texture = NULL;
    m_additionalTexture = NULL;
-   m_surfaceList = NULL;
+   m_surfaceList = 0;
    m_centerVertexIndex = 0;
    m_centerVertexRadius = 0.0f;
 }
@@ -86,7 +86,7 @@ PMDMaterial::~PMDMaterial()
 }
 
 /* PMDMaterial::setup: initialize and setup material */
-bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir, unsigned short *indices, btVector3 *vertices)
+bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, const char *dir, unsigned int indices, btVector3 *vertices, unsigned short *surfaces)
 {
    int i, len;
    char *p;
@@ -95,6 +95,7 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    char name[21];
    unsigned int j;
    float f[3], d, tmp = 0.0f;
+   unsigned short *surface;
 
    clear();
 
@@ -102,8 +103,10 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    for (i = 0; i < 3; i++) {
       m_diffuse[i] = m->diffuse[i];
       m_ambient[i] = m->ambient[i];
-      /* calculate average color of diffuse and ambient for toon rendering */
-      m_avgcol[i] = (m_diffuse[i] + m_ambient[i]) * 0.5f;
+      /* calculate color for toon rendering */
+      m_avgcol[i] = m_diffuse[i] * 0.5f + m_ambient[i];
+      if (m_avgcol[i] > 1.0f)
+         m_avgcol[i] = 1.0f;
       m_specular[i] = m->specular[i];
    }
    m_alpha = m->alpha;
@@ -149,27 +152,28 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    m_surfaceList = indices;
 
    /* calculate for center vertex */
+   surface = &(surfaces[indices]);
    for (i = 0; i < 3; i++)
       f[i] = 0.0f;
    for (j = 0; j < m_numSurface; j++) {
-      f[0] += vertices[indices[j]].getX();
-      f[1] += vertices[indices[j]].getY();
-      f[2] += vertices[indices[j]].getZ();
+      f[0] += vertices[surface[j]].getX();
+      f[1] += vertices[surface[j]].getY();
+      f[2] += vertices[surface[j]].getZ();
    }
    for (i = 0; i < 3; i++)
       f[i] /= (float)m_numSurface;
    for (j = 0; j < m_numSurface; j++) {
-      d = (f[0] - vertices[indices[j]].getX()) * (f[0] - vertices[indices[j]].getX())
-          + (f[1] - vertices[indices[j]].getY()) * (f[1] - vertices[indices[j]].getY())
-          + (f[2] - vertices[indices[j]].getZ()) * (f[2] - vertices[indices[j]].getZ());
+      d = (f[0] - vertices[surface[j]].getX()) * (f[0] - vertices[surface[j]].getX())
+          + (f[1] - vertices[surface[j]].getY()) * (f[1] - vertices[surface[j]].getY())
+          + (f[2] - vertices[surface[j]].getZ()) * (f[2] - vertices[surface[j]].getZ());
       if (j == 0 || tmp > d) {
          tmp = d;
-         m_centerVertexIndex = indices[j];
+         m_centerVertexIndex = surface[j];
       }
    }
    /* get maximum radius from the center vertex */
    for (j = 0; j < m_numSurface; j++) {
-      d = vertices[m_centerVertexIndex].distance2(vertices[indices[j]]);
+      d = vertices[m_centerVertexIndex].distance2(vertices[surface[j]]);
       if (j == 0 || m_centerVertexRadius < d) {
          m_centerVertexRadius = d;
       }
@@ -287,8 +291,8 @@ float PMDMaterial::getCenterVertexRadius()
    return m_centerVertexRadius;
 }
 
-/* PMDMaterial::getSurfaceList: get surface list */
-unsigned short *PMDMaterial::getSurfaceList()
+/* PMDMaterial::getSurfaceListIndex: get surface list index */
+unsigned int PMDMaterial::getSurfaceListIndex()
 {
    return m_surfaceList;
 }

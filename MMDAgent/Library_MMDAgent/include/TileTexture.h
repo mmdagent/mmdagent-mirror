@@ -46,15 +46,10 @@ private:
 
    PMDTexture m_texture;     /* texture */
    bool m_isLoaded;
-   GLuint m_listIndex;       /* display list */
-   bool m_listIndexValid;    /* true if m_listIndex was registered */
 
    GLfloat m_vertices[12]; /* position */
    GLfloat m_numx;
    GLfloat m_numy;
-
-   /* resetDisplayList: reset display list */
-   void resetDisplayList();
 
    /* initialize: initialize texture */
    void initialize();

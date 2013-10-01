@@ -49,8 +49,6 @@ void Stage::initialize()
    int i, j;
 
    m_hasPMD = false;
-   m_listIndexPMD = 0;
-   m_listIndexPMDValid = false;
    for (i = 0; i < 4 ; i++)
       for (j = 0; j < 4; j++)
          m_floorShadow[i][j] = 0.0f;
@@ -124,12 +122,7 @@ bool Stage::loadStagePMD(const char *file, BulletPhysics *bullet, SystemTexture 
       return false;
 
    m_pmd.setToonFlag(false);
-   m_pmd.updateSkin();
    m_hasPMD = true;
-   if (m_listIndexPMDValid) {
-      glDeleteLists(m_listIndexPMD, 1);
-      m_listIndexPMDValid = false;
-   }
 
    return true;
 }
@@ -157,18 +150,9 @@ void Stage::renderBackground()
 /* Stage::renderPMD: render the stage pmd */
 void Stage::renderPMD()
 {
-   if (m_listIndexPMDValid) {
-      glCallList(m_listIndexPMD);
-      return;
-   }
-
-   m_listIndexPMD = glGenLists(1);
-   glNewList(m_listIndexPMD, GL_COMPILE);
    glPushMatrix();
    m_pmd.renderModel();
    glPopMatrix();
-   glEndList();
-   m_listIndexPMDValid = true;
 }
 
 /* Stage::updateShadowMatrix: update shadow projection matrix */

@@ -411,7 +411,6 @@ void Render::renderSceneShadowMap(PMDObject *objs, const short *order, int num, 
                toonLight = true;
             }
             objs[order[i]].getPMDModel()->renderModel();
-            objs[order[i]].getPMDModel()->renderEdge();
          }
       }
       if (toonLight == false) {
@@ -447,7 +446,6 @@ void Render::renderSceneShadowMap(PMDObject *objs, const short *order, int num, 
             objs[order[i]].getPMDModel()->setSelfShadowDrawing(true);
             /* render model and edge */
             objs[order[i]].getPMDModel()->renderModel();
-            objs[order[i]].getPMDModel()->renderEdge();
             /* disable shadow rendering */
             objs[order[i]].getPMDModel()->setSelfShadowDrawing(false);
          }
@@ -634,7 +632,6 @@ void Render::renderScene(PMDObject *objs, const short *order, int num, Stage *st
             toonLight = true;
          }
          objs[order[i]].getPMDModel()->renderModel();
-         objs[order[i]].getPMDModel()->renderEdge();
       }
    }
    if (toonLight == false) {
@@ -1015,12 +1012,12 @@ void Render::updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float
    if (useMMDLikeCartoon == false) {
       /* MMDAgent original cartoon */
       d = 0.2f;
-      a = lightIntensity * 2.0f;
+      a = lightIntensity * 1.5f;
       s = 0.4f;
    } else if (useCartoonRendering) {
       /* like MikuMikuDance */
       d = 0.0f;
-      a = lightIntensity * 2.0f;
+      a = lightIntensity * 1.5f;
       s = lightIntensity;
    } else {
       /* no toon */

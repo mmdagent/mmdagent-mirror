@@ -73,7 +73,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    PMDFile_Constraint *fileConstraint;
 
    unsigned short j, k, l;
-   unsigned short *surfaceFrom, *surfaceTo;
+   unsigned int surfaceFrom, surfaceTo;
    char *name;
    PMDBone *bMatch;
    PMDFace *fMatch;
@@ -149,9 +149,9 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    data += sizeof(unsigned int);
    m_material = new PMDMaterial[m_numMaterial];
    fileMaterial = (PMDFile_Material *) data;
-   surfaceFrom = m_surfaceList;
+   surfaceFrom = 0;
    for (i = 0; i < m_numMaterial; i++) {
-      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader, dir, surfaceFrom, m_vertexList)) {
+      if (!m_material[i].setup(&fileMaterial[i], &m_textureLoader, dir, surfaceFrom, m_vertexList, m_surfaceList)) {
          /* ret = false; */
       }
       surfaceFrom += m_material[i].getNumSurface();
@@ -379,35 +379,63 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    /* prepare work area */
    /* transforms for skinning */
    m_boneSkinningTrans = new btTransform[m_numBone];
-   /* calculated Vertex informations for skinning */
-   m_skinnedVertexList = new btVector3[m_numVertex];
-   m_skinnedNormalList = new btVector3[m_numVertex];
-   /* calculated Texture coordinates for toon shading */
-   m_toonTexCoordList = (TexCoord *) malloc(sizeof(TexCoord) * m_numVertex);
-   /* calculated Vertex positions for toon edge drawing */
-   m_edgeVertexList = new btVector3[m_numVertex];
-   /* initialize material order */
-   m_materialRenderOrder = new unsigned int[m_numMaterial];
-   m_materialDistance = new MaterialDistanceData[m_numMaterial];
-   for (i = 0; i < m_numMaterial; i++)
-      m_materialRenderOrder[i] = i;
    /* surface list to be rendered at edge drawing (skip non-edge materials) */
    m_numSurfaceForEdge = 0;
    for (i = 0; i < m_numMaterial; i++)
       if (m_material[i].getEdgeFlag())
          m_numSurfaceForEdge += m_material[i].getNumSurface();
-   if (m_numSurfaceForEdge > 0) {
-      m_surfaceListForEdge = (unsigned short *) malloc(sizeof(unsigned short) * m_numSurfaceForEdge);
-      surfaceFrom = m_surfaceList;
-      surfaceTo = m_surfaceListForEdge;
+
+   /* prepare vertex buffers as work area */
+
+   /* the fist buffer contains dynamic data: vertex, normal, toon coodinates, edge vertex */
+   glGenBuffers(1, &m_vboBufDynamic);
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+   m_vboBufDynamicLen = (sizeof(btVector3) * 3 + sizeof(TexCoord)) * m_numVertex;
+   glBufferData(GL_ARRAY_BUFFER, m_vboBufDynamicLen, NULL, GL_STATIC_DRAW);
+   /* store initial values and set offset for each part */
+   m_vboOffsetVertex = 0;
+   glBufferSubData(GL_ARRAY_BUFFER, (GLintptr) m_vboOffsetVertex, sizeof(btVector3) * m_numVertex, m_vertexList);
+   m_vboOffsetNormal = m_vboOffsetVertex + sizeof(btVector3) * m_numVertex;
+   glBufferSubData(GL_ARRAY_BUFFER, (GLintptr) m_vboOffsetNormal, sizeof(btVector3) * m_numVertex, m_normalList);
+   m_vboOffsetToon = m_vboOffsetNormal + sizeof(btVector3) * m_numVertex;
+   m_vboOffsetEdge = m_vboOffsetToon + sizeof(TexCoord) * m_numVertex;
+
+   /* the second buffer contains static data: texture coordinates */
+   glGenBuffers(1, &m_vboBufStatic);
+   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufStatic);
+   glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoord) * m_numVertex, m_texCoordList, GL_STATIC_DRAW);
+
+   /* the third buffer contains static element data: original and for edge */
+   glGenBuffers(1, &m_vboBufElement);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vboBufElement);
+   if (m_numSurfaceForEdge != 0) {
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * (m_numSurface + m_numSurfaceForEdge), NULL, GL_STATIC_DRAW);
+      m_vboOffsetSurfaceForEdge = sizeof(unsigned short) * m_numSurface;
+   }  else {
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * m_numSurface, NULL, GL_STATIC_DRAW);
+      m_vboOffsetSurfaceForEdge = 0;
+   }
+   glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (GLintptr) NULL, sizeof(unsigned short) * m_numSurface, m_surfaceList);
+   if (m_numSurfaceForEdge != 0) {
+      surfaceFrom = 0;
+      surfaceTo = m_vboOffsetSurfaceForEdge;
       for (i = 0; i < m_numMaterial; i++) {
          if (m_material[i].getEdgeFlag()) {
-            memcpy(surfaceTo, surfaceFrom, sizeof(unsigned short) * m_material[i].getNumSurface());
-            surfaceTo += m_material[i].getNumSurface();
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, (GLintptr) surfaceTo, sizeof(unsigned short) * m_material[i].getNumSurface(), &(m_surfaceList[surfaceFrom]));
+            surfaceTo += sizeof(unsigned short) * m_material[i].getNumSurface();
          }
          surfaceFrom += m_material[i].getNumSurface();
       }
    }
+   /* unbind buffer */
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+   /* initialize material order */
+   m_materialRenderOrder = new unsigned int[m_numMaterial];
+   m_materialDistance = new MaterialDistanceData[m_numMaterial];
+   for (i = 0; i < m_numMaterial; i++)
+      m_materialRenderOrder[i] = i;
    /* check if spheremap is used (single or multiple) */
    for (i = 0; i < m_numMaterial; i++) {
       if (m_material[i].hasSingleSphereMap())

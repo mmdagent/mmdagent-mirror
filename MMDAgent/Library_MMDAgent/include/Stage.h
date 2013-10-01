@@ -53,8 +53,6 @@ private:
 
    PMDModel m_pmd;           /* PMD for background */
    bool m_hasPMD;            /* true if m_pmd is used */
-   GLuint m_listIndexPMD;    /* display lst */
-   bool m_listIndexPMDValid; /* true if m_listIndexPMDValid was registered */
 
    /* work area */
    GLfloat m_floorShadow[4][4]; /* matrix for shadow of floor */

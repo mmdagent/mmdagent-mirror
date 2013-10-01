@@ -108,16 +108,21 @@ private:
    PMDTextureLoader m_textureLoader;                      /* texture loader for this model */
    unsigned int m_toonTextureID[SYSTEMTEXTURE_NUMFILES];  /* texture ID for toon shading */
    PMDTexture m_localToonTexture[SYSTEMTEXTURE_NUMFILES]; /* toon textures for this model only */
+   btVector3 m_light;                                     /* toon light direction */
 
    /* work area for OpenGL rendering */
    btTransform *m_boneSkinningTrans;         /* transform matrices of bones for skinning */
-   btVector3 *m_skinnedVertexList;           /* vertex list after skinning */
-   btVector3 *m_skinnedNormalList;           /* normal list after skinning */
-   TexCoord *m_toonTexCoordList;             /* texture coordination list for toon shading */
-   btVector3 *m_edgeVertexList;              /* vertex list for edge drawing */
    unsigned int m_numSurfaceForEdge;         /* number of edge-drawing surface list */
-   unsigned short *m_surfaceListForEdge;     /* surface list on which toon edge will be drawn per material */
-   TexCoord *m_toonTexCoordListForShadowMap; /* texture coordinates for toon shading on shadow mapping */
+   GLuint m_vboBufDynamic;                     /* VBO buffers for dynamic data */
+   GLuint m_vboBufStatic;                      /* VBO buffers for static  data */
+   GLuint m_vboBufElement;                     /* VBO buffers for element data */
+   unsigned long m_vboBufDynamicLen;           /* length of the dynamic VBO buffer */
+   unsigned long m_vboOffsetVertex;            /* byte offset for the vertex list in the dynamic VBO buffer */
+   unsigned long m_vboOffsetNormal;            /* byte offset for the normal list in the dynamic VBO buffer */
+   unsigned long m_vboOffsetToon;              /* byte offset for the toon texture coordinate list in the dynamic VBO buffer */
+   unsigned long m_vboOffsetEdge;              /* byte offset for the edge vertex list in the dynamic VBO buffer */
+   unsigned long m_vboOffsetSurfaceForEdge;    /* byte offset for the surface list for edge in the dynamic VBO buffer */
+   unsigned long m_vboOffsetCoordForShadowMap; /* byte offset for the toon texture corrdinate for shadow rendering in shadow map */
 
    /* flags and short lists extracted from the model data */
    PMDBone *m_centerBone;              /* center bone */
@@ -265,11 +270,11 @@ public:
    /* updateFace: update face morph from current face weights */
    void updateFace();
 
-   /* updateSkin: update skin data from bone orientation */
+   /* updateSkin: update skin data from bone orientation, toon and edges */
    void updateSkin();
 
-   /* updateToon: update toon coordinates and edge vertices */
-   void updateToon(btVector3 *light);
+   /* setToonLight: set light direction for toon coordinates */
+   void setToonLight(btVector3 *light);
 
    /* updateShadowColorTexCoord: update / create pseudo toon coordinates for shadow rendering pass on shadow mapping */
    void updateShadowColorTexCoord(float coef);
@@ -282,9 +287,6 @@ public:
 
    /* renderModel: render the model */
    void renderModel();
-
-   /* renderEdge: render toon edge */
-   void renderEdge();
 
    /* renderForShadow: render for shadow */
    void renderForShadow();
