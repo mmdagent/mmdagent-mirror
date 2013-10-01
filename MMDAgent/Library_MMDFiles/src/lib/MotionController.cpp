@@ -104,11 +104,11 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
 
    if (m_overrideFirst && mc->looped) {
       /* replace the first position/rotation at the first frame with end-of-motion ones */
-      if (k1 == 0) {
+      if (k1 == 0 || time1 == 0.0f) {
          pos1 = bm->keyFrameList[bm->numKeyFrame - 1].pos;
          rot1 = bm->keyFrameList[bm->numKeyFrame - 1].rot;
       }
-      if (k2 == 0) {
+      if (k2 == 0 || time2 == 0.0f) {
          pos2 = bm->keyFrameList[bm->numKeyFrame - 1].pos;
          rot2 = bm->keyFrameList[bm->numKeyFrame - 1].rot;
       }
@@ -217,10 +217,10 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
 
    if (m_overrideFirst && mc->looped) {
       /* replace the first weight at the first frame with end-of-motion ones */
-      if (k1 == 0) {
+      if (k1 == 0 || time1 == 0.0f) {
          weight1 = fm->keyFrameList[fm->numKeyFrame - 1].weight;
       }
-      if (k2 == 0) {
+      if (k2 == 0 || time2 == 0.0f) {
          weight2 = fm->keyFrameList[fm->numKeyFrame - 1].weight;
       }
    }
