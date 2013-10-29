@@ -81,11 +81,11 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    btRigidBody *rbA;
    btRigidBody *rbB;
    btTransform tr;
-   btMatrix3x3 bm;
+   btQuaternion rot;
    btTransform trA;
    btTransform trB;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   btMatrix3x3 rx, ry, rz;
+   btQuaternion rx, ry, rz;
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
@@ -102,11 +102,11 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    rx.setEulerZYX(- c->rot[0], 0, 0);
    ry.setEulerZYX(0, - c->rot[1], 0);
    rz.setEulerZYX(0, 0,  c->rot[2]);
-   bm = ry * rz * rx;
+   rot = ry * rz * rx;
 #else
-   bm.setEulerZYX(c->rot[0], c->rot[1], c->rot[2]);
+   rot.setEulerZYX(c->rot[0], c->rot[1], c->rot[2]);
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
-   tr.setBasis(bm);
+   tr.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    tr.setOrigin(btVector3(c->pos[0], c->pos[1], -c->pos[2]) + *offset);
 #else

@@ -103,10 +103,10 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
 {
    btScalar mass;
    btVector3 localInertia(0.0f, 0.0f, 0.0f);
-   btMatrix3x3 bm;
+   btQuaternion rot;
    btTransform startTrans;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   btMatrix3x3 rx, ry, rz;
+   btQuaternion rx, ry, rz;
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
@@ -147,11 +147,11 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    rx.setEulerZYX(- rb->rot[0], 0, 0);
    ry.setEulerZYX(0, - rb->rot[1], 0);
    rz.setEulerZYX(0, 0,  rb->rot[2]);
-   bm = ry * rz * rx;
+   rot = ry * rz * rx;
 #else
-   bm.setEulerZYX(rb->rot[0], rb->rot[1], rb->rot[2]);
+   rot.setEulerZYX(rb->rot[0], rb->rot[1], rob->rot[2]);
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
-   m_trans.setBasis(bm);
+   m_trans.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], -rb->pos[2]));
 #else
