@@ -613,7 +613,7 @@ PMDObject *PMDObject::getAssignedModel()
    return m_assignTo;
 }
 
-/* PMDObject::renderCommand: render model comment */
+/* PMDObject::renderComment: render model comment */
 void PMDObject::renderComment(TextRenderer * text)
 {
    char *buf, *p, *save;

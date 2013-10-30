@@ -246,6 +246,12 @@ private:
    /* stopLipSync: stop lip sync */
    bool stopLipSync(const char *modelAlias);
 
+   /* procReceivedMessage: process received message */
+   void procReceivedMessage(const char *type, const char *value);
+
+   /* procReceivedLogString: process received log string */
+   void procReceivedLogString(const char *log);
+
    /* initialize: initialize MMDAgent */
    void initialize();
 
@@ -272,14 +278,11 @@ public:
    /* resetAdjustmentTimer: reset adjustment timer */
    void resetAdjustmentTimer();
 
-   /* sendCommandMessage: send command message */
-   void sendCommandMessage(const char *type, const char *format, ...);
+   /* sendMessage: send message to global message queue */
+   void sendMessage(const char *type, const char *format, ...);
 
-   /* sendEventMessage: send event message */
-   void sendEventMessage(const char *type, const char *format, ...);
-
-   /* showLogMessage: show log message */
-   void showLogMessage(const char *format, ...);
+   /* sendLogString: send log string */
+   void sendLogString(const char *format, ...);
 
    /* findModelAlias: find a model with the specified alias */
    int findModelAlias(const char *alias);
@@ -388,15 +391,6 @@ public:
 
    /* procKeyMessage: process key message */
    void procKeyMessage(char c);
-
-   /* procCommandMessage: process command message */
-   void procCommandMessage(const char *type, const char *value);
-
-   /* procEventMessage: process event message */
-   void procEventMessage(const char *type, const char *value);
-
-   /* procLogMessage: process log message */
-   void procLogMessage(const char *log);
 
    /* procScrollLogMessage: process log scroll message */
    void procScrollLogMessage(bool up);

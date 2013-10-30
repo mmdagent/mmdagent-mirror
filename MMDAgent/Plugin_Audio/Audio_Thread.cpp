@@ -421,7 +421,7 @@ bool Audio_Thread::startLipsync(const char *file)
             objs = m_mmdagent->getModelList();
             for (i = 0; i < m_mmdagent->getNumModel(); i++) {
                if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
-                  m_mmdagent->sendCommandMessage(MMDAGENT_COMMAND_LIPSYNCSTART, "%s|%s", objs[i].getAlias(), message);
+                  m_mmdagent->sendMessage(MMDAGENT_COMMAND_LIPSYNCSTART, "%s|%s", objs[i].getAlias(), message);
                   result = true;
                }
             }
@@ -442,7 +442,7 @@ void Audio_Thread::stopLipsync()
    objs = m_mmdagent->getModelList();
    for (i = 0; i < m_mmdagent->getNumModel(); i++) {
       if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
-         m_mmdagent->sendCommandMessage(MMDAGENT_COMMAND_LIPSYNCSTOP, "%s", objs[i].getAlias());
+         m_mmdagent->sendMessage(MMDAGENT_COMMAND_LIPSYNCSTOP, "%s", objs[i].getAlias());
       }
    }
 }
@@ -509,7 +509,7 @@ void Audio_Thread::run()
          lipsync = startLipsync(file);
 
          /* send SOUND_EVENT_START */
-         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTART, "%s", alias);
+         m_mmdagent->sendMessage(AUDIOTHREAD_EVENTSTART, "%s", alias);
 
          /* wait to stop audio */
          Audio_waitToStop(&audio, alias, &m_playing);
@@ -517,7 +517,7 @@ void Audio_Thread::run()
          if(lipsync) stopLipsync();
 
          /* send SOUND_EVENT_STOP */
-         m_mmdagent->sendEventMessage(AUDIOTHREAD_EVENTSTOP, "%s", alias);
+         m_mmdagent->sendMessage(AUDIOTHREAD_EVENTSTOP, "%s", alias);
 
          /* close audio file */
          Audio_close(&audio, alias);

@@ -293,19 +293,19 @@ void Open_JTalk_Thread::run()
          index = 0;
 
       /* send SYNTH_EVENT_START */
-      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTART, "%s", chara);
+      m_mmdagent->sendMessage(OPENJTALKTHREAD_EVENTSTART, "%s", chara);
 
       /* synthesize */
       m_openJTalk.setStyle(index);
       m_openJTalk.prepare(text);
       m_openJTalk.getPhonemeSequence(lip);
       if (MMDAgent_strlen(lip) > 0) {
-         m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTARTLIP, "%s|%s", chara, lip);
+         m_mmdagent->sendMessage(OPENJTALKTHREAD_COMMANDSTARTLIP, "%s|%s", chara, lip);
          m_openJTalk.synthesis();
       }
 
       /* send SYNTH_EVENT_STOP */
-      m_mmdagent->sendEventMessage(OPENJTALKTHREAD_EVENTSTOP, "%s", chara);
+      m_mmdagent->sendMessage(OPENJTALKTHREAD_EVENTSTOP, "%s", chara);
 
       if(chara) free(chara);
       if(style) free(style);
@@ -389,7 +389,7 @@ void Open_JTalk_Thread::stop()
       glfwLockMutex(m_mutex);
 
       /* stop lip sync */
-      m_mmdagent->sendCommandMessage(OPENJTALKTHREAD_COMMANDSTOPLIP, "%s", m_charaBuff);
+      m_mmdagent->sendMessage(OPENJTALKTHREAD_COMMANDSTOPLIP, "%s", m_charaBuff);
 
       /* release buffer mutex */
       glfwUnlockMutex(m_mutex);

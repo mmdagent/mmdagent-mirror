@@ -123,28 +123,23 @@ static bool MessageQueue_dequeue(MessageQueue *q, char *type, char *value)
 /* Message::initialize: initialize message queue */
 void Message::initialize()
 {
-   m_mutexCommand = NULL;
-   m_mutexEvent = NULL;
-   m_mutexLog = NULL;
+   m_messageMutex = NULL;
+   m_logStringMutex = NULL;
 
-   MessageQueue_initialize(&m_queueCommand);
-   MessageQueue_initialize(&m_queueEvent);
-   MessageQueue_initialize(&m_queueLog);
+   MessageQueue_initialize(&m_messageQueue);
+   MessageQueue_initialize(&m_logStringQueue);
 }
 
 /* Message::clear: free message queue */
 void Message::clear()
 {
-   if(m_mutexCommand)
-      glfwDestroyMutex(m_mutexCommand);
-   if(m_mutexEvent)
-      glfwDestroyMutex(m_mutexEvent);
-   if(m_mutexLog)
-      glfwDestroyMutex(m_mutexLog);
+   if(m_messageMutex)
+      glfwDestroyMutex(m_messageMutex);
+   if(m_logStringMutex)
+      glfwDestroyMutex(m_logStringMutex);
 
-   MessageQueue_clear(&m_queueCommand);
-   MessageQueue_clear(&m_queueEvent);
-   MessageQueue_clear(&m_queueLog);
+   MessageQueue_clear(&m_messageQueue);
+   MessageQueue_clear(&m_logStringQueue);
 
    initialize();
 }
@@ -166,11 +161,10 @@ bool Message::setup()
 {
    clear();
 
-   m_mutexCommand = glfwCreateMutex();
-   m_mutexEvent = glfwCreateMutex();
-   m_mutexLog = glfwCreateMutex();
+   m_messageMutex = glfwCreateMutex();
+   m_logStringMutex = glfwCreateMutex();
 
-   if(m_mutexCommand == NULL || m_mutexEvent == NULL || m_mutexLog == NULL) {
+   if(m_messageMutex == NULL || m_logStringMutex == NULL) {
       clear();
       return false;
    }
@@ -178,56 +172,38 @@ bool Message::setup()
    return true;
 }
 
-/* Message::enqueueCommnd: enqueue command message */
-void Message::enqueueCommand(const char *type, const char *value)
+/* Message::enqueueMessage: enqueue message */
+void Message::enqueueMessage(const char *type, const char *value)
 {
-   glfwLockMutex(m_mutexCommand);
-   MessageQueue_enqueue(&m_queueCommand, type, value);
-   glfwUnlockMutex(m_mutexCommand);
+   glfwLockMutex(m_messageMutex);
+   MessageQueue_enqueue(&m_messageQueue, type, value);
+   glfwUnlockMutex(m_messageMutex);
 }
 
-/* Message::enqueueEvent: enqueue event message */
-void Message::enqueueEvent(const char *type, const char *value)
+/* Message::enqueueLogString: enqueue log string */
+void Message::enqueueLogString(const char *log)
 {
-   glfwLockMutex(m_mutexEvent);
-   MessageQueue_enqueue(&m_queueEvent, type, value);
-   glfwUnlockMutex(m_mutexEvent);
+   glfwLockMutex(m_logStringMutex);
+   MessageQueue_enqueue(&m_logStringQueue, log, NULL);
+   glfwUnlockMutex(m_logStringMutex);
 }
 
-/* Message::enqueueLog: enqueue log message */
-void Message::enqueueLog(const char *log)
-{
-   glfwLockMutex(m_mutexLog);
-   MessageQueue_enqueue(&m_queueLog, log, NULL);
-   glfwUnlockMutex(m_mutexLog);
-}
-
-/* Message::dequeueCommand: dequeue command message */
-bool Message::dequeueCommand(char *type, char *value)
+/* Message::dequeueMessage: dequeue message */
+bool Message::dequeueMessage(char *type, char *value)
 {
    bool result;
-   glfwLockMutex(m_mutexCommand);
-   result = MessageQueue_dequeue(&m_queueCommand, type, value);
-   glfwUnlockMutex(m_mutexCommand);
+   glfwLockMutex(m_messageMutex);
+   result = MessageQueue_dequeue(&m_messageQueue, type, value);
+   glfwUnlockMutex(m_messageMutex);
    return result;
 }
 
-/* Message::dequeueEvent: dequeue event message */
-bool Message::dequeueEvent(char *type, char *value)
+/* Message::dequeueLogString: dequeue log string */
+bool Message::dequeueLogString(char *log)
 {
    bool result;
-   glfwLockMutex(m_mutexEvent);
-   result = MessageQueue_dequeue(&m_queueEvent, type, value);
-   glfwUnlockMutex(m_mutexEvent);
-   return result;
-}
-
-/* Message::dequeueLog: dequeue log message */
-bool Message::dequeueLog(char *log)
-{
-   bool result;
-   glfwLockMutex(m_mutexLog);
-   result = MessageQueue_dequeue(&m_queueLog, log, NULL);
-   glfwUnlockMutex(m_mutexLog);
+   glfwLockMutex(m_logStringMutex);
+   result = MessageQueue_dequeue(&m_logStringQueue, log, NULL);
+   glfwUnlockMutex(m_logStringMutex);
    return result;
 }

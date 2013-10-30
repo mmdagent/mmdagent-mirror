@@ -278,13 +278,13 @@ void VIManager_Thread::run()
    /* first epsilon step */
    while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
       if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-         m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+         m_mmdagent->sendMessage(otype, "%s", oargs);
    }
 
    for(l = m_sub; l != NULL; l = l->next) {
       while (l->vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs) != NULL) {
          if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-            m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+            m_mmdagent->sendMessage(otype, "%s", oargs);
       }
    }
 
@@ -305,23 +305,23 @@ void VIManager_Thread::run()
       /* state transition with input symbol */
       m_logger.setTransition(m_vim.transition(itype, &ia, otype, oargs));
       if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-         m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+         m_mmdagent->sendMessage(otype, "%s", oargs);
 
       /* state transition with epsilon */
       while (m_logger.setTransition(m_vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs)) == true) {
          if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-            m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+            m_mmdagent->sendMessage(otype, "%s", oargs);
       }
 
       for(l = m_sub; l != NULL; l = l->next) {
          l->vim.transition(itype, &ia, otype, oargs);
          if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-            m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+            m_mmdagent->sendMessage(otype, "%s", oargs);
 
          /* state transition with epsilon */
          while (l->vim.transition(VIMANAGER_EPSILON, NULL, otype, oargs) != NULL) {
             if (MMDAgent_strequal(otype, VIMANAGER_EPSILON) == false)
-               m_mmdagent->sendCommandMessage(otype, "%s", oargs);
+               m_mmdagent->sendMessage(otype, "%s", oargs);
          }
       }
 

@@ -46,8 +46,9 @@ typedef struct _DLLibrary {
 
    void (*appStart)(MMDAgent *mmdagent);
    void (*appEnd)(MMDAgent *mmdagent);
-   void (*procCommand)(MMDAgent *mmdagent, const char *type, const char *args);
-   void (*procEvent)(MMDAgent *mmdagent, const char *type, const char *args);
+   void (*procCommand)(MMDAgent *mmdagent, const char *type, const char *args); /* deprecated function */
+   void (*procEvent)(MMDAgent *mmdagent, const char *type, const char *args);   /* deprecated function */
+   void (*procMessage)(MMDAgent *mmdagent, const char *type, const char *args);
    void (*update)(MMDAgent *mmdagent, double deltaFrame);
    void (*render)(MMDAgent *mmdagent);
 
@@ -85,11 +86,8 @@ public:
    /* execAppEnd: run when application is end */
    void execAppEnd(MMDAgent *mmdagent);
 
-   /* execProcCommand: process command message */
-   void execProcCommand(MMDAgent *mmdagent, const char *type, const char *args);
-
-   /* execProcEvent: process event message */
-   void execProcEvent(MMDAgent *mmdagent, const char *type, const char *args);
+   /* execProcMessage: process message */
+   void execProcMessage(MMDAgent *mmdagent, const char *type, const char *args);
 
    /* execUpdate: run when motion is updated */
    void execUpdate(MMDAgent *mmdagent, double deltaFrame);

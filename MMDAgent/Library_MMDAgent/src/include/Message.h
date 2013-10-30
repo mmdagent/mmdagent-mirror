@@ -57,13 +57,11 @@ class Message
 {
 private:
 
-   GLFWmutex m_mutexCommand;
-   GLFWmutex m_mutexEvent;
-   GLFWmutex m_mutexLog;
+   GLFWmutex m_messageMutex;
+   GLFWmutex m_logStringMutex;
 
-   MessageQueue m_queueCommand;
-   MessageQueue m_queueEvent;
-   MessageQueue m_queueLog;
+   MessageQueue m_messageQueue;
+   MessageQueue m_logStringQueue;
 
    void initialize();
    void clear();
@@ -79,21 +77,15 @@ public:
    /* setup: setup message queue */
    bool setup();
 
-   /* enqueueCommand: euqueue command message */
-   void enqueueCommand(const char *type, const char *value);
+   /* enqueueMessage: enqueue received message */
+   void enqueueMessage(const char *type, const char *value);
 
-   /* enqueueEvent: enqueue event message */
-   void enqueueEvent(const char *type, const char *value);
+   /* enqueueLogString: enqueue log string */
+   void enqueueLogString(const char *log);
 
-   /* enqueueLog: enqueue log message */
-   void enqueueLog(const char *log);
+   /* dqeueueMessage: dequeue received message */
+   bool dequeueMessage(char *type, char *value);
 
-   /* dequeueCommand: dequeue command messgae */
-   bool dequeueCommand(char *type, char *value);
-
-   /* dequeueEvent: dequeue event message */
-   bool dequeueEvent(char *type, char *value);
-
-   /* dequeueLog: dequeue log message */
-   bool dequeueLog(char *log);
+   /* dequeueLogString: dequeue log string */
+   bool dequeueLogString(char *log);
 };

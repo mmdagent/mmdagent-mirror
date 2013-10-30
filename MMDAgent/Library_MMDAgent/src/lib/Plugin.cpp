@@ -51,8 +51,9 @@ void DLLibrary_initialize(DLLibrary *d)
 
    d->appStart = NULL;
    d->appEnd = NULL;
-   d->procCommand = NULL;
-   d->procEvent = NULL;
+   d->procCommand = NULL; /* deprecated function */
+   d->procEvent = NULL;   /* deprecated function */
+   d->procMessage = NULL;
    d->update = NULL;
    d->render = NULL;
 
@@ -89,12 +90,13 @@ bool DLLibrary_load(DLLibrary *d, const char *dir, const char *file)
    /* set function pointers */
    d->appStart = (void (*)(MMDAgent *)) MMDAgent_dlsym(d->handle, "extAppStart");
    d->appEnd = (void (*)(MMDAgent *)) MMDAgent_dlsym(d->handle, "extAppEnd");
-   d->procCommand = (void (*)(MMDAgent *, const char *, const char *)) MMDAgent_dlsym(d->handle, "extProcCommand");
-   d->procEvent = (void (*)(MMDAgent *, const char *, const char *)) MMDAgent_dlsym(d->handle, "extProcEvent");
+   d->procCommand = (void (*)(MMDAgent *, const char *, const char *)) MMDAgent_dlsym(d->handle, "extProcCommand"); /* deprecated function */
+   d->procEvent = (void (*)(MMDAgent *, const char *, const char *)) MMDAgent_dlsym(d->handle, "extProcEvent");     /* deprecated function */
+   d->procMessage = (void (*)(MMDAgent *, const char *, const char *)) MMDAgent_dlsym(d->handle, "extProcMessage");
    d->update = (void (*)(MMDAgent *, double)) MMDAgent_dlsym(d->handle, "extUpdate");
    d->render = (void (*)(MMDAgent *)) MMDAgent_dlsym(d->handle, "extRender");
 
-   if (d->appStart || d->appEnd || d->procCommand || d->procEvent || d->update || d->render) {
+   if (d->appStart || d->appEnd || d->procCommand || d->procEvent || d->procMessage || d->update || d->render) {
       /* save file name */
       d->name = MMDAgent_strdup(file);
       return true;
@@ -198,20 +200,19 @@ void Plugin::execAppEnd(MMDAgent *mmdagent)
          d->appEnd(mmdagent);
 }
 
-/* Plugin::execProcCommand: process command message */
-void Plugin::execProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
+/* Plugin::execProcMessage: process message */
+void Plugin::execProcMessage(MMDAgent *mmdagent, const char *type, const char *args)
 {
    DLLibrary *d;
 
    for (d = m_head; d; d = d->next)
+      if (d->procMessage != NULL)
+         d->procMessage(mmdagent, type, args);
+
+   /* deprecated functions */
+   for (d = m_head; d; d = d->next)
       if (d->procCommand != NULL)
          d->procCommand(mmdagent, type, args);
-}
-
-/* Plugin::execProcEvent: process event message */
-void Plugin::execProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
-{
-   DLLibrary *d;
 
    for (d = m_head; d; d = d->next)
       if (d->procEvent != NULL)

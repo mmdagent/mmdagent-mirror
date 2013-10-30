@@ -71,37 +71,11 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
 
    enable = true;
    drop_motion = NULL;
-   mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
+   mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
 }
 
-/* extProcCommand: process command message */
-EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
-{
-   if(enable == true) {
-      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
-            enable = false;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINAUDIO_NAME);
-         }
-      } else if (audio_manager.isRunning()) {
-         if (MMDAgent_strequal(type, PLUGINAUDIO_STARTCOMMAND)) {
-            audio_manager.play(args);
-         } else if (MMDAgent_strequal(type, PLUGINAUDIO_STOPCOMMAND)) {
-            audio_manager.stop(args);
-         }
-      }
-   } else {
-      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
-         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
-            enable = true;
-            mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
-         }
-      }
-   }
-}
-
-/* extProcEvent: process event message */
-EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+/* extProcMessage: process message */
+EXPORT void extProcMessage(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i;
    FILE *fp;
@@ -110,7 +84,18 @@ EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
    MotionPlayer *motionPlayer;
 
    if(enable == true) {
-      if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
+            enable = false;
+            mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINAUDIO_NAME);
+         }
+      } else if (MMDAgent_strequal(type, PLUGINAUDIO_STARTCOMMAND)) {
+         if (audio_manager.isRunning())
+            audio_manager.play(args);
+      } else if (MMDAgent_strequal(type, PLUGINAUDIO_STOPCOMMAND)) {
+         if (audio_manager.isRunning())
+            audio_manager.stop(args);
+      } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_DRAGANDDROP)) {
          buf = MMDAgent_strdup(args);
          p = MMDAgent_strtok(buf, "|", &q);
          if(MMDAgent_strtailmatch(p, ".mp3") || MMDAgent_strtailmatch(p, ".MP3") || MMDAgent_strtailmatch(p, ".wav") || MMDAgent_strtailmatch(p, ".WAV")) {
@@ -147,18 +132,25 @@ EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
                   if (objs[i].isEnable() == true && objs[i].allowMotionFileDrop() == true) {
                      for (motionPlayer = objs[i].getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
                         if (motionPlayer->active == true && MMDAgent_strequal(motionPlayer->name, "base") == true) {
-                           mmdagent->sendCommandMessage(MMDAGENT_COMMAND_MOTIONCHANGE, "%s|%s|%s", objs[i].getAlias(), "base", drop_motion);
+                           mmdagent->sendMessage(MMDAGENT_COMMAND_MOTIONCHANGE, "%s|%s|%s", objs[i].getAlias(), "base", drop_motion);
                            break;
                         }
                      }
                      if (!motionPlayer)
-                        mmdagent->sendCommandMessage(MMDAGENT_COMMAND_MOTIONADD, "%s|%s|%s|FULL|ONCE|ON|ON", objs[i].getAlias(), "base", drop_motion);
+                        mmdagent->sendMessage(MMDAGENT_COMMAND_MOTIONADD, "%s|%s|%s|FULL|ONCE|ON|ON", objs[i].getAlias(), "base", drop_motion);
                   }
                }
                mmdagent->resetAdjustmentTimer();
             }
             free(drop_motion);
             drop_motion = NULL;
+         }
+      }
+   } else {
+      if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+         if(MMDAgent_strequal(args, PLUGINAUDIO_NAME)) {
+            enable = true;
+            mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINAUDIO_NAME);
          }
       }
    }

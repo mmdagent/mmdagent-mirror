@@ -102,9 +102,9 @@ static void changeLookAt(PMDObject *objs, int num, MMDAgent *mmdagent)
    updating = true;
    enable = !enable;
    if(enable)
-      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINLOOKAT_NAME);
+      mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINLOOKAT_NAME);
    else
-      mmdagent->sendEventMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINLOOKAT_NAME);
+      mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINDISABLE, "%s", PLUGINLOOKAT_NAME);
 }
 
 /* extAppStart: initialize controller */
@@ -115,32 +115,26 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    updating = false;
 }
 
-/* extProcCommand: process command message */
-EXPORT void extProcCommand(MMDAgent *mmdagent, const char *type, const char *args)
-{
-   if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
-      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == false)
-         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
-   } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
-      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == true)
-         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
-   }
-}
-
-/* extProcEvent: process event message */
-EXPORT void extProcEvent(MMDAgent *mmdagent, const char *type, const char *args)
+/* extProcMessage: process message */
+EXPORT void extProcMessage(MMDAgent *mmdagent, const char *type, const char *args)
 {
    int i, id;
    char *p, *buf, *save;
    PMDObject *objs;
    ControllerList *tmp1, *tmp2 = NULL;
 
-   objs = mmdagent->getModelList();
-   if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
+   if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINENABLE)) {
+      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == false)
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
+   } else if(MMDAgent_strequal(type, MMDAGENT_COMMAND_PLUGINDISABLE)) {
+      if(MMDAgent_strequal(args, PLUGINLOOKAT_NAME) && enable == true)
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
+   } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
       if(MMDAgent_strequal(args, "l") || MMDAgent_strequal(args, "L")) {
-         changeLookAt(objs, mmdagent->getNumModel(), mmdagent);
+         changeLookAt(mmdagent->getModelList(), mmdagent->getNumModel(), mmdagent);
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_MODELCHANGE) || MMDAgent_strequal(type, MMDAGENT_EVENT_MODELADD)) {
+      objs = mmdagent->getModelList();
       buf = MMDAgent_strdup(args);
       p = MMDAgent_strtok(buf, "|", &save);
       if(p) {

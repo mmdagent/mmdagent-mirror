@@ -301,7 +301,7 @@ void Julius_Thread::resume()
 /* Julius_Thread::sendMessage: send message to MMDAgent */
 void Julius_Thread::sendMessage(const char *str1, const char *str2)
 {
-   m_mmdagent->sendEventMessage(str1, "%s", str2);
+   m_mmdagent->sendMessage(str1, "%s", str2);
 }
 
 /* Julius_Thread::getLogActiveFlag: get active flag of logger */

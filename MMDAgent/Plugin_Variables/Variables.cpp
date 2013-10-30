@@ -146,7 +146,7 @@ void Variables::set(const char *alias, const char *str1, const char *str2)
       val->fval = min + (max - min) * (rand() - 0.0f) * (1.0f / (RAND_MAX - 0.0f)); /* 0.0f is RAND_MIN */
    }
 
-   m_mmdagent->sendEventMessage(VARIABLES_VALUESETEVENT, "%s", alias); /* send message */
+   m_mmdagent->sendMessage(VARIABLES_VALUESETEVENT, "%s", alias); /* send message */
 }
 
 /* Variables::unset: unset value */
@@ -174,7 +174,7 @@ void Variables::unset(const char *alias)
                tmp1->prev->next = tmp1->prev;
             }
          }
-         m_mmdagent->sendEventMessage(VARIABLES_VALUEUNSETEVENT, "%s", tmp1->name); /* send message */
+         m_mmdagent->sendMessage(VARIABLES_VALUEUNSETEVENT, "%s", tmp1->name); /* send message */
          free(tmp1->name);
          free(tmp1->sval);
          free(tmp1);
@@ -240,9 +240,9 @@ void Variables::evaluate(const char *alias, const char *mode, const char *str)
    }
 
    if(ret == true)
-      m_mmdagent->sendEventMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_TRUE);
+      m_mmdagent->sendMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_TRUE);
    else
-      m_mmdagent->sendEventMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_FALSE);
+      m_mmdagent->sendMessage(VARIABLES_VALUEEVALEVENT, "%s|%s|%s|%s", alias, mode, str, VARIABLES_FALSE);
 }
 
 /* Variables::get: get value */
@@ -252,7 +252,7 @@ void Variables::get(const char *alias)
 
    for(val = m_head; val; val = val->next) {
       if(MMDAgent_strequal(val->name, alias) == true) {
-         m_mmdagent->sendEventMessage(VARIABLES_VALUEGETEVENT, "%s|%s", alias, val->sval);
+         m_mmdagent->sendMessage(VARIABLES_VALUEGETEVENT, "%s|%s", alias, val->sval);
          return;
       }
    }
