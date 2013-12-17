@@ -50,7 +50,7 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -DDIC_VERSION=102 \
            -DMECAB_DEFAULT_RC="\"dummy\"" \
            -DPACKAGE="\"open_jtalk\"" \
-           -DVERSION="\"1.05\"" \
+           -DVERSION="\"1.07\"" \
            -DMECAB_WITHOUT_SHARE_DIC \
            -DCHARSET_SHIFT_JIS \
            -DHAVE_WINDOWS_H \

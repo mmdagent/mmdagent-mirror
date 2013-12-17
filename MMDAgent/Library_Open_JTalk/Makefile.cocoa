@@ -50,7 +50,7 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
            -DDIC_VERSION=102 \
            -DMECAB_DEFAULT_RC="\"dummy\"" \
            -DPACKAGE="\"open_jtalk\"" \
-           -DVERSION="\"1.05\"" \
+           -DVERSION="\"1.07\"" \
            -DMECAB_WITHOUT_SHARE_DIC \
            -DCHARSET_SHIFT_JIS \
            -DHAVE_CTYPE_H=1 \
@@ -78,9 +78,9 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer \
            -DHAVE_UNISTD_H=1 \
            -DPACKAGE_BUGREPORT="open-jtalk-users@lists.sourceforge.net" \
            -DPACKAGE_NAME="open_jtalk" \
-           -DPACKAGE_STRING="open_jtalk 1.04" \
+           -DPACKAGE_STRING="open_jtalk 1.07" \
            -DPACKAGE_TARNAME="open_jtalk" \
-           -DPACKAGE_VERSION="1.04" \
+           -DPACKAGE_VERSION="1.07" \
            -DSIZEOF_CHAR=1 \
            -DSIZEOF_INT=4 \
            -DSIZEOF_LONG=4 \

@@ -180,7 +180,7 @@ bool Open_JTalk_Thread::loadAndStart(MMDAgent *mmdagent, const char *dicDir, con
       return false;
    }
 
-   /* model directory names */
+   /* model names */
    m_modelNames = (char **) malloc(sizeof(char *) * m_numModels);
    for (i = 0; i < m_numModels; i++) {
       j = MMDAgent_fgettoken(fp, buff);

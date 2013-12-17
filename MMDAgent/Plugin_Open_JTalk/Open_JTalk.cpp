@@ -67,17 +67,8 @@ void Open_JTalk::initialize()
    Mecab_initialize(&m_mecab);
    NJD_initialize(&m_njd);
    JPCommon_initialize(&m_jpcommon);
-   HTS_Engine_initialize(&m_engine, 3);
+   HTS_Engine_initialize(&m_engine);
 
-   HTS_Engine_set_gamma(&m_engine, OPENJTALK_GAMMA);
-   HTS_Engine_set_log_gain(&m_engine, OPENJTALK_LOGGAIN);
-   HTS_Engine_set_sampling_rate(&m_engine, OPENJTALK_SAMPLINGRATE);
-   HTS_Engine_set_fperiod(&m_engine, OPENJTALK_FPERIOD);
-   HTS_Engine_set_alpha(&m_engine, OPENJTALK_ALPHA);
-   HTS_Engine_set_volume(&m_engine, OPENJTALK_VOLUME);
-   HTS_Engine_set_audio_buff_size(&m_engine, OPENJTALK_AUDIOBUFFSIZE);
-
-   m_f0Shift = OPENJTALK_HALFTONE;
    m_numModels = 0;
    m_styleWeights = NULL;
    m_numStyles = 0;
@@ -91,7 +82,6 @@ void Open_JTalk::clear()
    JPCommon_clear(&m_jpcommon);
    HTS_Engine_clear(&m_engine);
 
-   m_f0Shift = 0.0;
    m_numModels = 0;
    if (m_styleWeights != NULL)
       free(m_styleWeights);
@@ -112,139 +102,46 @@ Open_JTalk::~Open_JTalk()
 }
 
 /* Open_JTalk::load: load dictionary and models */
-bool Open_JTalk::load(const char *dicDir, char **modelDir, int numModels, double *styleWeights, int numStyles)
+bool Open_JTalk::load(const char *dicDir, char **modelFiles, int numModels, double *styleWeights, int numStyles)
 {
    int i, j;
 
-   char buff[MMDAGENT_MAXBUFLEN];
    char *dn_mecab;
-   char **fn_ws_mcp, **fn_ws_lf0, **fn_ws_lpf;
-   char *fn_gv_switch;
-   char **fn_ts_dur, **fn_ts_mcp, **fn_ts_lf0, **fn_ts_lpf;
-   char **fn_ms_dur, **fn_ms_mcp, **fn_ms_lf0, **fn_ms_lpf;
-   char **fn_ts_gvm, **fn_ts_gvl;
-   char **fn_ms_gvm, **fn_ms_gvl;
+   char **fn_models;
 
-   if (dicDir == NULL || modelDir == NULL || numModels <= 0 || styleWeights == NULL || numStyles <= 0)
+   if (dicDir == NULL || modelFiles == NULL || numModels <= 0 || styleWeights == NULL || numStyles <= 0)
       return false;
    m_numModels = numModels;
    m_numStyles = numStyles;
 
-   /* set filenames */
-   fn_ws_mcp = (char **) calloc(3, sizeof(char *));
-   fn_ws_lf0 = (char **) calloc(3, sizeof(char *));
-   fn_ws_lpf = (char **) calloc(1, sizeof(char *));
-   fn_ts_dur = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ts_mcp = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ts_lf0 = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ts_lpf = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_dur = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_mcp = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_lf0 = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_lpf = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ts_gvm = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ts_gvl = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_gvm = (char **) calloc(m_numModels, sizeof(char *));
-   fn_ms_gvl = (char **) calloc(m_numModels, sizeof(char *));
-
+   /* load dictionary */
    dn_mecab = MMDAgent_pathdup(dicDir);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN1);
-   fn_ws_mcp[0] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN2);
-   fn_ws_mcp[1] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCWIN3);
-   fn_ws_mcp[2] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN1);
-   fn_ws_lf0[0] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN2);
-   fn_ws_lf0[1] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0WIN3);
-   fn_ws_lf0[2] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFWIN1);
-   fn_ws_lpf[0] = MMDAgent_pathdup(buff);
-   sprintf(buff, "%s%c%s", modelDir[0], MMDAGENT_DIRSEPARATOR, OPENJTALK_GVSWITCH);
-   fn_gv_switch = MMDAgent_pathdup(buff);
-   for (i = 0; i < m_numModels; i++) {
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_DURTREE);
-      fn_ts_dur[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCTREE);
-      fn_ts_mcp[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0TREE);
-      fn_ts_lf0[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFTREE);
-      fn_ts_lpf[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_DURPDF);
-      fn_ms_dur[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCPDF);
-      fn_ms_mcp[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0PDF);
-      fn_ms_lf0[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LPFPDF);
-      fn_ms_lpf[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCGVTREE);
-      fn_ts_gvm[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0GVTREE);
-      fn_ts_gvl[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_MGCGVPDF);
-      fn_ms_gvm[i] = MMDAgent_pathdup(buff);
-      sprintf(buff, "%s%c%s", modelDir[i], MMDAGENT_DIRSEPARATOR, OPENJTALK_LF0GVPDF);
-      fn_ms_gvl[i] = MMDAgent_pathdup(buff);
+   if(Mecab_load(&m_mecab, dn_mecab) != TRUE) {
+      free(dn_mecab);
+      return false;
    }
-
-   /* load */
-   Mecab_load(&m_mecab, dn_mecab);
-   HTS_Engine_load_duration_from_fn(&m_engine, fn_ms_dur, fn_ts_dur, m_numModels);
-   HTS_Engine_load_parameter_from_fn(&m_engine, fn_ms_mcp, fn_ts_mcp, fn_ws_mcp, 0, FALSE, 3, m_numModels);
-   HTS_Engine_load_parameter_from_fn(&m_engine, fn_ms_lf0, fn_ts_lf0, fn_ws_lf0, 1, TRUE, 3, m_numModels);
-   HTS_Engine_load_parameter_from_fn(&m_engine, fn_ms_lpf, fn_ts_lpf, fn_ws_lpf, 2, FALSE, 1, m_numModels);
-   HTS_Engine_load_gv_from_fn(&m_engine, fn_ms_gvm, fn_ts_gvm, 0, m_numModels);
-   HTS_Engine_load_gv_from_fn(&m_engine, fn_ms_gvl, fn_ts_gvl, 1, m_numModels);
-   HTS_Engine_load_gv_switch_from_fn(&m_engine, fn_gv_switch);
-
-   /* free filenames */
    free(dn_mecab);
-   for (i = 0; i < 3; i++) {
-      free(fn_ws_mcp[i]);
-      free(fn_ws_lf0[i]);
+
+   /* load acoustic models */
+   fn_models = (char **) calloc(m_numModels, sizeof(char *));
+   for (i = 0; i < m_numModels; i++)
+      fn_models[i] = MMDAgent_pathdup(modelFiles[i]);
+   if(HTS_Engine_load(&m_engine, fn_models, m_numModels) != TRUE) {
+      for(i = 0; i < m_numModels; i++)
+         free(fn_models[i]);
+      free(fn_models);
+      return false;
    }
-   for (i = 0; i < 1; i++) {
-      free(fn_ws_lpf[i]);
-   }
-   free(fn_ws_mcp);
-   free(fn_ws_lf0);
-   free(fn_ws_lpf);
-   free(fn_gv_switch);
-   for (i = 0; i < m_numModels; i++) {
-      free(fn_ts_dur[i]);
-      free(fn_ts_mcp[i]);
-      free(fn_ts_lf0[i]);
-      free(fn_ts_lpf[i]);
-      free(fn_ms_dur[i]);
-      free(fn_ms_mcp[i]);
-      free(fn_ms_lf0[i]);
-      free(fn_ms_lpf[i]);
-      free(fn_ts_gvm[i]);
-      free(fn_ts_gvl[i]);
-      free(fn_ms_gvm[i]);
-      free(fn_ms_gvl[i]);
-   }
-   free(fn_ts_dur);
-   free(fn_ts_mcp);
-   free(fn_ts_lf0);
-   free(fn_ts_lpf);
-   free(fn_ms_dur);
-   free(fn_ms_mcp);
-   free(fn_ms_lf0);
-   free(fn_ms_lpf);
-   free(fn_ts_gvm);
-   free(fn_ts_gvl);
-   free(fn_ms_gvm);
-   free(fn_ms_gvl);
+   for (i = 0; i < m_numModels; i++)
+      free(fn_models[i]);
+   free(fn_models);
 
    /* set style interpolation weight */
    m_styleWeights = (double *) calloc(m_numStyles * (m_numModels * 3 + 4), sizeof(double));
    for (j = 0; j < m_numStyles * (m_numModels * 3 + 4); j++)
       m_styleWeights[j] = styleWeights[j];
+
+   HTS_Engine_set_audio_buff_size(&m_engine, OPENJTALK_AUDIOBUFFSIZE);
 
    setStyle(0);
    return true;
@@ -256,8 +153,6 @@ void Open_JTalk::prepare(const char *str)
    char *buff;
    char **label_feature = NULL;
    int label_size = 0;
-   int i;
-   double f;
 
    if(m_numStyles <= 0)
       return;
@@ -281,19 +176,14 @@ void Open_JTalk::prepare(const char *str)
       /* decision of state durations */
       label_feature = JPCommon_get_label_feature(&m_jpcommon);
       label_size = JPCommon_get_label_size(&m_jpcommon);
-      HTS_Engine_load_label_from_string_list(&m_engine, &label_feature[1], label_size - 1); /* skip first silence */
-      HTS_Engine_create_sstream(&m_engine);
-      /* parameter generation */
-      if (m_f0Shift != 0.0) {
-         for (i = 0; i < HTS_Engine_get_total_state(&m_engine); i++) {
-            f = HTS_Engine_get_state_mean(&m_engine, 1, i, 0);
-            f += m_f0Shift * log(2.0) / 12;
-            if (f < OPENJTALK_MINLF0VAL)
-               f = OPENJTALK_MINLF0VAL;
-            HTS_Engine_set_state_mean(&m_engine, 1, i, 0, f);
-         }
+      if(HTS_Engine_generate_state_sequence_from_strings(&m_engine, &label_feature[1], label_size - 1) != TRUE) { /* skip first silence */
+         HTS_Engine_refresh(&m_engine);
+         return;
       }
-      HTS_Engine_create_pstream(&m_engine);
+      if(HTS_Engine_generate_parameter_sequence(&m_engine) != TRUE) {
+         HTS_Engine_refresh(&m_engine);
+         return;
+      }
    }
 }
 
@@ -305,7 +195,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
    char **feature;
    int nstate;
    int fperiod;
-   int sampling_rate;
+   int sampling_frequency;
    char *ch, *start, *end;
 
    strcpy(str, "");
@@ -317,7 +207,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
    feature = JPCommon_get_label_feature(&m_jpcommon);
    nstate = HTS_Engine_get_nstate(&m_engine);
    fperiod = HTS_Engine_get_fperiod(&m_engine);
-   sampling_rate = HTS_Engine_get_sampling_rate(&m_engine);
+   sampling_frequency = HTS_Engine_get_sampling_frequency(&m_engine);
 
    if (size <= 2)
       return;
@@ -340,7 +230,7 @@ void Open_JTalk::getPhonemeSequence(char *str)
       }
       /* get ms */
       for (j = 0, k = 0; j < nstate; j++)
-         k += (HTS_Engine_get_state_duration(&m_engine, i * nstate + j) * fperiod * 1000) / sampling_rate;
+         k += (HTS_Engine_get_state_duration(&m_engine, i * nstate + j) * fperiod * 1000) / sampling_frequency;
       sprintf(str, "%s,%d", str, k);
    }
 }
@@ -351,9 +241,9 @@ void Open_JTalk::synthesis()
    if(m_numStyles <= 0)
       return;
    if (JPCommon_get_label_size(&m_jpcommon) > 2) {
-      HTS_Engine_create_gstream(&m_engine);
-      HTS_Engine_refresh(&m_engine);
+      HTS_Engine_generate_sample_sequence(&m_engine);
    }
+   HTS_Engine_refresh(&m_engine);
    JPCommon_refresh(&m_jpcommon);
    NJD_refresh(&m_njd);
    Mecab_refresh(&m_mecab);
@@ -376,6 +266,7 @@ bool Open_JTalk::setStyle(int val)
    if (m_numStyles <= 0 || m_styleWeights == NULL || val < 0 || val >= m_numStyles)
       return false;
 
+   /* interpolation weight */
    index = val * (m_numModels * 3 + 4);
    for (i = 0; i < m_numModels; i++)
       HTS_Engine_set_parameter_interpolation_weight(&m_engine, 0, i, m_styleWeights[index + m_numModels * 0 + i]);
@@ -385,22 +276,22 @@ bool Open_JTalk::setStyle(int val)
       HTS_Engine_set_duration_interpolation_weight(&m_engine, i, m_styleWeights[index + m_numModels * 2 + i]);
 
    /* speed */
-   f = OPENJTALK_FPERIOD / m_styleWeights[index + m_numModels * 3 + 0];
-   if(f > OPENJTALK_MAXFPERIOD)
-      HTS_Engine_set_fperiod(&m_engine, OPENJTALK_MAXFPERIOD);
-   else if(f < OPENJTALK_MINFPERIOD)
-      HTS_Engine_set_fperiod(&m_engine, OPENJTALK_MINFPERIOD);
+   f = m_styleWeights[index + m_numModels * 3 + 0];
+   if(f > OPENJTALK_MAXSPEED)
+      HTS_Engine_set_speed(&m_engine, OPENJTALK_MAXSPEED);
+   else if(f < OPENJTALK_MINSPEED)
+      HTS_Engine_set_speed(&m_engine, OPENJTALK_MINSPEED);
    else
-      HTS_Engine_set_fperiod(&m_engine, (int) f);
+      HTS_Engine_set_speed(&m_engine, f);
 
    /* pitch */
    f = m_styleWeights[index + m_numModels * 3 + 1];
    if(f > OPENJTALK_MAXHALFTONE)
-      m_f0Shift = OPENJTALK_MAXHALFTONE;
+      HTS_Engine_add_half_tone(&m_engine, OPENJTALK_MAXHALFTONE);
    else if(f < OPENJTALK_MINHALFTONE)
-      m_f0Shift = OPENJTALK_MINHALFTONE;
+      HTS_Engine_add_half_tone(&m_engine, OPENJTALK_MINHALFTONE);
    else
-      m_f0Shift = f;
+      HTS_Engine_add_half_tone(&m_engine, f);
 
    /* alpha */
    f = m_styleWeights[index + m_numModels * 3 + 2];
