@@ -107,7 +107,6 @@ MECAB_CHARSET = @MECAB_CHARSET@
 MECAB_DEFAULT_RC = @MECAB_DEFAULT_RC@
 MECAB_LIBS = @MECAB_LIBS@
 MECAB_USE_UTF8_ONLY = @MECAB_USE_UTF8_ONLY@
-MECAB_WITHOUT_MUTEX_LOCK = @MECAB_WITHOUT_MUTEX_LOCK@
 MKDIR_P = @MKDIR_P@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -180,6 +179,9 @@ INCLUDES = -I @top_srcdir@/njd @CHARSET@
 noinst_LIBRARIES = libnjd_set_pronunciation.a
 libnjd_set_pronunciation_a_SOURCES = njd_set_pronunciation.h \
                                      njd_set_pronunciation.c \
+                                     njd_set_pronunciation_rule_ascii_for_euc_jp.h \
+                                     njd_set_pronunciation_rule_ascii_for_shift_jis.h \
+                                     njd_set_pronunciation_rule_ascii_for_utf_8.h \
                                      njd_set_pronunciation_rule_euc_jp.h \
                                      njd_set_pronunciation_rule_shift_jis.h \
                                      njd_set_pronunciation_rule_utf_8.h

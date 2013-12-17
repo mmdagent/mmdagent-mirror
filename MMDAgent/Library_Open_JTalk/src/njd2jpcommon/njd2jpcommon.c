@@ -4,7 +4,7 @@
 /*           http://open-jtalk.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2008-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2008-2013  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -58,6 +58,17 @@ NJD2JPCOMMON_C_START;
 #include "njd.h"
 #include "jpcommon.h"
 
+#ifdef ASCII_HEADER
+#if defined(CHARSET_EUC_JP)
+#include "njd2jpcommon_rule_ascii_for_euc_jp.h"
+#elif defined(CHARSET_SHIFT_JIS)
+#include "njd2jpcommon_rule_ascii_for_shift_jis.h"
+#elif defined(CHARSET_UTF_8)
+#include "njd2jpcommon_rule_ascii_for_utf_8.h"
+#else
+#error CHARSET is not specified
+#endif
+#else
 #if defined(CHARSET_EUC_JP)
 #include "njd2jpcommon_rule_euc_jp.h"
 #elif defined(CHARSET_SHIFT_JIS)
@@ -67,10 +78,12 @@ NJD2JPCOMMON_C_START;
 #else
 #error CHARSET is not specified
 #endif
+#endif
 
 #define MAXBUFLEN 1024
 
-static void convert_pos(char *buff, char *pos, char *pos_group1, char *pos_group2, char *pos_group3)
+static void convert_pos(char *buff, const char *pos, const char *pos_group1, const char *pos_group2,
+                        const char *pos_group3)
 {
    int i;
 
@@ -89,7 +102,7 @@ static void convert_pos(char *buff, char *pos, char *pos_group1, char *pos_group
    strcpy(buff, njd2jpcommon_pos_list[4]);
 }
 
-static void convert_ctype(char *buff, char *ctype)
+static void convert_ctype(char *buff, const char *ctype)
 {
    int i;
 
@@ -105,7 +118,7 @@ static void convert_ctype(char *buff, char *ctype)
    strcpy(buff, njd2jpcommon_ctype_list[1]);
 }
 
-static void convert_cform(char *buff, char *cform)
+static void convert_cform(char *buff, const char *cform)
 {
    int i;
 

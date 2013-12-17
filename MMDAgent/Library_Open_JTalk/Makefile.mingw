@@ -47,14 +47,14 @@ AR       = ar
 CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -finput-charset=cp932 \
            -fexec-charset=cp932 \
-           -D DIC_VERSION=102 \
-           -D MECAB_DEFAULT_RC="\"dummy\"" \
-           -D PACKAGE="\"open_jtalk\"" \
-           -D VERSION="\"1.05\"" \
-           -D MECAB_WITHOUT_SHARE_DIC \
-           -D CHARSET_SHIFT_JIS \
-           -D HAVE_WINDOWS_H \
-           -D MECAB_DEFAULT_CHARSET="\"SHIFT-JIS\""
+           -DDIC_VERSION=102 \
+           -DMECAB_DEFAULT_RC="\"dummy\"" \
+           -DPACKAGE="\"open_jtalk\"" \
+           -DVERSION="\"1.05\"" \
+           -DMECAB_WITHOUT_SHARE_DIC \
+           -DCHARSET_SHIFT_JIS \
+           -DHAVE_WINDOWS_H \
+           -DMECAB_DEFAULT_CHARSET="\"SHIFT-JIS\""
 INCLUDE  = -I src/jpcommon \
            -I src/mecab/src \
            -I src/mecab2njd \

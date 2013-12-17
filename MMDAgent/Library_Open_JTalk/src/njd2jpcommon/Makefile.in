@@ -105,7 +105,6 @@ MECAB_CHARSET = @MECAB_CHARSET@
 MECAB_DEFAULT_RC = @MECAB_DEFAULT_RC@
 MECAB_LIBS = @MECAB_LIBS@
 MECAB_USE_UTF8_ONLY = @MECAB_USE_UTF8_ONLY@
-MECAB_WITHOUT_MUTEX_LOCK = @MECAB_WITHOUT_MUTEX_LOCK@
 MKDIR_P = @MKDIR_P@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -178,6 +177,9 @@ INCLUDES = -I @top_srcdir@/njd -I @top_srcdir@/jpcommon @CHARSET@
 noinst_LIBRARIES = libnjd2jpcommon.a
 libnjd2jpcommon_a_SOURCES = njd2jpcommon.h \
                             njd2jpcommon.c \
+                            njd2jpcommon_rule_ascii_for_euc_jp.h \
+                            njd2jpcommon_rule_ascii_for_shift_jis.h \
+                            njd2jpcommon_rule_ascii_for_utf_8.h \
                             njd2jpcommon_rule_euc_jp.h \
                             njd2jpcommon_rule_shift_jis.h \
                             njd2jpcommon_rule_utf_8.h
