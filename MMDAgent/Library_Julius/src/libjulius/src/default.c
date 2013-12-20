@@ -17,13 +17,13 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 15:05:43 2007
  *
- * $Revision: 1.15 $
+ * $Revision: 1.21 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -86,11 +86,13 @@ jconf_set_default_values(Jconf *j)
 
   j->preprocess.strip_zero_sample	= TRUE;
   j->preprocess.use_zmean		= FALSE;
+  j->preprocess.level_coef		= 1.0;
 
   j->reject.gmm_filename		= NULL;
   j->reject.gmm_gprune_num		= 10;
   j->reject.gmm_reject_cmn_string	= NULL;
   j->reject.rejectshortlen		= 0;
+  j->reject.rejectlonglen		= -1;
 #ifdef POWER_REJECT
   j->reject.powerthres			= POWER_REJECT_DEFAULT_THRES;
 #endif
@@ -101,6 +103,10 @@ jconf_set_default_values(Jconf *j)
 
   j->optsection				= JCONF_OPT_DEFAULT;
   j->optsectioning			= TRUE;
+  if (j->outprob_outfile != NULL) {
+    free(j->outprob_outfile);
+  }
+  j->outprob_outfile			= NULL;
 }
 
 /** 
@@ -314,6 +320,13 @@ jconf_set_default_values_search(JCONF_SEARCH *j)
   j->sw.wchmm_check_flag		= FALSE;
   j->sw.start_inactive			= FALSE;
   j->sw.fallback_pass1_flag		= FALSE;
+
+#ifdef USE_MBR
+  j->mbr.use_mbr = FALSE;
+  j->mbr.use_word_weight = FALSE;
+  j->mbr.score_weight = 0.1;
+  j->mbr.loss_weight = 1.0;
+#endif
 }
 
 /* end of file */

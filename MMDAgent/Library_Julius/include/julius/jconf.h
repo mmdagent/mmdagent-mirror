@@ -23,13 +23,13 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 13:42:28 2007
  *
- * $Revision: 1.13 $
+ * $Revision: 1.20 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -791,6 +791,24 @@ typedef struct __jconf_search__ {
     
   } sw;
 
+#ifdef USE_MBR
+  struct {
+
+    /* Rescoring sentence on MBR (-mbr) */
+    boolean use_mbr;
+
+    /* Use word weight on MBR (-mbr_wwer) */
+    boolean use_word_weight;
+
+    /* Likelihood weight */
+    float score_weight;
+
+    /* Loss function weight */
+    float loss_weight;
+
+  } mbr;
+#endif
+
   /* pointer to next instance */
   struct __jconf_search__ *next;
 
@@ -835,12 +853,12 @@ typedef struct __Jconf__ {
      * Sampling frequency
      * 
      */
-    long sfreq;
+    int sfreq;
     /**
      * Sampling period in 100ns units
      * 
      */
-    long period;
+    int period;
     /**
      * Window size in samples, similar to WINDOWSIZE in HTK (unit is different)
      * 
@@ -955,6 +973,11 @@ typedef struct __Jconf__ {
      */
     boolean use_zmean;
 
+    /**
+     * Input level scaling factor (-lvscale)
+     */
+    float level_coef;
+
   } preprocess;
 
   /**
@@ -978,6 +1001,10 @@ typedef struct __Jconf__ {
      * Length threshold to reject input (-rejectshort)
      */
     int rejectshortlen;
+    /**
+     * Length threshold to reject input (-rejectlong)
+     */
+    int rejectlonglen;
 #ifdef POWER_REJECT
     /**
      * Rejection power threshold
@@ -1074,6 +1101,11 @@ typedef struct __Jconf__ {
    */
   boolean optsectioning;
 
+  /*
+   * Filename to save state probability output
+   *
+   */
+  char *outprob_outfile;
 
 } Jconf;
 

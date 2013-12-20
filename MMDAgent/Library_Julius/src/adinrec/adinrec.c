@@ -12,13 +12,13 @@
  * @author Akinobu LEE
  * @date   Wed Mar 23 20:33:01 2005
  *
- * $Revision: 1.10 $
+ * $Revision: 1.13 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2001-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -45,7 +45,7 @@ opt_help(Jconf *jconf, char *arg[], int argnum)
   fprintf(stderr, "adinrec --- record one sentence input to a file\n");
   fprintf(stderr, "Usage: adinrec [options..] filename\n");
   fprintf(stderr, "    [-input mic|pulseaudio|alsa|oss|esd|...]  input source       (mic)\n");
-  fprintf(stderr, "    [-freq frequency]     sampling frequency in Hz    (%ld)\n", jconf->am_root->analysis.para_default.smp_freq);
+  fprintf(stderr, "    [-freq frequency]     sampling frequency in Hz    (%d)\n", jconf->am_root->analysis.para_default.smp_freq);
   fprintf(stderr, "    [-48]                 48000Hz recording with down sampling (16kHz only)\n");
   fprintf(stderr, "    [-lv unsignedshort]   silence cut level threshold (%d)\n", jconf->detect.level_thres);
   fprintf(stderr, "    [-zc zerocrossnum]    silence cut zerocross num   (%d)\n", jconf->detect.zero_cross_num);
@@ -142,7 +142,7 @@ adin_callback_file(SP16 *now, int len, Recog *recog)
       return -1;
     }
     if (count < len * sizeof(SP16)) {
-      fprintf(stderr, "adinrec: cannot write more %d bytes\ncurrent length = %d\n", count, speechlen * sizeof(SP16));
+      fprintf(stderr, "adinrec: cannot write more %d bytes\ncurrent length = %lu\n", count, speechlen * sizeof(SP16));
       return -1;
     }
   } else {

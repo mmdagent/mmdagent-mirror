@@ -29,7 +29,7 @@
  * @author Akinobu LEE
  * @date   Sat Feb 19 12:53:54 2005
  *
- * $Revision: 1.2 $
+ * $Revision: 1.3 $
  * 
  */
 
@@ -37,7 +37,7 @@
 #define JULIUS_PRODUCTNAME "JuliusLib"
 
 /// Version string
-#define JULIUS_VERSION "4.1.5"
+#define JULIUS_VERSION "4.2.3"
 
 /// Engine setting (value of "--enable-setup=...").
 #define JULIUS_SETUP "fast"

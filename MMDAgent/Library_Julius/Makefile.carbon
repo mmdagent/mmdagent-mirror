@@ -22,6 +22,7 @@ SOURCES  = src/libjulius/src/adin-cut.c \
            src/libjulius/src/m_jconf.c \
            src/libjulius/src/m_options.c \
            src/libjulius/src/m_usage.c \
+           src/libjulius/src/mbr.c \
            src/libjulius/src/multi-gram.c \
            src/libjulius/src/ngram_decode.c \
            src/libjulius/src/outprob_style.c \

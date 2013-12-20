@@ -4,10 +4,10 @@
      Large Vocabulary Continuous Speech Recognition Engine Julius
 
 
- Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
 
 "Large Vocabulary Continuous Speech Recognition Engine Julius",
 including Julian, is being developed at Kawahara Lab., Kyoto
@@ -54,10 +54,10 @@ whatsoever.
 
                       Form of copyright notice:
 
- Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
 
 3. When you publish or present any results by using the Software, you
 must explicitly mention your use of "Large Vocabulary Continuous

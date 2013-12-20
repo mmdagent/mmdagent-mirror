@@ -18,13 +18,13 @@
  * @author Akinobu Lee
  * @date   Thu May 12 18:52:07 2005
  *
- * $Revision: 1.26 $
+ * $Revision: 1.32 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -327,6 +327,10 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
 	jconf->input.type = INPUT_VECTOR;
 	jconf->input.speech_input = SP_MFCFILE;
 	jconf->decodeopt.realtime_flag = FALSE;
+      } else if (strmatch(tmparg,"outprob")) {
+	jconf->input.type = INPUT_VECTOR;
+	jconf->input.speech_input = SP_OUTPROBFILE;
+	jconf->decodeopt.realtime_flag = FALSE;
       } else if (strmatch(tmparg,"stdin")) {
 	jconf->input.type = INPUT_WAVEFORM;
 	jconf->input.speech_input = SP_STDIN;
@@ -388,6 +392,11 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
 	return FALSE;
 #endif
 #endif
+      } else if (strmatch(tmparg,"vecnet")) {
+	jconf->input.plugin_source = -1;
+	jconf->input.type = INPUT_VECTOR;
+	jconf->input.speech_input = SP_MFCMODULE;
+	jconf->decodeopt.realtime_flag = FALSE;
 #ifdef ENABLE_PLUGIN
       } else if ((sid = plugin_find_optname("adin_get_optname", tmparg)) != -1) { /* adin plugin */
 	jconf->input.plugin_source = sid;
@@ -422,6 +431,11 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
       if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
       GET_TMPARG;
       jconf->reject.rejectshortlen = atoi(tmparg);
+      continue;
+    } else if (strmatch(argv[i],"-rejectlong")) { /* long input rejection */
+      if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
+      GET_TMPARG;
+      jconf->reject.rejectlonglen = atoi(tmparg);
       continue;
 #ifdef POWER_REJECT
     } else if (strmatch(argv[i],"-powerthres")) { /* short input rejection */
@@ -979,6 +993,11 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
       if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
       jconf->preprocess.use_zmean = FALSE;
       continue;
+    } else if (strmatch(argv[i],"-lvscale")) { /* input level scaling factor */
+      if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
+      GET_TMPARG;
+      jconf->preprocess.level_coef = (float)atof(tmparg);
+      continue;
     } else if (strmatch(argv[i],"-zmeanframe")) { /* enable frame-wise DC offset by zero mean */
       if (!check_section(jconf, argv[i], JCONF_OPT_AM)) return FALSE; 
       jconf->amnow->analysis.para.zmeanframe = TRUE;
@@ -1304,6 +1323,12 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
 	GET_TMPARG;
 	j_add_word(jconf->lmnow, tmparg);
 	continue;
+    } else if (strmatch(argv[i],"-outprobout")) {
+      if (!check_section(jconf, argv[i], JCONF_OPT_GLOBAL)) return FALSE; 
+      FREE_MEMORY(jconf->outprob_outfile);
+      GET_TMPARG;
+      jconf->outprob_outfile = filepath(tmparg, cwd);
+      continue;
     }
     if (argv[i][0] == '-' && strlen(argv[i]) == 2) {
       /* 1-letter options */
@@ -1362,6 +1387,43 @@ opt_parse(int argc, char *argv[], char *cwd, Jconf *jconf)
 	//return FALSE;
 	unknown_opt = TRUE;
       }
+
+#ifdef USE_MBR
+    } else if (strmatch(argv[i],"-mbr")) {
+
+      if (!check_section(jconf, argv[i], JCONF_OPT_SR)) return FALSE;
+      jconf->searchnow->mbr.use_mbr = TRUE;
+      jconf->searchnow->mbr.use_word_weight = FALSE;
+
+      continue;
+
+    } else if (strmatch(argv[i],"-mbr_wwer")) {
+
+      if (!check_section(jconf, argv[i], JCONF_OPT_SR)) return FALSE;
+      jconf->searchnow->mbr.use_mbr = TRUE;
+      jconf->searchnow->mbr.use_word_weight = TRUE;
+
+      continue;
+
+    } else if (strmatch(argv[i],"-nombr")) {
+
+      if (!check_section(jconf, argv[i], JCONF_OPT_SR)) return FALSE;
+      jconf->searchnow->mbr.use_mbr = FALSE;
+      jconf->searchnow->mbr.use_word_weight = FALSE;
+
+      continue;
+
+    } else if (strmatch(argv[i],"-mbr_weight")) {
+
+      if (!check_section(jconf, argv[i], JCONF_OPT_SR)) return FALSE;
+      GET_TMPARG;
+      jconf->searchnow->mbr.score_weight = (LOGPROB)atof(tmparg);
+      GET_TMPARG;
+      jconf->searchnow->mbr.loss_weight = (LOGPROB)atof(tmparg);
+
+      continue;
+#endif
+
     } else {			/* error */
       //jlog("ERROR: m_options: wrong argument: %s\n", argv[0], argv[i]);
       //return FALSE;
@@ -1437,6 +1499,7 @@ opt_release(Jconf *jconf)
 #endif	/* USE_NETAUDIO */
   FREE_MEMORY(jconf->reject.gmm_filename);
   FREE_MEMORY(jconf->reject.gmm_reject_cmn_string);
+  FREE_MEMORY(jconf->outprob_outfile);
 
   for(am=jconf->am_root;am;am=am->next) {
     FREE_MEMORY(am->hmmfilename);

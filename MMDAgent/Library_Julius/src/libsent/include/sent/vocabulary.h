@@ -30,13 +30,13 @@
  * @author Akinobu LEE
  * @date   Sat Feb 12 12:38:13 2005
  *
- * $Revision: 1.9 $
+ * $Revision: 1.12 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -76,6 +76,9 @@ typedef struct {
   int		totalmodelnum;  ///< Total number of models (phonemes) 
   int		totaltransnum;  ///< Total number of state transitions
   boolean	*is_transparent; ///< TRUE if the word can be treated as transparent [wid]
+#ifdef USE_MBR
+  float *weight; ///< Word weight (use minimization WWER on MBR)
+#endif
   APATNODE	*errph_root; ///< Root node of index tree for gathering error %HMM name appeared when reading the dictionary 
   BMALLOC_BASE *mroot;		///< Pointer for block memory allocation
   void		*work;		///< Work buffer for dictionary reading

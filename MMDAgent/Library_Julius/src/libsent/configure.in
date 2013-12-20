@@ -1,9 +1,9 @@
-dnl Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+dnl Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
 dnl Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
-dnl Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+dnl Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
 dnl All rights reserved
 dnl
-dnl  $Id: configure.in,v 1.30 2012/07/27 10:02:04 sumomo Exp $
+dnl  $Id: configure.in,v 1.36 2013/12/19 16:28:46 sumomo Exp $
 dnl
 
 dnl Process this file with autoconf to produce a configure script.
@@ -11,7 +11,7 @@ AC_INIT(src/phmm/outprob.c)
 AC_CONFIG_HEADER(include/sent/config.h)
 AC_CONFIG_AUX_DIR(../support)
 
-LIBSENT_VERSION=4.2.2
+LIBSENT_VERSION=4.3
 
 dnl Checks for options
 # specify mic type
@@ -59,6 +59,12 @@ AC_ARG_ENABLE(msd,
 want_msd=$enableval
 ,want_msd=no)
 
+dnl MBR support
+AC_ARG_ENABLE(mbr,
+[  --disable-mbr           disable MBR support],
+want_mbr=$enableval
+,want_mbr=yes)
+
 
 
 dnl enable/disable use of zlib library
@@ -94,6 +100,9 @@ if test "$use_mfcc_table" = yes; then
 fi
 if test "$want_msd" = yes; then
 	AC_DEFINE(ENABLE_MSD)
+fi
+if test "$want_mbr" = yes; then
+	AC_DEFINE(USE_MBR)
 fi
 
 dnl Checks for system.
@@ -394,7 +403,7 @@ case $altype in
 	  SOUNDINC="$SOUNDINC -Isrc/adin/pa/os/unix -DPA_USE_ALSA"
 	  ADINOBJ="$ADINOBJ src/adin/pa/os/unix/pa_unix_hostapis.o src/adin/pa/os/unix/pa_unix_util.o"
           ADINOBJ="$ADINOBJ src/adin/pa/hostapi/alsa/pa_linux_alsa.o"
-          SOUNDLIB="$SOUNDLIB -lpthread"
+          SOUNDLIB="$SOUNDLIB -lpthread -lasound"
           ;;
         pa-oss)
 	  aldesc="$aldesc (Unix/OSS)"

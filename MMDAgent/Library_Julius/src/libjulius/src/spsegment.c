@@ -58,13 +58,13 @@
  * @author Akinobu Lee
  * @date   Wed Oct 17 12:47:29 2007
  *
- * $Revision: 1.5 $
+ * $Revision: 1.7 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -161,6 +161,7 @@ mfcc_copy_to_rest_and_shrink(MFCCCalc *mfcc, int start, int end)
   mfcc->rest_param->samplenum = mfcc->param->samplenum - start;
   mfcc->rest_param->header.samplenum = mfcc->rest_param->samplenum;
   mfcc->rest_param->veclen = mfcc->param->veclen;
+  mfcc->rest_param->is_outprob = mfcc->param->is_outprob;
   if (param_alloc(mfcc->rest_param, mfcc->rest_param->samplenum, mfcc->rest_param->veclen) == FALSE) {
     j_internal_error("ERROR: segmented: failed to allocate memory for rest param\n");
   }
@@ -168,10 +169,11 @@ mfcc_copy_to_rest_and_shrink(MFCCCalc *mfcc, int start, int end)
   for(t=start;t<mfcc->param->samplenum;t++) {
     memcpy(mfcc->rest_param->parvec[t-start], mfcc->param->parvec[t], sizeof(VECT) * mfcc->rest_param->veclen);
   }
-  
+
   /* shrink original param */
   /* just shrink the length */
   mfcc->param->samplenum = end;
+  mfcc->param->header.samplenum = end;
 }
 
 /** 

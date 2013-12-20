@@ -12,14 +12,14 @@
  * @author Akinobu Lee
  * @date   Wed May 18 15:02:55 2005
  *
- * $Revision: 1.5 $
+ * $Revision: 1.7 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -178,7 +178,7 @@ main(int argc, char *argv[])
   /* if -outfile option specified, callbacks for file output will be
      regitered */
   if (outfile_enabled) {
-    if (jconf->input.speech_input == SP_MFCFILE || jconf->input.speech_input == SP_RAWFILE) {
+    if (jconf->input.speech_input == SP_MFCFILE || jconf->input.speech_input == SP_RAWFILE || jconf->input.speech_input == SP_OUTPROBFILE) {
       setup_output_file(recog, NULL);
     } else {
       fprintf(stderr, "Warning: -outfile works only for file input, disabled now\n");

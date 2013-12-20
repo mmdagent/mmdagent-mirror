@@ -12,13 +12,13 @@
  * @author Akinobu LEE
  * @date   Fri Feb 18 21:33:29 2005
  *
- * $Revision: 1.7 $
+ * $Revision: 1.11 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -48,6 +48,9 @@ word_info_new()
   new->cprob = NULL;
 #endif
   new->is_transparent = NULL;
+#ifdef USE_MBR
+  new->weight = NULL;
+#endif
 
   return(new);
 }
@@ -72,6 +75,9 @@ word_info_free(WORD_INFO *winfo)
 #endif
   if (winfo->is_transparent != NULL) free(winfo->is_transparent);
   /* free whole */
+#ifdef USE_MBR
+  if (winfo->weight != NULL) free(winfo->weight);
+#endif
   free(winfo);
 }
 
@@ -132,6 +138,12 @@ winfo_expand(WORD_INFO *winfo)
   winfo->cprob = (LOGPROB *)myrealloc(winfo->cprob, sizeof(LOGPROB)*n);
 #endif
   winfo->is_transparent = (boolean *)myrealloc(winfo->is_transparent, sizeof(boolean)*n);
+
+#ifdef USE_MBR
+  if (winfo->weight)
+    winfo->weight = (LOGPROB *)myrealloc(winfo->weight, sizeof(LOGPROB)*n);
+#endif
+
   winfo->maxnum = n;
 
   return TRUE;

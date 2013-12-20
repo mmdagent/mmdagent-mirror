@@ -56,12 +56,12 @@
  * @author Akinobu LEE
  * @date   Mon Feb 14 12:03:48 2005
  *
- * $Revision: 1.19 $
+ * $Revision: 1.21 $
  * 
  */
 /*
  * Copyright (c) 2004-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -659,6 +659,60 @@ adin_mic_read(SP16 *buf, int sampnum)
   printf("process-3: new processed: %d\n", processed);
 #endif
   return len;
+}
+
+/** 
+ * Function to pause audio input (wait for buffer flush)
+ * 
+ * @return TRUE on success, FALSE on failure.
+ */
+boolean
+adin_mic_pause()
+{
+  PaError err;
+
+  err = Pa_StopStream(stream);
+  if (err != paNoError) {
+    jlog("Error: adin_portaudio: failed to pause stream: %s\n", Pa_GetErrorText(err));
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/** 
+ * Function to terminate audio input (disgard buffer)
+ * 
+ * @return TRUE on success, FALSE on failure.
+ */
+boolean
+adin_mic_terminate()
+{
+  PaError err;
+
+  err = Pa_AbortStream(stream);
+  if (err != paNoError) {
+    jlog("Error: adin_portaudio: failed to terminate stream: %s\n", Pa_GetErrorText(err));
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/** 
+ * Function to resume the paused / terminated audio input
+ * 
+ * @return TRUE on success, FALSE on failure.
+ */
+boolean
+adin_mic_resume()
+{
+  PaError err;
+
+  err = Pa_StartStream(stream);
+  if (err != paNoError) {
+    jlog("Error: adin_portaudio: failed to resume stream: %s\n", Pa_GetErrorText(err));
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /** 

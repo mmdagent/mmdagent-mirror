@@ -111,13 +111,13 @@
  * @author Akinobu Lee
  * @date   Tue Aug 23 11:44:14 2005
  *
- * $Revision: 1.9 $
+ * $Revision: 1.13 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -164,7 +164,7 @@ init_param(MFCCCalc *mfcc)
 
   /* これから計算されるパラメータの型をヘッダに設定 */
   /* set header types */
-  mfcc->param->header.samptype = F_MFCC;
+  mfcc->param->header.samptype = para->basetype;
   if (para->delta) mfcc->param->header.samptype |= F_DELTA;
   if (para->acc) mfcc->param->header.samptype |= F_ACCL;
   if (para->energy) mfcc->param->header.samptype |= F_ENERGY;
@@ -817,7 +817,10 @@ RealTimePipeLine(SP16 *Speech, int nowlen, Recog *recog) /* Speech[0...nowlen] =
     /* 入力長が maxframelen に達したらここで強制終了 */
     /* if input length reaches maximum buffer size, terminate 1st pass here */
     for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
-      if (mfcc->f >= r->maxframelen) return(1);
+      if (mfcc->f >= r->maxframelen) {
+	jlog("Warning: too long input (> %d frames), segment it now\n", r->maxframelen);
+	return(1);
+      }
     }
     /* 窓バッファを埋められるだけ埋める */
     /* fill window buffer as many as possible */
@@ -1161,6 +1164,12 @@ RealTimeParam(Recog *recog)
   /* loop until all data has been flushed */
   while (1) {
 
+    /* check frame overflow */
+    for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
+      if (! mfcc->valid) continue;
+      if (mfcc->f >= r->maxframelen) mfcc->valid = FALSE;
+    }
+
     /* if all mfcc became invalid, exit loop here */
     ok_p = FALSE;
     for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
@@ -1321,7 +1330,6 @@ RealTimeParam(Recog *recog)
     for (mfcc = recog->mfcclist; mfcc; mfcc = mfcc->next) {
       if (! mfcc->valid) continue;
       mfcc->f++;
-      if (mfcc->f > r->maxframelen) mfcc->valid = FALSE;
     }
   }
 

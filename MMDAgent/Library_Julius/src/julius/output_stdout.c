@@ -12,13 +12,13 @@
  * @author Akinobu Lee
  * @date   Tue Sep 06 17:18:46 2005
  *
- * $Revision: 1.10 $
+ * $Revision: 1.14 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -827,6 +827,9 @@ result_pass2(Recog *recog, void *dummy)
       case J_RESULT_STATUS_REJECT_SHORT:
 	printf("<input rejected by short input>\n");
 	break;
+      case J_RESULT_STATUS_REJECT_LONG:
+	printf("<input rejected by long input>\n");
+	break;
       case J_RESULT_STATUS_FAIL:
 	printf("<search failed>\n");
 	break;
@@ -904,6 +907,11 @@ result_pass2(Recog *recog, void *dummy)
 	printf("%s\n",ec);		/* bold off & newline */
       }
       if (verbose_flag) {
+#ifdef USE_MBR
+	if(r->config->mbr.use_mbr == TRUE){
+	  printf("MBRscore%d: %f\n", n+1, s->score_mbr);
+	}
+#endif
 	printf("score%d: %f", n+1, s->score);
 	if (r->lmtype == LM_PROB) {
 	  if (separate_score_flag) {

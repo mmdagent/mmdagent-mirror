@@ -1,6 +1,6 @@
     gram2sapixml.pl
 
-GRAM2SAPIXML.PL(1)                                          GRAM2SAPIXML.PL(1)
+GRAM2SAPIXML.(1)                                              GRAM2SAPIXML.(1)
 
 
 
@@ -37,11 +37,17 @@ DIAGNOSTICS
        合，エラーとなります．
 
 COPYRIGHT
-       Copyright (c) 2002  Takashi Sumiyoshi
+       Copyright (c) 1991-2013 京都大学 河原研究室
+
+       Copyright (c) 1997-2000 情報処理振興事業協会(IPA)
+
+       Copyright (c) 2000-2005 奈良先端科学技術大学院大学 鹿野研究室
+
+       Copyright (c) 2005-2013 名古屋工業大学 Julius開発チーム
 
 LICENSE
        Julius の使用許諾に準じます．
 
 
 
-                                  10/02/2008                GRAM2SAPIXML.PL(1)
+                                  19/12/2013                  GRAM2SAPIXML.(1)

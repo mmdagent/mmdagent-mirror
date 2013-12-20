@@ -33,7 +33,7 @@
  * @author Akinobu LEE
  * @date   Thu Feb 10 17:48:32 2005
  *
- * $Revision: 1.8 $
+ * $Revision: 1.11 $
  *
  */
 
@@ -156,3 +156,7 @@
 
 /* Define if MSD-HMM support is enabled */
 #undef ENABLE_MSD
+
+/* Define if MBR support is enabled */
+/* MBR Extension by Hiroaki Nanjo and Ryo Furutani */
+#undef USE_MBR

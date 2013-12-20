@@ -70,13 +70,13 @@
  * @author Akinobu Lee
  * @date   Fri Feb 16 13:42:28 2007
  *
- * $Revision: 1.16 $
+ * $Revision: 1.21 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -333,6 +333,10 @@ typedef struct __sentence__ {
   int gram_id;                  ///< The grammar ID this sentence belongs to for DFA
   SentenceAlign *align;
 
+#ifdef USE_MBR
+  LOGPROB score_mbr; ///< MBR score
+#endif 
+
 } Sentence;
 
 /** 
@@ -368,6 +372,7 @@ typedef struct __adin__ {
   boolean strip_flag;   ///< TRUE if skip invalid zero samples
   boolean enable_thread;        ///< TRUE if input device needs threading
   boolean need_zmean;   ///< TRUE if perform zmeansource
+  float level_coef;     ///< Input level scaling factor
 
   /* work area */
   int c_length; ///< Computed length of cycle buffer for zero-cross, actually equals to head margin length
@@ -385,6 +390,7 @@ typedef struct __adin__ {
   pthread_mutex_t mutex;        ///< Lock primitive
   SP16 *speech;         ///< Unprocessed samples recorded by A/D-in thread
   int speechlen;                ///< Current length of @a speech
+  int freezelen;        ///< Number of samples to abondon processing
 /*
  * Semaphore to start/stop recognition.
  * 

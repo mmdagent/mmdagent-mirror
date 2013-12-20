@@ -19,13 +19,13 @@
  * @author Akinobu LEE
  * @date   Fri Feb 18 19:43:06 2005
  *
- * $Revision: 1.12 $
+ * $Revision: 1.16 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -376,7 +376,7 @@ voca_load_htkdict_line(char *buf, WORD_ID *vnum_p, int linenum, WORD_INFO *winfo
   char *ptmp, *lp = NULL, *p;
   static char cbuf[MAX_HMMNAME_LEN];
   HMM_Logical **tmpwseq;
-  int len;
+  int i, len;
   HMM_Logical *tmplg;
   boolean pok;
   int vnum;
@@ -489,6 +489,50 @@ voca_load_htkdict_line(char *buf, WORD_ID *vnum_p, int linenum, WORD_INFO *winfo
     return TRUE;
   }
   winfo->woutput[vnum] = strcpy((char *)mybmalloc2(strlen(ptmp)+1, &(winfo->mroot)), ptmp);
+
+#ifdef USE_MBR
+  /* just move pointer to next token */
+  if ((ptmp = mystrtok_movetonext(NULL, " \t\n")) == NULL) {
+    jlog("Error: voca_load_htkdict: line %d: corrupted data:\n> %s\n", linenum, bufbak);
+    winfo->errnum++;
+    *ok_flag = FALSE;
+    return TRUE;
+  }
+
+  if (ptmp[0] == ':') {        /* Word weight (use minimization WWER on MBR) */
+
+    /* Word weight (use minimization WWER on MBR) */
+    /* format: (classname @classprob) wordname [output] :weight phoneseq */
+    /* format: :%f (linear scale) */
+    /* if ":" not found, it means weight == 1.0 (same minimization WER) */
+
+    if ((ptmp = mystrtok(NULL, " \t\n")) == NULL) {
+      jlog("Error: voca_load_htkdict: line %d: corrupted data:\n> %s\n", linenum, bufbak);
+      winfo->errnum++;
+      *ok_flag = FALSE;
+      return TRUE;
+    }
+    if ((ptmp[1] < '0' || ptmp[1] > '9') && ptmp[1] != '.') {     /* not figure after ':' */
+      jlog("Error: voca_load_htkdict: line %d: value after ':' missing, maybe wrong space?\n> %s\n", linenum, bufbak);
+      winfo->errnum++;
+      *ok_flag = FALSE;
+      return TRUE;
+    }
+
+    /* allocate if not yet */
+    if (winfo->weight == NULL) {
+      winfo->weight = (LOGPROB *)mymalloc(sizeof(LOGPROB) * winfo->maxnum);
+      for (i = 0; i < vnum; i++) {
+	winfo->weight[i] = 1.0;
+      }
+    }
+    winfo->weight[vnum] = atof(&(ptmp[1]));
+  }
+  else{
+    if (winfo->weight) 
+      winfo->weight[vnum] = 1.0; /* default, same minimization WER */
+  }
+#endif
     
   /* phoneme sequence */
   if (hmminfo == NULL) {

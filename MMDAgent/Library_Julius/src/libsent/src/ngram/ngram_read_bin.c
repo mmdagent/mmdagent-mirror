@@ -48,13 +48,13 @@
  * @author Akinobu LEE
  * @date   Wed Feb 16 17:12:08 2005
  *
- * $Revision: 1.10 $
+ * $Revision: 1.12 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -267,6 +267,7 @@ ngram_read_bin_v5(FILE *fp, NGRAM_INFO *ndata)
   rdn(fp, w, 1, len);
   /* assign... */
   ndata->wname = (char **)mymalloc(sizeof(char *) * ndata->max_word_num);
+  ndata->wname[0] = NULL;
   p = w; i = 0;
   while (p < w + len) {
     ndata->wname[i++] = p;

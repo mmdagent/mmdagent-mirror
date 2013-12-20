@@ -35,13 +35,13 @@
  * @author Akinobu Lee
  * @date   Thu Sep 08 11:51:12 2005
  *
- * $Revision: 1.12 $
+ * $Revision: 1.15 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -1023,6 +1023,11 @@ store_result_pass2(NODE *hypo, RecogProcess *r)
   s->score = hypo->score;
   s->score_lm = hypo->totallscore;
   s->score_am = hypo->score - hypo->totallscore;
+
+#ifdef USE_MBR
+  s->score_mbr = hypo->score_mbr;
+#endif
+
   if (r->lmtype == LM_DFA) {
     /* output which grammar the hypothesis belongs to on multiple grammar */
     /* determine only by the last word */
@@ -2149,6 +2154,13 @@ wchmm_fbs(HTK_Param *param, RecogProcess *r, int cate_bgn, int cate_num)
     if (debug2_flag) {
       jlog("STAT: %02d %s: got %d candidates\n", r->config->id, r->config->name, dwrk->finishnum);
     }
+
+#ifdef USE_MBR
+      if(r->config->mbr.use_mbr){
+       candidate_mbr(&r_start, &r_bottom, r_stacknum, r);
+      }
+#endif
+
       /* 結果はまだ出力されていないので，文候補用スタック内をソートして
 	 ここで出力する */
       /* As all of the found candidate are in result stack, we sort them

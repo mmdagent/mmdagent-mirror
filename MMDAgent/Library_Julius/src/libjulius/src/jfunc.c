@@ -19,13 +19,13 @@
  * @author Akinobu Lee
  * @date   Wed Aug  8 15:04:28 2007
  *
- * $Revision: 1.9 $
+ * $Revision: 1.12 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -685,6 +685,7 @@ j_get_current_filename(Recog *recog)
       p = mfc_module_input_name(recog->mfcclist);
       break;
     case SP_MFCFILE:
+    case SP_OUTPROBFILE:
       /* already assigned */
       p = recog->adin->current_input_name;
       break;
@@ -1638,5 +1639,22 @@ vtln_alpha(Recog *recog, RecogProcess *r)
 }
 #endif
 
+
+/** 
+ * Change the scaling factor of input audio level.  Set to 1.0 to disable.
+ * 
+ * @param recog [i/o] engine instance
+ * @param factor [in] factor value (1.0 to disable scaling)
+ * 
+ * @callgraph
+ * @callergraph
+ * @ingroup engine
+ */
+void
+j_adin_change_input_scaling_factor(Recog *recog, float factor)
+{
+  recog->adin->level_coef = factor;
+  recog->jconf->preprocess.level_coef = factor;
+}
 
 /* end of file */

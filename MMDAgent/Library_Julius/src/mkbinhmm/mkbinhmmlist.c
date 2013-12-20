@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2003-2012 Kawahara Lab., Kyoto University 
+ * Copyright (c) 2003-2013 Kawahara Lab., Kyoto University 
  * Copyright (c) 2003-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
 /* mkbinhmmlist --- read in ascii hmmlist file and write in binary format */
 
-/* $Id: mkbinhmmlist.c,v 1.4 2012/07/27 08:44:57 sumomo Exp $ */
+/* $Id: mkbinhmmlist.c,v 1.5 2013/06/20 17:14:27 sumomo Exp $ */
 
 #include <sent/stddefs.h>
 #include <sent/htk_hmm.h>

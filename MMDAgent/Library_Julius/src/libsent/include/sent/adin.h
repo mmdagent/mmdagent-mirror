@@ -19,12 +19,12 @@
  * @author Akinobu LEE
  * @date   Thu Feb 10 17:22:36 2005
  *
- * $Revision: 1.12 $ 
+ * $Revision: 1.15 $ 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -48,7 +48,8 @@ enum {
   SP_MFCFILE,			///< HTK parameter file
   SP_NETAUDIO,			///< Live NetAudio/DatLink input
   SP_STDIN,			///< Standard input
-  SP_MFCMODULE			///< parameter module
+  SP_MFCMODULE,			///< parameter module
+  SP_OUTPROBFILE
 };
 
 /// Input device
@@ -140,6 +141,9 @@ boolean adin_mic_standby(int freq, void *arg);
 boolean adin_mic_begin(char *pathname);
 boolean adin_mic_end();
 int adin_mic_read(SP16 *buf, int sampnum);
+boolean adin_mic_pause();
+boolean adin_mic_terminate();
+boolean adin_mic_resume();
 char *adin_mic_input_name();
 /* adin/adin_mic_linux_alsa.c */
 boolean adin_alsa_standby(int freq, void *arg);

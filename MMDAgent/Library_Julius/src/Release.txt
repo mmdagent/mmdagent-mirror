@@ -1,3 +1,46 @@
+4.3 (2013.12.25)
+=================
+New features:
+- FBANK and MELSPEC support.
+- Network-based feature vector and outprob vector input.
+- Static mean/variance for cepstral mean/variance normalization.
+- State output probability (i.e. outprob) vector input for DNN-HMM decoding.
+- State ID "<SID>" extension of hmmdefs for DNN-HMM decoding.
+- Real-time feature extraction and network transmittion by 'adintool'.
+
+Modified:
+- "mkbinhmm" now keeps the state order and id of the original hmmdefs.
+- For portaudio, pause / resume operation synced between engine and audio I/O
+- Load / save cepstral mean/variance of CMN/CVN in HTK text format.
+
+New options:
+  [-input vecnet]       read feature / outprob vectors from network
+  [-input outprob]      read outprob vectors from HTK parameter file
+  [-outprobout [file]]  save computed outprob vectors to HTK file (for debug)
+
+
+4.2.3 (2013.06.30)
+==================
+
+New features:
+- Add function "j_reload_adddict()" to reload dictionaries.
+- Add option "-lvscale factor" and func "j_adin_change_input_scaling_factor()"
+  to scale the amplitude of captured audio by the factor.
+- Add option "-rejectlong msec" to reject too long input.
+- Add minimum bayes risk decoding, contributed by H. Nanjo and R. Furutani
+- Support binary N-gram symbol charset conversion by "mkbingram".
+
+Fixes:
+- Fix sending audio stream via network with incorrect byte order at
+  big-endian machines.
+- Fix occasional failure of closing audio device at j_close_stream().
+- Fix segfault when reading binary hmm created at 64bit env. with embedded parameters.
+- Fix memory leak when failed to read an N-gram file.
+- Fix memory leak when input length overflow is detected.
+- Fix unable to load feature vector plugin.
+- Update microphone input code for recent MacOSX.
+
+
 4.2.2 (2012.08.01)
 ==================
 

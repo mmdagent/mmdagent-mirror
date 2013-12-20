@@ -95,13 +95,13 @@
  * @author Akinobu LEE
  * @date   Sat Feb 12 13:20:53 2005
  *
- * $Revision: 1.18 $
+ * $Revision: 1.22 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -159,6 +159,7 @@ adin_setup_param(ADIn *adin, Jconf *jconf)
   }
 #endif
   adin->need_zmean = jconf->preprocess.use_zmean;
+  adin->level_coef = jconf->preprocess.level_coef;
   /* calc & set internal parameter from configuration */
   freq = jconf->input.sfreq;
   samples_in_msec = (float) freq / (float)1000.0;
@@ -179,6 +180,11 @@ adin_setup_param(ADIn *adin, Jconf *jconf)
 #ifdef HAVE_PTHREAD
   adin->transfer_online = FALSE;
   adin->speech = NULL;
+  if (jconf->reject.rejectlonglen >= 0) {
+    adin->freezelen = (jconf->reject.rejectlonglen + 500.0) * jconf->input.sfreq / 1000.0;
+  } else {
+    adin->freezelen = MAXSPEECHLEN;
+  }
 #endif
 
   /**********************/
@@ -348,6 +354,9 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
   /*************/
   for (;;) {
 
+    /* check end of input by end of stream */
+    if (a->end_of_stream && a->bp == 0) break;
+
     /****************************/
     /* read in new speech input */
     /****************************/
@@ -409,6 +418,12 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
 	  a->end_of_stream = TRUE;
 	  cnt = 0;
 	  if (a->bp == 0) break;
+	}
+      }
+      if (cnt > 0 && a->level_coef != 1.0) {
+	/* scale the level of incoming input */
+	for (i = a->bp; i < a->bp + cnt; i++) {
+	  a->buffer[i] = (SP16) ((float)a->buffer[i] * a->level_coef);
 	}
       }
 
@@ -874,8 +889,6 @@ adin_cut(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Recog *), Reco
     /* purge processed samples and update queue */
     adin_purge(a, i);
 
-    /* end of input by end of stream */
-    if (a->end_of_stream && a->bp == 0) break;
   }
 
 break_input:
@@ -1166,7 +1179,7 @@ adin_thread_process(int (*ad_process)(SP16 *, int, Recog *), int (*ad_check)(Rec
 	}
       }
     }
-    if (prev_len < nowlen) {
+    if (prev_len < nowlen && nowlen <= a->freezelen) {
 #ifdef THREAD_DEBUG
       jlog("DEBUG: process: proceed [%d-%d]\n",prev_len, nowlen);
 #endif

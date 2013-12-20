@@ -12,13 +12,13 @@
  * @author Akinobu Lee
  * @date   Sun Oct 28 18:06:20 2007
  *
- * $Revision: 1.8 $
+ * $Revision: 1.11 $
  * 
  */
 /*
- * Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ * Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  * Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- * Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ * Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
  * All rights reserved
  */
 
@@ -58,7 +58,7 @@ j_mfcccalc_new(JCONF_AM *amconf)
     mfcc->htk_loaded = (amconf->analysis.para_htk.loaded == 1) ? TRUE : FALSE;
     mfcc->wrk = WMP_work_new(mfcc->para);
     if (mfcc->wrk == NULL) {
-      jlog("ERROR: j_mfcccalc_new: failed to initialize MFCC computation\n");
+      jlog("ERROR: j_mfcccalc_new: failed to initialize feature computation\n");
       return NULL;
     }
     mfcc->cmn.load_filename = amconf->analysis.cmnload_filename;
@@ -686,6 +686,7 @@ j_jconf_new()
   jconf->searchnow = jconf->search_root;
   /* set gmm am jconf */
   jconf->gmm = NULL;
+  jconf->outprob_outfile = NULL;
 
   return(jconf);
 }
@@ -737,6 +738,11 @@ j_jconf_free(Jconf *jconf)
     j_jconf_search_free(sc);
     sc = sctmp;
   }
+  if (jconf->outprob_outfile) {
+    free(jconf->outprob_outfile);
+    jconf->outprob_outfile = NULL;
+  }
+
   free(jconf);
 }
 
