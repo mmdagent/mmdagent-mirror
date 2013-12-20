@@ -1024,10 +1024,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\src\btBulletCollisionCommon.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\src\btBulletDynamicsCommon.h"
 				>
 			</File>

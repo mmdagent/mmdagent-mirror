@@ -50,6 +50,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
+				CompileAs="1"
 				DisableSpecificWarnings="4819"
 			/>
 			<Tool
@@ -382,6 +383,10 @@
 			</File>
 			<File
 				RelativePath=".\src\libjulius\src\m_usage.c"
+				>
+			</File>
+			<File
+				RelativePath=".\src\libjulius\src\mbr.c"
 				>
 			</File>
 			<File
