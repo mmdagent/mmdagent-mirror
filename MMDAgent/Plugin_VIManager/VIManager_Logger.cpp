@@ -126,6 +126,7 @@ void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
 /* VIManager_Logger::render: render log */
 void VIManager_Logger::render(VIManager_State *currentState)
 {
+#ifndef VIMANAGER_DONTRENDERDEBUG
    int i;
    VIManager_Arc *arc;
    VIManager_Arc *prevArc;
@@ -189,4 +190,5 @@ void VIManager_Logger::render(VIManager_State *currentState)
    glEnable(GL_LIGHTING);
    glEnable(GL_CULL_FACE);
    glPopMatrix();
+#endif /* !VIMANAGER_DONTRENDERDEBUG */
 }
