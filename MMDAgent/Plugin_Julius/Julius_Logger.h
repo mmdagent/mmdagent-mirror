@@ -62,10 +62,10 @@ private :
    TRELLIS_ATOM* m_lastTrellis; /* current word trellis edge */
    double m_decayFrame;         /* rest frames for last decaying */
    int m_currentMaxAdIn;        /* maximum level at last input segment */
-   int m_maxAdIn;               /* snapped maximum level */
+   float m_maxAdIn;             /* snapped maximum level */
    double m_adInFrameStep;      /* current frame for adin level calculation */
    int m_numWord;               /* number of words in recognition dictionary */
-   int m_levelThreshold;        /* audio trigger level threshold */
+   float m_levelThreshold;      /* audio trigger level threshold */
 
    float m_pos[JULIUSLOGGER_MAXARCS * 3];          /* position array for recognition process drawing */
    unsigned int m_index[JULIUSLOGGER_MAXARCS * 2]; /* index array for recognition process drawing */

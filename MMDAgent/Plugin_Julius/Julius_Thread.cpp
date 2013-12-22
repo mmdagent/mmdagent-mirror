@@ -87,6 +87,13 @@ static void callbackRecogResult(Recog *recog, void *data)
       j->sendMessage(JULIUSTHREAD_EVENTSTOP, str);
 }
 
+/* callbackPoll: callback called per about 0.1 sec during audio input */
+static void callbackPoll(Recog *recog, void *data)
+{
+   Julius_Thread *j = (Julius_Thread *) data;
+   j->procCommand();
+}
+
 /* mainThread: main thread */
 static void mainThread(void *param)
 {
@@ -102,19 +109,26 @@ void Julius_Thread::initialize()
 
    m_mmdagent = NULL;
 
+   m_mutex = NULL;
    m_thread = -1;
 
    m_languageModel = NULL;
    m_dictionary = NULL;
-   m_acousticModel = NULL;
+   m_triphoneAcousticModel = NULL;
    m_triphoneList = NULL;
+   m_monophoneAcousticModel = NULL;
    m_configFile = NULL;
    m_userDictionary = NULL;
+
+   m_status = JULIUSTHREAD_STATUSWAIT;
+   m_command = NULL;
 }
 
 /* Julius_Thread::clear: free thread */
 void Julius_Thread::clear()
 {
+   JuliusModificationCommand *c, *next;
+
    if(m_thread >= 0) {
       if(m_recog)
          j_close_stream(m_recog);
@@ -122,6 +136,8 @@ void Julius_Thread::clear()
       glfwDestroyThread(m_thread);
       glfwTerminate();
    }
+   if(m_mutex != NULL)
+      glfwDestroyMutex(m_mutex);
    if (m_recog) {
       j_recog_free(m_recog); /* jconf is also released in j_recog_free */
    } else if (m_jconf) {
@@ -132,14 +148,22 @@ void Julius_Thread::clear()
       free(m_languageModel);
    if(m_dictionary != NULL)
       free(m_dictionary);
-   if(m_acousticModel != NULL)
-      free(m_acousticModel);
+   if(m_triphoneAcousticModel != NULL)
+      free(m_triphoneAcousticModel);
    if(m_triphoneList != NULL)
       free(m_triphoneList);
+   if(m_monophoneAcousticModel != NULL)
+      free(m_monophoneAcousticModel);
    if(m_configFile != NULL)
       free(m_configFile);
    if(m_userDictionary != NULL)
       free(m_userDictionary);
+
+   for(c = m_command; c != NULL; c = next) {
+      next = c->next;
+      free(c->str);
+      free(c);
+   }
 
    initialize();
 }
@@ -157,7 +181,7 @@ Julius_Thread::~Julius_Thread()
 }
 
 /* Julius_Thread::loadAndStart: load models and start thread */
-void Julius_Thread::loadAndStart(MMDAgent *mmdagent, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary)
+void Julius_Thread::loadAndStart(MMDAgent *mmdagent, const char *languageModel, const char *dictionary, const char *triphoneAcousticModel, const char *triphoneList, const char *monophoneAcousticModel, const char *configFile, const char *userDictionary)
 {
    /* reset */
    clear();
@@ -166,20 +190,22 @@ void Julius_Thread::loadAndStart(MMDAgent *mmdagent, const char *languageModel, 
 
    m_languageModel = MMDAgent_strdup(languageModel);
    m_dictionary = MMDAgent_strdup(dictionary);
-   m_acousticModel = MMDAgent_strdup(acousticModel);
+   m_triphoneAcousticModel = MMDAgent_strdup(triphoneAcousticModel);
    m_triphoneList = MMDAgent_strdup(triphoneList);
+   m_monophoneAcousticModel = MMDAgent_strdup(monophoneAcousticModel);
    m_configFile = MMDAgent_strdup(configFile);
    m_userDictionary = MMDAgent_strdup(userDictionary);
 
-   if(m_mmdagent == NULL || m_languageModel == NULL || m_dictionary == NULL || m_acousticModel == NULL || m_triphoneList == NULL || m_configFile == NULL) {
+   if(m_mmdagent == NULL || m_languageModel == NULL || m_dictionary == NULL || m_triphoneAcousticModel == NULL || m_triphoneList == NULL || m_configFile == NULL) {
       clear();
       return;
    }
 
    /* create recognition thread */
    glfwInit();
+   m_mutex = glfwCreateMutex();
    m_thread = glfwCreateThread(mainThread, this);
-   if(m_thread < 0) {
+   if(m_mutex == NULL || m_thread < 0) {
       clear();
       return;
    }
@@ -198,7 +224,7 @@ void Julius_Thread::run()
    char buff[MMDAGENT_MAXBUFLEN];
    FILE *fp;
 
-   if(m_jconf != NULL || m_recog != NULL || m_mmdagent == NULL || m_thread < 0 || m_languageModel == 0 || m_dictionary == 0 || m_acousticModel == 0 || m_triphoneList == 0 || m_configFile == 0)
+   if(m_jconf != NULL || m_recog != NULL || m_mmdagent == NULL || m_thread < 0 || m_languageModel == 0 || m_dictionary == 0 || m_triphoneAcousticModel == 0 || m_triphoneList == 0 || m_configFile == 0)
       return;
 
    /* set latency */
@@ -226,7 +252,7 @@ void Julius_Thread::run()
       return;
    }
 
-   tmp = MMDAgent_pathdup(m_acousticModel);
+   tmp = MMDAgent_pathdup(m_triphoneAcousticModel);
    sprintf(buff, "-h \"%s\"", tmp);
    free(tmp);
    if(j_config_load_string(m_jconf, buff) < 0) {
@@ -238,6 +264,15 @@ void Julius_Thread::run()
    free(tmp);
    if(j_config_load_string(m_jconf, buff) < 0) {
       return;
+   }
+
+   if(MMDAgent_strlen(m_monophoneAcousticModel) > 0) {
+      tmp = MMDAgent_pathdup(m_monophoneAcousticModel);
+      sprintf(buff, "-gshmm \"%s\"", tmp);
+      free(tmp);
+      if(j_config_load_string(m_jconf, buff) < 0) {
+         return;
+      }
    }
 
    /* load config file */
@@ -266,6 +301,7 @@ void Julius_Thread::run()
    /* register callback functions */
    callback_add(m_recog, CALLBACK_EVENT_RECOGNITION_BEGIN, callbackRecogBegin, this);
    callback_add(m_recog, CALLBACK_RESULT, callbackRecogResult, this);
+   callback_add(m_recog, CALLBACK_POLL, callbackPoll, this);
    if (!j_adin_init(m_recog)) {
       return;
    }
@@ -298,6 +334,114 @@ void Julius_Thread::resume()
       j_request_resume(m_recog);
 }
 
+/* Julius_Thread::procCommand: process command message to modify recognition condition */
+void Julius_Thread::procCommand()
+{
+   JuliusModificationCommand *c;
+   char *p1, *p2, *save;
+   float f;
+   PROCESS_LM *lm;
+   JCONF_LM_NAMELIST *dict, *next;
+
+   if(m_recog != NULL) {
+      while(1) {
+         /* dequeue command message */
+         glfwLockMutex(m_mutex);
+         c = m_command;
+         if(c != NULL)
+            m_command = c->next;
+         glfwUnlockMutex(m_mutex);
+         if(c == NULL)
+            return;
+         /* change status */
+         while(1) {
+            glfwLockMutex(m_mutex);
+            if(m_status == JULIUSTHREAD_STATUSWAIT) {
+               m_status = JULIUSTHREAD_STATUSMODIFY;
+               glfwUnlockMutex(m_mutex);
+               break;
+            }
+            glfwUnlockMutex(m_mutex);
+            MMDAgent_sleep(0.1);
+         }
+         /* process command message */
+         p1 = MMDAgent_strtok(c->str, "|", &save);
+         p2 = MMDAgent_strtok(NULL, "|", &save);
+         if(MMDAgent_strequal(p1, JULIUSTHREAD_GAIN)) {
+            f = (float) atof(p2);
+            if(f > 1.0)
+               f = 1.0;
+            else if(f < 0.0)
+               f = 0.0;
+            j_adin_change_input_scaling_factor(m_recog, f);
+            this->sendMessage(JULIUSTHREAD_EVENTMODIFY, JULIUSTHREAD_GAIN);
+         } else if(MMDAgent_strequal(p1, JULIUSTHREAD_USERDICTSET)) {
+            if(MMDAgent_strlen(p2) > 0) {
+               for(lm = m_recog->lmlist; lm; lm = lm->next) {
+                  /* free all additional dictionary names */
+                  for(dict = lm->config->additional_dict_files; dict; dict = next) {
+                     next = dict->next;
+                     if(dict->name)
+                        free(dict->name);
+                     free(dict);
+                  }
+                  /* set additional dictionary name */
+                  lm->config->additional_dict_files = (JCONF_LM_NAMELIST *) malloc(sizeof(JCONF_LM_NAMELIST));
+                  lm->config->additional_dict_files->name = MMDAgent_strdup(p2);
+                  lm->config->additional_dict_files->next = NULL;
+                  /* reload */
+                  j_reload_adddict(m_recog, lm);
+               }
+               this->sendMessage(JULIUSTHREAD_EVENTMODIFY, JULIUSTHREAD_USERDICTSET);
+            }
+         } else if(MMDAgent_strequal(p1, JULIUSTHREAD_USERDICTUNSET)) {
+            for(lm = m_recog->lmlist; lm; lm = lm->next) {
+               /* free all additional dictionary names */
+               for(dict = lm->config->additional_dict_files; dict; dict = next) {
+                  next = dict->next;
+                  if(dict->name)
+                     free(dict->name);
+                  free(dict);
+               }
+               /* set additional dictionary name */
+               lm->config->additional_dict_files = NULL;
+               /* reload */
+               j_reload_adddict(m_recog, lm);
+            }
+            this->sendMessage(JULIUSTHREAD_EVENTMODIFY, JULIUSTHREAD_USERDICTUNSET);
+         }
+         free(c->str);
+         free(c);
+         /* change status */
+         glfwLockMutex(m_mutex);
+         m_status = JULIUSTHREAD_STATUSWAIT;
+         glfwUnlockMutex(m_mutex);
+      }
+   }
+}
+
+/* Julius_Thread::storeCommand: store command message to modify recognition condition */
+void Julius_Thread::storeCommand(const char *args)
+{
+   JuliusModificationCommand *c1, *c2;
+
+   if(m_recog != NULL && MMDAgent_strlen(args) > 0) {
+      /* create command message */
+      c1 = (JuliusModificationCommand *) malloc(sizeof(JuliusModificationCommand));
+      c1->str = MMDAgent_strdup(args);
+      c1->next = NULL;
+      /* store command message */
+      glfwLockMutex(m_mutex);
+      if(m_command == NULL)
+         m_command = c1;
+      else {
+         for(c2 = m_command; c2->next != NULL; c2 = c2->next);
+         c2->next = c1;
+      }
+      glfwUnlockMutex(m_mutex);
+   }
+}
+
 /* Julius_Thread::sendMessage: send message to MMDAgent */
 void Julius_Thread::sendMessage(const char *str1, const char *str2)
 {
@@ -319,11 +463,43 @@ void Julius_Thread::setLogActiveFlag(bool b)
 /* Julius_Thread::updateLog: update log view per step */
 void Julius_Thread::updateLog(double frame)
 {
+   bool updateFlag = false;
+
+   glfwLockMutex(m_mutex);
+   if(m_status == JULIUSTHREAD_STATUSWAIT) {
+      updateFlag = true;
+      m_status = JULIUSTHREAD_STATUSUPDATE;
+   }
+   glfwUnlockMutex(m_mutex);
+
+   /* if modifying, skip update */
+   if(updateFlag == false)
+      return;
    m_logger.update(frame);
+
+   glfwLockMutex(m_mutex);
+   m_status = JULIUSTHREAD_STATUSWAIT;
+   glfwUnlockMutex(m_mutex);
 }
 
 /* Julius_Thread::renderLog: render log view */
 void Julius_Thread::renderLog()
 {
+   bool renderFlag = false;
+
+   glfwLockMutex(m_mutex);
+   if(m_status == JULIUSTHREAD_STATUSWAIT) {
+      renderFlag = true;
+      m_status = JULIUSTHREAD_STATUSRENDER;
+   }
+   glfwUnlockMutex(m_mutex);
+
+   /* if modifying, skip render */
+   if(renderFlag == false)
+      return;
    m_logger.render();
+
+   glfwLockMutex(m_mutex);
+   m_status = JULIUSTHREAD_STATUSWAIT;
+   glfwUnlockMutex(m_mutex);
 }

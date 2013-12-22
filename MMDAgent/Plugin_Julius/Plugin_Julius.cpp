@@ -48,11 +48,23 @@
 #endif /* _WIN32 */
 
 #define PLUGINJULIUS_NAME          "Julius"
-#define PLUGINJULIUS_LANGUAGEMODEL MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.8-8.bingramv5.gz"
-#define PLUGINJULIUS_DICTIONARY    MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.htkdic"
-#define PLUGINJULIUS_ACOUSTICMODEL MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "clustered.mmf.16mix.all.julius.binhmm"
-#define PLUGINJULIUS_TRIPHONELIST  MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "tri_tied.list.bin"
-#define PLUGINJULIUS_CONFIGFILE    MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "jconf.txt"
+#define PLUGINJULIUS_MODIFYCOMMAND "RECOG_MODIFY"
+
+#define PLUGINJULIUS_LANGUAGEMODEL(appDirName)          "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.8-8.bingramv5.gz"
+#define PLUGINJULIUS_DICTIONARY(appDirName)             "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.htkdic"
+#ifdef PLUGINJULIUS_USEPTM
+#define PLUGINJULIUS_TRIPHONEACOUSTICMODEL(appDirName)  "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "clustered.mmf.ptm.16mix.all.julius.binhmm"
+#define PLUGINJULIUS_TRIPHONELIST(appDirName)           "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "tri_tied.list.ptm.bin"
+#else
+#define PLUGINJULIUS_TRIPHONEACOUSTICMODEL(appDirName)  "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "clustered.mmf.16mix.all.julius.binhmm"
+#define PLUGINJULIUS_TRIPHONELIST(appDirName)           "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "tri_tied.list.bin"
+#endif /* PLUGINJULIUS_USEPTM */
+#ifdef PLUGINJULIUS_USEGMS
+#define PLUGINJULIUS_MONOPHONEACOUSTICMODEL(appDirName) "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "phone_m", MMDAGENT_DIRSEPARATOR, "monophone.mmf.16mix.julius.gshmm"
+#else
+#define PLUGINJULIUS_MONOPHONEACOUSTICMODEL(appDirName) ""
+#endif /* PLUGINJULIUS_USEGMS */
+#define PLUGINJULIUS_CONFIGFILE(appDirName)             "%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "jconf.txt"
 
 /* headers */
 
@@ -72,17 +84,19 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    int len;
    char languageModel[MMDAGENT_MAXBUFLEN];
    char dictionary[MMDAGENT_MAXBUFLEN];
-   char acousticModel[MMDAGENT_MAXBUFLEN];
+   char triphoneAcousticModel[MMDAGENT_MAXBUFLEN];
    char triphoneList[MMDAGENT_MAXBUFLEN];
+   char monophoneAcousticModel[MMDAGENT_MAXBUFLEN];
    char configFile[MMDAGENT_MAXBUFLEN];
    char userDictionary[MMDAGENT_MAXBUFLEN];
 
    /* set model file names */
-   sprintf(languageModel, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_LANGUAGEMODEL);
-   sprintf(dictionary, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_DICTIONARY);
-   sprintf(acousticModel, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_ACOUSTICMODEL);
-   sprintf(triphoneList, "%s%c%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_TRIPHONELIST);
-   sprintf(configFile, "%s%c%s%c%s", mmdagent->getAppDirName(), PLUGINJULIUS_CONFIGFILE);
+   sprintf(languageModel, PLUGINJULIUS_LANGUAGEMODEL(mmdagent->getAppDirName()));
+   sprintf(dictionary, PLUGINJULIUS_DICTIONARY(mmdagent->getAppDirName()));
+   sprintf(triphoneAcousticModel, PLUGINJULIUS_TRIPHONEACOUSTICMODEL(mmdagent->getAppDirName()));
+   sprintf(triphoneList, PLUGINJULIUS_TRIPHONELIST(mmdagent->getAppDirName()));
+   sprintf(monophoneAcousticModel, PLUGINJULIUS_MONOPHONEACOUSTICMODEL(mmdagent->getAppDirName()));
+   sprintf(configFile, PLUGINJULIUS_CONFIGFILE(mmdagent->getAppDirName()));
 
    /* user dictionary */
    strcpy(userDictionary, mmdagent->getConfigFileName());
@@ -97,7 +111,7 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    }
 
    /* load models and start thread */
-   julius_thread.loadAndStart(mmdagent, languageModel, dictionary, acousticModel, triphoneList, configFile, userDictionary);
+   julius_thread.loadAndStart(mmdagent, languageModel, dictionary, triphoneAcousticModel, triphoneList, monophoneAcousticModel, configFile, userDictionary);
 
    enable = true;
    mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINJULIUS_NAME);
@@ -125,10 +139,12 @@ EXPORT void extProcMessage(MMDAgent *mmdagent, const char *type, const char *arg
          else
             julius_thread.setLogActiveFlag(true);
       }
+   } else if(enable == true && MMDAgent_strequal(type, PLUGINJULIUS_MODIFYCOMMAND)) {
+      julius_thread.storeCommand(args);
    }
 }
 
-/* extAppEnd: stop thread and free julius */
+/* extAppEnd: stop and free thread */
 EXPORT void extAppEnd(MMDAgent *mmdagent)
 {
    julius_thread.stopAndRelease();

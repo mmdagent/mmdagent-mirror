@@ -86,10 +86,10 @@ void Julius_Logger::initialize()
    m_lastTrellis = NULL;
    m_decayFrame = 0.0;
    m_currentMaxAdIn = 0;
-   m_maxAdIn = 0;
+   m_maxAdIn = 0.0f;
    m_adInFrameStep = 0.0;
    m_numWord = 0;
-   m_levelThreshold = 0;
+   m_levelThreshold = 0.0f;
 
    m_numPos = 0;
    m_numIndex = 0;
@@ -126,7 +126,7 @@ void Julius_Logger::setup(Recog *recog)
       callback_add(recog, CALLBACK_EVENT_PASS1_FRAME, callbackRecogFrame, this);
       callback_add_adin(recog, CALLBACK_ADIN_CAPTURED, callbackRecogAdin, this);
       m_numWord = recog->lmlist->winfo->num;
-      m_levelThreshold = recog->jconf->detect.level_thres;
+      m_levelThreshold = (float) recog->jconf->detect.level_thres / 32767.0f;
    }
 }
 
@@ -187,7 +187,10 @@ void Julius_Logger::update(double frame)
    m_adInFrameStep += frame;
    if (m_adInFrameStep >= JULIUSLOGGER_ADINMAXVOLUMEUPDATEFRAME) {
       m_adInFrameStep = 0.0;
-      m_maxAdIn = m_currentMaxAdIn;
+      if (m_currentMaxAdIn >= JULIUSLOGGER_ADINOVERFLOWTHRES)
+         m_maxAdIn = 1.0f;
+      else
+         m_maxAdIn = (float) m_currentMaxAdIn / 32767.0f;
       m_currentMaxAdIn = 0;
    }
 
@@ -238,7 +241,10 @@ void Julius_Logger::update(double frame)
 /* render: render log view */
 void Julius_Logger::render()
 {
-   float w;
+   GLfloat squareVers[] = { 0.0f, 0.0f, -0.01f, 0.0f, JULIUSLOGGER_BARHEIGHT, -0.01f, JULIUSLOGGER_BARWIDTH, 0.0f, -0.01f, JULIUSLOGGER_BARWIDTH, JULIUSLOGGER_BARHEIGHT, -0.01f };
+   GLfloat edgeVers[] = { 0.0f, 0.0f, -0.01f, 0.0f, JULIUSLOGGER_BARHEIGHT, -0.01f, JULIUSLOGGER_BARWIDTH, JULIUSLOGGER_BARHEIGHT, -0.01f, JULIUSLOGGER_BARWIDTH, 0.0f, -0.01f };
+   GLfloat barVers[] = { JULIUSLOGGER_BARMARGIN, JULIUSLOGGER_BARMARGIN, 0.0f, JULIUSLOGGER_BARMARGIN, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.0f, JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * m_maxAdIn, JULIUSLOGGER_BARMARGIN, 0.0f, JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * m_maxAdIn, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.0f };
+   GLfloat triggerLevelVers[] = { JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * m_levelThreshold, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.01f, JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * m_levelThreshold, JULIUSLOGGER_BARMARGIN, 0.01f };
 
    if (m_active == false || m_numWord == 0)
       return;
@@ -246,61 +252,49 @@ void Julius_Logger::render()
    glDisable(GL_LIGHTING);
    glDisable(GL_TEXTURE_2D);
    glDisable(GL_CULL_FACE);
-
-   /* audio level meter */
-   /* position */
    glPushMatrix();
    glTranslatef(-4.0f, 12.0f, 3.0f);
-   /* base square */
+
+   /* square */
    glNormal3f(0.0, 0.0, 1.0);
    glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-   glBegin(GL_QUADS);
-   glVertex3f(0.0f, 0.0f, -0.01f);
-   glVertex3f(0.0f, JULIUSLOGGER_BARHEIGHT, -0.01f);
-   glVertex3f(JULIUSLOGGER_BARWIDTH, JULIUSLOGGER_BARHEIGHT, -0.01f);
-   glVertex3f(JULIUSLOGGER_BARWIDTH, 0.0f, -0.01f);
-   glEnd();
-   if (m_recognizing) {
-      /* white edge while recognition */
-      glColor4f(1.0f, 0.8f, 0.8f, 1.0f);
-      glBegin(GL_LINE_LOOP);
-      glVertex3f(0.0f, 0.0f, -0.01f);
-      glVertex3f(0.0f, JULIUSLOGGER_BARHEIGHT, -0.01f);
-      glVertex3f(JULIUSLOGGER_BARWIDTH, JULIUSLOGGER_BARHEIGHT, -0.01f);
-      glVertex3f(JULIUSLOGGER_BARWIDTH, 0.0f, -0.01f);
-      glEnd();
-   }
-   /* progress bar */
-   if (m_maxAdIn >= JULIUSLOGGER_ADINOVERFLOWTHRES) {
-      /* draw in red for overflow */
-      w = 1.0f;
-      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-   } else {
-      /* draw in cyan */
-      w = (float) m_maxAdIn / 32767.0f;
-      glColor4f(0.0f, 0.5f, 1.0f, 1.0f);
-   }
-   /* base */
-   glBegin(GL_QUADS);
-   glVertex3f(JULIUSLOGGER_BARMARGIN, JULIUSLOGGER_BARMARGIN, 0.0f);
-   glVertex3f(JULIUSLOGGER_BARMARGIN, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.0f);
-   glVertex3f(JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * w, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.0f);
-   glVertex3f(JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * w, JULIUSLOGGER_BARMARGIN, 0.0f);
-   glEnd();
-   /* draw trigger level in yellow */
-   w = (float) m_levelThreshold / (float) 32767.0f;
-   glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
-   glBegin(GL_LINES);
-   glVertex3f(JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * w, JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN, 0.01f);
-   glVertex3f(JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2) * w, JULIUSLOGGER_BARMARGIN, 0.01f);
-   glEnd();
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, squareVers);
+   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+   glDisableClientState(GL_VERTEX_ARRAY);
 
+   /* edge */
+   if (m_recognizing) {
+      glColor4f(1.0f, 0.8f, 0.8f, 1.0f);
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, 0, edgeVers);
+      glDrawArrays(GL_LINE_LOOP, 0, 4);
+      glDisableClientState(GL_VERTEX_ARRAY);
+   }
+
+   /* bar */
+   if(m_maxAdIn == 1.0f)
+      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+   else
+      glColor4f(0.0f, 0.5f, 1.0f, 1.0f);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, barVers);
+   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+   glDisableClientState(GL_VERTEX_ARRAY);
+
+   /* trigger level */
+   glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, triggerLevelVers);
+   glDrawArrays(GL_LINES, 0, 2);
+   glDisableClientState(GL_VERTEX_ARRAY);
+
+   /* trellis */
    if (m_lastTrellis != NULL || m_decayFrame > 0.0f) {
-      /* draw progress lines while search */
       glColor4f(0.8f, 0.4f, 0.0f, 1.0f);
       glEnableClientState(GL_VERTEX_ARRAY);
       glVertexPointer(3, GL_FLOAT, 0, m_pos);
-      glDrawElements(GL_LINES, m_numIndex, GL_UNSIGNED_INT, m_index);
+      glDrawElements(GL_LINES, m_numIndex, GL_UNSIGNED_SHORT, m_index);
       glDisableClientState(GL_VERTEX_ARRAY);
    }
 

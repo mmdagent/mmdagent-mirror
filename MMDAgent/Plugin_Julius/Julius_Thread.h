@@ -41,9 +41,22 @@
 
 /* definitions */
 
-#define JULIUSTHREAD_LATENCY    50
-#define JULIUSTHREAD_EVENTSTART "RECOG_EVENT_START"
-#define JULIUSTHREAD_EVENTSTOP  "RECOG_EVENT_STOP"
+#define JULIUSTHREAD_LATENCY       50
+#define JULIUSTHREAD_EVENTSTART    "RECOG_EVENT_START"
+#define JULIUSTHREAD_EVENTSTOP     "RECOG_EVENT_STOP"
+#define JULIUSTHREAD_EVENTMODIFY   "RECOG_EVENT_MODIFY"
+#define JULIUSTHREAD_GAIN          "GAIN"
+#define JULIUSTHREAD_USERDICTSET   "USERDICT_SET"
+#define JULIUSTHREAD_USERDICTUNSET "USERDICT_UNSET"
+#define JULIUSTHREAD_STATUSWAIT    0
+#define JULIUSTHREAD_STATUSUPDATE  1
+#define JULIUSTHREAD_STATUSRENDER  2
+#define JULIUSTHREAD_STATUSMODIFY  3
+
+typedef struct _JuliusModificationCommand {
+   char *str;
+   struct _JuliusModificationCommand *next;
+} JuliusModificationCommand;
 
 /* Julius_Thead: thread for Julius */
 class Julius_Thread
@@ -55,14 +68,19 @@ private :
 
    MMDAgent *m_mmdagent;
 
+   GLFWmutex m_mutex;
    GLFWthread m_thread; /* thread */
 
    char *m_languageModel;
    char *m_dictionary;
-   char *m_acousticModel;
+   char *m_triphoneAcousticModel;
    char *m_triphoneList;
+   char *m_monophoneAcousticModel;
    char *m_configFile;
    char *m_userDictionary;
+
+   int m_status;
+   JuliusModificationCommand *m_command;
 
    Julius_Logger m_logger;
 
@@ -81,7 +99,7 @@ public :
    ~Julius_Thread();
 
    /* loadAndStart: load models and start thread */
-   void loadAndStart(MMDAgent *m_mmdagent, const char *languageModel, const char *dictionary, const char *acousticModel, const char *triphoneList, const char *configFile, const char *userDictionary);
+   void loadAndStart(MMDAgent *m_mmdagent, const char *languageModel, const char *dictionary, const char *triphoneAcousticModel, const char *triphoneList, const char *monophoneAcousticModel, const char *configFile, const char *userDictionary);
 
    /* stopAndRlease: stop thread and release julius */
    void stopAndRelease();
@@ -94,6 +112,12 @@ public :
 
    /* resume: resume recognition process */
    void resume();
+
+   /* procCommand: process command message to modify recognition condition */
+   void procCommand();
+
+   /* storeCommand: store command message to modify recognition condition */
+   void storeCommand(const char *args);
 
    /* sendMessage: send message to MMDAgent */
    void sendMessage(const char *str1, const char *str2);
