@@ -6,6 +6,7 @@
 -output      1
 -input       mic
 -rejectshort 700
+-rejectlong  15000
 -headmargin  300
 -tailmargin  240
 -zmeanframe
