@@ -101,6 +101,7 @@
     <ClCompile Include="src\libsent\src\anlz\rdparam.c" />
     <ClCompile Include="src\libsent\src\anlz\strip.c" />
     <ClCompile Include="src\libsent\src\anlz\strip_mfcc.c" />
+    <ClCompile Include="src\libsent\src\anlz\vecin_net.c" />
     <ClCompile Include="src\libsent\src\anlz\wrsamp.c" />
     <ClCompile Include="src\libsent\src\anlz\wrwav.c" />
     <ClCompile Include="src\libsent\src\dfa\cpair.c" />

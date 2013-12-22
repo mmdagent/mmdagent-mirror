@@ -51,6 +51,7 @@ SOURCES  = src/libjulius/src/adin-cut.c \
            src/libsent/src/anlz/rdparam.c \
            src/libsent/src/anlz/strip.c \
            src/libsent/src/anlz/strip_mfcc.c \
+           src/libsent/src/anlz/vecin_net.c \
            src/libsent/src/anlz/wrsamp.c \
            src/libsent/src/anlz/wrwav.c \
            src/libsent/src/dfa/cpair.c \

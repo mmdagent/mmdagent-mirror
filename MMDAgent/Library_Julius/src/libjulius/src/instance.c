@@ -12,7 +12,7 @@
  * @author Akinobu Lee
  * @date   Sun Oct 28 18:06:20 2007
  *
- * $Revision: 1.11 $
+ * $Revision: 1.12 $
  * 
  */
 /*
@@ -334,6 +334,7 @@ j_jconf_am_new()
 {
   JCONF_AM *new;
   new = (JCONF_AM *)mymalloc(sizeof(JCONF_AM));
+  memset(new, 0, sizeof(JCONF_AM));
   jconf_set_default_values_am(new);
   new->next = NULL;
   return new;
@@ -438,6 +439,7 @@ j_jconf_lm_new()
 {
   JCONF_LM *new;
   new = (JCONF_LM *)mymalloc(sizeof(JCONF_LM));
+  memset(new, 0, sizeof(JCONF_LM));
   jconf_set_default_values_lm(new);
   new->next = NULL;
   return new;
@@ -555,6 +557,7 @@ j_jconf_search_new()
 {
   JCONF_SEARCH *new;
   new = (JCONF_SEARCH *)mymalloc(sizeof(JCONF_SEARCH));
+  memset(new, 0, sizeof(JCONF_SEARCH));
   jconf_set_default_values_search(new);
   new->next = NULL;
   return new;
@@ -664,6 +667,7 @@ j_jconf_new()
 
   /* allocate memory */
   jconf = (Jconf *)mymalloc(sizeof(Jconf));
+  memset(jconf, 0, sizeof(Jconf));
   /* set default values */
   jconf_set_default_values(jconf);
 
