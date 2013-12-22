@@ -110,6 +110,7 @@ $(TARGET): $(OBJECTS)
 	cp src/mecab/src/mecab.h include
 	cp src/mecab2njd/mecab2njd.h include
 	cp src/njd/njd.h include
+	cp src/njd2jpcommon/njd2jpcommon.h include
 	cp src/njd_set_accent_phrase/njd_set_accent_phrase.h include
 	cp src/njd_set_accent_type/njd_set_accent_type.h include
 	cp src/njd_set_digit/njd_set_digit.h include
