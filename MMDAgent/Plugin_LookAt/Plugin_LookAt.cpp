@@ -69,14 +69,14 @@ static bool updating;
 /* setHeadController: set bone controller to head */
 static void setHeadController(BoneController *controller, PMDModel *model)
 {
-   const char *bone[] = {"“ª"};
+   const char *bone[] = {"\x93\xaa"}; /* head */
    controller->setup(model, bone, 1, 0.150f, 0.008f, 0.0f, 0.0f, 1.0f, 20.0f, 60.0f, 0.0f, -45.0f, -60.0f, 0.0f, 0.0f, -1.0f, 0.0f);
 }
 
 /* setEyeController: set eye controller to eyes */
 static void setEyeController(BoneController *controller, PMDModel *model)
 {
-   const char *bone[] = {"‰E–Ú", "¶–Ú"};
+   const char *bone[] = {"\x89\x45\x96\xda", "\x8d\xb6\x96\xda"}; /* right eye, left eye */
    controller->setup(model, bone, 2, 0.180f, 0.008f, 0.0f, 0.0f, 1.0f, 5.0f, 5.0f, 0.0f, -5.0f, -5.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
@@ -188,7 +188,7 @@ EXPORT void extUpdate(MMDAgent *mmdagent, double deltaFrame)
    mousePosX -= windowWidth / 2;
    mousePosY -= windowHeight / 2;
    rate = 100.0f / (float)(windowWidth);
-   pointPos.setValue(mousePosX * rate, -mousePosY * rate, 0.0f);
+   pointPos.setValue(btScalar(mousePosX * rate), btScalar(-mousePosY * rate), btScalar(0.0f));
    mmdagent->getScreenPointPosition(&targetPos, &pointPos);
 
    /* calculate direction of all controlled bones */
