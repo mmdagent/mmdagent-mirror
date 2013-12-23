@@ -102,7 +102,7 @@ PMDRigidBody::~PMDRigidBody()
 bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
 {
    btScalar mass;
-   btVector3 localInertia(0.0f, 0.0f, 0.0f);
+   btVector3 localInertia(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
    btQuaternion rot;
    btTransform startTrans;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
@@ -123,12 +123,12 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    /* create shape */
    if (rb->shapeType == 0) {
       /* sphere: radius == width */
-      m_shape = new btSphereShape(rb->width);
+      m_shape = new btSphereShape(btScalar(rb->width));
    } else if (rb->shapeType == 1) {
       /* box: half extent: width, height, depth */
-      m_shape = new btBoxShape(btVector3(rb->width, rb->height, rb->depth));
+      m_shape = new btBoxShape(btVector3(btScalar(rb->width), btScalar(rb->height), btScalar(rb->depth)));
    } else if (rb->shapeType == 2) {
-      m_shape = new btCapsuleShape(rb->width, rb->height);
+      m_shape = new btCapsuleShape(btScalar(rb->width), btScalar(rb->height));
    } else {
       return false;
    }
@@ -144,18 +144,18 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    /* set position and rotation of the rigid body, local to the associated bone */
    m_trans.setIdentity();
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   rx.setEulerZYX(- rb->rot[0], 0, 0);
-   ry.setEulerZYX(0, - rb->rot[1], 0);
-   rz.setEulerZYX(0, 0,  rb->rot[2]);
+   rx.setEulerZYX(btScalar(-rb->rot[0]), btScalar(0.0f), btScalar(0.0f));
+   ry.setEulerZYX(btScalar(0.0f), btScalar(-rb->rot[1]), btScalar(0.0f));
+   rz.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(rb->rot[2]));
    rot = ry * rz * rx;
 #else
-   rot.setEulerZYX(rb->rot[0], rb->rot[1], rob->rot[2]);
+   rot.setEulerZYX(btScalar(rb->rot[0]), btScalar(rb->rot[1]), btScalar(rob->rot[2]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    m_trans.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], -rb->pos[2]));
+   m_trans.setOrigin(btVector3(btScalar(rb->pos[0]), btScalar(rb->pos[1]), btScalar(-rb->pos[2])));
 #else
-   m_trans.setOrigin(btVector3(rb->pos[0], rb->pos[1], rb->pos[2]));
+   m_trans.setOrigin(btVector3(btScalar(rb->pos[0]), btScalar(rb->pos[1]), btScalar(rb->pos[2])));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* calculate initial global transform */
@@ -281,7 +281,7 @@ void PMDRigidBody::setKinematic(bool flag)
          /* apply the transform to the last saved transform to get the initial transform */
          worldTrans = tr * m_savedTrans;
          /* also apply the rotation to the saved velocities */
-         tr.setOrigin(btVector3(0.0f, 0.0f, 0.0f));
+         tr.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
          m_savedLinearVelocity = tr * m_savedLinearVelocity;
          m_savedAngularVelocity = tr * m_savedAngularVelocity;
       } else {
@@ -296,11 +296,11 @@ void PMDRigidBody::setKinematic(bool flag)
 
       /* apply the saved force and torque */
       m_body->clearForces();
-      m_body->setLinearFactor(btVector3(1.0f, 1.0f, 1.0f));
+      m_body->setLinearFactor(btVector3(btScalar(1.0f), btScalar(1.0f), btScalar(1.0f)));
       m_body->applyCentralForce(m_savedForce);
       m_body->setLinearFactor(m_savedLinearFactor);
       m_body->setLinearVelocity(m_savedLinearVelocity);
-      m_body->setAngularFactor(btVector3(1.0f, 1.0f, 1.0f));
+      m_body->setAngularFactor(btVector3(btScalar(1.0f), btScalar(1.0f), btScalar(1.0f)));
       m_body->applyTorque(m_savedTorque);
       m_body->setAngularFactor(m_savedAngularFactor);
       m_body->setAngularVelocity(m_savedAngularVelocity);

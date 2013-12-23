@@ -128,6 +128,8 @@ void PMDModel::initialize()
 
    m_bulletPhysics = NULL;
    m_rootBone.reset();
+
+   m_showFlag = true;
 }
 
 /* PMDModel::clear: free PMDModel */
@@ -344,6 +346,12 @@ void PMDModel::setPhysicsControl(bool flag)
 void PMDModel::release()
 {
    clear();
+}
+
+/* PMDModel::setShowFlag: set show flag */
+void PMDModel::setShowFlag(bool flag)
+{
+   m_showFlag = flag;
 }
 
 /* PMDModel:;setEdgeThin: set edge offset */

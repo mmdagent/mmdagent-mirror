@@ -42,7 +42,7 @@
 #define MOTIONCONTROLLER_BONESTARTMARGINFRAME 20.0 /* frame lengths for bone motion smoothing at loop head */
 #define MOTIONCONTROLLER_FACESTARTMARGINFRAME 6.0  /* frame lengths for face motion smoothing at loop head */
 
-#define MOTIONCONTROLLER_CENTERBONENAME "ÉZÉìÉ^Å["
+#define MOTIONCONTROLLER_CENTERBONENAME "\x83\x5a\x83\x93\x83\x5e\x81\x5b" /* center */
 
 /* MotionControllerBoneElement: motion control element for bone */
 typedef struct _MotionControllerBoneElement {
@@ -66,6 +66,14 @@ typedef struct _MotionControllerFaceElement {
    bool looped;           /* true if the stored end-of-motion weight should be applied as keyframs at first frame */
 } MotionControllerFaceElement;
 
+/* MotionControllerSwitchElement: Motion control element for switches */
+typedef struct _MotionControllerSwitchElement {
+   PMDModel *pmd;           /* pmd model to be switched */
+   SwitchMotion *motion;    /* switch motion to be played */
+   SwitchKeyFrame *current; /* current key frame to be applied */
+   unsigned long lastKey;   /* last key frame number */
+} MotionControllerSwitchElement;
+
 /* MotionController: motion controller class, to handle one motion to a list of bones and faces */
 class MotionController
 {
@@ -77,6 +85,7 @@ private:
    MotionControllerBoneElement *m_boneCtrlList; /* bone control list */
    unsigned long m_numFaceCtrl;                 /* number of face control list */
    MotionControllerFaceElement *m_faceCtrlList; /* face control list */
+   MotionControllerSwitchElement *m_switchCtrl; /* model switch control */
 
    /* values determined by the given PMD and VMD */
    bool m_hasCenterBoneMotion; /* true if the motion has more than 1 key frames for center bone and need re-location */
@@ -100,6 +109,9 @@ private:
 
    /* calcFaceAt: calculate face weight at the given frame */
    void calcFaceAt(MotionControllerFaceElement *mc, float absFrame);
+
+   /* calcSwitchAt: calculate switches at the given frame */
+   void calcSwitchAt(MotionControllerSwitchElement *mc, float frameNow);
 
    /* control: set bone position/rotation and face weights according to the motion to the specified frame */
    void control(float frameNow);

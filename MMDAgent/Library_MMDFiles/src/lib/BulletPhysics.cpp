@@ -113,7 +113,7 @@ void BulletPhysics::setup(int simulationFps, float gravityFactor)
 
    /* store values */
    m_fps = simulationFps;
-   m_subStep = btScalar(1.0 / btScalar(m_fps));
+   m_subStep = btScalar(1.0f / m_fps);
 
    /* make a collision configuration */
    m_collisionConfig = new btDefaultCollisionConfiguration();
@@ -122,7 +122,7 @@ void BulletPhysics::setup(int simulationFps, float gravityFactor)
    m_dispatcher = new btCollisionDispatcher(m_collisionConfig);
 
    /* set broadphase */
-   m_overlappingPairCache = new btAxisSweep3(btVector3(-dist, -dist, -dist), btVector3(dist, dist, dist), 1024);
+   m_overlappingPairCache = new btAxisSweep3(btVector3(btScalar(-dist), btScalar(-dist), btScalar(-dist)), btVector3(btScalar(dist), btScalar(dist), btScalar(dist)), 1024);
 
    /* make a sequencial constraint solver */
    m_solver = new btSequentialImpulseConstraintSolver();
@@ -132,7 +132,7 @@ void BulletPhysics::setup(int simulationFps, float gravityFactor)
 
    /* set default gravity */
    /* some tweak for the simulation to match that of MikuMikuDance */
-   m_world->setGravity(btVector3(0.0f, -9.8f * gravityFactor, 0.0f));
+   m_world->setGravity(btVector3(btScalar(0.0f), btScalar(-9.8f * gravityFactor), btScalar(0.0f)));
 
    /* a weird configuration to use 120Hz simulation */
    /* change the number of constraint solving iteration to be inversely propotional to simulation rate */
@@ -160,6 +160,7 @@ btDiscreteDynamicsWorld *BulletPhysics::getWorld()
    return m_world;
 }
 
+#ifndef MMDFILES_DONTRENDERDEBUG
 /* drawCube: draw a cube */
 static void drawCube()
 {
@@ -301,10 +302,12 @@ static void drawConvex(btConvexShape* shape)
 
    delete hull;
 }
+#endif /* !MMDFILES_DONTRENDERDEBUG */
 
 /* debugDisplay: render rigid bodies */
 void BulletPhysics::debugDisplay()
 {
+#ifndef MMDFILES_DONTRENDERDEBUG
    int i;
    GLfloat color[] = {0.8f, 0.8f, 0.0f, 1.0f};
    GLint polygonMode[2];
@@ -390,4 +393,5 @@ void BulletPhysics::debugDisplay()
    if (polygonMode[1] != GL_LINE) {
       glPolygonMode(GL_FRONT_AND_BACK, polygonMode[1]);
    }
+#endif /* !MMDFILES_DONTRENDERDEBUG */
 }

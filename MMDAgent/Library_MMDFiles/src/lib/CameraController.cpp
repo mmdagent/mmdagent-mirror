@@ -52,7 +52,7 @@ void CameraController::control(float frameNow)
    float time1;
    float time2;
    float distance1, distance2;
-   btVector3 pos1, pos2 = btVector3(0, 0, 0);
+   btVector3 pos1, pos2;
    btVector3 angle1, angle2;
    float fovy1, fovy2;
 
@@ -148,12 +148,12 @@ void CameraController::control(float frameNow)
             ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx + 1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             z = pos1.z() * (1.0f - ww) + pos2.z() * ww;
          }
-         m_pos.setValue(x, y, z);
+         m_pos.setValue(btScalar(x), btScalar(y), btScalar(z));
          if (keyFrameForInterpolation->linear[3]) {
-            m_angle = angle1.lerp(angle2, w);
+            m_angle = angle1.lerp(angle2, btScalar(w));
          } else {
             ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx + 1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
-            m_angle = angle1.lerp(angle2, ww);
+            m_angle = angle1.lerp(angle2, btScalar(ww));
          }
          if (keyFrameForInterpolation->linear[4]) {
             m_distance = distance1 * (1.0f - w) + distance2 * w;

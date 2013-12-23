@@ -99,18 +99,18 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    /* make global transform of this constraint */
    tr.setIdentity();
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   rx.setEulerZYX(- c->rot[0], 0, 0);
-   ry.setEulerZYX(0, - c->rot[1], 0);
-   rz.setEulerZYX(0, 0,  c->rot[2]);
+   rx.setEulerZYX(btScalar(-c->rot[0]), btScalar(0.0f), btScalar(0.0f));
+   ry.setEulerZYX(btScalar(0.0f), btScalar(-c->rot[1]), btScalar(0.0f));
+   rz.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(c->rot[2]));
    rot = ry * rz * rx;
 #else
-   rot.setEulerZYX(c->rot[0], c->rot[1], c->rot[2]);
+   rot.setEulerZYX(btScalar(c->rot[0]), btScalar(c->rot[1]), btScalar(c->rot[2]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    tr.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   tr.setOrigin(btVector3(c->pos[0], c->pos[1], -c->pos[2]) + *offset);
+   tr.setOrigin(btVector3(btScalar(c->pos[0]), btScalar(c->pos[1]), btScalar(-c->pos[2])) + *offset);
 #else
-   tr.setOrigin(btVector3(c->pos[0], c->pos[1], c->pos[2]) + *offset);
+   tr.setOrigin(btVector3(btScalar(c->pos[0]), btScalar(c->pos[1]), btScalar(c->pos[2])) + *offset);
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    /* make local transforms from both rigid bodies */
    trA = rbA->getWorldTransform().inverse() * tr;
@@ -121,20 +121,20 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
 
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
    /* set linear translation limits */
-   m_constraint->setLinearLowerLimit(btVector3(c->limitPosFrom[0], c->limitPosFrom[1], -c->limitPosTo[2]));
-   m_constraint->setLinearUpperLimit(btVector3(c->limitPosTo[0], c->limitPosTo[1], -c->limitPosFrom[2]));
+   m_constraint->setLinearLowerLimit(btVector3(btScalar(c->limitPosFrom[0]), btScalar(c->limitPosFrom[1]), btScalar(-c->limitPosTo[2])));
+   m_constraint->setLinearUpperLimit(btVector3(btScalar(c->limitPosTo[0]), btScalar(c->limitPosTo[1]), btScalar(-c->limitPosFrom[2])));
 
    /* set rotation angle limits */
-   m_constraint->setAngularLowerLimit(btVector3(-c->limitRotTo[0], -c->limitRotTo[1], c->limitRotFrom[2]));
-   m_constraint->setAngularUpperLimit(btVector3(-c->limitRotFrom[0], -c->limitRotFrom[1], c->limitRotTo[2]));
+   m_constraint->setAngularLowerLimit(btVector3(btScalar(-c->limitRotTo[0]), btScalar(-c->limitRotTo[1]), btScalar(c->limitRotFrom[2])));
+   m_constraint->setAngularUpperLimit(btVector3(btScalar(-c->limitRotFrom[0]), btScalar(-c->limitRotFrom[1]), btScalar(c->limitRotTo[2])));
 #else
    /* set linear translation limits */
-   m_constraint->setLinearLowerLimit(btVector3(c->limitPosFrom[0], c->limitPosFrom[1], c->limitPosFrom[2]));
-   m_constraint->setLinearUpperLimit(btVector3(c->limitPosTo[0], c->limitPosTo[1], c->limitPosTo[2]));
+   m_constraint->setLinearLowerLimit(btVector3(btScalar(c->limitPosFrom[0]), btScalar(c->limitPosFrom[1]), btScalar(c->limitPosFrom[2])));
+   m_constraint->setLinearUpperLimit(btVector3(btScalar(c->limitPosTo[0]), btScalar(c->limitPosTo[1]), btScalar(c->limitPosTo[2])));
 
    /* set rotation angle limits */
-   m_constraint->setAngularLowerLimit(btVector3(c->limitRotFrom[0], c->limitRotFrom[1], c->limitRotFrom[2]));
-   m_constraint->setAngularUpperLimit(btVector3(c->limitRotTo[0], c->limitRotTo[1], c->limitRotTo[2]));
+   m_constraint->setAngularLowerLimit(btVector3(btScalar(c->limitRotFrom[0]), btScalar(c->limitRotFrom[1]), btScalar(c->limitRotFrom[2])));
+   m_constraint->setAngularUpperLimit(btVector3(btScalar(c->limitRotTo[0]), btScalar(c->limitRotTo[1]), btScalar(c->limitRotTo[2])));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* set spring stiffnesses */

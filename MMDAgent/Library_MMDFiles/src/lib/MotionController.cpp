@@ -52,9 +52,8 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
    unsigned long i;
    float time1;
    float time2;
-   btVector3 pos1, pos2 = btVector3(0, 0, 0);
-   btQuaternion rot1 = btQuaternion(0, 0, 0, 0);
-   btQuaternion rot2 = btQuaternion(0, 0, 0, 0);
+   btVector3 pos1, pos2;
+   btQuaternion rot1, rot2;
    BoneKeyFrame *keyFrameForInterpolation;
    float x, y, z, ww;
    float w;
@@ -144,12 +143,12 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
             ww = keyFrameForInterpolation->interpolationTable[2][idx] + (keyFrameForInterpolation->interpolationTable[2][idx + 1] - keyFrameForInterpolation->interpolationTable[2][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
             z = pos1.z() * (1.0f - ww) + pos2.z() * ww;
          }
-         mc->pos.setValue(x, y, z);
+         mc->pos.setValue(btScalar(x), btScalar(y), btScalar(z));
          if (keyFrameForInterpolation->linear[3]) {
-            mc->rot = rot1.slerp(rot2, w);
+            mc->rot = rot1.slerp(rot2, btScalar(w));
          } else {
             ww = keyFrameForInterpolation->interpolationTable[3][idx] + (keyFrameForInterpolation->interpolationTable[3][idx + 1] - keyFrameForInterpolation->interpolationTable[3][idx]) * (w * VMD_INTERPOLATIONTABLESIZE - idx);
-            mc->rot = rot1.slerp(rot2, ww);
+            mc->rot = rot1.slerp(rot2, btScalar(ww));
          }
       }
    } else {
@@ -161,8 +160,8 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
    if (m_overrideFirst && m_noBoneSmearFrame > 0.0f) {
       /* lerp with the initial position/rotation at the time of starting motion */
       w = (float) (m_noBoneSmearFrame / MOTIONCONTROLLER_BONESTARTMARGINFRAME);
-      mc->pos = mc->pos.lerp(mc->snapPos, w);
-      mc->rot = mc->rot.slerp(mc->snapRot, w);
+      mc->pos = mc->pos.lerp(mc->snapPos, btScalar(w));
+      mc->rot = mc->rot.slerp(mc->snapRot, btScalar(w));
    }
 }
 
@@ -241,14 +240,72 @@ void MotionController::calcFaceAt(MotionControllerFaceElement *mc, float frameNo
 
 }
 
+/* MotionController::calcSwitchAt: calculate switches at the given frame */
+void MotionController::calcSwitchAt(MotionControllerSwitchElement *mc, float frameNow)
+{
+   SwitchMotion *sm = mc->motion;
+   float frame = frameNow;
+   unsigned long k1, k2 = 0;
+   unsigned long i;
+   float time1, time2;
+
+   /* clamp frame to the defined last frame */
+   if (frame > sm->keyFrameList[sm->numKeyFrame - 1].keyFrame)
+      frame = sm->keyFrameList[sm->numKeyFrame - 1].keyFrame;
+
+   /* find key frames between which the given frame exists */
+   if (frame >= sm->keyFrameList[mc->lastKey].keyFrame) {
+      /* start searching from last used key frame */
+      for (i = mc->lastKey; i < sm->numKeyFrame; i++) {
+         if (frame <= sm->keyFrameList[i].keyFrame) {
+            k2 = i;
+            break;
+         }
+      }
+   } else {
+      for (i = 0; i <= mc->lastKey && i < sm->numKeyFrame; i++) {
+         if (frame <= sm->keyFrameList[i].keyFrame) {
+            k2 = i;
+            break;
+         }
+      }
+   }
+
+   /* bounding */
+   if (k2 >= sm->numKeyFrame)
+      k2 = sm->numKeyFrame - 1;
+   if (k2 <= 1)
+      k1 = 0;
+   else
+      k1 = k2 - 1;
+
+   /* store the last key frame for next call */
+   mc->lastKey = k1;
+
+   /* store the current key frame to be applied */
+   time1 = sm->keyFrameList[k1].keyFrame;
+   time2 = sm->keyFrameList[k2].keyFrame;
+   if (time1 != time2) {
+      if (time2 == frame) {
+         mc->current = &(sm->keyFrameList[k2]);
+      } else {
+         mc->current = &(sm->keyFrameList[k1]);
+      }
+   } else {
+      mc->current = &(sm->keyFrameList[k1]);
+   }
+}
+
 /* MotionController::control: set bone position/rotation and face weights according to the motion to the specified frame */
 void MotionController::control(float frameNow)
 {
    unsigned long i;
    MotionControllerBoneElement *mcb;
    MotionControllerFaceElement *mcf;
+   MotionControllerSwitchElement *mcs;
    btVector3 tmpPos;
    btQuaternion tmpRot;
+   PMDBone *bone;
 
    /* update bone positions / rotations at current frame by the correponding motion data */
    /* if blend rate is 1.0, the values will override the current bone pos/rot */
@@ -268,10 +325,10 @@ void MotionController::control(float frameNow)
       } else {
          /* lerp */
          mcb->bone->getCurrentPosition(&tmpPos);
-         tmpPos = tmpPos.lerp(mcb->pos, m_boneBlendRate);
+         tmpPos = tmpPos.lerp(mcb->pos, btScalar(m_boneBlendRate));
          mcb->bone->setCurrentPosition(&tmpPos);
          mcb->bone->getCurrentRotation(&tmpRot);
-         tmpRot = tmpRot.slerp(mcb->rot, m_boneBlendRate);
+         tmpRot = tmpRot.slerp(mcb->rot, btScalar(m_boneBlendRate));
          mcb->bone->setCurrentRotation(&tmpRot);
       }
    }
@@ -289,6 +346,22 @@ void MotionController::control(float frameNow)
          mcf->face->setWeight(mcf->weight);
       else
          mcf->face->setWeight(mcf->face->getWeight() * (1.0f - m_faceBlendRate) + mcf->weight * m_faceBlendRate);
+   }
+   /* update switches by the correponding motion data */
+   /* if ignore static flag is set and this motion has only one frame (= first), skip it in this controller */
+   if (m_switchCtrl) {
+      if(m_ignoreSingleMotion && m_switchCtrl->motion->numKeyFrame <= 1)
+         return;
+      mcs = m_switchCtrl;
+      /* calculate which switches to apply */
+      calcSwitchAt(mcs, frameNow);
+      /* set the switches to the model */
+      mcs->pmd->setShowFlag(mcs->current->display);
+      for (i = 0; i < mcs->current->numIK; i++) {
+         bone = mcs->pmd->getBone(mcs->current->ikList[i].name);
+         if (bone)
+            bone->setIKSwitchFlag(mcs->current->ikList[i].enable);
+      }
    }
 }
 
@@ -333,6 +406,7 @@ void MotionController::initialize()
    m_boneCtrlList = NULL;
    m_numFaceCtrl = 0;
    m_faceCtrlList = NULL;
+   m_switchCtrl = NULL;
    m_hasCenterBoneMotion = false;
    m_boneBlendRate = 1.0f;
    m_faceBlendRate = 1.0f;
@@ -351,6 +425,8 @@ void MotionController::clear()
       delete [] m_boneCtrlList;
    if (m_faceCtrlList)
       delete [] m_faceCtrlList;
+   if (m_switchCtrl)
+      delete m_switchCtrl;
    initialize();
 }
 
@@ -391,10 +467,10 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
    for(i = 0; i < m_numBoneCtrl; i++) {
       m_boneCtrlList[i].bone = NULL;
       m_boneCtrlList[i].motion = NULL;
-      m_boneCtrlList[i].pos = btVector3(0.0f, 0.0f, 0.0f);
-      m_boneCtrlList[i].rot = btQuaternion(0.0f, 0.0f, 0.0f, 0.0f);
-      m_boneCtrlList[i].snapPos = btVector3(0.0f, 0.0f, 0.0f);
-      m_boneCtrlList[i].snapRot = btQuaternion(0.0f, 0.0f, 0.0f, 0.0f);
+      m_boneCtrlList[i].pos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+      m_boneCtrlList[i].rot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+      m_boneCtrlList[i].snapPos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+      m_boneCtrlList[i].snapRot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
       m_boneCtrlList[i].lastKey = 0;
       m_boneCtrlList[i].looped = false;
    }
@@ -436,6 +512,15 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
          m_numFaceCtrl++;
       }
    }
+
+   /* allocate switch controller */
+   if (vmd->getSwitchMotion()) {
+      m_switchCtrl = new MotionControllerSwitchElement;
+      m_switchCtrl->pmd = pmd;
+      m_switchCtrl->motion = vmd->getSwitchMotion();
+      m_switchCtrl->current = NULL;
+      m_switchCtrl->lastKey = 0;
+   }
 }
 
 /* MotionController::reset: reset values */
@@ -447,6 +532,8 @@ void MotionController::reset()
       m_boneCtrlList[i].lastKey = 0;
    for (i = 0; i < m_numFaceCtrl; i++)
       m_faceCtrlList[i].lastKey = 0;
+   if (m_switchCtrl)
+      m_switchCtrl->lastKey = 0;
    m_currentFrame = 0.0;
    m_previousFrame = 0.0;
    m_noBoneSmearFrame = 0.0f;

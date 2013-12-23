@@ -64,16 +64,43 @@ typedef struct _VMDFile_FaceFrame {
    float weight;          /* weight (0.0 - 1.0) */
 } VMDFile_FaceFrame;
 
-/* VMDFile_Camera: camera motion element structure for VMD file reading */
+/* VMDFile_CameraFrame: camera motion element structure for VMD file reading */
 typedef struct _VMDFile_CameraFrame {
-   unsigned int keyFrame;  /* key frame */
+   unsigned int keyFrame;       /* key frame */
    float distance;
    float pos[3];
    float angle[3];
-   char interpolation[24]; /* interpolation parameters */
+   char interpolation[24];      /* interpolation parameters */
    unsigned int viewAngle;
    unsigned char noPerspective;
 } VMDFile_CameraFrame;
+
+/* VMDFile_LightFrame: light setting element structure for VMD file reading */
+typedef struct _VMDFile_LightFrame {
+   unsigned int keyFrame; /* key frame */
+   float col[3];          /* color (R, G, B) (0.0 - 1.0) */
+   float pos[3];          /* position (x, y, z) */
+} VMDFile_LightFrame;
+
+/* VMDFile_SelfShadowFrame: self shadow setting element structure for VMD file reading */
+typedef struct _VMDFile_SelfShadowFrame {
+   unsigned int keyFrame; /* key frame */
+   unsigned char mode;    /* mode (00 - 02) */
+   float distance;        /* distance */
+} VMDFile_SelfShadowFrame;
+
+/* _VMDFile_SwitchIK: IK switching element structure for VMD file reading */
+typedef struct _VMDFile_SwitchIK {
+   char name[20];        /* IK name */
+   unsigned char enable; /* enable/disable */
+} VMDFile_SwitchIK;
+
+/* _VMDFile_SwitchFrame: switching element structure for VMD file reading */
+typedef struct _VMDFile_SwitchFrame {
+   unsigned int keyFrame; /* key frame */
+   unsigned char display; /* display (0=off, 1=on) */
+   unsigned int num;      /* number of following IK list */
+} VMDFile_SwitchFrame;
 
 /* restore alignment */
 #pragma pack(pop)

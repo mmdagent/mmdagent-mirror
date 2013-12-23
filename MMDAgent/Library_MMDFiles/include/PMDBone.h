@@ -39,9 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define PMDBONE_KNEENAME "ひざ"
+#define PMDBONE_KNEENAME "\x82\xd0\x82\xb4" /* knee */
 
-#define PMDBONE_ADDITIONALROOTNAME  "全ての親", "両足オフセ", "右足オフセ", "左足オフセ"
+#define PMDBONE_ADDITIONALROOTNAME  "\x91\x53\x82\xc4\x82\xcc\x90\x65", "\x97\xbc\x91\xab\x83\x49\x83\x74\x83\x5a", "\x89\x45\x91\xab\x83\x49\x83\x74\x83\x5a", "\x8d\xb6\x91\xab\x83\x49\x83\x74\x83\x5a" /* parent of all, both legs offset, right leg offset, left leg offset */
 #define PMDBONE_NADDITIONALROOTNAME 4
 
 /* PMDBone: bone of PMD */
@@ -71,6 +71,7 @@ private:
    bool m_simulated;                /* true if this bone is controlled under physics */
    btVector3 m_pos;                 /* current position from parent bone, given by motion */
    btQuaternion m_rot;              /* current rotation, given by motion */
+   bool m_IKSwitchFlag;             /* whether to perform IK solving when this is IK destination bone */
 
    /* initialize: initialize bone */
    void initialize();
@@ -163,6 +164,12 @@ public:
 
    /* setCurrentRotation: set current rotation */
    void setCurrentRotation(btQuaternion *q);
+
+   /* setIKSwitchFlag: set IK switching flag */
+   void setIKSwitchFlag(bool flag);
+
+   /* getIKSwitchFlag: get IK switching flag */
+   bool getIKSwitchFlag();
 
    /* PMDBone::renderDebug: render bones for debug */
    void renderDebug();

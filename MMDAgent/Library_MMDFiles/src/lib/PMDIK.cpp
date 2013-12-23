@@ -123,6 +123,9 @@ void PMDIK::solve()
    if (m_boneList == NULL)
       return;
 
+   if (m_destBone->getIKSwitchFlag() == false)
+      return;
+
    /* get the global destination point */
    destPos = m_destBone->getTransform()->getOrigin();
 
@@ -189,7 +192,7 @@ void PMDIK::solve()
                /* this will help convergence the whole IK step earlier for most of models, especially for legs */
                if (angle < 0.0f)
                   angle = - angle;
-               rot = btQuaternion(btVector3(1.0f, 0.0f, 0.0f), btScalar(angle));
+               rot = btQuaternion(btVector3(btScalar(1.0f), btScalar(0.0f), btScalar(0.0f)), btScalar(angle));
             } else {
                /* get euler angles of this rotation */
                mat.setRotation(rot);
@@ -212,7 +215,7 @@ void PMDIK::solve()
                if (fabsf(x) < PMDIK_MINROTATION)
                   continue;
                /* get rotation quaternion from the limited euler angles */
-               rot.setEulerZYX(0.0f, 0.0f, x);
+               rot.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(x));
             }
             /* apply the limited rotation to current bone */
             m_boneList[j]->getCurrentRotation(&tmpRot);

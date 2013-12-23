@@ -59,7 +59,7 @@ typedef struct _BoneMotion {
 
 /* BoneMotionLink: linked list of defined bone motions in a VMD data */
 typedef struct _BoneMotionLink {
-   BoneMotion boneMotion; /* bone motion unit */
+   BoneMotion boneMotion;        /* bone motion unit */
    struct _BoneMotionLink *next;
 } BoneMotionLink;
 
@@ -100,6 +100,26 @@ typedef struct _CameraMotion {
    CameraKeyFrame *keyFrameList; /* list of key frame data */
 } CameraMotion;
 
+/* SwitchIK: switch IK unit */
+typedef struct _SwitchIK {
+   char *name;  /* IK name */
+   bool enable; /* enable switch */
+} SwitchIK;
+
+/* SwitchKeyFrame: switch key frame unit */
+typedef struct _SwitchKeyFrame {
+   float keyFrame;     /* key frame */
+   bool display;       /* display switch */
+   unsigned int numIK; /* number of IK in ikList */
+   SwitchIK *ikList;   /* list of IK */
+} SwitchKeyFrame;
+
+/* SwitchMotion: switch motion unit */
+typedef struct _SwitchMotion {
+   unsigned int numKeyFrame;     /* number of defined key frames */
+   SwitchKeyFrame *keyFrameList; /* list of key frame data */
+} SwitchMotion;
+
 /* VMD: motion file class */
 class VMD
 {
@@ -108,6 +128,7 @@ private:
    unsigned int m_numTotalBoneKeyFrame;   /* total number of bone frames */
    unsigned int m_numTotalFaceKeyFrame;   /* total number of face frames */
    unsigned int m_numTotalCameraKeyFrame; /* total number of camera frames */
+   unsigned int m_numTotalSwitchKeyFrame; /* total number of model switch frames */
 
    PTree m_name2bone;
    PTree m_name2face;
@@ -115,6 +136,7 @@ private:
    BoneMotionLink *m_boneLink;   /* linked list of bones in the motion */
    FaceMotionLink *m_faceLink;   /* linked list of faces in the motion */
    CameraMotion *m_cameraMotion; /* list of camera key frame data */
+   SwitchMotion *m_switchMotion; /* list of model switch key frame data */
 
    unsigned int m_numBoneKind; /* number of bones in m_boneLink */
    unsigned int m_numFaceKind; /* number of faces in m_faceLink */
@@ -170,6 +192,9 @@ public:
 
    /* getCameraMotion: get camera motion */
    CameraMotion *getCameraMotion();
+
+   /* getSwitchMotion: get model switch motion */
+   SwitchMotion *getSwitchMotion();
 
    /* getNumBoneKind: get number of bone motions */
    unsigned int getNumBoneKind();

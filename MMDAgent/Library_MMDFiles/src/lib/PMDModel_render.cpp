@@ -59,6 +59,7 @@ void PMDModel::renderModel()
    bool drawEdge;
 
    if (!m_vertexList) return;
+   if (!m_showFlag) return;
 
 #ifndef MMDFILES_CONVERTCOORDINATESYSTEM
    glPushMatrix();
@@ -96,6 +97,7 @@ void PMDModel::renderModel()
       glActiveTextureARB(GL_TEXTURE0_ARB);
       glClientActiveTextureARB(GL_TEXTURE0_ARB);
    }
+#ifndef MMDFILES_DONTUSESPHEREMAP
    if (m_hasSingleSphereMap) {
       /* this model contains single sphere map texture */
       /* set texture coordinate generation for sphere map on texture unit 0 */
@@ -114,6 +116,7 @@ void PMDModel::renderModel()
       glDisable(GL_TEXTURE_2D);
       glActiveTextureARB(GL_TEXTURE0_ARB);
    }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
 
    /* calculate alpha value, applying model global alpha */
    modelAlpha = m_globalAlpha;
@@ -157,6 +160,7 @@ void PMDModel::renderModel()
          /* bind model texture */
          glEnable(GL_TEXTURE_2D);
          glBindTexture(GL_TEXTURE_2D, m->getTexture()->getID());
+#ifndef MMDFILES_DONTUSESPHEREMAP
          if (m_hasSingleSphereMap) {
             if (m->getTexture()->isSphereMap()) {
                /* this is sphere map */
@@ -171,6 +175,7 @@ void PMDModel::renderModel()
                glDisable(GL_TEXTURE_GEN_T);
             }
          }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
       } else {
          glDisable(GL_TEXTURE_2D);
       }
@@ -184,6 +189,7 @@ void PMDModel::renderModel()
          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
       }
 
+#ifndef MMDFILES_DONTUSESPHEREMAP
       if (m_hasMultipleSphereMap) {
          if (m->getAdditionalTexture()) {
             /* this material has additional sphere map texture, bind it at texture unit 2 */
@@ -202,6 +208,7 @@ void PMDModel::renderModel()
             glDisable(GL_TEXTURE_2D);
          }
       }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
 
       /* draw elements */
       glDrawElements(GL_TRIANGLES, m->getNumSurface(), GL_UNSIGNED_SHORT, (const GLvoid *) (sizeof(unsigned short) * m->getSurfaceListIndex()));
@@ -218,21 +225,26 @@ void PMDModel::renderModel()
    if (m_toon) {
       glClientActiveTextureARB(GL_TEXTURE0_ARB);
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifndef MMDFILES_DONTUSESPHEREMAP
       if (m_hasSingleSphereMap) {
          glActiveTextureARB(GL_TEXTURE0_ARB);
          glDisable(GL_TEXTURE_GEN_S);
          glDisable(GL_TEXTURE_GEN_T);
       }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
       glClientActiveTextureARB(GL_TEXTURE1_ARB);
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifndef MMDFILES_DONTUSESPHEREMAP
       if (m_hasMultipleSphereMap) {
          glActiveTextureARB(GL_TEXTURE2_ARB);
          glDisable(GL_TEXTURE_GEN_S);
          glDisable(GL_TEXTURE_GEN_T);
       }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
       glActiveTextureARB(GL_TEXTURE0_ARB);
    } else {
       glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#ifndef MMDFILES_DONTUSESPHEREMAP
       if (m_hasSingleSphereMap) {
          glDisable(GL_TEXTURE_GEN_S);
          glDisable(GL_TEXTURE_GEN_T);
@@ -243,20 +255,25 @@ void PMDModel::renderModel()
          glDisable(GL_TEXTURE_GEN_T);
          glActiveTextureARB(GL_TEXTURE0_ARB);
       }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
    }
 
+#ifndef MMDFILES_DONTUSESPHEREMAP
    if (m_hasSingleSphereMap || m_hasMultipleSphereMap) {
       glDisable(GL_TEXTURE_GEN_S);
       glDisable(GL_TEXTURE_GEN_T);
    }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
    if (m_toon) {
       glActiveTextureARB(GL_TEXTURE1_ARB);
       glDisable(GL_TEXTURE_2D);
    }
+#ifndef MMDFILES_DONTUSESPHEREMAP
    if (m_hasMultipleSphereMap) {
       glActiveTextureARB(GL_TEXTURE2_ARB);
       glDisable(GL_TEXTURE_2D);
    }
+#endif /* !MMDFILES_DONTUSESPHEREMAP */
    glActiveTextureARB(GL_TEXTURE0_ARB);
    glClientActiveTextureARB(GL_TEXTURE0_ARB);
 
@@ -304,7 +321,6 @@ void PMDModel::renderModel()
       glColor4f(m_edgeColor[0], m_edgeColor[1], m_edgeColor[2], m_edgeColor[3] * modelAlpha);
       glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetEdge);
       glDrawElements(GL_TRIANGLES, numSurface, GL_UNSIGNED_SHORT, (const GLvoid *) surfaceOffset);
-      glDisableClientState(GL_VERTEX_ARRAY);
       glEnable(GL_LIGHTING);
 
       /* draw front again */
@@ -316,6 +332,8 @@ void PMDModel::renderModel()
 #endif /* !MMDFILES_CONVERTCOORDINATESYSTEM */
    }
 
+   glDisableClientState(GL_VERTEX_ARRAY);
+
    /* unbind buffer */
    glBindBuffer(GL_ARRAY_BUFFER, 0);
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -325,6 +343,7 @@ void PMDModel::renderModel()
 void PMDModel::renderForShadow()
 {
    if (!m_vertexList) return;
+   if (!m_showFlag) return;
 
    /* plain drawing of only edge surfaces */
    if (m_numSurfaceForEdge == 0) return;
@@ -344,19 +363,39 @@ void PMDModel::renderForShadow()
 /* PMDModel::renderForPick: render for pick */
 void PMDModel::renderForPick()
 {
-   if (!m_vertexList) return;
+   unsigned int j;
+   btVector3 *vertexList;
+   btVector3 v1, v2;
 
-   /* plain drawing of all surfaces */
+   if (!m_vertexList) return;
+   if (!m_showFlag) return;
+
+   /* prepare vertex */
+   vertexList = new btVector3[m_numVertex];
+   for (j = 0; j < m_numVertex; j++) {
+      if (m_boneWeight1[j] >= 1.0f - PMDMODEL_MINBONEWEIGHT) {
+         /* bone 1 */
+         vertexList[j] = m_boneSkinningTrans[m_bone1List[j]] * m_vertexList[j];
+      } else if (m_boneWeight1[j] <= PMDMODEL_MINBONEWEIGHT) {
+         /* bone 2 */
+         vertexList[j] = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
+      } else {
+         /* lerp */
+         v1 = m_boneSkinningTrans[m_bone1List[j]] * m_vertexList[j];
+         v2 = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
+         vertexList[j] = v2.lerp(v1, btScalar(m_boneWeight1[j]));
+      }
+   }
+
+   /* plain drawing of all surfaces without VBO */
    glDisable(GL_CULL_FACE);
-   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
    glEnableClientState(GL_VERTEX_ARRAY);
-   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), (const GLvoid *) m_vboOffsetVertex);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vboBufElement);
-   glDrawElements(GL_TRIANGLES, m_numSurface, GL_UNSIGNED_SHORT, (const GLvoid *) NULL);
+   glVertexPointer(3, GL_FLOAT, sizeof(btVector3), vertexList);
+   glDrawElements(GL_TRIANGLES, m_numSurface, GL_UNSIGNED_SHORT, m_surfaceList);
    glDisableClientState(GL_VERTEX_ARRAY);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
-   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
    glEnable(GL_CULL_FACE);
+
+   delete [] vertexList;
 }
 
 /* PMDModel::renderDebug: render for debug view */

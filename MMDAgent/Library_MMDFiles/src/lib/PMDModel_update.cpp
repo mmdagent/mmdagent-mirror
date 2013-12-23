@@ -47,8 +47,8 @@
 void PMDModel::resetBone()
 {
    unsigned short i;
-   btVector3 zeroPos = btVector3(0.0f, 0.0f, 0.0f);
-   btQuaternion zeroRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   btVector3 zeroPos(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   btQuaternion zeroRot(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
 
    /* set zero position for IK-controlled bones before applying motion */
    for (i = 0; i < m_numBone; i++)
@@ -123,12 +123,17 @@ void PMDModel::updateSkin()
       m_boneList[i].calcSkinningTrans(&(m_boneSkinningTrans[i]));
 
    glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
+#ifdef MMDFILES_DONTUSEGLMAPBUFFER
+   ptr = (char *) malloc(m_vboBufDynamicLen);
+   memset(ptr, 0, m_vboBufDynamicLen);
+#else
    glBufferData(GL_ARRAY_BUFFER, m_vboBufDynamicLen, NULL, GL_DYNAMIC_DRAW);
    ptr = (char *) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
    if (!ptr) {
       glBindBuffer(GL_ARRAY_BUFFER, 0);
       return;
    }
+#endif /* MMDFILES_DONTUSEGLMAPBUFFER */
    vertexList = (btVector3 *)(ptr + m_vboOffsetVertex);
    normalList = (btVector3 *)(ptr + m_vboOffsetNormal);
    if (m_toon) {
@@ -152,8 +157,8 @@ void PMDModel::updateSkin()
          n = m_boneSkinningTrans[m_bone1List[j]].getBasis() * m_normalList[j];
          v2 = m_boneSkinningTrans[m_bone2List[j]] * m_vertexList[j];
          n2 = m_boneSkinningTrans[m_bone2List[j]].getBasis() * m_normalList[j];
-         vv = v2.lerp(v, m_boneWeight1[j]);
-         nn = n2.lerp(n, m_boneWeight1[j]);
+         vv = v2.lerp(v, btScalar(m_boneWeight1[j]));
+         nn = n2.lerp(n, btScalar(m_boneWeight1[j]));
       }
       vertexList[j] = vv;
       normalList[j] = nn;
@@ -167,7 +172,12 @@ void PMDModel::updateSkin()
       }
    }
 
+#ifdef MMDFILES_DONTUSEGLMAPBUFFER
+   glBufferData(GL_ARRAY_BUFFER, m_vboBufDynamicLen, ptr, GL_DYNAMIC_DRAW);
+   free(ptr);
+#else
    glUnmapBuffer(GL_ARRAY_BUFFER);
+#endif /* MMDFILES_DONTUSEGLMAPBUFFER */
    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -205,8 +215,11 @@ void PMDModel::updateShadowColorTexCoord(float coef)
 /* PMDModel::calculateBoundingSphereRange: calculate the bounding sphere for depth texture rendering on shadow mapping */
 float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
 {
+#ifdef MMDFILES_DONTUSEGLMAPBUFFER
+   return 0.0f;
+#else
    unsigned int i;
-   btVector3 centerPos = btVector3(0, 0, 0), v;
+   btVector3 centerPos(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)), v;
    float maxR = 0.0f, r2;
    btVector3 *vertexList;
    char *ptr;
@@ -236,23 +249,24 @@ float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
    return maxR;
+#endif /* MMDFILES_DONTUSEGLMAPBUFFER */
 }
 
 /* PMDModel::smearAllBonesToDefault: smear all bone pos/rot into default value (rate 1.0 = keep, rate 0.0 = reset) */
 void PMDModel::smearAllBonesToDefault(float rate)
 {
    unsigned short i;
-   const btVector3 v(0.0f, 0.0f, 0.0f);
-   const btQuaternion q(0.0f, 0.0f, 0.0f, 1.0f);
+   const btVector3 v(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   const btQuaternion q(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
    btVector3 tmpv;
    btQuaternion tmpq;
 
    for (i = 0; i < m_numBone; i++) {
       m_boneList[i].getCurrentPosition(&tmpv);
-      tmpv = v.lerp(tmpv, rate);
+      tmpv = v.lerp(tmpv, btScalar(rate));
       m_boneList[i].setCurrentPosition(&tmpv);
       m_boneList[i].getCurrentRotation(&tmpq);
-      tmpq = q.slerp(tmpq, rate);
+      tmpq = q.slerp(tmpq, btScalar(rate));
       m_boneList[i].setCurrentRotation(&tmpq);
    }
    for (i = 0; i < m_numFace; i++) {
@@ -260,7 +274,7 @@ void PMDModel::smearAllBonesToDefault(float rate)
    }
 }
 
-#ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
+#if !defined(MMDFILES_DONTSORTORDERFORALPHARENDERING) && !defined(MMDFILES_DONTUSEGLMAPBUFFER)
 /* compareAlphaDepth: qsort function for reordering material */
 static int compareAlphaDepth(const void *a, const void *b)
 {
@@ -279,12 +293,12 @@ static int compareAlphaDepth(const void *a, const void *b)
       return 0;
    }
 }
-#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING */
+#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING && !MMDFILES_DONTUSEGLMAPBUFFER */
 
 /* PMDModel::updateMaterialOrder: update material order */
 void PMDModel::updateMaterialOrder(btTransform *trans)
 {
-#ifndef MMDFILES_DONTSORTORDERFORALPHARENDERING
+#if !defined(MMDFILES_DONTSORTORDERFORALPHARENDERING) && !defined(MMDFILES_DONTUSEGLMAPBUFFER)
    unsigned int i;
    btVector3 pos;
    btVector3 *vertexList;
@@ -315,7 +329,7 @@ void PMDModel::updateMaterialOrder(btTransform *trans)
    qsort(m_materialDistance, m_numMaterial, sizeof(MaterialDistanceData), compareAlphaDepth);
    for (i = 0; i < m_numMaterial; i++)
       m_materialRenderOrder[i] = m_materialDistance[i].id;
-#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING */
+#endif /* !MMDFILES_DONTSORTORDERFORALPHARENDERING && !MMDFILES_DONTUSEGLMAPBUFFER */
 }
 
 /* PMDModel::getMaterialRenderOrder: get material rendering order */

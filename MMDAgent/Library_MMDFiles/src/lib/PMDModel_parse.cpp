@@ -50,7 +50,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    FILE *fp;
    bool ret = true;
    unsigned int i;
-   btQuaternion defaultRot;
+   btQuaternion defaultRot(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
 
    PMDFile_Header *fileHeader;
    PMDFile_Vertex *fileVertex;
@@ -86,7 +86,6 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    m_centerBone = NULL;
 
    /* reset root bone's rotation */
-   defaultRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
    m_rootBone.setCurrentRotation(&defaultRot);
    m_rootBone.update();
 
@@ -126,8 +125,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    m_noEdgeFlag = (bool *) malloc(sizeof(bool) * m_numVertex);
    fileVertex = (PMDFile_Vertex *) data;
    for (i = 0; i < m_numVertex; i++) {
-      m_vertexList[i].setValue(fileVertex[i].pos[0], fileVertex[i].pos[1], fileVertex[i].pos[2]);
-      m_normalList[i].setValue(fileVertex[i].normal[0], fileVertex[i].normal[1], fileVertex[i].normal[2]);
+      m_vertexList[i].setValue(btScalar(fileVertex[i].pos[0]), btScalar(fileVertex[i].pos[1]), btScalar(fileVertex[i].pos[2]));
+      m_normalList[i].setValue(btScalar(fileVertex[i].normal[0]), btScalar(fileVertex[i].normal[1]), btScalar(fileVertex[i].normal[2]));
       m_texCoordList[i].u = fileVertex[i].uv[0];
       m_texCoordList[i].v = fileVertex[i].uv[1];
       m_bone1List[i] = fileVertex[i].boneID[0];

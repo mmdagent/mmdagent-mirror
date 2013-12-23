@@ -146,7 +146,7 @@ void MotionManager::startMotionSub(VMD * vmd, MotionPlayer * m)
          /* get the translation vector */
          centerBone->getOriginPosition(&centerPos);
          offset = pos - centerPos;
-         offset.setY(0.0f); /* Y axis should be set to zero to place model on ground */
+         offset.setY(btScalar(0.0f)); /* Y axis should be set to zero to place model on ground */
          /* save the current pos/rot for smooth motion changing, resetting center location */
          m->mc.setOverrideFirst(&offset);
          /* add the offset to the root bone */
@@ -423,12 +423,12 @@ bool MotionManager::updateMotionSpeedRate(double frame)
       f = (float) frame * m->currentSpeedRate;
       if (m->accelerationStatusFlag == ACCELERATION_STATUS_WAITING) {
          m->remainingFramesForStartOfAcceleration -= f;
-         if (m->remainingFramesForStartOfAcceleration <= 0.0)
+         if (m->remainingFramesForStartOfAcceleration <= 0.0f)
             m->accelerationStatusFlag = ACCELERATION_STATUS_CHANGING;
       }
       m->remainingFramesForEndOfAcceleration -= f;
       if (m->accelerationStatusFlag == ACCELERATION_STATUS_CHANGING) {
-         if (m->remainingFramesForEndOfAcceleration <= 0.0) {
+         if (m->remainingFramesForEndOfAcceleration <= 0.0f) {
             m->currentSpeedRate = m->targetSpeedRate;
             m->accelerationStatusFlag = ACCELERATION_STATUS_ENDED;
          } else {

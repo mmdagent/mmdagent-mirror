@@ -70,6 +70,15 @@ static int compareCameraKeyFrame(const void *x, const void *y)
    return (int) (a->keyFrame - b->keyFrame);
 }
 
+/* compareSwitchKeyFrame: qsort function for model switch key frames */
+static int compareSwitchKeyFrame(const void *x, const void *y)
+{
+   SwitchKeyFrame *a = (SwitchKeyFrame *) x;
+   SwitchKeyFrame *b = (SwitchKeyFrame *) y;
+
+   return (int) (a->keyFrame - b->keyFrame);
+}
+
 /* ipfunc: t->value for 4-point (3-dim.) bezier curve */
 static float ipfunc(float t, float p1, float p2)
 {
@@ -244,9 +253,11 @@ void VMD::initialize()
    m_numTotalBoneKeyFrame = 0;
    m_numTotalFaceKeyFrame = 0;
    m_numTotalCameraKeyFrame = 0;
+   m_numTotalSwitchKeyFrame = 0;
    m_boneLink = NULL;
    m_faceLink = NULL;
    m_cameraMotion = NULL;
+   m_switchMotion = NULL;
    m_numBoneKind = 0;
    m_numBoneKind = 0;
    m_maxFrame = 0.0f;
@@ -257,7 +268,7 @@ void VMD::clear()
 {
    BoneMotionLink *bl, *bl_tmp;
    FaceMotionLink *fl, *fl_tmp;
-   unsigned int i;
+   unsigned int i, k;
    short j;
 
    m_name2bone.release();
@@ -270,7 +281,7 @@ void VMD::clear()
             for (j = 0; j < 4; j++)
                if (bl->boneMotion.keyFrameList[i].linear[j] == false)
                   free(bl->boneMotion.keyFrameList[i].interpolationTable[j]);
-         free(bl->boneMotion.keyFrameList);
+         delete [] bl->boneMotion.keyFrameList;
       }
       if(bl->boneMotion.name)
          free(bl->boneMotion.name);
@@ -297,9 +308,24 @@ void VMD::clear()
                if (m_cameraMotion->keyFrameList[i].linear[j] == false)
                   free(m_cameraMotion->keyFrameList[i].interpolationTable[j]);
          }
-         free(m_cameraMotion->keyFrameList);
+         delete [] m_cameraMotion->keyFrameList;
       }
       free(m_cameraMotion);
+   }
+
+   if (m_switchMotion != NULL) {
+      if (m_switchMotion->keyFrameList != NULL) {
+         for (i = 0; i < m_switchMotion->numKeyFrame; i++) {
+            if (m_switchMotion->keyFrameList[i].ikList != NULL) {
+               for (k = 0; k < m_switchMotion->keyFrameList[i].numIK; k++) {
+                  free(m_switchMotion->keyFrameList[i].ikList[k].name);
+               }
+               delete [] m_switchMotion->keyFrameList[i].ikList;
+            }
+         }
+         delete [] m_switchMotion->keyFrameList;
+      }
+      free(m_switchMotion);
    }
 
    initialize();
@@ -355,7 +381,7 @@ bool VMD::load(const char *file)
 bool VMD::parse(const unsigned char *data, unsigned long size)
 {
    const unsigned char *start = data;
-   unsigned int i;
+   unsigned int i, j;
    BoneMotion *bm;
    BoneMotionLink *bl;
    FaceMotion *fm;
@@ -365,8 +391,10 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    VMDFile_BoneFrame *boneFrame;
    VMDFile_FaceFrame *faceFrame;
    VMDFile_CameraFrame *cameraFrame;
+   VMDFile_SwitchFrame *switchFrame;
+   VMDFile_SwitchIK *switchIK;
 
-   char name[16];
+   char name[21];
 
    /* free VMD */
    clear();
@@ -396,7 +424,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    }
    /* allocate memory to store the key frames, and reset count again */
    for (bl = m_boneLink; bl; bl = bl->next) {
-      bl->boneMotion.keyFrameList = (BoneKeyFrame *) malloc(sizeof(BoneKeyFrame) * bl->boneMotion.numKeyFrame);
+      bl->boneMotion.keyFrameList = new BoneKeyFrame[bl->boneMotion.numKeyFrame];
       bl->boneMotion.numKeyFrame = 0;
    }
    /* store the key frames, parse the data again, and compute max frame */
@@ -409,11 +437,11 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
          m_maxFrame = bm->keyFrameList[bm->numKeyFrame].keyFrame;
       /* convert from left-hand coordinates to right-hand coordinates */
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-      bm->keyFrameList[bm->numKeyFrame].pos = btVector3(boneFrame[i].pos[0], boneFrame[i].pos[1], -boneFrame[i].pos[2]);
-      bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(-boneFrame[i].rot[0], -boneFrame[i].rot[1], boneFrame[i].rot[2], boneFrame[i].rot[3]);
+      bm->keyFrameList[bm->numKeyFrame].pos = btVector3(btScalar(boneFrame[i].pos[0]), btScalar(boneFrame[i].pos[1]), btScalar(-boneFrame[i].pos[2]));
+      bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(btScalar(-boneFrame[i].rot[0]), btScalar(-boneFrame[i].rot[1]), btScalar(boneFrame[i].rot[2]), btScalar(boneFrame[i].rot[3]));
 #else
-      bm->keyFrameList[bm->numKeyFrame].pos = btVector3(boneFrame[i].pos[0], boneFrame[i].pos[1], boneFrame[i].pos[2]);
-      bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(boneFrame[i].rot[0], boneFrame[i].rot[1], boneFrame[i].rot[2], boneFrame[i].rot[3]);
+      bm->keyFrameList[bm->numKeyFrame].pos = btVector3(btScalar(boneFrame[i].pos[0]), btScalar(boneFrame[i].pos[1]), btScalar(boneFrame[i].pos[2]));
+      bm->keyFrameList[bm->numKeyFrame].rot = btQuaternion(btScalar(boneFrame[i].rot[0]), btScalar(boneFrame[i].rot[1]), btScalar(boneFrame[i].rot[2]), btScalar(boneFrame[i].rot[3]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
       /* set interpolation table */
       setBoneInterpolationTable(&(bm->keyFrameList[bm->numKeyFrame]), boneFrame[i].interpolation);
@@ -473,7 +501,7 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    data += sizeof(VMDFile_FaceFrame) * m_numTotalFaceKeyFrame;
 
    if ((unsigned long) data - (unsigned long) start >= size) {
-      /* no camera motion entry */
+      /* no further entry */
       return true;
    }
 
@@ -486,22 +514,77 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    if (m_numTotalCameraKeyFrame > 0) {
       m_cameraMotion = (CameraMotion *)malloc(sizeof(CameraMotion));
       m_cameraMotion->numKeyFrame = m_numTotalCameraKeyFrame;
-      m_cameraMotion->keyFrameList = (CameraKeyFrame *) malloc(sizeof(CameraKeyFrame) * m_cameraMotion->numKeyFrame);
+      m_cameraMotion->keyFrameList = new CameraKeyFrame[m_cameraMotion->numKeyFrame];
       for (i = 0; i < m_cameraMotion->numKeyFrame; i++) {
          m_cameraMotion->keyFrameList[i].keyFrame = (float) cameraFrame[i].keyFrame;
          m_cameraMotion->keyFrameList[i].distance = - cameraFrame[i].distance;
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-         m_cameraMotion->keyFrameList[i].pos = btVector3(cameraFrame[i].pos[0], cameraFrame[i].pos[1], - cameraFrame[i].pos[2]);
-         m_cameraMotion->keyFrameList[i].angle = btVector3(- MMDFILES_DEG(cameraFrame[i].angle[0]), -MMDFILES_DEG(cameraFrame[i].angle[1]), MMDFILES_DEG(cameraFrame[i].angle[2]));
+         m_cameraMotion->keyFrameList[i].pos = btVector3(btScalar(cameraFrame[i].pos[0]), btScalar(cameraFrame[i].pos[1]), btScalar(-cameraFrame[i].pos[2]));
+         m_cameraMotion->keyFrameList[i].angle = btVector3(btScalar(-MMDFILES_DEG(cameraFrame[i].angle[0])), btScalar(-MMDFILES_DEG(cameraFrame[i].angle[1])), btScalar(MMDFILES_DEG(cameraFrame[i].angle[2])));
 #else
-         m_cameraMotion->keyFrameList[i].pos = btVector3(cameraFrame[i].pos[0], cameraFrame[i].pos[1], cameraFrame[i].pos[2]);
-         m_cameraMotion->keyFrameList[i].angle = btVector3(MMDFILES_DEG(cameraFrame[i].angle[0]), MMDFILES_DEG(cameraFrame[i].angle[1]), MMDFILES_DEG(cameraFrame[i].angle[2]));
+         m_cameraMotion->keyFrameList[i].pos = btVector3(btScalar(cameraFrame[i].pos[0]), btScalar(cameraFrame[i].pos[1]), btScalar(cameraFrame[i].pos[2]));
+         m_cameraMotion->keyFrameList[i].angle = btVector3(btScalar(MMDFILES_DEG(cameraFrame[i].angle[0])), btScalar(MMDFILES_DEG(cameraFrame[i].angle[1])), btScalar(MMDFILES_DEG(cameraFrame[i].angle[2])));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
          m_cameraMotion->keyFrameList[i].fovy = (float) cameraFrame[i].viewAngle;
          m_cameraMotion->keyFrameList[i].noPerspective = cameraFrame[i].noPerspective;
          setCameraInterpolationTable(&(m_cameraMotion->keyFrameList[i]), cameraFrame[i].interpolation);
       }
       qsort(m_cameraMotion->keyFrameList, m_cameraMotion->numKeyFrame, sizeof(CameraKeyFrame), compareCameraKeyFrame);
+   }
+   if ((unsigned long) data - (unsigned long) start >= size) {
+      /* no further entry */
+      return true;
+   }
+
+   /* light motions (skip) */
+   i = *((unsigned int *) data);
+   data += sizeof(unsigned int);
+   data += sizeof(VMDFile_LightFrame) * i;
+   if ((unsigned long) data - (unsigned long) start >= size) {
+      /* no further entry */
+      return true;
+   }
+
+   /* self shadow motions (skip) */
+   i = *((unsigned int *) data);
+   data += sizeof(unsigned int);
+   data += sizeof(VMDFile_SelfShadowFrame) * i;
+   if ((unsigned long) data - (unsigned long) start >= size) {
+      /* no further entry */
+      return true;
+   }
+
+   /* model switch motions */
+   m_numTotalSwitchKeyFrame = *((unsigned int *) data);
+   data += sizeof(unsigned int);
+
+   if (m_numTotalSwitchKeyFrame > 0) {
+      m_switchMotion = (SwitchMotion *)malloc(sizeof(SwitchMotion));
+      m_switchMotion->numKeyFrame = m_numTotalSwitchKeyFrame;
+      m_switchMotion->keyFrameList = new SwitchKeyFrame[m_switchMotion->numKeyFrame];
+      for (i = 0; i < m_switchMotion->numKeyFrame; i++) {
+         switchFrame = (VMDFile_SwitchFrame *) data;
+         data += sizeof(VMDFile_SwitchFrame);
+         m_switchMotion->keyFrameList[i].keyFrame = (float) switchFrame->keyFrame;
+         m_switchMotion->keyFrameList[i].display = switchFrame->display ? true : false;
+         m_switchMotion->keyFrameList[i].numIK = switchFrame->num;
+         if (m_switchMotion->keyFrameList[i].numIK == 0) {
+            m_switchMotion->keyFrameList[i].ikList = NULL;
+         } else {
+            m_switchMotion->keyFrameList[i].ikList = new SwitchIK[m_switchMotion->keyFrameList[i].numIK];
+            switchIK = (VMDFile_SwitchIK *) data;
+            for (j = 0; j < m_switchMotion->keyFrameList[i].numIK; j++) {
+               strncpy(name, switchIK[j].name, 20);
+               name[20] = '\0';
+               m_switchMotion->keyFrameList[i].ikList[j].name = MMDFiles_strdup(name);
+               m_switchMotion->keyFrameList[i].ikList[j].enable = switchIK[j].enable ? true : false;
+            }
+            data += sizeof(VMDFile_SwitchIK) * m_switchMotion->keyFrameList[i].numIK;
+         }
+         if (m_maxFrame < m_switchMotion->keyFrameList[i].keyFrame)
+            m_maxFrame = m_switchMotion->keyFrameList[i].keyFrame;
+      }
+      qsort(m_switchMotion->keyFrameList, m_switchMotion->numKeyFrame, sizeof(SwitchKeyFrame), compareSwitchKeyFrame);
    }
 
    return true;
@@ -529,6 +612,12 @@ FaceMotionLink *VMD::getFaceMotionLink()
 CameraMotion *VMD::getCameraMotion()
 {
    return m_cameraMotion;
+}
+
+/* VMD::getSwitchMotion: get model switch motion */
+SwitchMotion *VMD::getSwitchMotion()
+{
+   return m_switchMotion;
 }
 
 /* VMD::getNumBoneKind: get number of bone motions */

@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define PMDMODEL_CENTERBONENAME "ÉZÉìÉ^Å["
+#define PMDMODEL_CENTERBONENAME "\x83\x5a\x83\x93\x83\x5e\x81\x5b" /* center */
 
 #define PMDMODEL_MINBONEWEIGHT 0.0001f
 #define PMDMODEL_MINFACEWEIGHT 0.001f
@@ -71,8 +71,8 @@ class PMDModel
 private:
 
    /* model definition */
-   char *m_name;     /* model name */
-   char *m_comment;  /* comment string */
+   char *m_name;    /* model name */
+   char *m_comment; /* comment string */
 
    unsigned int m_numVertex; /* number of vertices */
    btVector3 *m_vertexList;  /* vertex list */
@@ -111,8 +111,8 @@ private:
    btVector3 m_light;                                     /* toon light direction */
 
    /* work area for OpenGL rendering */
-   btTransform *m_boneSkinningTrans;         /* transform matrices of bones for skinning */
-   unsigned int m_numSurfaceForEdge;         /* number of edge-drawing surface list */
+   btTransform *m_boneSkinningTrans;           /* transform matrices of bones for skinning */
+   unsigned int m_numSurfaceForEdge;           /* number of edge-drawing surface list */
    GLuint m_vboBufDynamic;                     /* VBO buffers for dynamic data */
    GLuint m_vboBufStatic;                      /* VBO buffers for static  data */
    GLuint m_vboBufElement;                     /* VBO buffers for element data */
@@ -128,8 +128,8 @@ private:
    PMDBone *m_centerBone;              /* center bone */
    PMDFace *m_baseFace;                /* base face definition */
    PMDBone **m_orderedBoneList;        /* bone list in update order */
-   bool m_hasSingleSphereMap;            /* true if this model has Sphere map texture */
-   bool m_hasMultipleSphereMap;          /* true if this model has additional sphere map texture */
+   bool m_hasSingleSphereMap;          /* true if this model has Sphere map texture */
+   bool m_hasMultipleSphereMap;        /* true if this model has additional sphere map texture */
    unsigned short m_numRotateBone;     /* number of bones under rotatation of other bone (type == 5 or 9) */
    unsigned short *m_rotateBoneIDList; /* ID list of under-rotate bones */
    bool *m_IKSimulated;                /* boolean list whether an IK should be disabled due to simulation */
@@ -153,6 +153,9 @@ private:
    PTree m_name2face;              /* name-to-face index for fast lookup */
    unsigned int *m_materialRenderOrder;
    MaterialDistanceData *m_materialDistance;
+
+   /* work data */
+   bool m_showFlag; /* switch whether to show this model */
 
    /* parse: initialize and load from data memories */
    bool parse(const unsigned char *data, unsigned long size, BulletPhysics *bullet, SystemTexture *systex, const char *dir);
@@ -188,6 +191,9 @@ public:
 
    /* release: free PMDModel */
    void release();
+
+   /* setShowFlag: set show flag */
+   void setShowFlag(bool flag);
 
    /* PMDModel:;setEdgeThin: set edge offset */
    void setEdgeThin(float thin);

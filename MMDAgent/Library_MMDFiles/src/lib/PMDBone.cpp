@@ -64,9 +64,10 @@ void PMDBone::initialize()
    m_transMoveToOrigin.setIdentity();
    m_transMoveToOrigin.setOrigin(-m_originPosition);
    m_simulated = false;
+   m_IKSwitchFlag = true;
 
    m_pos.setZero();
-   m_rot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   m_rot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
 }
 
 /* PMDBone::clear: free bone */
@@ -159,9 +160,9 @@ bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones,
    /* store absolute bone positions */
    /* reverse Z value on bone position */
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   m_originPosition = btVector3(b->pos[0], b->pos[1], -b->pos[2]);
+   m_originPosition = btVector3(btScalar(b->pos[0]), btScalar(b->pos[1]), btScalar(-b->pos[2]));
 #else
-   m_originPosition = btVector3(b->pos[0], b->pos[1], b->pos[2]);
+   m_originPosition = btVector3(btScalar(b->pos[0]), btScalar(b->pos[1]), btScalar(b->pos[2]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    /* reset current transform values */
@@ -186,7 +187,7 @@ void PMDBone::computeOffset()
 void PMDBone::reset()
 {
    m_pos.setZero();
-   m_rot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   m_rot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
    /* default transform will be referred while loading rigid bodies in PMD */
    m_trans.setIdentity();
    m_trans.setOrigin(m_originPosition);
@@ -219,7 +220,7 @@ void PMDBone::setMotionIndependency()
 void PMDBone::update()
 {
    btQuaternion r;
-   const btQuaternion norot(0.0f, 0.0f, 0.0f, 1.0f);
+   const btQuaternion norot(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
 
    m_trans.setOrigin(m_pos + m_offset);
    if (m_type == UNDER_ROTATE) {
@@ -227,7 +228,7 @@ void PMDBone::update()
       m_trans.setRotation(m_targetBone->m_rot);
    } else if (m_type == FOLLOW_ROTATE) {
       /* for co-rotate bone, further apply the rotation of child bone scaled by the rotation weight */
-      r = m_rot * norot.slerp(m_childBone->m_rot, m_rotateCoef);
+      r = m_rot * norot.slerp(m_childBone->m_rot, btScalar(m_rotateCoef));
       m_trans.setRotation(r);
    } else {
       m_trans.setRotation(m_rot);
@@ -361,6 +362,19 @@ void PMDBone::setCurrentRotation(btQuaternion *q)
    m_rot = (*q);
 }
 
+/* PMDBone::setIKSwitchFlag: set IK switching flag */
+void PMDBone::setIKSwitchFlag(bool flag)
+{
+   m_IKSwitchFlag = flag;
+}
+
+/* PMDBone::getIKSwitchFlag: get IK switching flag */
+bool PMDBone::getIKSwitchFlag()
+{
+   return m_IKSwitchFlag;
+}
+
+#ifndef MMDFILES_DONTRENDERDEBUG
 static void drawCube()
 {
    static GLfloat vertices [8][3] = {
@@ -410,10 +424,12 @@ static void drawCube()
    glVertex3fv(vertices[4]);
    glEnd();
 }
+#endif /* !MMDFILES_DONTRENDERDEBUG */
 
 /* PMDBone::renderDebug: render bones for debug */
 void PMDBone::renderDebug()
 {
+#ifndef MMDFILES_DONTRENDERDEBUG
    btScalar m[16];
    btVector3 a;
    btVector3 b;
@@ -490,4 +506,5 @@ void PMDBone::renderDebug()
    glEnd();
 
    glPopMatrix();
+#endif /* !MMDFILES_DONTRENDERDEBUG */
 }

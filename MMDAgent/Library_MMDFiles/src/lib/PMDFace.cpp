@@ -59,7 +59,7 @@ void PMDFace::clear()
    if(m_name)
       free(m_name);
    if (m_vertex)
-      free(m_vertex);
+      delete[] m_vertex;
 
    initialize();
 }
@@ -97,12 +97,12 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
 
    if (m_numVertex) {
       /* vertex list */
-      m_vertex = (PMDFaceVertex *) malloc(sizeof(PMDFaceVertex) * m_numVertex);
+      m_vertex = new PMDFaceVertex[m_numVertex];
       for (i = 0; i < m_numVertex; i++) {
          m_vertex[i].id = faceVertexList[i].vertexID;
          if (m_vertex[i].id >= PMDFACE_MAXVERTEXID) /* a workaround for some models with corrupted face index values */
             m_vertex[i].id -= PMDFACE_MAXVERTEXID;
-         m_vertex[i].pos.setValue(faceVertexList[i].pos[0], faceVertexList[i].pos[1], faceVertexList[i].pos[2]);
+         m_vertex[i].pos.setValue(btScalar(faceVertexList[i].pos[0]), btScalar(faceVertexList[i].pos[1]), btScalar(faceVertexList[i].pos[2]));
       }
    }
 
@@ -111,7 +111,7 @@ void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
    /* right-handed system: OpenGL, bulletphysics */
    /* reverse Z value on vertices */
    for (i = 0; i < m_numVertex; i++) {
-      m_vertex[i].pos.setZ(- m_vertex[i].pos.z());
+      m_vertex[i].pos.setZ(-m_vertex[i].pos.z());
    }
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 }
