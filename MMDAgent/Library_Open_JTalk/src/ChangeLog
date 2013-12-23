@@ -1,3 +1,8 @@
+2013-12-23 17:03  uratec
+
+	* configure.ac, bin/Makefile.am: Modify audio compiler option for
+	  audio devices.
+
 2013-12-17 13:02  uratec
 
 	* mecab/src/param.cpp: Add ctype.h for android-ndk.

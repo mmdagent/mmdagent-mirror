@@ -74,7 +74,6 @@ DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AR = @AR@
-AUDIO_PLAY = @AUDIO_PLAY@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -98,7 +97,6 @@ ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
 GREP = @GREP@
-HTS_EMBEDDED = @HTS_EMBEDDED@
 HTS_ENGINE_HEADER = @HTS_ENGINE_HEADER@
 HTS_ENGINE_HEADER_DIR = @HTS_ENGINE_HEADER_DIR@
 HTS_ENGINE_LIBRARY = @HTS_ENGINE_LIBRARY@
@@ -197,8 +195,7 @@ INCLUDES = -I @top_srcdir@/text2mecab \
            -I @top_srcdir@/njd_set_long_vowel \
            -I @top_srcdir@/njd2jpcommon \
            -I @top_srcdir@/jpcommon \
-           -I @HTS_ENGINE_HEADER_DIR@ \
-           @HTS_EMBEDDED@ @AUDIO_PLAY@
+           -I @HTS_ENGINE_HEADER_DIR@
 
 open_jtalk_LDADD = @top_srcdir@/text2mecab/libtext2mecab.a \
                    @top_srcdir@/mecab/src/libmecab.a \
