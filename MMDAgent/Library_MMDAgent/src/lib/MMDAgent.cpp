@@ -105,7 +105,7 @@ void MMDAgent::updateLight()
    f = m_option->getLightDirection();
    m_stage->updateShadowMatrix(f);
    /* update vector for cartoon */
-   l = btVector3(f[0], f[1], f[2]);
+   l = btVector3(btScalar(f[0]), btScalar(f[1]), btScalar(f[2]));
    for (i = 0; i < m_numModel; i++)
       if (m_model[i].isEnable() == true)
          m_model[i].setLightForToon(&l);
@@ -145,13 +145,13 @@ bool MMDAgent::addModel(const char *modelAlias, const char *fileName, btVector3 
    int id;
    int baseID;
    char *name;
-   btVector3 offsetPos = btVector3(0.0f, 0.0f, 0.0f);
-   btQuaternion offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   btVector3 offsetPos(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   btQuaternion offsetRot(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
    bool forcedPosition = false;
    PMDBone *assignBone = NULL;
    PMDObject *assignObject = NULL;
    float *l = m_option->getLightDirection();
-   btVector3 light = btVector3(l[0], l[1], l[2]);
+   btVector3 light = btVector3(btScalar(l[0]), btScalar(l[1]), btScalar(l[2]));
 
    /* set */
    if (pos)
@@ -239,7 +239,7 @@ bool MMDAgent::changeModel(const char *modelAlias, const char *fileName)
    double currentFrame;
    double previousFrame;
    float *l = m_option->getLightDirection();
-   btVector3 light = btVector3(l[0], l[1], l[2]);
+   btVector3 light = btVector3(btScalar(l[0]), btScalar(l[1]), btScalar(l[2]));
 
    /* ID */
    id = findModelAlias(modelAlias);
@@ -594,9 +594,9 @@ bool MMDAgent::startTurn(const char *modelAlias, btVector3 *pos, bool local, flo
    if (z > 1.0f) z = 1.0f;
    if (z < -1.0f) z = -1.0f;
    rad = acosf(z);
-   axis = btVector3(0.0f, 0.0f, 1.0f).cross(targetPos);
+   axis = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(1.0f)).cross(targetPos);
    if(axis.length2() < PMDOBJECT_MINSPINDIFF) {
-      targetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+      targetRot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
    } else {
       axis.normalize();
       targetRot = btQuaternion(axis, btScalar(rad));
@@ -950,7 +950,7 @@ void MMDAgent::clear()
    if(m_motion)
       delete m_motion;
    if (m_renderOrder)
-      delete [] m_renderOrder;
+      free(m_renderOrder);
    if (m_model)
       delete [] m_model;
    if (m_logger)
@@ -1004,15 +1004,14 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
    char *binaryDirName;
 
    if(argc < 1 || MMDAgent_strlen(argv[0]) <= 0)
-      return 0;
+      return false;
 
    clear();
 
-   /* get binary file name */
-   binaryFileName = MMDAgent_strdup(argv[0]);
-
-   /* get binary directory name */
-   binaryDirName = MMDAgent_dirname(argv[0]);
+   /* get binary file name and its directory name */
+   sprintf(buff, MMDAGENT_EXEFILE(argv[0]));
+   binaryFileName = MMDAgent_strdup(buff);
+   binaryDirName = MMDAgent_dirname(buff);
 
    /* set local to japan */
    setlocale(LC_CTYPE, "jpn");
@@ -1020,43 +1019,41 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
    /* get application directory */
    if(m_appDirName)
       free(m_appDirName);
-   m_appDirName = (char *) malloc(sizeof(char) * (MMDAgent_strlen(binaryDirName) + 1 + MMDAgent_strlen(MMDAGENT_SYSDATADIR) + 1));
-   sprintf(m_appDirName, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_SYSDATADIR);
+   sprintf(buff, MMDAGENT_SYSDATADIR(binaryDirName));
+   m_appDirName = MMDAgent_strdup(buff);
 
    /* initialize Option */
    m_option = new Option();
 
    /* get default config file name */
    strcpy(buff, binaryFileName);
-   len = MMDAgent_strlen(buff);
    if(MMDAgent_strtailmatch(buff, ".exe") == true || MMDAgent_strtailmatch(buff, ".EXE") == true) {
+      len = MMDAgent_strlen(buff);
       buff[len - 4] = '.';
       buff[len - 3] = 'm';
       buff[len - 2] = 'd';
       buff[len - 1] = 'f';
    } else
       strcat(buff, ".mdf");
-   if(m_option->load(buff))
-      m_configFileName = MMDAgent_strdup(buff);
+   m_configFileName = MMDAgent_strdup(buff);
 
-   /* load additional config file name */
+   /* load default config file */
+   m_option->load(buff);
+
+   /* load additional config files */
    for (i = 1; i < argc; i++) {
-      if (MMDAgent_strtailmatch(argv[i], ".mdf")) {
-         if (m_option->load(argv[i])) {
+      sprintf(buff, MMDAGENT_CONFIGFILE(argv[i]));
+      if (MMDAgent_strtailmatch(buff, ".mdf")) {
+         if (m_option->load(buff)) {
             if(m_configFileName)
                free(m_configFileName);
-            m_configFileName = MMDAgent_strdup(argv[i]);
+            m_configFileName = MMDAgent_strdup(buff);
          }
       }
    }
 
    /* get config directory name */
-   if(m_configFileName == NULL) {
-      m_configFileName = MMDAgent_strdup(binaryFileName);
-      m_configDirName = MMDAgent_strdup(binaryDirName);
-   } else {
-      m_configDirName = MMDAgent_dirname(m_configFileName);
-   }
+   m_configDirName = MMDAgent_dirname(m_configFileName);
 
    /* create window */
    m_screen = new ScreenWindow();
@@ -1075,7 +1072,7 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
 
    /* load and start plugins */
    m_plugin = new Plugin();
-   sprintf(buff, "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, MMDAGENT_PLUGINDIR);
+   sprintf(buff, MMDAGENT_PLUGINDIR(binaryDirName));
    m_plugin->load(buff);
 
    /* create stage */
@@ -1119,7 +1116,7 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
 
    /* setup models */
    m_model = new PMDObject[m_option->getMaxNumModel()];
-   m_renderOrder = new short[m_option->getMaxNumModel()];
+   m_renderOrder = (int *) malloc(sizeof(int) * m_option->getMaxNumModel());
 
    /* setup motions */
    m_motion = new MotionStocker();
@@ -1154,13 +1151,13 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
 }
 
 /* MMDAgent::updateAndRender: update and render the whole scene */
-void MMDAgent::updateAndRender()
+bool MMDAgent::updateAndRender()
 {
    static char buf1[MMDAGENT_MAXBUFLEN];
    static char buf2[MMDAGENT_MAXBUFLEN];
 
    if(m_enable == false)
-      return;
+      return false;
 
    /* check stored message */
    while(m_message->dequeueMessage(buf1, buf2) == true)
@@ -1169,10 +1166,14 @@ void MMDAgent::updateAndRender()
       procReceivedLogString(buf1);
 
    /* update */
-   if (updateScene()) {
-      /* render */
-      renderScene();
-   }
+   if(updateScene() != true)
+      return false;
+
+   /* render */
+   if(renderScene() != true)
+      return false;
+
+   return true;
 }
 
 /* MMDAgent::updateScene: update the whole scene */
@@ -1324,11 +1325,12 @@ bool MMDAgent::updateScene()
 }
 
 /* MMDAgent::renderScene: render the whole scene */
-void MMDAgent::renderScene()
+bool MMDAgent::renderScene()
 {
    int i;
    btVector3 pos;
    float fps;
+#ifndef MMDAGENT_DONTRENDERDEBUG
    char buff[MMDAGENT_MAXBUFLEN];
    static const GLfloat vertices[8][3] = {
       { -0.5f, -0.5f, 0.5f},
@@ -1340,9 +1342,10 @@ void MMDAgent::renderScene()
       { -0.5f, 0.5f, -0.5f},
       { 0.5f, 0.5f, -0.5f}
    };
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 
    if(m_enable == false)
-      return;
+      return false;
 
    /* update model position and rotation */
    fps = m_timer->getFps();
@@ -1384,6 +1387,7 @@ void MMDAgent::renderScene()
    /* count fps */
    m_timer->countFrame();
 
+#ifndef MMDAGENT_DONTRENDERDEBUG
    /* show fps */
    if (m_option->getShowFps()) {
       if(m_screen->getNumMultiSampling() > 0)
@@ -1509,12 +1513,15 @@ void MMDAgent::renderScene()
          glPopMatrix();
       }
    }
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 
    /* execute plugin */
    m_plugin->execRender(this);
 
    /* swap buffer */
    m_screen->swapBuffers();
+
+   return true;
 }
 
 /* MMDAgent::drawString: draw string */
@@ -1540,7 +1547,7 @@ void MMDAgent::resetAdjustmentTimer()
 void MMDAgent::sendMessage(const char * type, const char * format, ...)
 {
    va_list argv;
-   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
+   char buf[MMDAGENT_MAXBUFLEN];
 
    if(m_enable == false)
       return;
@@ -1561,7 +1568,7 @@ void MMDAgent::sendMessage(const char * type, const char * format, ...)
 void MMDAgent::sendLogString(const char * format, ...)
 {
    va_list argv;
-   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
+   char buf[MMDAGENT_MAXBUFLEN];
 
    if(m_enable == false)
       return;
@@ -1794,8 +1801,8 @@ void MMDAgent::procMousePosMessage(int x, int y, bool withCtrl, bool withShift)
       if (withShift && withCtrl && m_selectedModel == -1) {
          /* if Shift- and Ctrl-key, and no model is pointed, rotate light direction */
          f = m_option->getLightDirection();
-         v = btVector3(f[0], f[1], f[2]);
-         bm = btMatrix3x3(btQuaternion(0, r2 * 0.1f * MMDFILES_RAD(m_option->getRotateStep()), 0) * btQuaternion(r1 * 0.1f * MMDFILES_RAD(m_option->getRotateStep()), 0, 0));
+         v = btVector3(btScalar(f[0]), btScalar(f[1]), btScalar(f[2]));
+         bm = btMatrix3x3(btQuaternion(btScalar(0.0f), btScalar(r2 * 0.1f * MMDFILES_RAD(m_option->getRotateStep())), btScalar(0.0f)) * btQuaternion(btScalar(r1 * 0.1f * MMDFILES_RAD(m_option->getRotateStep())), btScalar(0.0f), btScalar(0.0f)));
          v = bm * v;
          changeLightDirection(v.x(), v.y(), v.z());
       } else if (withCtrl) {
@@ -1805,21 +1812,21 @@ void MMDAgent::procMousePosMessage(int x, int y, bool withCtrl, bool withShift)
             m_model[m_selectedModel].getTargetPosition(&v);
             if (withShift) {
                /* with Shift-key, move on XY (coronal) plane */
-               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor);
-               v.setY(v.y() - r2 * 0.001f * m_option->getTranslateStep() * factor);
+               v.setX(btScalar(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor));
+               v.setY(btScalar(v.y() - r2 * 0.001f * m_option->getTranslateStep() * factor));
             } else {
                /* else, move on XZ (axial) plane */
-               v.setX(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor);
-               v.setZ(v.z() + r2 * 0.001f * m_option->getTranslateStep() * factor);
+               v.setX(btScalar(v.x() + r1 * 0.001f * m_option->getTranslateStep() * factor));
+               v.setZ(btScalar(v.z() + r2 * 0.001f * m_option->getTranslateStep() * factor));
             }
             m_model[m_selectedModel].setPosition(&v);
             m_model[m_selectedModel].setMoveSpeed(-1.0f);
          }
       } else if (withShift) {
          /* if Shift-key, translate display */
-         v = btVector3(r1 * 0.0005f * factor, -r2 * 0.0005f * factor, 0.0f);
+         v = btVector3(btScalar(r1 * 0.0005f * factor), btScalar(-r2 * 0.0005f * factor), btScalar(0.0f));
          m_render->getCurrentViewTransform(&tr);
-         tr.setOrigin(btVector3(0.0f, 0.0f, 0.0f));
+         tr.setOrigin(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)));
          v = tr.inverse() * v;
          m_render->translate(-v.x(), -v.y(), -v.z());
       } else {
@@ -1918,6 +1925,7 @@ void MMDAgent::procDisplayRigidBodyMessage()
 /* MMDAnget::procDisplayWireMessage: process display wire message */
 void MMDAgent::procDisplayWireMessage()
 {
+#ifndef MMDAGENT_DONTRENDERDEBUG
    GLint polygonMode[2];
 
    if(m_enable == false)
@@ -1928,6 +1936,7 @@ void MMDAgent::procDisplayWireMessage()
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
    else
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }
 
 /* MMDAgent::procDisplayBoneMessage: process display bone message */
@@ -2137,7 +2146,7 @@ void MMDAgent::procReceivedMessage(const char *type, const char *value)
             return;
          }
       } else {
-         pos = btVector3(0.0, 0.0, 0.0);
+         pos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
       }
       if (num >= 4) {
          if (MMDAgent_str2rot(argv[3], &rot) == false) {
@@ -2145,7 +2154,7 @@ void MMDAgent::procReceivedMessage(const char *type, const char *value)
             return;
          }
       } else {
-         rot.setEulerZYX(0.0, 0.0, 0.0);
+         rot.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
       }
       if(num >= 5) {
          if(MMDAgent_strequal(argv[4], "ON")) {

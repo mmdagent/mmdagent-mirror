@@ -48,8 +48,29 @@
 #define MMDAGENT_DIRSEPARATOR MMDFILES_DIRSEPARATOR
 #define MMDAGENT_MAXNCOMMAND  10
 
-#define MMDAGENT_SYSDATADIR "AppData"
-#define MMDAGENT_PLUGINDIR  "Plugins"
+#ifdef MMDAGENT_OVERWRITEEXEFILE
+#define MMDAGENT_EXEFILE(binaryFileName) "%s", MMDAGENT_OVERWRITEEXEFILE
+#else
+#define MMDAGENT_EXEFILE(binaryFileName) "%s", binaryFileName
+#endif /* MMDAGENT_OVERWRITEEXEFILE */
+
+#ifdef MMDAGENT_OVERWRITECONFIGFILE
+#define MMDAGENT_CONFIGFILE(configFileName) "%s", MMDAGENT_OVERWRITECONFIGFILE
+#else
+#define MMDAGENT_CONFIGFILE(configFileName) "%s", configFileName
+#endif /* MMDAGENT_OVERWRITECONFIGFILE */
+
+#ifdef MMDAGENT_OVERWRITESYSDATADIR
+#define MMDAGENT_SYSDATADIR(binaryDirName) "%s", MMDAGENT_OVERWRITESYSDATADIR
+#else
+#define MMDAGENT_SYSDATADIR(binaryDirName) "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, "AppData"
+#endif /* MMDAGENT_OVERWRITESYSDATADIR */
+
+#ifdef MMDAGENT_OVERWRITEPLUGINDIR
+#define MMDAGENT_PLUGINDIR(binaryDirName) "%s", MMDAGENT_OVERWRITEPLUGINDIR
+#else
+#define MMDAGENT_PLUGINDIR(binaryDirName) "%s%c%s", binaryDirName, MMDAGENT_DIRSEPARATOR, "Plugins"
+#endif /* MMDAGENT_OVERWRITEPLUGINDIR */
 
 #define MMDAGENT_COMMAND_MODELADD         "MODEL_ADD"
 #define MMDAGENT_COMMAND_MODELCHANGE      "MODEL_CHANGE"
@@ -142,7 +163,7 @@ private:
    LogText *m_logger;       /* logger */
 
    PMDObject *m_model;      /* models */
-   short *m_renderOrder;    /* model rendering order */
+   int *m_renderOrder;      /* model rendering order */
    int m_numModel;          /* number of models */
    MotionStocker *m_motion; /* motions */
 
@@ -181,7 +202,7 @@ private:
    bool updateScene();
 
    /* renderScene: render the whole scene */
-   void renderScene();
+   bool renderScene();
 
    /* addModel: add model */
    bool addModel(const char *modelAlias, const char *fileName, btVector3 *pos, btQuaternion *rot, bool useCartoonRendering, const char *baseModelAlias, const char *baseBoneName);
@@ -270,7 +291,7 @@ public:
    bool setup(int argc, char **argv, const char *title);
 
    /* updateAndRender: update and render the whole scene */
-   void updateAndRender();
+   bool updateAndRender();
 
    /* drawString: draw string */
    void drawString(const char *str);

@@ -171,6 +171,7 @@ void LogText::scroll(int shift)
 /* LogText::render: render log text */
 void LogText::render()
 {
+#ifndef MMDAGENT_DONTRENDERDEBUG
    int i, j, size;
    float w, h, rate;
 
@@ -236,4 +237,5 @@ void LogText::render()
    glEnable(GL_LIGHTING);
    glEnable(GL_CULL_FACE);
    glPopMatrix();
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }

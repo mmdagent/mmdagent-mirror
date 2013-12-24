@@ -53,10 +53,10 @@ void BoneController::initialize()
 
    m_rateOn = 1.0f;
    m_rateOff = 1.0f;
-   m_baseVector = btVector3(0.0f, 0.0f, 0.0f);
-   m_upperAngLimit = btVector3(0.0f, 0.0f, 0.0f);
-   m_lowerAngLimit = btVector3(0.0f, 0.0f, 0.0f);
-   m_adjustPos = btVector3(0.0f, 0.0f, 0.0f);
+   m_baseVector = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_upperAngLimit = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_lowerAngLimit = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_adjustPos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
 
    m_numChildBone = 0;
    m_childBoneList = NULL;
@@ -71,7 +71,7 @@ void BoneController::clear()
    if(m_boneList)
       free(m_boneList);
    if(m_rotList)
-      free(m_rotList);
+      delete[] m_rotList;
    if(m_childBoneList)
       free(m_childBoneList);
 
@@ -123,15 +123,15 @@ void BoneController::setup(PMDModel *model, const char **boneName, int numBone, 
       if(tmpBoneList[i] != NULL)
          m_boneList[j++] = tmpBoneList[i];
    free(tmpBoneList);
-   m_rotList = (btQuaternion *) malloc(sizeof(btQuaternion) * m_numBone);
+   m_rotList = new btQuaternion[m_numBone];
 
    /* set parameters */
    m_rateOn = rateOn;
    m_rateOff = rateOff;
-   m_baseVector = btVector3(baseVectorX, baseVectorY, baseVectorZ);
-   m_upperAngLimit = btVector3(MMDFILES_RAD(upperAngLimitX), MMDFILES_RAD(upperAngLimitY), MMDFILES_RAD(upperAngLimitZ));
-   m_lowerAngLimit = btVector3(MMDFILES_RAD(lowerAngLimitX), MMDFILES_RAD(lowerAngLimitY), MMDFILES_RAD(lowerAngLimitZ));
-   m_adjustPos = btVector3(adjustPosX, adjustPosY, adjustPosZ);
+   m_baseVector = btVector3(btScalar(baseVectorX), btScalar(baseVectorY), btScalar(baseVectorZ));
+   m_upperAngLimit = btVector3(btScalar(MMDFILES_RAD(upperAngLimitX)), btScalar(MMDFILES_RAD(upperAngLimitY)), btScalar(MMDFILES_RAD(upperAngLimitZ)));
+   m_lowerAngLimit = btVector3(btScalar(MMDFILES_RAD(lowerAngLimitX)), btScalar(MMDFILES_RAD(lowerAngLimitY)), btScalar(MMDFILES_RAD(lowerAngLimitZ)));
+   m_adjustPos = btVector3(btScalar(adjustPosX), btScalar(adjustPosY), btScalar(adjustPosZ));
 
    /* set child bones */
    if(model->getNumBone() > 0) {
@@ -202,7 +202,7 @@ bool BoneController::update(btVector3 *pos, float deltaFrame)
                if (z < m_lowerAngLimit.z()) z = m_lowerAngLimit.z();
                targetRot.setEulerZYX(z, y, x);
                /* slerp from current rotation to target rotation */
-               m_rotList[i] = m_rotList[i].slerp(targetRot, rate);
+               m_rotList[i] = m_rotList[i].slerp(targetRot, btScalar(rate));
                /* set result to current rotation */
                m_boneList[i]->setCurrentRotation(&m_rotList[i]);
             }
@@ -224,7 +224,7 @@ bool BoneController::update(btVector3 *pos, float deltaFrame)
          /* rate multiplication for bone rotation */
          for (i = 0; i < m_numBone; i++) {
             m_boneList[i]->getCurrentRotation(&targetRot);
-            m_rotList[i] = targetRot.slerp(m_rotList[i], m_fadingRate);
+            m_rotList[i] = targetRot.slerp(m_rotList[i], btScalar(m_fadingRate));
             m_boneList[i]->setCurrentRotation(&m_rotList[i]);
          }
          /* update bone transform matrices */

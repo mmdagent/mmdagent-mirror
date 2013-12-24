@@ -54,14 +54,14 @@ void PMDObject::initialize()
 
    m_isEnable = false;
 
-   m_lightDir = btVector3(0.0f, 0.0f, 0.0f);
+   m_lightDir = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
 
    m_assignTo = NULL;
    m_baseBone = NULL;
-   m_origBasePos = btVector3(0.0f, 0.0f, 0.0f);
+   m_origBasePos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
 
-   m_offsetPos = btVector3(0.0f, 0.0f, 0.0f);
-   m_offsetRot = btQuaternion(0.0f, 0.0f, 0.0f, 1.0f);
+   m_offsetPos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_offsetRot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
    m_absPosFlag[0] = false;
    m_absPosFlag[1] = false;
    m_absPosFlag[2] = false;
@@ -387,7 +387,7 @@ bool PMDObject::updateModelRootOffset(float fps)
             /* max speed */
             maxStep = m_moveSpeed / fps;
             if (diff > maxStep) {
-               pos2 = pos.lerp(m_offsetPos, maxStep / diff);
+               pos2 = pos.lerp(m_offsetPos, btScalar(maxStep / diff));
                m_isMoving = true;
             } else {
                pos2 = m_offsetPos;
@@ -395,7 +395,7 @@ bool PMDObject::updateModelRootOffset(float fps)
             }
          } else {
             /* current * 0.9 + target * 0.1 */
-            pos2 = pos.lerp(m_offsetPos, 1.0f - PMDOBJECT_MOVESPEEDRATE);
+            pos2 = pos.lerp(m_offsetPos, btScalar(1.0f - PMDOBJECT_MOVESPEEDRATE));
             m_isMoving = true;
          }
       } else {
@@ -439,7 +439,7 @@ bool PMDObject::updateModelRootRotation(float fps)
             maxStep = MMDFILES_RAD(m_spinSpeed) / fps;
             if (diff > maxStep) {
                b->getCurrentRotation(&tmpRot);
-               tmpRot = tmpRot.slerp(m_offsetRot, maxStep / diff);
+               tmpRot = tmpRot.slerp(m_offsetRot, btScalar(maxStep / diff));
                b->setCurrentRotation(&tmpRot);
                m_isRotating = true;
             } else {
@@ -449,7 +449,7 @@ bool PMDObject::updateModelRootRotation(float fps)
          } else {
             /* current * 0.95 + target * 0.05 */
             b->getCurrentRotation(&tmpRot);
-            tmpRot = tmpRot.slerp(m_offsetRot, 1.0f - PMDOBJECT_SPINSPEEDRATE);
+            tmpRot = tmpRot.slerp(m_offsetRot, btScalar(1.0f - PMDOBJECT_SPINSPEEDRATE));
             b->setCurrentRotation(&tmpRot);
             m_isRotating = true;
          }
@@ -616,6 +616,7 @@ PMDObject *PMDObject::getAssignedModel()
 /* PMDObject::renderComment: render model comment */
 void PMDObject::renderComment(TextRenderer * text)
 {
+#ifndef MMDAGENT_DONTRENDERDEBUG
    char *buf, *p, *save;
    btVector3 pos;
    float w, h;
@@ -632,8 +633,8 @@ void PMDObject::renderComment(TextRenderer * text)
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    w = 13.0f;
    h = 5.0f;
-   pos.setX(pos.x() - w * 0.5f);
-   pos.setZ(pos.z() + 5.2f);
+   pos.setX(btScalar(pos.x() - w * 0.5f));
+   pos.setZ(btScalar(pos.z() + 5.2f));
    glDisable(GL_LIGHTING);
    glPushMatrix();
    glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
@@ -660,11 +661,13 @@ void PMDObject::renderComment(TextRenderer * text)
    }
    glEnable(GL_LIGHTING);
    free(buf);
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }
 
 /* PMDObject::renderDebug: render model debug */
 void PMDObject::renderDebug(TextRenderer * text)
 {
+#ifndef MMDAGENT_DONTRENDERDEBUG
    btVector3 pos, x, y;
    unsigned int i, j;
    float dest;
@@ -781,11 +784,13 @@ void PMDObject::renderDebug(TextRenderer * text)
    updateMotion(0.0);
 
    glEnable(GL_LIGHTING);
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }
 
 /* PMDObject::renderError: render model error */
 void PMDObject::renderError(TextRenderer * text)
 {
+#ifndef MMDAGENT_DONTRENDERDEBUG
    char buf[PMDOBJECT_MAXBUFLEN];
    btVector3 pos;
    float w, h;
@@ -797,7 +802,7 @@ void PMDObject::renderError(TextRenderer * text)
       return;
 
    pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
-   pos.setZ(pos.z() + 5.0f);
+   pos.setZ(btScalar(pos.z() + 5.0f));
    glDisable(GL_LIGHTING);
    glPushMatrix();
    glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
@@ -830,4 +835,5 @@ void PMDObject::renderError(TextRenderer * text)
       glPopMatrix();
    }
    glEnable(GL_LIGHTING);
+#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }

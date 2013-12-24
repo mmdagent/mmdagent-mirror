@@ -145,6 +145,7 @@ int ScreenWindow::getNumMultiSampling()
 /* ScreenWindow::setMouseActiveTime: set mouse active time */
 void ScreenWindow::setMouseActiveTime(double frame)
 {
+#ifndef MMDAGENT_DONTUSEMOUSE
    if(m_enable == false)
       return;
 
@@ -155,11 +156,13 @@ void ScreenWindow::setMouseActiveTime(double frame)
       m_showMouse = true;
       glfwEnable(GLFW_MOUSE_CURSOR);
    }
+#endif /* !MMDAGENT_DONTUSEMOUSE */
 }
 
 /* ScreenWindow::updateMouseActiveTime: update mouse active time */
 void ScreenWindow::updateMouseActiveTime(double frame)
 {
+#ifndef MMDAGENT_DONTUSEMOUSE
    if(m_enable == false)
       return;
 
@@ -175,11 +178,13 @@ void ScreenWindow::updateMouseActiveTime(double frame)
          glfwDisable(GLFW_MOUSE_CURSOR);
       }
    }
+#endif /* !MMDAGENT_DONTUSEMOUSE */
 }
 
 /* ScreenWindow::setFullScreen: set fullscreen */
 void ScreenWindow::setFullScreen()
 {
+#ifndef MMDAGENT_DONTUSEWINDOW
    if(m_enable == false)
       return;
 
@@ -194,11 +199,13 @@ void ScreenWindow::setFullScreen()
       m_showMouse = false;
       glfwDisable(GLFW_MOUSE_CURSOR);
    }
+#endif /* !MMDAGENT_DONTUSEWINDOW */
 }
 
 /* ScreenWindow::exitFullScreen: exit fullscreen */
 void ScreenWindow::exitFullScreen()
 {
+#ifndef MMDAGENT_DONTUSEWINDOW
    if(m_enable == false)
       return;
 
@@ -213,4 +220,5 @@ void ScreenWindow::exitFullScreen()
       m_showMouse = true;
       glfwEnable(GLFW_MOUSE_CURSOR);
    }
+#endif /* !MMDAGENT_DONTUSEWINDOW */
 }

@@ -42,7 +42,6 @@
 /* headers */
 
 #include "MMDAgent.h"
-#include <GL/glu.h>
 
 /* compareDepth: qsort function for reordering */
 static int compareDepth(const void *a, const void *b)
@@ -80,7 +79,7 @@ void Render::updateModelViewMatrix()
 {
    m_transMatrix.setIdentity();
    m_transMatrix.setRotation(m_currentRot);
-   m_transMatrix.setOrigin(m_transMatrix * ( - m_currentTrans) - btVector3(0.0f, 0.0f, m_currentDistance));
+   m_transMatrix.setOrigin(m_transMatrix * ( - m_currentTrans) - btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(m_currentDistance)));
    m_transMatrixInv = m_transMatrix.inverse();
    m_transMatrix.getOpenGLMatrix(m_rotMatrix);
    m_transMatrixInv.getOpenGLMatrix(m_rotMatrixInv);
@@ -107,8 +106,8 @@ bool Render::updateTransRotMatrix(double ellapsedTimeForMove)
          m_currentRot = m_rot;
          m_currentTrans = m_trans;
       } else {
-         m_currentTrans = m_viewMoveStartTrans.lerp(m_trans, (btScalar) (ellapsedTimeForMove / m_viewMoveTime));
-         m_currentRot = m_viewMoveStartRot.slerp(m_rot, (btScalar) (ellapsedTimeForMove / m_viewMoveTime));
+         m_currentTrans = m_viewMoveStartTrans.lerp(m_trans, btScalar(ellapsedTimeForMove / m_viewMoveTime));
+         m_currentRot = m_viewMoveStartRot.slerp(m_rot, btScalar(ellapsedTimeForMove / m_viewMoveTime));
       }
    } else {
       /* calculate difference */
@@ -120,11 +119,11 @@ bool Render::updateTransRotMatrix(double ellapsedTimeForMove)
       diff2 = rot.length2();
 
       if (diff1 > RENDER_MINMOVEDIFF)
-         m_currentTrans = m_currentTrans.lerp(m_trans, 1.0f - RENDER_MOVESPEEDRATE); /* current * 0.9 + target * 0.1 */
+         m_currentTrans = m_currentTrans.lerp(m_trans, btScalar(1.0f - RENDER_MOVESPEEDRATE)); /* current * 0.9 + target * 0.1 */
       else
          m_currentTrans = m_trans;
       if (diff2 > RENDER_MINSPINDIFF)
-         m_currentRot = m_currentRot.slerp(m_rot, 1.0f - RENDER_SPINSPEEDRATE); /* current * 0.9 + target * 0.1 */
+         m_currentRot = m_currentRot.slerp(m_rot, btScalar(1.0f - RENDER_SPINSPEEDRATE)); /* current * 0.9 + target * 0.1 */
       else
          m_currentRot = m_rot;
    }
@@ -135,9 +134,9 @@ bool Render::updateTransRotMatrix(double ellapsedTimeForMove)
 /* Render::updateRotationFromAngle: update rotation quaternion from angle */
 void Render::updateRotationFromAngle()
 {
-   m_rot = btQuaternion(btVector3(0, 0, 1), MMDFILES_RAD(m_angle.z()))
-           * btQuaternion(btVector3(1, 0, 0), MMDFILES_RAD(m_angle.x()))
-           * btQuaternion(btVector3(0, 1, 0), MMDFILES_RAD(m_angle.y()));
+   m_rot = btQuaternion(btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(1.0f)), btScalar(MMDFILES_RAD(m_angle.z())))
+           * btQuaternion(btVector3(btScalar(1.0f), btScalar(0.0f), btScalar(0.0f)), btScalar(MMDFILES_RAD(m_angle.x())))
+           * btQuaternion(btVector3(btScalar(0.0f), btScalar(1.0f), btScalar(0.0f)), btScalar(MMDFILES_RAD(m_angle.y())));
 }
 
 /* Render::updateDistance: update distance */
@@ -205,6 +204,7 @@ bool Render::updateFovy(double ellapsedTimeForMove)
 /* Render::initializeShadowMap: initialize OpenGL for shadow mapping */
 void Render::initializeShadowMap(int textureSize)
 {
+#ifndef MMDAGENT_DONTUSESHADOWMAP
    static const GLdouble genfunc[][4] = {
       { 1.0, 0.0, 0.0, 0.0 },
       { 0.0, 1.0, 0.0, 0.0 },
@@ -280,11 +280,13 @@ void Render::initializeShadowMap(int textureSize)
 
    /* restore the model view matrix */
    glPopMatrix();
+#endif /* !MMDAGENT_DONTUSESHADOWMAP */
 }
 
 /* Render::renderSceneShadowMap: shadow mapping */
-void Render::renderSceneShadowMap(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
+void Render::renderSceneShadowMap(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity)
 {
+#ifndef MMDAGENT_DONTUSESHADOWMAP
    short i;
    GLint viewport[4]; /* store viewport */
    GLdouble modelview[16]; /* store model view transform */
@@ -561,10 +563,11 @@ void Render::renderSceneShadowMap(PMDObject *objs, const short *order, int num, 
    glDisable(GL_TEXTURE_GEN_Q);
    glDisable(GL_TEXTURE_2D);
    glActiveTextureARB(GL_TEXTURE0_ARB);
+#endif /* !MMDAGENT_DONTUSESHADOWMAP */
 }
 
 /* Render::renderScene: render scene */
-void Render::renderScene(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity)
+void Render::renderScene(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity)
 {
    short i;
    bool toonLight = true;
@@ -645,8 +648,8 @@ void Render::initialize()
 {
    m_width = 0;
    m_height = 0;
-   m_trans = btVector3(0.0f, 0.0f, 0.0f);
-   m_angle = btVector3(0.0f, 0.0f, 0.0f);
+   m_trans = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_angle = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
    updateRotationFromAngle();
    m_distance = 100.0f;
    m_fovy = 16.0f;
@@ -663,8 +666,8 @@ void Render::initialize()
    updateModelViewMatrix();
 
    m_shadowMapInitialized = false;
-   m_lightVec = btVector3(0.0f, 0.0f, 0.0f);
-   m_shadowMapAutoViewEyePoint = btVector3(0.0f, 0.0f, 0.0f);
+   m_lightVec = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+   m_shadowMapAutoViewEyePoint = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
    m_shadowMapAutoViewRadius = 0.0f;
 
    m_depth = NULL;
@@ -763,8 +766,8 @@ int Render::getHeight()
 /* Render::resetCameraView: reset camera view */
 void Render::resetCameraView(const float *trans, const float *angle, float distance, float fovy)
 {
-   m_angle = btVector3(angle[0], angle[1], angle[2]);
-   m_trans = btVector3(trans[0], trans[1], trans[2]);
+   m_angle = btVector3(btScalar(angle[0]), btScalar(angle[1]), btScalar(angle[2]));
+   m_trans = btVector3(btScalar(trans[0]), btScalar(trans[1]), btScalar(trans[2]));
    m_distance = distance;
    m_fovy = fovy;
    updateRotationFromAngle();
@@ -804,15 +807,15 @@ bool Render::isViewMoving()
 /* Render::translate: translate */
 void Render::translate(float x, float y, float z)
 {
-   m_trans += btVector3(x, y, z);
+   m_trans += btVector3(btScalar(x), btScalar(y), btScalar(z));
 }
 
 /* Render::rotate: rotate scene */
 void Render::rotate(float x, float y, float z)
 {
-   m_angle.setX(m_angle.x() + x);
-   m_angle.setY(m_angle.y() + y);
-   m_angle.setZ(m_angle.z() + z);
+   m_angle.setX(btScalar(m_angle.x() + x));
+   m_angle.setY(btScalar(m_angle.y() + y));
+   m_angle.setZ(btScalar(m_angle.z() + z));
    updateRotationFromAngle();
 }
 
@@ -843,6 +846,7 @@ float Render::getFovy()
 /* Render::setShadowMapping: switch shadow mapping */
 void Render::setShadowMapping(bool useShadowMapping, int textureSize, bool shadowMappingLightFirst)
 {
+#ifndef MMDAGENT_DONTUSESHADOWMAP
    if(useShadowMapping) {
       /* enabled */
       if (!m_shadowMapInitialized) {
@@ -871,10 +875,11 @@ void Render::setShadowMapping(bool useShadowMapping, int textureSize, bool shado
          glActiveTextureARB(GL_TEXTURE0_ARB);
       }
    }
+#endif /* !MMDAGENT_DONTUSESHADOWMAP */
 }
 
 /* Render::getRenderOrder: return rendering order */
-void Render::getRenderOrder(short *order, PMDObject *objs, int num)
+void Render::getRenderOrder(int *order, PMDObject *objs, int num)
 {
    int i, s;
    btVector3 pos, v;
@@ -904,7 +909,7 @@ void Render::getRenderOrder(short *order, PMDObject *objs, int num)
 }
 
 /* Render::render: render all */
-void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove)
+void Render::render(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove)
 {
    bool updated;
 
@@ -928,6 +933,9 @@ void Render::render(PMDObject *objs, short *order, int num, Stage *stage, bool u
 /* Render::pickModel: pick up a model at the screen position */
 int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPicked)
 {
+#ifdef MMDAGENT_DONTPICKMODEL
+   return -1;
+#else
    int i;
 
    GLuint selectionBuffer[512];
@@ -998,6 +1006,7 @@ int Render::pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPick
       *allowDropPicked = minIDAllowDrop;
 
    return minID;
+#endif /* MMDAGENT_DONTPICKMODEL */
 }
 
 /* Render::updateLight: update light */
@@ -1042,7 +1051,7 @@ void Render::updateLight(bool useMMDLikeCartoon, bool useCartoonRendering, float
    glLightfv(GL_LIGHT0, GL_SPECULAR, fLightSpc);
 
    /* update light direction vector */
-   m_lightVec = btVector3(lightDirection[0], lightDirection[1], lightDirection[2]);
+   m_lightVec = btVector3(btScalar(lightDirection[0]), btScalar(lightDirection[1]), btScalar(lightDirection[2]));
    m_lightVec.normalize();
 }
 
@@ -1051,9 +1060,9 @@ void Render::updateDepthTextureViewParam(PMDObject *objList, int num)
 {
    int i;
    float d, dmax;
-   float *r = new float[num];
+   float *r = (float *) malloc(sizeof(float) * num);
    btVector3 *c = new btVector3[num];
-   btVector3 cc = btVector3(0.0f, 0.0f, 0.0f);
+   btVector3 cc = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
 
    for (i = 0; i < num; i++) {
       if (objList[i].isEnable() == false)
@@ -1075,7 +1084,7 @@ void Render::updateDepthTextureViewParam(PMDObject *objList, int num)
    m_shadowMapAutoViewEyePoint = cc;
    m_shadowMapAutoViewRadius = dmax;
 
-   delete [] r;
+   free(r);
    delete [] c;
 }
 

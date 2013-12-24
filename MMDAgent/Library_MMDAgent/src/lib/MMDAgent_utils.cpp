@@ -285,7 +285,7 @@ bool MMDAgent_str2pos(const char *str, btVector3 *pos)
    if (MMDAgent_str2fvec(str, vec, 3) == false)
       return false;
 
-   pos->setValue(vec[0], vec[1], vec[2]);
+   pos->setValue(btScalar(vec[0]), btScalar(vec[1]), btScalar(vec[2]));
 
    return true;
 }
@@ -298,7 +298,7 @@ bool MMDAgent_str2rot(const char *str, btQuaternion *rot)
    if (MMDAgent_str2fvec(str, vec, 3) == false)
       return false;
 
-   rot->setEulerZYX(MMDFILES_RAD(vec[2]), MMDFILES_RAD(vec[1]), MMDFILES_RAD(vec[0]));
+   rot->setEulerZYX(btScalar(MMDFILES_RAD(vec[2])), btScalar(MMDFILES_RAD(vec[1])), btScalar(MMDFILES_RAD(vec[0])));
 
    return true;
 }

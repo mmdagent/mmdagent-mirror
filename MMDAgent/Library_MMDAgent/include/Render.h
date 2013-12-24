@@ -129,10 +129,10 @@ private:
    void initializeShadowMap(int textureSize);
 
    /* renderSceneShadowMap: shadow mapping */
-   void renderSceneShadowMap(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
+   void renderSceneShadowMap(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity);
 
    /* renderScene: render scene */
-   void renderScene(PMDObject *objs, const short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity);
+   void renderScene(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, const float *lightDirection, const float *lightColor, float shadowMappingFloorDensity);
 
    /* initialize: initialzie Render */
    void initialize();
@@ -194,10 +194,10 @@ public:
    void setShadowMapping(bool useShadowMapping, int textureSize, bool shadowMappingLightFirst);
 
    /* getRenderOrder: return rendering order */
-   void getRenderOrder(short *order, PMDObject *objs, int num);
+   void getRenderOrder(int *order, PMDObject *objs, int num);
 
    /* render: render all */
-   void render(PMDObject *objs, short *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove);
+   void render(PMDObject *objs, const int *order, int num, Stage *stage, bool useMMDLikeCartoon, bool useCartoonRendering, float lightIntensity, float *lightDirection, float *lightColor, bool useShadowMapping, int shadowMappingTextureSize, bool shadowMappingLightFirst, float shadowMappingSelfDensity, float shadowMappingFloorDensity, double ellapsedTimeForMove);
 
    /* pickModel: pick up a model at the screen position */
    int pickModel(PMDObject *objs, int num, int x, int y, int *allowDropPicked);
