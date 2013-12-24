@@ -1,6 +1,6 @@
 ===============================================================================
-               MMDAgent Stage "NITech Building 2" version 1.3.1
-                           release December 25, 2012
+                MMDAgent Stage "NITech Building 2" version 1.4
+                           release December 25, 2013
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
@@ -15,7 +15,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2012  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2013  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
@@ -71,6 +71,7 @@ Building Voice Interaction System. Current members are
  Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
  Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
  Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
+ Daisuke Yamamoto    http://yamamoto.web.nitech.ac.jp/member/yamamoto/yamamoto.html
 
 and the members are dynamically changing. The current formal contact address of
 MMDAgent project team and a mailing list for MMDAgent users can be found at

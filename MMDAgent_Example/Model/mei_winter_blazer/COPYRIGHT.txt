@@ -1,16 +1,5 @@
-===============================================================================
-            MMDAgent Motion "Self Introduction of Mei" version 1.4
-                           release December 25, 2013
-
-
-The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
-
-*******************************************************************************
-                                    Copying
-*******************************************************************************
-
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Self Introduction of Mei"              #
+#           MMDAgent Model "Mei (Winter blazer)"                    #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
@@ -20,8 +9,8 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #                                                                   #
 # Some rights reserved.                                             #
 #                                                                   #
-# This work is licensed under the Creative Commons Attribution 3.0  #
-# license.                                                          #
+# This work is licensed under the Creative Commons Attribution-     #
+# NonCommercial 3.0 license.                                        #
 #                                                                   #
 # You are free:                                                     #
 #  * to Share - to copy, distribute and transmit the work           #
@@ -30,6 +19,8 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #  * Attribution - You must attribute the work in the manner        #
 #    specified by the author or licensor (but not in any way that   #
 #    suggests that they endorse you or your use of the work).       #
+#  * Noncommercial - You may not use this work for commercial       #
+#    purposes.                                                      #
 # With the understanding that:                                      #
 #  * Waiver - Any of the above conditions can be waived if you get  #
 #    permission from the copyright holder.                          #
@@ -50,30 +41,3 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #                                                                   #
 # See http://creativecommons.org/ for details.                      #
 # ----------------------------------------------------------------- #
-
-See also "COPYRIGHT.txt" file in the current directory for details.
-
-*******************************************************************************
-                               Acknowledgements
-*******************************************************************************
-
-Keiichi Tokuda
-Akinobu Lee
-Keiichiro Oura
-
-*******************************************************************************
-                                  Who we are
-*******************************************************************************
-
-The MMDAgent project team is a voluntary group for developing the Toolkit for
-Building Voice Interaction System. Current members are
-
- Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
- Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
- Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
- Daisuke Yamamoto    http://yamamoto.web.nitech.ac.jp/member/yamamoto/yamamoto.html
-
-and the members are dynamically changing. The current formal contact address of
-MMDAgent project team and a mailing list for MMDAgent users can be found at
-http://www.mmdagent.jp/
-===============================================================================

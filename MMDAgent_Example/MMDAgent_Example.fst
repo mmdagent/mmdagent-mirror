@@ -4,7 +4,7 @@
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
 #                                                                   #
-#  Copyright (c) 2009-2012  Nagoya Institute of Technology          #
+#  Copyright (c) 2009-2013  Nagoya Institute of Technology          #
 #                           Department of Computer Science          #
 #                                                                   #
 # Some rights reserved.                                             #
@@ -90,7 +90,7 @@
 # Light
 # LIGHTCOLOR|(red),(green),(blue)
 # LIGHTDIRECTION|(x position),(y position),(z position)
-# 
+#
 # Camera
 # CAMERA|(x position),(y position),(z position)|(x rotation),(y rotation),(z rotation)|(distance)|(fovy)|(time)
 # CAMERA|(motion file name)
@@ -98,6 +98,9 @@
 # Speech recognition
 # RECOG_EVENT_START
 # RECOG_EVENT_STOP|(word sequence)
+# RECOG_MODIFY|GAIN|(ratio)
+# RECOG_MODIFY|USERDICT_SET|(dictionary file name)
+# RECOG_MODIFY|USERDICT_UNSET
 #
 # Speech synthesis
 # SYNTH_START|(model alias)|(voice alias)|(synthesized text)

@@ -1,5 +1,5 @@
 ===============================================================================
-            MMDAgent Motion "Self Introduction of Mei" version 1.4
+                          HTS Voice "Mei" version 1.4
                            release December 25, 2013
 
 
@@ -10,7 +10,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Self Introduction of Mei"              #
+#           HTS Voice "Mei"                                         #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #

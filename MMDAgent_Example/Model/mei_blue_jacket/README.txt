@@ -1,5 +1,5 @@
 ===============================================================================
-            MMDAgent Motion "Self Introduction of Mei" version 1.4
+                MMDAgent Model "Mei (Blue jacket)" version 1.4
                            release December 25, 2013
 
 
@@ -10,7 +10,7 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 *******************************************************************************
 
 # ----------------------------------------------------------------- #
-#           MMDAgent Motion "Self Introduction of Mei"              #
+#           MMDAgent Model "Mei (Blue jacket)"                      #
 #           released by MMDAgent Project Team                       #
 #           http://www.mmdagent.jp/                                 #
 # ----------------------------------------------------------------- #
@@ -20,8 +20,8 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #                                                                   #
 # Some rights reserved.                                             #
 #                                                                   #
-# This work is licensed under the Creative Commons Attribution 3.0  #
-# license.                                                          #
+# This work is licensed under the Creative Commons Attribution-     #
+# NonCommercial 3.0 license.                                        #
 #                                                                   #
 # You are free:                                                     #
 #  * to Share - to copy, distribute and transmit the work           #
@@ -30,6 +30,8 @@ The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
 #  * Attribution - You must attribute the work in the manner        #
 #    specified by the author or licensor (but not in any way that   #
 #    suggests that they endorse you or your use of the work).       #
+#  * Noncommercial - You may not use this work for commercial       #
+#    purposes.                                                      #
 # With the understanding that:                                      #
 #  * Waiver - Any of the above conditions can be waived if you get  #
 #    permission from the copyright holder.                          #
@@ -60,6 +62,7 @@ See also "COPYRIGHT.txt" file in the current directory for details.
 Keiichi Tokuda
 Akinobu Lee
 Keiichiro Oura
+Kenta Omori
 
 *******************************************************************************
                                   Who we are
