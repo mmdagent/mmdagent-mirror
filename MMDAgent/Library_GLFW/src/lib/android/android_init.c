@@ -1,6 +1,6 @@
 //========================================================================
 // GLFW - An OpenGL framework
-// Platform:    Any
+// Platform:    X11/GLX
 // API version: 2.7
 // WWW:         http://www.glfw.org/
 //------------------------------------------------------------------------
@@ -69,92 +69,193 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define _init_c_
 #include "internal.h"
+#include <jni.h>
+#include <errno.h>
+#include <android/sensor.h>
+#include <android_native_app_glue.h>
+#include <EGL/egl.h>
+#include <unistd.h>
+#include <sys/time.h>
+
+//************************************************************************
+//****                  GLFW internal functions                       ****
+//************************************************************************
+
+//========================================================================
+// Initialize GLFW thread package
+//========================================================================
+
+static void initThreads( void )
+{
+    // Initialize critical section handle
+#ifdef _GLFW_HAS_PTHREAD
+    (void) pthread_mutex_init( &_glfwThrd.CriticalSection, NULL );
+#endif
+
+    // The first thread (the main thread) has ID 0
+    _glfwThrd.NextID = 0;
+
+    // Fill out information about the main thread (this thread)
+    _glfwThrd.First.ID       = _glfwThrd.NextID++;
+    _glfwThrd.First.Function = NULL;
+    _glfwThrd.First.Previous = NULL;
+    _glfwThrd.First.Next     = NULL;
+#ifdef _GLFW_HAS_PTHREAD
+    _glfwThrd.First.PosixID  = pthread_self();
+#endif
+}
+
+
+//========================================================================
+// Terminate GLFW thread package
+//========================================================================
+
+static void terminateThreads( void )
+{
+#ifdef _GLFW_HAS_PTHREAD
+
+    _GLFWthread *t, *t_next;
+
+    // Enter critical section
+    ENTER_THREAD_CRITICAL_SECTION
+
+    // Kill all threads (NOTE: THE USER SHOULD WAIT FOR ALL THREADS TO
+    // DIE, _BEFORE_ CALLING glfwTerminate()!!!)
+    t = _glfwThrd.First.Next;
+    while( t != NULL )
+    {
+        // Get pointer to next thread
+        t_next = t->Next;
+
+        // Simply murder the process, no mercy!
+        pthread_kill( t->PosixID, SIGKILL );
+
+        // Free memory allocated for this thread
+        free( (void *) t );
+
+        // Select next thread in list
+        t = t_next;
+    }
+
+    // Leave critical section
+    LEAVE_THREAD_CRITICAL_SECTION
+
+    // Delete critical section handle
+    pthread_mutex_destroy( &_glfwThrd.CriticalSection );
+
+#endif // _GLFW_HAS_PTHREAD
+}
+
+
+//========================================================================
+// Dynamically load libraries
+//========================================================================
+
+static void initLibraries( void )
+{
+#ifdef _GLFW_DLOPEN_LIBGL
+    int i;
+    char *libGL_names[ ] =
+    {
+        "libGL.so",
+        "libGL.so.1",
+        "/usr/lib/libGL.so",
+        "/usr/lib/libGL.so.1",
+        NULL
+    };
+
+    _glfwLibrary.Libs.libGL = NULL;
+    for( i = 0; !libGL_names[ i ] != NULL; i ++ )
+    {
+        _glfwLibrary.Libs.libGL = dlopen( libGL_names[ i ],
+                                          RTLD_LAZY | RTLD_GLOBAL );
+        if( _glfwLibrary.Libs.libGL )
+            break;
+    }
+#endif
+}
+
+
+//========================================================================
+// Terminate GLFW when exiting application
+//========================================================================
+
+static void glfw_atexit( void )
+{
+    glfwTerminate();
+}
+
+
+//========================================================================
+// Initialize X11 display
+//========================================================================
+
+static int initDisplay( void )
+{
+    _glfwWin.display = EGL_NO_DISPLAY;
+    _glfwWin.context = EGL_NO_CONTEXT;
+    _glfwWin.surface = EGL_NO_SURFACE;
+    _glfwWin.initialized = GL_FALSE;
+    _glfwWin.resized = GL_FALSE;
+    return GL_TRUE;
+}
+
+
+//========================================================================
+// Terminate X11 display
+//========================================================================
+
+static void terminateDisplay( void )
+{
+}
 
 
 //************************************************************************
-//****                    GLFW user functions                         ****
+//****               Platform implementation functions                ****
 //************************************************************************
 
 //========================================================================
 // Initialize various GLFW state
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwInit( void )
+int _glfwPlatformInit( void )
 {
-    // Is GLFW already initialized?
-    if( _glfwInitialized )
+  // Initialize display
+  if( !initDisplay() )
     {
-        return GL_TRUE;
+      return GL_FALSE;
     }
 
-    memset( &_glfwLibrary, 0, sizeof( _glfwLibrary ) );
-    memset( &_glfwWin, 0, sizeof( _glfwWin ) );
+    // Initialize thread package
+   initThreads();
 
-    // Window is not yet opened
-    _glfwWin.opened = GL_FALSE;
-
-    // Default enable/disable settings
-    _glfwWin.sysKeysDisabled = GL_FALSE;
-
-    // Clear window hints
-    _glfwClearWindowHints();
-
-    // Platform specific initialization
-    if( !_glfwPlatformInit() )
-    {
-        return GL_FALSE;
-    }
-
-    // Form now on, GLFW state is valid
-    _glfwInitialized = GL_TRUE;
+    // Start the timer
+    _glfwInitTimer();
 
     return GL_TRUE;
 }
 
 
-#ifdef __ANDROID__
-GLFWAPI int GLFWAPIENTRY glfwInitForAndroid( void *app )
-{
-    glfwInit();
-    _glfwWin.app = (struct android_app *) app;
-    _glfwWin.app->onAppCmd = _glfwPlatformProcWindowEvent;
-    _glfwWin.app->onInputEvent = _glfwPlatformProcInputEvent;
-}
-#endif
-
 //========================================================================
-// Close window and kill all threads.
+// Close window and kill all threads
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwTerminate( void )
+int _glfwPlatformTerminate( void )
 {
-    // Is GLFW initialized?
-    if( !_glfwInitialized )
+#ifdef _GLFW_HAS_PTHREAD
+    // Only the main thread is allowed to do this...
+    if( pthread_self() != _glfwThrd.First.PosixID )
     {
-        return;
+        return GL_FALSE;
     }
+#endif // _GLFW_HAS_PTHREAD
 
-    // Platform specific termination
-    if( !_glfwPlatformTerminate() )
-    {
-        return;
-    }
+    // Close OpenGL window
+    glfwCloseWindow();
 
-    // GLFW is no longer initialized
-    _glfwInitialized = GL_FALSE;
+    // Kill thread package
+    terminateThreads();
+
+    return GL_TRUE;
 }
-
-
-//========================================================================
-// Get GLFW version
-//========================================================================
-
-GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor, int *rev )
-{
-    if( major != NULL ) *major = GLFW_VERSION_MAJOR;
-    if( minor != NULL ) *minor = GLFW_VERSION_MINOR;
-    if( rev   != NULL ) *rev   = GLFW_VERSION_REVISION;
-}
-

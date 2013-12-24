@@ -210,6 +210,8 @@ extern "C" {
  #ifndef GLFW_NO_GLU
   #include <OpenGL/glu.h>
  #endif
+#elif defined(__ANDROID__)
+ #include <GLES/gl.h>
 #else
  #if defined(GLFW_INCLUDE_GL3)
   #include <GL3/gl3.h>
@@ -475,6 +477,9 @@ typedef void (GLFWCALL * GLFWthreadfun)(void *);
 
 /* GLFW initialization, termination and version querying */
 GLFWAPI int  GLFWAPIENTRY glfwInit( void );
+#ifdef __ANDROID__
+GLFWAPI int  GLFWAPIENTRY glfwInitForAndroid( void *app );
+#endif
 GLFWAPI void GLFWAPIENTRY glfwTerminate( void );
 GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor, int *rev );
 

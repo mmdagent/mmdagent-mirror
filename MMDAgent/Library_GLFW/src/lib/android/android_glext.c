@@ -1,6 +1,6 @@
-//========================================================================
+//==================
 // GLFW - An OpenGL framework
-// Platform:    Any
+// Platform:    X11/GLX
 // API version: 2.7
 // WWW:         http://www.glfw.org/
 //------------------------------------------------------------------------
@@ -69,92 +69,47 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define _init_c_
 #include "internal.h"
 
+void (*glXGetProcAddress(const GLubyte *procName))();
+void (*glXGetProcAddressARB(const GLubyte *procName))();
+void (*glXGetProcAddressEXT(const GLubyte *procName))();
 
-//************************************************************************
-//****                    GLFW user functions                         ****
-//************************************************************************
-
-//========================================================================
-// Initialize various GLFW state
-//========================================================================
-
-GLFWAPI int GLFWAPIENTRY glfwInit( void )
-{
-    // Is GLFW already initialized?
-    if( _glfwInitialized )
-    {
-        return GL_TRUE;
-    }
-
-    memset( &_glfwLibrary, 0, sizeof( _glfwLibrary ) );
-    memset( &_glfwWin, 0, sizeof( _glfwWin ) );
-
-    // Window is not yet opened
-    _glfwWin.opened = GL_FALSE;
-
-    // Default enable/disable settings
-    _glfwWin.sysKeysDisabled = GL_FALSE;
-
-    // Clear window hints
-    _glfwClearWindowHints();
-
-    // Platform specific initialization
-    if( !_glfwPlatformInit() )
-    {
-        return GL_FALSE;
-    }
-
-    // Form now on, GLFW state is valid
-    _glfwInitialized = GL_TRUE;
-
-    return GL_TRUE;
-}
-
-
-#ifdef __ANDROID__
-GLFWAPI int GLFWAPIENTRY glfwInitForAndroid( void *app )
-{
-    glfwInit();
-    _glfwWin.app = (struct android_app *) app;
-    _glfwWin.app->onAppCmd = _glfwPlatformProcWindowEvent;
-    _glfwWin.app->onInputEvent = _glfwPlatformProcInputEvent;
-}
+// We support four different ways for getting addresses for GL/GLX
+// extension functions: glXGetProcAddress, glXGetProcAddressARB,
+// glXGetProcAddressEXT, and dlsym
+#if   defined( _GLFW_HAS_GLXGETPROCADDRESSARB )
+ #define _glfw_glXGetProcAddress(x) glXGetProcAddressARB(x)
+#elif defined( _GLFW_HAS_GLXGETPROCADDRESS )
+ #define _glfw_glXGetProcAddress(x) glXGetProcAddress(x)
+#elif defined( _GLFW_HAS_GLXGETPROCADDRESSEXT )
+ #define _glfw_glXGetProcAddress(x) glXGetProcAddressEXT(x)
+#elif defined( _GLFW_HAS_DLOPEN )
+ #define _glfw_glXGetProcAddress(x) dlsym(_glfwLibrary.Libs.libGL,x)
+#else
+#define _glfw_glXGetProcAddress(x) NULL
 #endif
 
+
+//************************************************************************
+//****               Platform implementation functions                ****
+//************************************************************************
+
 //========================================================================
-// Close window and kill all threads.
+// Check if an OpenGL extension is available at runtime
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwTerminate( void )
+int _glfwPlatformExtensionSupported( const char *extension )
 {
-    // Is GLFW initialized?
-    if( !_glfwInitialized )
-    {
-        return;
-    }
-
-    // Platform specific termination
-    if( !_glfwPlatformTerminate() )
-    {
-        return;
-    }
-
-    // GLFW is no longer initialized
-    _glfwInitialized = GL_FALSE;
+    return GL_FALSE;
 }
 
 
 //========================================================================
-// Get GLFW version
+// Get the function pointer to an OpenGL function
 //========================================================================
 
-GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor, int *rev )
+void * _glfwPlatformGetProcAddress( const char *procname )
 {
-    if( major != NULL ) *major = GLFW_VERSION_MAJOR;
-    if( minor != NULL ) *minor = GLFW_VERSION_MINOR;
-    if( rev   != NULL ) *rev   = GLFW_VERSION_REVISION;
+    return (void *) _glfw_glXGetProcAddress( (const GLubyte *) procname );
 }
-

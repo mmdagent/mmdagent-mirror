@@ -33,6 +33,47 @@
 *
 ***************************************************************************/
 
+/* ----------------------------------------------------------------- */
+/*           The Toolkit for Building Voice Interaction Systems      */
+/*           "MMDAgent" developed by MMDAgent Project Team           */
+/*           http://www.mmdagent.jp/                                 */
+/* ----------------------------------------------------------------- */
+/*                                                                   */
+/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
+/*                           Department of Computer Science          */
+/*                                                                   */
+/* All rights reserved.                                              */
+/*                                                                   */
+/* Redistribution and use in source and binary forms, with or        */
+/* without modification, are permitted provided that the following   */
+/* conditions are met:                                               */
+/*                                                                   */
+/* - Redistributions of source code must retain the above copyright  */
+/*   notice, this list of conditions and the following disclaimer.   */
+/* - Redistributions in binary form must reproduce the above         */
+/*   copyright notice, this list of conditions and the following     */
+/*   disclaimer in the documentation and/or other materials provided */
+/*   with the distribution.                                          */
+/* - Neither the name of the MMDAgent project team nor the names of  */
+/*   its contributors may be used to endorse or promote products     */
+/*   derived from this software without specific prior written       */
+/*   permission.                                                     */
+/*                                                                   */
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */
+/* POSSIBILITY OF SUCH DAMAGE.                                       */
+/* ----------------------------------------------------------------- */
+
 #ifndef __glee_h_
 #define __glee_h_
 
@@ -56,6 +97,10 @@
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	#include <GL/gl.h>
+#elif defined(__ANDROID__)
+	#define GL_GLEXT_PROTOTYPES
+	#include <GLES/gl.h>
+	#include <GLES/glext.h>
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
     #define GL_GLEXT_LEGACY
 	#include <OpenGL/gl.h>
@@ -66,6 +111,55 @@
 	#include <GL/gl.h>
 	#include <GL/glx.h>
 #endif
+
+#ifdef __ANDROID__
+#define GL_VERSION_1_3 1
+#define GL_VERSION_1_4 1
+#define GL_VERSION_1_5 1
+#define GL_VERSION_2_0 1
+#ifndef GLchar
+#define GLchar char
+#endif
+#ifndef GLdouble
+#define GLdouble double
+#endif
+#ifndef GLclampd
+#define GLclampd double
+#endif
+#ifndef GL_ARB_multitexture
+#define GL_ARB_multitexture
+#endif
+#ifndef GL_WRITE_ONLY
+#define GL_WRITE_ONLY GL_WRITE_ONLY_ARB
+#endif
+#ifndef GL_READ_ONLY
+#define GL_READ_ONLY GL_READ_ONLY_ARB
+#endif
+#ifndef GL_TEXTURE0_ARB
+#define GL_TEXTURE0_ARB GL_TEXTURE0
+#endif
+#ifndef GL_TEXTURE1_ARB
+#define GL_TEXTURE1_ARB GL_TEXTURE1
+#endif
+#ifndef GL_TEXTURE2_ARB
+#define GL_TEXTURE2_ARB GL_TEXTURE2
+#endif
+#ifndef glActiveTextureARB
+#define glActiveTextureARB(...) glActiveTexture(__VA_ARGS__)
+#endif
+#ifndef glClientActiveTextureARB
+#define glClientActiveTextureARB(...) glClientActiveTexture(__VA_ARGS__)
+#endif
+#ifndef glFrustum
+#define glFrustum(...) glFrustumf(__VA_ARGS__)
+#endif
+#ifndef glMapBuffer
+#define glMapBuffer(...) glMapBufferOES(__VA_ARGS__)
+#endif
+#ifndef glUnmapBuffer
+#define glUnmapBuffer(...) glUnmapBufferOES(__VA_ARGS__)
+#endif
+#endif /* __ANDROID__ */
 
 #ifndef APIENTRY
 	#define APIENTRY
@@ -806,6 +900,7 @@ GLEE_EXTERN GLboolean _GLEE_SGIX_texture_range;
         } GPU_DEVICE, *PGPU_DEVICE;
     #endif
 	
+#elif defined(__ANDROID__)	
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 
 	/* Mac OS X */
@@ -16543,6 +16638,7 @@ GLEE_EXTERN GLboolean _GLEE_WGL_NV_video_output;
   #define wglGetVideoInfoNV GLeeFuncPtr_wglGetVideoInfoNV
 #endif
 #endif 
+#elif defined(__ANDROID__)
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 #else /* GLX */
 
@@ -17635,6 +17731,7 @@ GLEE_EXTERN GLboolean GLeeEnabled(GLboolean * extensionQueryingVariable);
 
 #ifdef WIN32
 GLEE_EXTERN const char * GLeeGetExtStrWGL( void );
+#elif defined(__ANDROID__)
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 #else 
 GLEE_EXTERN const char * GLeeGetExtStrGLX( void );

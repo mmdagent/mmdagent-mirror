@@ -601,6 +601,7 @@ GLFWAPI int GLFWAPIENTRY glfwOpenWindow( int width, int height,
     _glfwPlatformRefreshWindowParams();
     _glfwRefreshContextParams();
 
+#ifndef __ANDROID__
     if( _glfwWin.glMajor < wndconfig.glMajor ||
         ( _glfwWin.glMajor == wndconfig.glMajor &&
           _glfwWin.glMinor < wndconfig.glMinor ) )
@@ -608,6 +609,7 @@ GLFWAPI int GLFWAPIENTRY glfwOpenWindow( int width, int height,
         glfwCloseWindow();
         return GL_FALSE;
     }
+#endif
 
     // Do we have non-power-of-two textures (added to core in version 2.0)?
     _glfwWin.has_GL_ARB_texture_non_power_of_two =

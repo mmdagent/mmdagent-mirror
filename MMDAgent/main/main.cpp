@@ -53,10 +53,19 @@
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif /* __APPLE__ */
-#if !defined(_WIN32) && !defined(__APPLE__)
+#ifdef __ANDROID__
+#include <jni.h>
+#include <errno.h>
+#include <android/sensor.h>
+#include <android_native_app_glue.h>
+#include <EGL/egl.h>
+#include <unistd.h>
+#include <sys/time.h>
+#endif /* __ANDROID__ */
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 #include <limits.h>
 #include <iconv.h>
-#endif /* !_WIN32 && !__APPLE__ */
+#endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */
 
 #include "MMDAgent.h"
 
@@ -438,7 +447,21 @@ int main(int argc, char **argv)
    return result;
 }
 #endif /* __APPLE__ */
-#if !defined(_WIN32) && !defined(__APPLE__)
+#ifdef __ANDROID__
+void android_main(struct android_app *app)
+{
+   glfwInitForAndroid(app);
+   app_dummy();
+
+   char *argv[2];
+   argv[0] = MMDAgent_strdup("dummy.exe");
+   argv[1] = MMDAgent_strdup("dummy.mdf");
+   commonMain(2, argv);
+   free(argv[0]);
+   free(argv[1]);
+}
+#endif /* __ANDROID__ */
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 int main(int argc, char **argv)
 {
    int i;
@@ -487,4 +510,4 @@ int main(int argc, char **argv)
 
    return result;
 }
-#endif /* !_WIN32 && !__APPLE__ */
+#endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */

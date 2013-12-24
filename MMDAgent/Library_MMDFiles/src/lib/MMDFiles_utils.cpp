@@ -45,9 +45,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif /* __APPLE__ */
 
-#if !defined(_WIN32) && !defined(__APPLE__)
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 #include <iconv.h>
-#endif /* !_WIN32 && !__APPLE__ */
+#endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */
 
 #include "MMDFiles.h"
 
@@ -197,7 +197,29 @@ char *MMDFiles_pathdup(const char *str)
    free(inBuff);
    return outBuff;
 #endif /* __APPLE__ */
-#if !defined(_WIN32) && !defined(__APPLE__)
+#ifdef __ANDROID__
+   size_t i, size;
+   char *inBuff;
+   size_t inLen;
+
+   inLen = MMDFiles_strlen(str);
+   if(inLen <= 0)
+      return NULL;
+
+   inBuff = MMDFiles_strdup(str);
+   if(inBuff == NULL)
+      return NULL;
+
+   /* convert directory separator */
+   for(i = 0; i < inLen; i += size) {
+      size = MMDFiles_getcharsize(&inBuff[i]);
+      if(size == 1 && MMDFiles_dirseparator(inBuff[i]) == true)
+         inBuff[i] = MMDFILES_DIRSEPARATOR;
+   }
+
+   return inBuff;
+#endif /* __ANDROID__ */
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
    iconv_t ic;
    size_t i, size;
    char *inBuff, *outBuff;
@@ -234,7 +256,7 @@ char *MMDFiles_pathdup(const char *str)
 
    free(inBuff);
    return outBuff;
-#endif /* !_WIN32 && !__APPLE__ */
+#endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */
 }
 
 /* MMDFiles_dirname: get directory name from path */
@@ -327,9 +349,9 @@ size_t MMDFiles_getfsize(const char *file)
    fseek(fp, 0, SEEK_SET);
    fclose(fp);
 
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__)
    return (size_t) size;
 #else
    return (size_t) size.__pos;
-#endif /* _WIN32 || __APPLE__ */
+#endif /* _WIN32 || __APPLE__ || __ANDROID__ */
 }

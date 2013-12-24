@@ -1,6 +1,6 @@
 //========================================================================
 // GLFW - An OpenGL framework
-// Platform:    Any
+// Platform:    X11 (Unix)
 // API version: 2.7
 // WWW:         http://www.glfw.org/
 //------------------------------------------------------------------------
@@ -69,92 +69,24 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define _init_c_
 #include "internal.h"
 
-
 //************************************************************************
-//****                    GLFW user functions                         ****
+//****               Platform implementation functions                ****
 //************************************************************************
 
 //========================================================================
-// Initialize various GLFW state
+// Enable system keys
 //========================================================================
 
-GLFWAPI int GLFWAPIENTRY glfwInit( void )
+void _glfwPlatformEnableSystemKeys( void )
 {
-    // Is GLFW already initialized?
-    if( _glfwInitialized )
-    {
-        return GL_TRUE;
-    }
-
-    memset( &_glfwLibrary, 0, sizeof( _glfwLibrary ) );
-    memset( &_glfwWin, 0, sizeof( _glfwWin ) );
-
-    // Window is not yet opened
-    _glfwWin.opened = GL_FALSE;
-
-    // Default enable/disable settings
-    _glfwWin.sysKeysDisabled = GL_FALSE;
-
-    // Clear window hints
-    _glfwClearWindowHints();
-
-    // Platform specific initialization
-    if( !_glfwPlatformInit() )
-    {
-        return GL_FALSE;
-    }
-
-    // Form now on, GLFW state is valid
-    _glfwInitialized = GL_TRUE;
-
-    return GL_TRUE;
 }
 
+//========================================================================
+// Disable system keys
+//========================================================================
 
-#ifdef __ANDROID__
-GLFWAPI int GLFWAPIENTRY glfwInitForAndroid( void *app )
+void _glfwPlatformDisableSystemKeys( void )
 {
-    glfwInit();
-    _glfwWin.app = (struct android_app *) app;
-    _glfwWin.app->onAppCmd = _glfwPlatformProcWindowEvent;
-    _glfwWin.app->onInputEvent = _glfwPlatformProcInputEvent;
 }
-#endif
-
-//========================================================================
-// Close window and kill all threads.
-//========================================================================
-
-GLFWAPI void GLFWAPIENTRY glfwTerminate( void )
-{
-    // Is GLFW initialized?
-    if( !_glfwInitialized )
-    {
-        return;
-    }
-
-    // Platform specific termination
-    if( !_glfwPlatformTerminate() )
-    {
-        return;
-    }
-
-    // GLFW is no longer initialized
-    _glfwInitialized = GL_FALSE;
-}
-
-
-//========================================================================
-// Get GLFW version
-//========================================================================
-
-GLFWAPI void GLFWAPIENTRY glfwGetVersion( int *major, int *minor, int *rev )
-{
-    if( major != NULL ) *major = GLFW_VERSION_MAJOR;
-    if( minor != NULL ) *minor = GLFW_VERSION_MINOR;
-    if( rev   != NULL ) *rev   = GLFW_VERSION_REVISION;
-}
-

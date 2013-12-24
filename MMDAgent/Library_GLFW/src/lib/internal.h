@@ -72,6 +72,16 @@
 #ifndef _internal_h_
 #define _internal_h_
 
+#ifdef __ANDROID__
+#include <jni.h>
+#include <errno.h>
+#include <android/sensor.h>
+#include <android_native_app_glue.h>
+#include <EGL/egl.h>
+#include <unistd.h>
+#include <sys/time.h>
+#endif
+
 //========================================================================
 // GLFWGLOBAL is a macro that places all global variables in the init.c
 // module (all other modules reference global variables as 'extern')
@@ -268,6 +278,10 @@ void _glfwPlatformWaitEvents( void );
 void _glfwPlatformHideMouseCursor( void );
 void _glfwPlatformShowMouseCursor( void );
 void _glfwPlatformSetMouseCursorPos( int x, int y );
+#ifdef __ANDROID__
+void _glfwPlatformProcWindowEvent( struct android_app *app, int32_t cmd );
+int32_t _glfwPlatformProcInputEvent( struct android_app *app, AInputEvent *event );
+#endif
 
 
 //========================================================================
