@@ -8,7 +8,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -128,7 +128,7 @@ freely, subject to the following restrictions:
 /*           http://hts-engine.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2001-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2001-2013  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /*                2001-2008  Tokyo Institute of Technology           */
@@ -254,10 +254,10 @@ We are required to state that
      Large Vocabulary Continuous Speech Recognition Engine Julius
 
 
- Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
 
 "Large Vocabulary Continuous Speech Recognition Engine Julius",
 including Julian, is being developed at Kawahara Lab., Kyoto
@@ -304,10 +304,10 @@ whatsoever.
 
                       Form of copyright notice:
 
- Copyright (c) 1991-2012 Kawahara Lab., Kyoto University
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University
  Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan
  Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology
- Copyright (c) 2005-2012 Julius project team, Nagoya Institute of Technology
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology
 
 3. When you publish or present any results by using the Software, you
 must explicitly mention your use of "Large Vocabulary Continuous
@@ -508,7 +508,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*           http://open-jtalk.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2008-2011  Nagoya Institute of Technology          */
+/*  Copyright (c) 2008-2013  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */

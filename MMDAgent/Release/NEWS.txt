@@ -1,3 +1,12 @@
+Version 1.4:
+ * support VMD files of MikuMikuDance 7.40 and later.
+ * re-design plugin framework (event/command message integration).
+ * support VBO for efficient rendering.
+ * add acoustic models for mobile devices.
+ * add sample Makefiles for Android NDK, Visual Studio 2010, and 64-bit Cocoa framework.
+ * fix some bugs.
+ * update libraries (Julius 4.3, hts_engine API 1.08, and Open JTalk 1.07).
+
 Version 1.3.1:
  * fix some bugs.
 
