@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2012  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -161,7 +161,7 @@ void MotionController::calcBoneAt(MotionControllerBoneElement *mc, float frameNo
       /* lerp with the initial position/rotation at the time of starting motion */
       w = (float) (m_noBoneSmearFrame / MOTIONCONTROLLER_BONESTARTMARGINFRAME);
       mc->pos = mc->pos.lerp(mc->snapPos, btScalar(w));
-      mc->rot = mc->rot.slerp(mc->snapRot, btScalar(w));
+      mc->rot = btTransform(btTransform(mc->rot).getBasis() * (1.0f - w) + btTransform(mc->snapRot).getBasis() * w).getRotation();
    }
 }
 
@@ -468,9 +468,9 @@ void MotionController::setup(PMDModel *pmd, VMD *vmd)
       m_boneCtrlList[i].bone = NULL;
       m_boneCtrlList[i].motion = NULL;
       m_boneCtrlList[i].pos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
-      m_boneCtrlList[i].rot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+      m_boneCtrlList[i].rot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
       m_boneCtrlList[i].snapPos = btVector3(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
-      m_boneCtrlList[i].snapRot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
+      m_boneCtrlList[i].snapRot = btQuaternion(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
       m_boneCtrlList[i].lastKey = 0;
       m_boneCtrlList[i].looped = false;
    }
