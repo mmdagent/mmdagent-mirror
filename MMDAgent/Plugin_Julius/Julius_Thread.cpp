@@ -460,6 +460,18 @@ void Julius_Thread::setLogActiveFlag(bool b)
    m_logger.setActiveFlag(b);
 }
 
+/* Julius_Thread::getLogFlagForFixedLocationInWindow: get flag of logger for fixed location in window */
+bool Julius_Thread::getLogFlagForFixedLocationInWindow()
+{
+   return m_logger.getFlagForFixedLocationInWindow();
+}
+
+/* Julius_Thread::setLogFlagForFixedLocationInWindow: set flag of logger for fixed location in window */
+void Julius_Thread::setLogFlagForFixedLocationInWindow(bool b)
+{
+   m_logger.setFlagForFixedLocationInWindow(b);
+}
+
 /* Julius_Thread::updateLog: update log view per step */
 void Julius_Thread::updateLog(double frame)
 {

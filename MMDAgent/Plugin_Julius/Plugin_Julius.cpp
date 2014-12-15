@@ -133,11 +133,16 @@ EXPORT void extProcMessage(MMDAgent *mmdagent, const char *type, const char *arg
          mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINJULIUS_NAME);
       }
    } else if(MMDAgent_strequal(type, MMDAGENT_EVENT_KEY)) {
-      if(MMDAgent_strequal(args, "J")) {
-         if(julius_thread.getLogActiveFlag() == true)
-            julius_thread.setLogActiveFlag(false);
-         else
+      if (MMDAgent_strequal(args, "J")) {
+         if (julius_thread.getLogActiveFlag() == true)
+            if (julius_thread.getLogFlagForFixedLocationInWindow() == true)
+               julius_thread.setLogActiveFlag(false);
+            else
+               julius_thread.setLogFlagForFixedLocationInWindow(true);
+         else {
             julius_thread.setLogActiveFlag(true);
+            julius_thread.setLogFlagForFixedLocationInWindow(false);
+         }
       }
    } else if(enable == true && MMDAgent_strequal(type, PLUGINJULIUS_MODIFYCOMMAND)) {
       julius_thread.storeCommand(args);

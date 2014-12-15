@@ -41,23 +41,26 @@
 
 /* definitions */
 
-#define JULIUSLOGGER_ADINMAXVOLUMEUPDATEFRAME 6.0
-#define JULIUSLOGGER_DECAYFRAME               15.0
-#define JULIUSLOGGER_DECAYDECREASECOEF        0.95f
-#define JULIUSLOGGER_MAXARCS                  1200
-#define JULIUSLOGGER_BARWIDTH                 8.0f
-#define JULIUSLOGGER_BARHEIGHT                1.0f
-#define JULIUSLOGGER_BARMARGIN                0.1f
-#define JULIUSLOGGER_BARINDICATORZOFFSET      0.02f
-#define JULIUSLOGGER_FRAMESINBAR              200.0f
-#define JULIUSLOGGER_ADINOVERFLOWTHRES        32000
+#define JULIUSLOGGER_ADINMAXVOLUMEUPDATEFRAME  6.0
+#define JULIUSLOGGER_DECAYFRAME                15.0
+#define JULIUSLOGGER_DECAYDECREASECOEF         0.95f
+#define JULIUSLOGGER_MAXARCS                   1200
+#define JULIUSLOGGER_BARWIDTH                  8.0f
+#define JULIUSLOGGER_BARHEIGHT                 1.0f
+#define JULIUSLOGGER_BARMARGIN                 0.1f
+#define JULIUSLOGGER_BARFACTORFORFIXEDLOCATION 30.0f
+#define JULIUSLOGGER_BARINDICATORZOFFSET       0.02f
+#define JULIUSLOGGER_FRAMESINBAR               200.0f
+#define JULIUSLOGGER_ADINOVERFLOWTHRES         32000
 
 /* Julius_Logger: display debug information with OpenGL */
 class Julius_Logger
 {
 private :
 
-   bool m_active;               /* draw the log only when true */
+   bool m_active;                       /* draw the log only when true */
+   bool m_flagForFixedLocationInWindow; /* flag for fixed location in window */
+
    bool m_recognizing;          /* true when recognition is running */
    TRELLIS_ATOM* m_lastTrellis; /* current word trellis edge */
    double m_decayFrame;         /* rest frames for last decaying */
@@ -66,6 +69,7 @@ private :
    double m_adInFrameStep;      /* current frame for adin level calculation */
    int m_numWord;               /* number of words in recognition dictionary */
    float m_levelThreshold;      /* audio trigger level threshold */
+   float m_marginScale;         /* margin scale */
 
    float m_pos[JULIUSLOGGER_MAXARCS * 3];          /* position array for recognition process drawing */
    unsigned int m_index[JULIUSLOGGER_MAXARCS * 2]; /* index array for recognition process drawing */
@@ -106,6 +110,12 @@ public :
 
    /* getActiveFlag: get active flag */
    bool getActiveFlag();
+
+   /* setFlagForFixedLocationInWindow: set flag for fixed location in window */
+   void setFlagForFixedLocationInWindow(bool flag);
+
+   /* getFlagForFixedLocationInWindow: get flag for fixed location in window */
+   bool getFlagForFixedLocationInWindow();
 
    /* update: update log view per step */
    void update(double frame);

@@ -128,6 +128,12 @@ public :
    /* setLogActiveFlag: set active flag of logger */
    void setLogActiveFlag(bool b);
 
+   /* getLogFlagForFixedLocationInWindow: get flag of logger for fixed location in window */
+   bool getLogFlagForFixedLocationInWindow();
+
+   /* setLogFlagForFixedLocationInWindow: set flag of logger for fixed location in window */
+   void setLogFlagForFixedLocationInWindow(bool b);
+
    /* updateLog: update log view per step */
    void updateLog(double frame);
 

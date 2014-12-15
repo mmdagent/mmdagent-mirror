@@ -82,6 +82,7 @@ static void callbackRecogAdin(Recog *recog, SP16 *buf, int len, void *data)
 void Julius_Logger::initialize()
 {
    m_active = false;
+   m_flagForFixedLocationInWindow = false;
    m_recognizing = false;
    m_lastTrellis = NULL;
    m_decayFrame = 0.0;
@@ -90,6 +91,7 @@ void Julius_Logger::initialize()
    m_adInFrameStep = 0.0;
    m_numWord = 0;
    m_levelThreshold = 0.0f;
+   m_marginScale = 1.0f;
 
    m_numPos = 0;
    m_numIndex = 0;
@@ -172,6 +174,18 @@ bool Julius_Logger::getActiveFlag()
    return m_active;
 }
 
+/* setFlagForFixedLocationInWindow: set flag for fixed location in window */
+void Julius_Logger::setFlagForFixedLocationInWindow(bool flag)
+{
+   m_flagForFixedLocationInWindow = flag;
+}
+
+/* getFlagForFixedLocationInWindow: get flag for fixed location in window */
+bool Julius_Logger::getFlagForFixedLocationInWindow()
+{
+   return m_flagForFixedLocationInWindow;
+}
+
 /* update: update log view per step */
 void Julius_Logger::update(double frame)
 {
@@ -208,11 +222,11 @@ void Julius_Logger::update(double frame)
             h2 = 1.0f - tre->wid / (float) m_numWord;
             x1 = 1.0f - (currentFrame - tre2->last_tre->endtime) / JULIUSLOGGER_FRAMESINBAR;
             x2 = 1.0f - (currentFrame - tre2->endtime) / JULIUSLOGGER_FRAMESINBAR;
-            m_pos[np * 3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x1;
+            m_pos[np * 3] = JULIUSLOGGER_BARMARGIN * m_marginScale + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2 * m_marginScale) * x1;
             m_pos[np * 3 + 1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h1;
             m_pos[np * 3 + 2] = JULIUSLOGGER_BARINDICATORZOFFSET;
             np++;
-            m_pos[np * 3  ] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARWIDTH  - JULIUSLOGGER_BARMARGIN * 2) * x2;
+            m_pos[np * 3] = JULIUSLOGGER_BARMARGIN * m_marginScale + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2 * m_marginScale) * x2;
             m_pos[np * 3 + 1] = JULIUSLOGGER_BARMARGIN + (JULIUSLOGGER_BARHEIGHT - JULIUSLOGGER_BARMARGIN * 2) * h2;
             m_pos[np * 3 + 2] = JULIUSLOGGER_BARINDICATORZOFFSET;
             np++;
@@ -238,6 +252,24 @@ void Julius_Logger::update(double frame)
 
 }
 
+/* set Ortho matrix, equivalent to glOrtho() */
+static void setOrtho(float left, float right, float bottom, float top, float vnear, float vfar)
+{
+   float a = 2.0f / (right - left);
+   float b = 2.0f / (top - bottom);
+   float c = -2.0f / (vfar - vnear);
+   float tx = -(right + left) / (right - left);
+   float ty = -(top + bottom) / (top - bottom);
+   float tz = -(vfar + vnear) / (vfar - vnear);
+   float ortho[16] = {
+      a, 0, 0, 0,
+      0, b, 0, 0,
+      0, 0, c, 0,
+      tx, ty, tz, 1
+   };
+   glMultMatrixf(ortho);
+}
+
 /* render: render log view */
 void Julius_Logger::render()
 {
@@ -252,8 +284,29 @@ void Julius_Logger::render()
    glDisable(GL_LIGHTING);
    glDisable(GL_TEXTURE_2D);
    glDisable(GL_CULL_FACE);
-   glPushMatrix();
-   glTranslatef(-4.0f, 12.0f, 3.0f);
+   if (m_flagForFixedLocationInWindow) {
+      /* save projection matrix */
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix();
+      /* set orthographic projection fitted to the bar */
+      glLoadIdentity();
+      setOrtho(0, JULIUSLOGGER_BARWIDTH, 0, JULIUSLOGGER_BARHEIGHT * JULIUSLOGGER_BARFACTORFORFIXEDLOCATION, -1, 1);
+      /* save modelview matrix*/
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+      /* reset modelview matrix */
+      glLoadIdentity();
+      /* update margin scale */
+      GLint viewport[4];
+      glGetIntegerv(GL_VIEWPORT, viewport);
+      m_marginScale = (float)(JULIUSLOGGER_BARWIDTH * viewport[3]) / (float)(JULIUSLOGGER_BARHEIGHT * viewport[2] * JULIUSLOGGER_BARFACTORFORFIXEDLOCATION);
+      barVers[0] = barVers[3] = JULIUSLOGGER_BARMARGIN * m_marginScale;
+      barVers[6] = barVers[9] = JULIUSLOGGER_BARMARGIN * m_marginScale + (JULIUSLOGGER_BARWIDTH - JULIUSLOGGER_BARMARGIN * 2 * m_marginScale) * m_maxAdIn;
+   } else {
+      glPushMatrix();
+      glTranslatef(-4.0f, 12.0f, 3.0f);
+      m_marginScale = 1.0f;
+   }
 
    /* square */
    glNormal3f(0.0, 0.0, 1.0);
@@ -299,6 +352,13 @@ void Julius_Logger::render()
    }
 
    glPopMatrix();
+   if (m_flagForFixedLocationInWindow) {
+      /* restore projection matrix */
+      glMatrixMode(GL_PROJECTION);
+      glPopMatrix();
+      /* switch to model view mode */
+      glMatrixMode(GL_MODELVIEW);
+   }
    glEnable(GL_LIGHTING);
    glEnable(GL_CULL_FACE);
 }
