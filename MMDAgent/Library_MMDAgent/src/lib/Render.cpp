@@ -422,7 +422,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, const int *order, int num, St
    } else {
       /* render in dark setting, later render only the non-shadow part with light setting */
       /* light setting for non-toon objects */
-      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * shadowMappingSelfDensity;
+      lightdim[0] = lightdim[1] = lightdim[2] = 0.34f - 0.13f * shadowMappingSelfDensity;
       glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdim);
       glLightfv(GL_LIGHT0, GL_AMBIENT, lightdim);
       glLightfv(GL_LIGHT0, GL_SPECULAR, lightblk);
@@ -495,7 +495,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, const int *order, int num, St
       glAlphaFunc(GL_GEQUAL, 0.1f);
 
       /* light setting for non-toon objects */
-      lightdim[0] = lightdim[1] = lightdim[2] = 0.55f - 0.2f * shadowMappingSelfDensity;
+      lightdim[0] = lightdim[1] = lightdim[2] = 0.34f - 0.13f * shadowMappingSelfDensity;
       glLightfv(GL_LIGHT0, GL_DIFFUSE, lightdim);
       glLightfv(GL_LIGHT0, GL_AMBIENT, lightdim);
       glLightfv(GL_LIGHT0, GL_SPECULAR, lightblk);
@@ -554,7 +554,7 @@ void Render::renderSceneShadowMap(PMDObject *objs, const int *order, int num, St
 
    /* reset settings */
    glDepthFunc(GL_LESS);
-   glAlphaFunc(GL_GEQUAL, 0.05f);
+   glAlphaFunc(GL_GEQUAL, 0.0001f);
 
    glActiveTextureARB(GL_TEXTURE3_ARB);
    glDisable(GL_TEXTURE_GEN_S);
@@ -723,7 +723,7 @@ bool Render::setup(const int *size, const float *color, const float *trans, cons
 
    /* enable alpha test, to avoid zero-alpha surfaces to depend on the rendering order */
    glEnable(GL_ALPHA_TEST);
-   glAlphaFunc(GL_GEQUAL, 0.05f);
+   glAlphaFunc(GL_GEQUAL, 0.0001f);
 
    /* enable lighting */
    glEnable(GL_LIGHT0);

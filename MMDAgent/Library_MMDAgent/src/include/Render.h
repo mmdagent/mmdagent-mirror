@@ -54,7 +54,7 @@
 #define RENDER_MINFOVYDIFF       0.01f
 #define RENDER_FOVYSPEEDRATE     0.9f
 
-#define RENDER_VIEWPOINTFRUSTUMNEAR 5.0f
+#define RENDER_VIEWPOINTFRUSTUMNEAR 5.0f      /* this value should be 0.5f. but, it has a problem in android. */
 #define RENDER_VIEWPOINTFRUSTUMFAR  100000.0f
 
 /* RenderDepthData: depth data for model ordering */
