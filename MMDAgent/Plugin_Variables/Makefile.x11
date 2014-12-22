@@ -18,7 +18,7 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
            -shared \
            -DMMDAGENT
 INCLUDE  = -I ../Library_Bullet_Physics/include \

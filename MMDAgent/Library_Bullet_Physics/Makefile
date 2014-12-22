@@ -154,7 +154,7 @@ OBJECTS  = $(SOURCES:.cpp=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32
 INCLUDE  = -I src/src
 
 all: $(TARGET)

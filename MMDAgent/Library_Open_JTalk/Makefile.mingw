@@ -44,7 +44,7 @@ OBJECTS  = $(SOURCES:.c=.o) $(CXXSOURCES:.cpp=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
            -DDIC_VERSION=102 \
            -DMECAB_DEFAULT_RC="\"dummy\"" \
            -DPACKAGE="\"open_jtalk\"" \

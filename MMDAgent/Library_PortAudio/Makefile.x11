@@ -21,7 +21,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
            -pthread \
            -DHAVE_LINUX_SOUNDCARD_H=1 \
            -DPA_USE_ALSA=1 \
