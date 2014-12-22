@@ -215,41 +215,25 @@ void PMDModel::updateShadowColorTexCoord(float coef)
 /* PMDModel::calculateBoundingSphereRange: calculate the bounding sphere for depth texture rendering on shadow mapping */
 float PMDModel::calculateBoundingSphereRange(btVector3 *cpos)
 {
-#ifdef MMDFILES_DONTUSEGLMAPBUFFER
-   return 0.0f;
-#else
-   unsigned int i;
-   btVector3 centerPos(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f)), v;
-   float maxR = 0.0f, r2;
-   btVector3 *vertexList;
-   char *ptr;
-
-   glBindBuffer(GL_ARRAY_BUFFER, m_vboBufDynamic);
-   ptr = (char *) glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
-   if (!ptr) {
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      return 0.0f;
-   }
-   vertexList = (btVector3 *)(ptr + m_vboOffsetVertex);
+   unsigned short i;
+   btVector3 centerPos = btVector3(0, 0, 0), tmpPos;
+   float maxRange = 0.0f, tmpRange;
 
    if (m_centerBone) {
       centerPos = m_centerBone->getTransform()->getOrigin();
-      for (i = 0; i < m_numVertex; i += m_boundingSphereStep) {
-         r2 = centerPos.distance2(vertexList[i]);
-         if (maxR < r2) maxR = r2;
+      for (i = 0; i < m_numBone; i++) {
+         if (m_maxDistanceFromVertexAssignedBone[i] == -1.0f) continue;
+         tmpPos = m_boneList[i].getTransform()->getOrigin();
+         tmpRange = centerPos.distance(tmpPos) + m_maxDistanceFromVertexAssignedBone[i];
+         if (maxRange < tmpRange)
+            maxRange = tmpRange;
       }
-      maxR = sqrtf(maxR) * 1.1f;
+      maxRange *= 1.2f;
    } else {
-      maxR = 0.0f;
+      maxRange = 0.0f;
    }
-
    if (cpos) *cpos = centerPos;
-
-   glUnmapBuffer(GL_ARRAY_BUFFER);
-   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-   return maxR;
-#endif /* MMDFILES_DONTUSEGLMAPBUFFER */
+   return maxRange;
 }
 
 /* PMDModel::smearAllBonesToDefault: smear all bone pos/rot into default value (rate 1.0 = keep, rate 0.0 = reset) */

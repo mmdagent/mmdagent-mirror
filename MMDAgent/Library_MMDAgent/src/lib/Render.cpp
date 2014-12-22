@@ -924,9 +924,11 @@ void Render::render(PMDObject *objs, const int *order, int num, Stage *stage, bo
    if (isViewMoving() == false)
       m_viewMoveTime = -1.0;
 
+#ifndef MMDAGENT_DONTUSESHADOWMAP
    if (useShadowMapping)
       renderSceneShadowMap(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingTextureSize, shadowMappingLightFirst, shadowMappingSelfDensity);
    else
+#endif /* !MMDAGENT_DONTUSESHADOWMAP */
       renderScene(objs, order, num, stage, useMMDLikeCartoon, useCartoonRendering, lightIntensity, lightDirection, lightColor, shadowMappingFloorDensity);
 }
 

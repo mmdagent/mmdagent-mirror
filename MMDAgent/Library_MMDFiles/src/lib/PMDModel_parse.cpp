@@ -68,11 +68,12 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    unsigned char englishNameExist;
    char *exToonBMPName;
 
-   btVector3 modelOffset;
+   btVector3 tmpVector;
    PMDFile_RigidBody *fileRigidBody;
    PMDFile_Constraint *fileConstraint;
 
    unsigned short j, k, l;
+   float f;
    unsigned int surfaceFrom, surfaceTo;
    char *name;
    PMDBone *bMatch;
@@ -315,7 +316,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
          m_numRigidBody = 0;
          m_numConstraint = 0;
       } else {
-         m_rootBone.getOffset(&modelOffset);
+         /* get model offset */
+         m_rootBone.getOffset(&tmpVector);
          /* update bone matrix to apply root bone offset to bone position */
          for (i = 0; i < m_numBone; i++)
             m_orderedBoneList[i]->update();
@@ -344,7 +346,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             m_constraintList = new PMDConstraint[m_numConstraint];
             fileConstraint = (PMDFile_Constraint *) data;
             for (i = 0; i < m_numConstraint; i++) {
-               if (!m_constraintList[i].setup(&fileConstraint[i], m_rigidBodyList, &modelOffset))
+               if (!m_constraintList[i].setup(&fileConstraint[i], m_rigidBodyList, &tmpVector)) /* apply model offset */
                   ret = false;
                m_constraintList[i].joinWorld(m_bulletPhysics->getWorld());
             }
@@ -484,6 +486,30 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    /* mark motion independency for each bone */
    for (j = 0; j < m_numBone; j++)
       m_boneList[j].setMotionIndependency();
+
+   /* make vertex assigned bone max distance */
+   if (m_numBone > 0) {
+      m_maxDistanceFromVertexAssignedBone = (float *) malloc(sizeof(float) * m_numBone);
+      for (j = 0; j < m_numBone; j++)
+         m_maxDistanceFromVertexAssignedBone[j] = -1.0f;
+      for (i = 0; i < m_numVertex; i++) {
+         if (m_boneWeight1[i] >= PMDMODEL_MINBONEWEIGHT) {
+            m_boneList[m_bone1List[i]].getOriginPosition(&tmpVector);
+            f = tmpVector.distance2(m_vertexList[i]);
+            if (m_maxDistanceFromVertexAssignedBone[m_bone1List[i]] < f)
+               m_maxDistanceFromVertexAssignedBone[m_bone1List[i]] = f;
+         }
+         if (m_boneWeight1[i] <= 1.0f - PMDMODEL_MINBONEWEIGHT) {
+            m_boneList[m_bone2List[i]].getOriginPosition(&tmpVector);
+            f = tmpVector.distance2(m_vertexList[i]);
+            if (m_maxDistanceFromVertexAssignedBone[m_bone2List[i]] < f)
+               m_maxDistanceFromVertexAssignedBone[m_bone2List[i]] = f;
+         }
+      }
+      for (j = 0; j < m_numBone; j++)
+         if (m_maxDistanceFromVertexAssignedBone[j] != -1.0f)
+            m_maxDistanceFromVertexAssignedBone[j] = sqrtf(m_maxDistanceFromVertexAssignedBone[j]);
+   }
 
    /* build name->entity index for fast lookup */
    for (j = 0; j < m_numBone; j++) {

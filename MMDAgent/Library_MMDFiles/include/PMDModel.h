@@ -125,17 +125,18 @@ private:
    unsigned long m_vboOffsetCoordForShadowMap; /* byte offset for the toon texture corrdinate for shadow rendering in shadow map */
 
    /* flags and short lists extracted from the model data */
-   PMDBone *m_centerBone;              /* center bone */
-   PMDFace *m_baseFace;                /* base face definition */
-   PMDBone **m_orderedBoneList;        /* bone list in update order */
-   bool m_hasSingleSphereMap;          /* true if this model has Sphere map texture */
-   bool m_hasMultipleSphereMap;        /* true if this model has additional sphere map texture */
-   unsigned short m_numRotateBone;     /* number of bones under rotatation of other bone (type == 5 or 9) */
-   unsigned short *m_rotateBoneIDList; /* ID list of under-rotate bones */
-   bool *m_IKSimulated;                /* boolean list whether an IK should be disabled due to simulation */
-   bool m_enableSimulation;            /* true when physics bone control is enabled and simulated IK should be skipped */
-   float m_maxHeight;                  /* maximum height of this model */
-   unsigned int m_boundingSphereStep;  /* vertex step to calculate bounding sphere for shadow mapping */
+   PMDBone *m_centerBone;                      /* center bone */
+   PMDFace *m_baseFace;                        /* base face definition */
+   PMDBone **m_orderedBoneList;                /* bone list in update order */
+   bool m_hasSingleSphereMap;                  /* true if this model has Sphere map texture */
+   bool m_hasMultipleSphereMap;                /* true if this model has additional sphere map texture */
+   unsigned short m_numRotateBone;             /* number of bones under rotatation of other bone (type == 5 or 9) */
+   unsigned short *m_rotateBoneIDList;         /* ID list of under-rotate bones */
+   bool *m_IKSimulated;                        /* boolean list whether an IK should be disabled due to simulation */
+   bool m_enableSimulation;                    /* true when physics bone control is enabled and simulated IK should be skipped */
+   float m_maxHeight;                          /* maximum height of this model */
+   unsigned int m_boundingSphereStep;          /* vertex step to calculate bounding sphere for shadow mapping */
+   float *m_maxDistanceFromVertexAssignedBone; /* maximum distance from bone base to assigned vertex for shadow mapping */
 
    /* configuration parameters given from outside */
    bool m_toon;                   /* true when enable toon rendering */

@@ -110,6 +110,7 @@ void PMDModel::initialize()
    m_enableSimulation = true;
    m_maxHeight = 0.0f;
    m_boundingSphereStep = PMDMODEL_BOUNDINGSPHEREPOINTSMIN;
+   m_maxDistanceFromVertexAssignedBone = NULL;
    m_materialRenderOrder = NULL;
    m_materialDistance = NULL;
 
@@ -186,6 +187,8 @@ void PMDModel::clear()
    if(m_name)
       free(m_name);
 
+   if (m_maxDistanceFromVertexAssignedBone)
+      free(m_maxDistanceFromVertexAssignedBone);
    if (m_materialRenderOrder)
       free(m_materialRenderOrder);
    if (m_materialDistance)
