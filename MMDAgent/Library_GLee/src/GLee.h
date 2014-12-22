@@ -851,12 +851,21 @@ GLEE_EXTERN GLboolean _GLEE_SGIX_texture_range;
 #endif
 
 #ifndef GL_ARB_vertex_buffer_object
+#ifdef __APPLE__
+	typedef long GLintptrARB;
+	typedef long GLsizeiptrARB;
+#else
 	typedef ptrdiff_t GLintptrARB;
 	typedef ptrdiff_t GLsizeiptrARB;
 #endif
+#endif
 
 #ifndef GL_ARB_shader_objects
+#ifdef __APPLE__
+	typedef void *GLhandleARB;
+#else
 	typedef int GLhandleARB;
+#endif
 	typedef char GLcharARB;
 #endif
 

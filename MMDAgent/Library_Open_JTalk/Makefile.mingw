@@ -45,8 +45,6 @@ OBJECTS  = $(SOURCES:.c=.o) $(CXXSOURCES:.cpp=.o)
 CXX      = gcc
 AR       = ar
 CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
-           -finput-charset=cp932 \
-           -fexec-charset=cp932 \
            -DDIC_VERSION=102 \
            -DMECAB_DEFAULT_RC="\"dummy\"" \
            -DPACKAGE="\"open_jtalk\"" \
@@ -54,7 +52,8 @@ CXXFLAGS = -Wall -O6 -fomit-frame-pointer -m32 \
            -DMECAB_WITHOUT_SHARE_DIC \
            -DCHARSET_SHIFT_JIS \
            -DHAVE_WINDOWS_H \
-           -DMECAB_DEFAULT_CHARSET="\"SHIFT-JIS\""
+           -DMECAB_DEFAULT_CHARSET="\"SHIFT-JIS\"" \
+           -DASCII_HEADER=1
 INCLUDE  = -I src/jpcommon \
            -I src/mecab/src \
            -I src/mecab2njd \
