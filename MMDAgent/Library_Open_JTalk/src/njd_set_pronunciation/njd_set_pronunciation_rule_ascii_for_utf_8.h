@@ -4,7 +4,7 @@
 /*           http://open-jtalk.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2008-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2008-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -512,6 +512,8 @@ static const char *njd_set_pronunciation_symbol_list[] = {
    "\xe2\x88\x92", "\xe3\x80\x81",
    NULL, NULL
 };
+
+#define NJD_SET_PRONUNCIATION_FILLER "\xe3\x83\x95\xe3\x82\xa3\xe3\x83\xa9\xe3\x83\xbc"
 
 #define NJD_SET_PRONUNCIATION_U        "\xe3\x82\xa6"
 #define NJD_SET_PRONUNCIATION_DOUSHI   "\xe5\x8b\x95\xe8\xa9\x9e"

@@ -4,7 +4,7 @@
 /*           http://open-jtalk.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2008-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2008-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -255,7 +255,7 @@ static const char *jpcommon_pos_list[] = {
    "接頭辞-形容詞的", "16",
    "接頭辞-動詞的", "16",
    "接頭辞-名詞的", "16",
-   "接尾辞-形状詞的", "16",
+   "接尾辞-形状詞的", "15",
    "接尾辞-形容詞的", "15",
    "接尾辞-動詞的", "15",
    "接尾辞-名詞的", "15",

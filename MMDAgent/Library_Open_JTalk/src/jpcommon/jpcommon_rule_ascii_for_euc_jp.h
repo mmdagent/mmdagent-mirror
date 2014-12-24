@@ -4,7 +4,7 @@
 /*           http://open-jtalk.sourceforge.net/                      */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2008-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2008-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -255,7 +255,7 @@ static const char *jpcommon_pos_list[] = {
    "\xc0\xdc\xc6\xac\xbc\xad-\xb7\xc1\xcd\xc6\xbb\xec\xc5\xaa", "16",
    "\xc0\xdc\xc6\xac\xbc\xad-\xc6\xb0\xbb\xec\xc5\xaa", "16",
    "\xc0\xdc\xc6\xac\xbc\xad-\xcc\xbe\xbb\xec\xc5\xaa", "16",
-   "\xc0\xdc\xc8\xf8\xbc\xad-\xb7\xc1\xbe\xf5\xbb\xec\xc5\xaa", "16",
+   "\xc0\xdc\xc8\xf8\xbc\xad-\xb7\xc1\xbe\xf5\xbb\xec\xc5\xaa", "15",
    "\xc0\xdc\xc8\xf8\xbc\xad-\xb7\xc1\xcd\xc6\xbb\xec\xc5\xaa", "15",
    "\xc0\xdc\xc8\xf8\xbc\xad-\xc6\xb0\xbb\xec\xc5\xaa", "15",
    "\xc0\xdc\xc8\xf8\xbc\xad-\xcc\xbe\xbb\xec\xc5\xaa", "15",
