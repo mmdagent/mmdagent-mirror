@@ -39,10 +39,6 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* definitions */
-
-#define STAGE_MAXBUFLEN 2048
-
 /* Stage: stage */
 class Stage
 {

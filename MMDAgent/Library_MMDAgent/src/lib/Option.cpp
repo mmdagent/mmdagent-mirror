@@ -131,7 +131,7 @@ Option::Option()
 bool Option::load(const char *file)
 {
    FILE *fp;
-   char buf[OPTION_MAXBUFLEN];
+   char buf[MMDAGENT_MAXBUFLEN];
    int len;
    char *p1;
 
@@ -143,7 +143,7 @@ bool Option::load(const char *file)
    if (fp == NULL)
       return false;
 
-   while (fgets(buf, OPTION_MAXBUFLEN, fp)) {
+   while (fgets(buf, MMDAGENT_MAXBUFLEN, fp)) {
       len = MMDAgent_strlen(buf);
       if(len <= 0) continue;
       p1 = &(buf[len - 1]);

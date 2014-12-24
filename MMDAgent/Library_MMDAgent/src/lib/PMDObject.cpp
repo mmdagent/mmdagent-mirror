@@ -791,13 +791,13 @@ void PMDObject::renderDebug(TextRenderer * text)
 void PMDObject::renderError(TextRenderer * text)
 {
 #ifndef MMDAGENT_DONTRENDERDEBUG
-   char buf[PMDOBJECT_MAXBUFLEN];
+   char buf[MMDAGENT_MAXBUFLEN];
    btVector3 pos;
    float w, h;
    float tpos[3];
    char *p, *save;
 
-   m_pmd.getErrorTextureList(buf, PMDOBJECT_MAXBUFLEN);
+   m_pmd.getErrorTextureList(buf, MMDAGENT_MAXBUFLEN);
    if (MMDAgent_strlen(buf) <= 0)
       return;
 

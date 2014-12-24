@@ -41,7 +41,6 @@
 
 /* definitions */
 
-#define LOGTEXT_MAXBUFLEN      2048
 #define LOGTEXT_COLOR          1.0f,0.7f,0.0f,0.7f /* text color */
 #define LOGTEXT_BGCOLOR        0.0f,0.0f,0.0f,0.8f /* background color */
 #define LOGTEXT_MAXNLINES      512

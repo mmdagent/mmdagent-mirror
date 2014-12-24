@@ -41,8 +41,6 @@
 
 /* definitions */
 
-#define OPTION_MAXBUFLEN 2048
-
 #define OPTION_USECARTOONRENDERING_STR "use_cartoon_rendering"
 #define OPTION_USECARTOONRENDERING_DEF true
 
