@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -116,20 +116,32 @@ void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
          strcat(buf1, arc->input_event_args.args[i][j]);
       }
    }
-   if (MMDAgent_strlen(arc->output_command_args) >= 0)
-      sprintf(buf2, "%d %d %s %s|%s", from, arc->next_state->number, buf1, arc->output_command_type, arc->output_command_args);
+   if (MMDAgent_strlen(arc->output_command_args) > 0)
+      sprintf(buf2, "%d %d %s %s|%s %s", from, arc->next_state->number, buf1, arc->output_command_type, arc->output_command_args, arc->variable_action);
    else
-      sprintf(buf2, "%d %d %s %s", from, arc->next_state->number, buf1, arc->output_command_type);
+      sprintf(buf2, "%d %d %s %s %s", from, arc->next_state->number, buf1, arc->output_command_type, arc->variable_action);
    m_mmdagent->drawString(buf2);
 }
 
+/* VIManager_Logger::drawVariable: render variable */
+void VIManager_Logger::drawVariable(VIManager_Variable *v)
+{
+   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
+
+   sprintf(buf, "$%s=%s", v->name, v->value);
+   m_mmdagent->drawString(buf);
+}
+
+
+
 /* VIManager_Logger::render: render log */
-void VIManager_Logger::render(VIManager_State *currentState)
+void VIManager_Logger::render(VIManager_State *currentState, VIManager_VList *currentVariableList)
 {
 #ifndef VIMANAGER_DONTRENDERDEBUG
    int i;
    VIManager_Arc *arc;
    VIManager_Arc *prevArc;
+   VIManager_Variable *v;
 
    if(m_mmdagent == NULL || currentState == NULL)
       return;
@@ -184,6 +196,18 @@ void VIManager_Logger::render(VIManager_State *currentState)
       glPopMatrix();
       glTranslatef(0.0f, -VIMANAGERLOGGER_LINESTEP, 0.0f);
    }
+
+   /* draw variables */
+   if (currentVariableList != NULL) {
+      glColor4f(VIMANAGERLOGGER_TEXTCOLOR3);
+      for (v = currentVariableList->head; v != NULL; v = v->next) {
+         glPushMatrix();
+         drawVariable(v);
+         glPopMatrix();
+         glTranslatef(0.0f, -VIMANAGERLOGGER_LINESTEP, 0.0f);
+      }
+   }
+
    glPopMatrix();
 
    /* end of draw */

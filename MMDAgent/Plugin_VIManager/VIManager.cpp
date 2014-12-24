@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -40,16 +40,27 @@
 /* ----------------------------------------------------------------- */
 
 /* headers */
+#include <ctype.h>
 
 #include "MMDAgent.h"
 #include "VIManager.h"
 
-/* getTokenFromString: get token from string */
-static int getTokenFromString(const char *str, int *index, char *buff)
+/* findAsciiString: find ascii string */
+static const char* findAsciiString(const char *str, const char *c)
+{
+   if (MMDAgent_getcharsize(c) != 1)
+      return NULL;
+   return strchr(str, (int) * c);
+}
+
+/* getTokenFromStringWithQuoters: a general string separator with quote handling, quote will be erased */
+static int getTokenFromStringWithQuoters(const char *str, int *index, char *buff, const char *separators, const char *quoters)
 {
    int i, j = 0, len;
    const char *c;
    unsigned char size;
+   bool in_quote = false;
+   char current_quote;
 
    if (str == NULL) {
       buff[0] = '\0';
@@ -62,8 +73,9 @@ static int getTokenFromString(const char *str, int *index, char *buff)
       return 0;
    }
 
+   /* skip the first separator sequence to move forward to the head of the next token */
    c = str + (*index);
-   for (i = 0; i < len && (*c == '\0' || *c == ' ' || *c == '\t' || *c == '\n' || *c == '\r'); i += size) {
+   for (i = 0; i < len && (*c == '\0' || findAsciiString(separators, c) != NULL); i += size) {
       if (*c == '\0') {
          buff[0] = '\0';
          return 0;
@@ -73,7 +85,22 @@ static int getTokenFromString(const char *str, int *index, char *buff)
       c += size;
    }
 
-   for (i = 0; i < len && *c != '\0' && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\r'; i += size) {
+   /* copy the token to buff till the end of the token */
+   for (i = 0; i < len && *c != '\0' && (in_quote == true || findAsciiString(separators, c) == NULL); i += size) {
+      if (quoters != NULL && findAsciiString(quoters, c) != NULL && ! (in_quote == true && *c != current_quote)) {
+         /* toggle quote mode */
+         if (in_quote)
+            in_quote = false;
+         else {
+            in_quote = true;
+            current_quote = *c;
+         }
+         /* skip quote */
+         size = MMDAgent_getcharsize(c);
+         (*index) += size;
+         c += size;
+         continue;
+      }
       size = MMDAgent_getcharsize(c);
       memcpy(&buff[j], c, sizeof(char) * size);
       j += size;
@@ -82,50 +109,30 @@ static int getTokenFromString(const char *str, int *index, char *buff)
    }
 
    buff[j] = '\0';
+
+   /* move index forward to skip the last separator sequence */
+   for (; i < len && *c != '\0' && findAsciiString(separators, c) != NULL; i += size) {
+      size = MMDAgent_getcharsize(c);
+      (*index) += size;
+      c += size;
+   }
+
    return j;
 }
 
-/* getArgFromString: get argument from string using separators */
+/* getTokenFromString: get token from string for reading FST definition fields */
+static int getTokenFromString(const char *str, int *index, char *buff)
+{
+   return getTokenFromStringWithQuoters(str, index, buff, " \t\n\r", "\"'");
+}
+
+/* getArgFromString: get argument from string for parsing argment string */
 static int getArgFromString(const char *str, int *index, char *buff, char separator)
 {
-   int i, j = 0, len;
-   const char *c;
-   unsigned char size;
-
-   if (str == NULL) {
-      buff[0] = '\0';
-      return 0;
-   }
-
-   len = MMDAgent_strlen(str);
-   if (len <= 0) {
-      buff[0] = '\0';
-      return 0;
-   }
-
-   c = str + (*index);
-   for (i = 0; i < len && (*c == '\0' || *c == ' ' || *c == '\t' || *c == '\n' || *c == '\r'); i += size) {
-      if (*c == '\0') {
-         buff[0] = '\0';
-         return 0;
-      }
-      size = MMDAgent_getcharsize(c);
-      (*index) += size;
-      c += size;
-   }
-
-   for (i = 0; i < len && *c != '\0' && *c != ' ' && *c != '\t' && *c != '\n' && *c != '\r' && *c != separator; i += size) {
-      size = MMDAgent_getcharsize(c);
-      memcpy(&buff[j], c, sizeof(char) * size);
-      j += size;
-      (*index) += size;
-      c += size;
-   }
-   if (*c == separator)
-      (*index)++;
-
-   buff[j] = '\0';
-   return j;
+   char separatorList[2];
+   separatorList[0] = separator;
+   separatorList[1] = '\0';
+   return getTokenFromStringWithQuoters(str, index, buff, separatorList, NULL);
 }
 
 /* countArgs: count arguments */
@@ -143,7 +150,7 @@ static int countArgs(const char *str, char separator)
    c = str;
    for(i = 0; i < len; i += size) {
       size = MMDAgent_getcharsize(c);
-      if(*c == separator)
+      if (size == 1 && *c == separator)
          num++;
       c += size;
    }
@@ -189,39 +196,6 @@ void InputArguments_initialize(InputArguments *ia, const char *str)
    }
 }
 
-/* InputArguments_match: match input */
-static bool InputArguments_match(const InputArguments *ia, const InputArguments *input)
-{
-   int i, j, k;
-   bool match;
-
-   if(ia == NULL)
-      return false;
-   if(input == NULL) {
-      if(ia->size == 0)
-         return true;
-      else
-         return false;
-   }
-   if(ia->size != input->size)
-      return false;
-
-   for(i = 0; i < ia->size; i++) {
-      for(j = 0; j < ia->argc[i]; j++) {
-         match = false;
-         for(k = 0; k < input->argc[i]; k++) {
-            if(MMDAgent_strequal(ia->args[i][j], input->args[i][k]) == true) {
-               match = true;
-               break;
-            }
-         }
-         if(match == false)
-            return false;
-      }
-   }
-   return true;
-}
-
 /* InputArguments_clear: free input arguments */
 void InputArguments_clear(InputArguments *ia)
 {
@@ -243,12 +217,13 @@ void InputArguments_clear(InputArguments *ia)
 }
 
 /* VIManager_Arc_initialize: initialize arc */
-static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, char *input_event_args, char *output_command_type, char *output_command_args, VIManager_State *next_state)
+static void VIManager_Arc_initialize(VIManager_Arc *a, char *input_event_type, char *input_event_args, char *output_command_type, char *output_command_args, char *variable_action, VIManager_State *next_state)
 {
    a->input_event_type = MMDAgent_strdup(input_event_type);
    InputArguments_initialize(&a->input_event_args, input_event_args);
    a->output_command_type = MMDAgent_strdup(output_command_type);
    a->output_command_args = MMDAgent_strdup(output_command_args);
+   a->variable_action = MMDAgent_strdup(variable_action);
    a->next_state = next_state;
    a->next = NULL;
 }
@@ -263,7 +238,10 @@ static void VIManager_Arc_clear(VIManager_Arc * a)
       free(a->output_command_type);
    if (a->output_command_args != NULL)
       free(a->output_command_args);
-   VIManager_Arc_initialize(a, NULL, NULL, NULL, NULL, NULL);
+   if (a->variable_action != NULL) {
+      free(a->variable_action);
+   }
+   VIManager_Arc_initialize(a, NULL, NULL, NULL, NULL, NULL, NULL);
 }
 
 /* VIManager_AList_initialize: initialize arc list */
@@ -358,7 +336,7 @@ static VIManager_State *VIManager_SList_searchState(VIManager_SList *l, unsigned
 }
 
 /* VIManager_SList_addArc: add arc */
-static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol)
+static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s2, char *isymbol, char *osymbol, char *vsymbol)
 {
    int i, idx;
    VIManager_State *s1, *s2;
@@ -374,23 +352,23 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
    s2 = VIManager_SList_searchState(l, index_s2);
    arc_list = &s1->arc_list;
 
-   /* analysis input symbol */
+   /* analyze input symbol */
    idx = 0;
    i = getArgFromString(isymbol, &idx, itype, VIMANAGER_SEPARATOR1);
    if (i <= 0)
       return;
-   getTokenFromString(isymbol, &idx, iargs);
+   getArgFromString(isymbol, &idx, iargs, '\0');
 
-   /* analysis output symbol */
+   /* analyze output symbol */
    idx = 0;
    i = getArgFromString(osymbol, &idx, otype, VIMANAGER_SEPARATOR1);
    if (i <= 0)
       return;
-   getTokenFromString(osymbol, &idx, oargs);
+   getArgFromString(osymbol, &idx, oargs, '\0');
 
    /* create */
    a1 = (VIManager_Arc *) malloc(sizeof(VIManager_Arc));
-   VIManager_Arc_initialize(a1, itype, iargs, otype, oargs, s2);
+   VIManager_Arc_initialize(a1, itype, iargs, otype, oargs, vsymbol, s2);
 
    /* set */
    if (arc_list->head == NULL) {
@@ -401,10 +379,84 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
    }
 }
 
+/* VIManager_Variable_initialize: initialize variable */
+static void VIManager_Variable_initialize(VIManager_Variable *v, const char *name, const char *value)
+{
+   v->name = MMDAgent_strdup(name);
+   v->value = MMDAgent_strdup(value);
+   v->next = NULL;
+}
+
+/* VIManager_Variable_clear: free variable */
+static void VIManager_Variable_clear(VIManager_Variable * v)
+{
+   if (v->name != NULL)
+      free(v->name);
+   if (v->value != NULL)
+      free(v->value);
+}
+
+/* VIManager_VList_initialize: initialize variable list */
+static void VIManager_VList_initialize(VIManager_VList *l)
+{
+   l->head = NULL;
+}
+
+/* VIManager_VList_clear: free variable list */
+static void VIManager_VList_clear(VIManager_VList *l)
+{
+   VIManager_Variable *tmp1, *tmp2;
+
+   for (tmp1 = l->head; tmp1 != NULL; tmp1 = tmp2) {
+      tmp2 = tmp1->next;
+      VIManager_Variable_clear(tmp1);
+      free(tmp1);
+   }
+   l->head = NULL;
+}
+
+/* VIManager_VList_search: search for a variable */
+static VIManager_Variable *VIManager_VList_search(VIManager_VList *vlist, const char *name)
+{
+   VIManager_Variable *v;
+
+   if (MMDAgent_strlen(name) <= 0)
+      return NULL;
+   for (v = vlist->head; v != NULL; v = v->next) {
+      if (MMDAgent_strequal(v->name, name)) {
+         return v;
+      }
+   }
+   return NULL;
+}
+
+/* VIManager_VList_set: set variable to list */
+static void VIManager_VList_set(VIManager_VList *vlist, const char *name, const char *value)
+{
+   VIManager_Variable *v;
+
+   /* search */
+   v = VIManager_VList_search(vlist, name);
+   if (v != NULL) {
+      /* replace */
+      if (v->value != NULL)
+         free(v->value);
+      v->value = MMDAgent_strdup(value);
+   } else {
+      /* create */
+      v = (VIManager_Variable *)malloc(sizeof(VIManager_Variable));
+      VIManager_Variable_initialize(v, name, value);
+      /* set */
+      v->next = vlist->head;
+      vlist->head = v;
+   }
+}
+
 /* VIManager::initialize: initialize VIManager */
 void VIManager::initialize()
 {
    VIManager_SList_initialize(&m_stateList);
+   VIManager_VList_initialize(&m_variableList);
    m_currentState = NULL;
 }
 
@@ -412,7 +464,172 @@ void VIManager::initialize()
 void VIManager::clear()
 {
    VIManager_SList_clear(&m_stateList);
+   VIManager_VList_clear(&m_variableList);
    initialize();
+}
+
+/* VIManager::substituteVariableAndCopy: substitute variables with their values in a string */
+void VIManager::substituteVariableAndCopy(const char *input, char *output)
+{
+   int i, len, vlen;
+   const char *c;
+   char *out, *cv;
+   unsigned char size;
+   bool braced;
+   VIManager_Variable *v;
+
+   len = MMDAgent_strlen(input);
+   if (len <= 0) {
+      *output = '\0';
+      return;
+   }
+
+   c = input;
+   out = output;
+   for (i = 0; i < len; i += size) {
+      size = MMDAgent_getcharsize(c);
+      memcpy(out, c, size);
+      if (size == 1 && *c == '$') {
+         /* variable start, hold this place to cv and read variable name */
+         cv = out;
+         c += size;
+         out += size;
+         i += size;
+         if (MMDAgent_getcharsize(c) == 1 && *c == '$') {
+            /* "$$" -> "$" */
+            c += 1;
+            size = 1;
+            continue;
+         }
+         braced = false;
+         if (MMDAgent_getcharsize(c) == 1 && *c == '{') {
+            braced = true;
+            c += 1;
+            i += 1;
+         }
+         for (; i < len; i += size) {
+            size = MMDAgent_getcharsize(c);
+            if (braced == true) {
+               if (MMDAgent_getcharsize(c) == 1 && *c == '}') {
+                  c += 1;
+                  i += 1;
+                  break;
+               }
+            } else {
+               if (size != 1 || ! (isalnum(*c) || *c == '_')) break;
+            }
+            memcpy(out, c, size);
+            c += size;
+            out += size;
+         }
+         *out = '\0';
+         /* search for variable */
+         v = VIManager_VList_search(&m_variableList, cv + 1);
+         /* rewind out buf to the start of variable name */
+         out = cv;
+         /* overwrite with its value */
+         if (v != NULL) {
+            vlen = MMDAgent_strlen(v->value);
+            memcpy(out, v->value, vlen);
+            out += vlen;
+         }
+         size = 0;
+      } else {
+         c += size;
+         out += size;
+      }
+   }
+   *out = '\0';
+}
+
+/* VIManager::checkStringMatch: check if vstr with variables matches the string */
+bool VIManager::checkStringMatch(const char *vstr, const char *str)
+{
+   char buf[MMDAGENT_MAXBUFLEN];
+
+   if (vstr == NULL || str == NULL)
+      return false;
+
+   substituteVariableAndCopy(vstr, buf);
+
+   return MMDAgent_strequal(str, buf);
+}
+
+/* VIManager::checkArcMatch: check if an arc matches an input */
+bool VIManager::checkArcMatch(const char *arc_type, const char *input_type, const InputArguments *arc_arg, const InputArguments *input_arg)
+{
+   int i, j, k;
+   bool match;
+
+   if (checkStringMatch(arc_type, input_type) == false)
+      return false;
+
+   if (arc_arg == NULL)
+      return false;
+   if (input_arg == NULL) {
+      if (arc_arg->size == 0)
+         return true;
+      else
+         return false;
+   }
+   if (arc_arg->size != input_arg->size)
+      return false;
+
+   for (i = 0; i < arc_arg->size; i++) {
+      for (j = 0; j < arc_arg->argc[i]; j++) {
+         match = false;
+         for (k = 0; k < input_arg->argc[i]; k++) {
+            if (checkStringMatch(arc_arg->args[i][j], input_arg->args[i][k]) == true) {
+               match = true;
+               break;
+            }
+         }
+         if (match == false)
+            return false;
+      }
+   }
+   return true;
+}
+
+/* VIManager::assignVariableByEquation: assign variable by equation */
+bool VIManager::assignVariableByEquation(const char *va)
+{
+   int idx1, idx2;
+   int s, len;
+   char tok[2];
+   char buff[MMDAGENT_MAXBUFLEN];
+   char buffn[MMDAGENT_MAXBUFLEN];
+   char buffv[MMDAGENT_MAXBUFLEN];
+   char buffvr[MMDAGENT_MAXBUFLEN];
+
+   if (MMDAgent_strlen(va) == 0)
+      return true;
+
+   tok[0] = VIMANAGER_SEPARATOR2;
+   tok[1] = '\0';
+
+   idx1 = 0;
+   while (getTokenFromStringWithQuoters(va, &idx1, buff, tok, "\"'") != 0) {
+      /* separate by equal */
+      if (countArgs(buff, '=') != 2)
+         return false;
+      idx2 = 0;
+      getArgFromString(buff, &idx2, buffn, '=');
+      if (buffn[0] != '$')
+         return false;
+      s = 1;
+      if (buffn[1] == '{') {
+         len = MMDAgent_strlen(buffn);
+         if (buffn[len - 1] != '}')
+            return false;
+         buffn[len - 1] = '\0';
+         s = 2;
+      }
+      getArgFromString(buff, &idx2, buffv, '=');
+      substituteVariableAndCopy(buffv, buffvr);
+      VIManager_VList_set(&m_variableList, &(buffn[s]), buffvr);
+   }
+   return true;
 }
 
 /* VIManager::VIManager: constructor */
@@ -439,11 +656,13 @@ bool VIManager::load(const char *file)
    char buff_s2[MMDAGENT_MAXBUFLEN];
    char buff_is[MMDAGENT_MAXBUFLEN];
    char buff_os[MMDAGENT_MAXBUFLEN];
+   char buff_vs[MMDAGENT_MAXBUFLEN];
    char buff_er[MMDAGENT_MAXBUFLEN];
    int size_s1;
    int size_s2;
    int size_is;
    int size_os;
+   int size_vs;
    int size_er;
    char *err_s1;
    char *err_s2;
@@ -472,12 +691,13 @@ bool VIManager::load(const char *file)
          size_s2 = getTokenFromString(buff, &idx, buff_s2);
          size_is = getTokenFromString(buff, &idx, buff_is);
          size_os = getTokenFromString(buff, &idx, buff_os);
+         size_vs = getTokenFromString(buff, &idx, buff_vs);
          size_er = getTokenFromString(buff, &idx, buff_er);
          if (size_s1 > 0 && size_s2 > 0 && size_is > 0 && size_os > 0 && size_er == 0 && buff_s1[0] != VIMANAGER_COMMENT) {
             index_s1 = (unsigned int) strtoul(buff_s1, &err_s1, 10);
             index_s2 = (unsigned int) strtoul(buff_s2, &err_s2, 10);
             if (buff_s1 + size_s1 == err_s1 && buff_s2 + size_s2 == err_s2)
-               VIManager_SList_addArc(&m_stateList, index_s1, index_s2, buff_is, buff_os);
+               VIManager_SList_addArc(&m_stateList, index_s1, index_s2, buff_is, buff_os, buff_vs);
          }
       }
       if (feof(fp) || ferror(fp))
@@ -512,9 +732,14 @@ VIManager_Arc *VIManager::transition(const char *itype, const InputArguments *ia
 
    /* match */
    for (arc = arc_list->head; arc != NULL; arc = arc->next) {
-      if(MMDAgent_strequal(arc->input_event_type, itype) == true && InputArguments_match(&arc->input_event_args, iargs) == true ) {
-         strcpy(otype, arc->output_command_type);
-         strcpy(oargs, arc->output_command_args);
+      /* check if input matches this arc, consulting variables and wildcards */
+      if (checkArcMatch(arc->input_event_type, itype, &arc->input_event_args, iargs)) {
+         /* set output string, consulting variables if any */
+         substituteVariableAndCopy(arc->output_command_type, otype);
+         substituteVariableAndCopy(arc->output_command_args, oargs);
+         /* if this arc has variable action, execute it */
+         assignVariableByEquation(arc->variable_action);
+         /* move to next state */
          m_currentState = arc->next_state;
          return arc;
       }
@@ -527,4 +752,10 @@ VIManager_Arc *VIManager::transition(const char *itype, const InputArguments *ia
 VIManager_State *VIManager::getCurrentState()
 {
    return m_currentState;
+}
+
+/* VIManager::getCurrentVariableList: get current variable list */
+VIManager_VList *VIManager::getCurrentVariableList()
+{
+   return &m_variableList;
 }

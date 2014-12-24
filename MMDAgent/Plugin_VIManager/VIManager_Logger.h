@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -59,6 +59,8 @@
 #define VIMANAGERLOGGER_BGCOLOR2   0.0f,0.0f,0.0f,0.8f
 #define VIMANAGERLOGGER_TEXTCOLOR2 0.2f,0.7f,0.5f,1.0f
 
+#define VIMANAGERLOGGER_TEXTCOLOR3 0.7f,0.4f,0.2f,1.0f
+
 /* VIManager_Logger: Debug output VIManager status in OpenGL */
 class VIManager_Logger
 {
@@ -70,6 +72,9 @@ private:
 
    /* drawArc: draw arc string */
    void drawArc(unsigned int from, VIManager_Arc *arc);
+
+   /* drawVariable: draw variable string */
+   void drawVariable(VIManager_Variable *v);
 
    /* initialize: initialize logger */
    void initialize();
@@ -92,5 +97,5 @@ public:
    bool setTransition(VIManager_Arc *arc);
 
    /* render: render log */
-   void render(VIManager_State *currentState);
+   void render(VIManager_State *currentState, VIManager_VList *variableList);
 };

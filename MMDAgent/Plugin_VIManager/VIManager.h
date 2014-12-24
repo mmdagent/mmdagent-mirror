@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -66,6 +66,7 @@ typedef struct _VIManager_Arc {
    InputArguments input_event_args;
    char *output_command_type;
    char *output_command_args;
+   char *variable_action;
    struct _VIManager_State *next_state;
    struct _VIManager_Arc *next;
 } VIManager_Arc;
@@ -87,6 +88,18 @@ typedef struct _VIManager_SList {
    VIManager_State *head;
 } VIManager_SList;
 
+/* VIManager_Variable: variable */
+typedef struct _VIManager_Variable {
+   char *name;
+   char *value;
+   struct _VIManager_Variable *next;
+} VIManager_Variable;
+
+/* VIManager_VList: variable list */
+typedef struct _VIManager_VList {
+   VIManager_Variable *head;
+} VIManager_VList;
+
 /* VIManager: Voice Interaction Manager */
 class VIManager
 {
@@ -94,12 +107,25 @@ private:
 
    VIManager_SList m_stateList;     /* state list */
    VIManager_State *m_currentState; /* pointer to current state */
+   VIManager_VList m_variableList;  /* variable list */
 
    /* initialize: initialize VIManager */
    void initialize();
 
    /* clear: free VIManager */
    void clear();
+
+   /* substituteVariableAndCopy: substitute variables with their values in a string */
+   void substituteVariableAndCopy(const char *input, char *output);
+
+   /* checkStringMatch: check if vstr with variables matches the string */
+   bool checkStringMatch(const char *vstr, const char *str);
+
+   /* checkArcMatch: check if an arc matches an input */
+   bool checkArcMatch(const char *arc_type, const char *input_type, const InputArguments *arc_arg, const InputArguments *input_arg);
+
+   /* assignVariableByEquation: assign variable by equation */
+   bool assignVariableByEquation(const char *va);
 
 public:
 
@@ -117,4 +143,7 @@ public:
 
    /* getCurrentState: get current state */
    VIManager_State *getCurrentState();
+
+   /* getCurrentVariableList: get current variable list */
+   VIManager_VList *getCurrentVariableList();
 };

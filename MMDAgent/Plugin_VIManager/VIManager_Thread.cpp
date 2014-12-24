@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -359,5 +359,5 @@ void VIManager_Thread::enqueueBuffer(const char *type, const char *args)
 /* VIManager_Thread::renderLog: render log message */
 void VIManager_Thread::renderLog()
 {
-   m_logger.render(m_vim.getCurrentState());
+   m_logger.render(m_vim.getCurrentState(), m_vim.getCurrentVariableList());
 }
