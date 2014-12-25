@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.4
-                           release December 25, 2013
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.5
+                           release December 25, 2014
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -24,7 +24,7 @@ the conditions in the following license:
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -169,7 +169,7 @@ Building Voice Interaction System. Current members are
  Keiichi Tokuda      http://www.sp.nitech.ac.jp/~tokuda/
  Akinobu Lee         http://www.sp.nitech.ac.jp/~ri/
  Keiichiro Oura      http://www.sp.nitech.ac.jp/~uratec/
- Daisuke Yamamoto    http://yamamoto.web.nitech.ac.jp/member/yamamoto/yamamoto.html
+ Daisuke Yamamoto    http://yamamoto.web.nitech.ac.jp/member/yamamoto/
 
 and the members are dynamically changing. The current formal contact address of
 MMDAgent project team and a mailing list for MMDAgent users can be found at

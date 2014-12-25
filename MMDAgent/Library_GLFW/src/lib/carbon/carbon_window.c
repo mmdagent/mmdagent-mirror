@@ -36,7 +36,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2013  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */

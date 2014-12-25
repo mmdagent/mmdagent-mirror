@@ -1,3 +1,12 @@
+Version 1.5:
+ * add new fixed view of Julius log bar, can be toggled by SHIFT+J key.
+ * support variables in FST files.
+ * upgrade the speed of the shadow mapping.
+ * modify the codes for the latest gcc of carbon 32bit in Mac OS X.
+ * modify the codes for Visual Studio 2013.
+ * fix some bugs.
+ * update libraries (hts_engine API 1.09 and Open JTalk 1.08).
+
 Version 1.4:
  * support VMD files of MikuMikuDance 7.40 and later.
  * re-design plugin framework (event/command message integration).
