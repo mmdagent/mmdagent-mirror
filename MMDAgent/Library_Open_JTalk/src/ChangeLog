@@ -1,3 +1,7 @@
+2014-12-25 19:13  uratec
+
+	* NEWS: update news
+
 2014-12-22 13:45  uratec
 
 	* mecab/src/utils.cpp: remove stdint.h for Windows.
