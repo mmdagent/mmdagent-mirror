@@ -97,7 +97,7 @@ lypsync_priority=100.0
 # Bullet Physics
 
 bullet_fps=120
-gravity_factor=2.0
+gravity_factor=10.0
 
 # User interface
 
