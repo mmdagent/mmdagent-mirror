@@ -163,54 +163,54 @@
 
 # 0031-0040 Hello
 
-1    31   RECOG_EVENT_STOP|����ɂ���         SYNTH_START|mei|mei_voice_normal|����ɂ��́B
-1    31   RECOG_EVENT_STOP|����ɂ���         SYNTH_START|mei|mei_voice_normal|����ɂ��́B
+1    31   RECOG_EVENT_STOP|こんにちは         SYNTH_START|mei|mei_voice_normal|こんにちは。
+1    31   RECOG_EVENT_STOP|こんにちわ         SYNTH_START|mei|mei_voice_normal|こんにちは。
 31   32   <eps>                               MOTION_ADD|mei|action|Motion\mei_greeting\mei_greeting.vmd|PART|ONCE
 32   2    SYNTH_EVENT_STOP|mei                <eps>
 
 # 0041-0050 Self introduction
 
-1    41   RECOG_EVENT_STOP|���ȏЉ�           SYNTH_START|mei|mei_voice_normal|���C�ƌ����܂��B
-1    41   RECOG_EVENT_STOP|���Ȃ�,�N          SYNTH_START|mei|mei_voice_normal|���C�ƌ����܂��B
-1    41   RECOG_EVENT_STOP|�N,�N              SYNTH_START|mei|mei_voice_normal|���C�ƌ����܂��B
+1    41   RECOG_EVENT_STOP|自己紹介           SYNTH_START|mei|mei_voice_normal|メイと言います。
+1    41   RECOG_EVENT_STOP|あなた,誰          SYNTH_START|mei|mei_voice_normal|メイと言います。
+1    41   RECOG_EVENT_STOP|君,誰              SYNTH_START|mei|mei_voice_normal|メイと言います。
 41   42   <eps>                               MOTION_ADD|mei|action|Motion\mei_self_introduction\mei_self_introduction.vmd|PART|ONCE
-42   43   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_normal|��낵�����肢���܂��B
+42   43   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_normal|よろしくお願いします。
 43   2    SYNTH_EVENT_STOP|mei                <eps>
 
 # 0051-0060 Thank you
 
-1    51   RECOG_EVENT_STOP|���肪��           SYNTH_START|mei|mei_voice_normal|�ǂ��������܂��āB
-1    51   RECOG_EVENT_STOP|���肪�Ƃ�         SYNTH_START|mei|mei_voice_normal|�ǂ��������܂��āB
-1    51   RECOG_EVENT_STOP|�L�             SYNTH_START|mei|mei_voice_normal|�ǂ��������܂��āB
-1    51   RECOG_EVENT_STOP|�L��           SYNTH_START|mei|mei_voice_normal|�ǂ��������܂��āB
+1    51   RECOG_EVENT_STOP|ありがと           SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|ありがとう         SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|有難う             SYNTH_START|mei|mei_voice_normal|どういたしまして。
+1    51   RECOG_EVENT_STOP|有り難う           SYNTH_START|mei|mei_voice_normal|どういたしまして。
 51   52   <eps>                               MOTION_ADD|mei|expression|Expression\mei_happiness\mei_happiness.vmd|PART|ONCE
-52   53   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_happy|���ł��A�b�������Ă��������ˁB
+52   53   SYNTH_EVENT_STOP|mei                SYNTH_START|mei|mei_voice_happy|いつでも、話しかけてくださいね。
 53   54   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_happy.vmd
 54   2    SYNTH_EVENT_STOP|mei                MOTION_CHANGE|mei|base|Motion\mei_wait\mei_wait.vmd
 
 # 0061-0070 Positive comments
 
-1    61   RECOG_EVENT_STOP|����             VALUE_EVAL|random|LE|80
-1    61   RECOG_EVENT_STOP|���킢��           VALUE_EVAL|random|LE|80
-1    61   RECOG_EVENT_STOP|�Y��               VALUE_EVAL|random|LE|80
-1    61   RECOG_EVENT_STOP|���ꂢ             VALUE_EVAL|random|LE|80
-61   62   VALUE_EVENT_EVAL|random|LE|80|TRUE  SYNTH_START|mei|mei_voice_bashful|�p���������ł��B
-61   62   VALUE_EVENT_EVAL|random|LE|80|FALSE SYNTH_START|mei|mei_voice_bashful|���肪�Ƃ��B
+1    61   RECOG_EVENT_STOP|可愛い             VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|かわいい           VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|綺麗               VALUE_EVAL|random|LE|80
+1    61   RECOG_EVENT_STOP|きれい             VALUE_EVAL|random|LE|80
+61   62   VALUE_EVENT_EVAL|random|LE|80|TRUE  SYNTH_START|mei|mei_voice_bashful|恥ずかしいです。
+61   62   VALUE_EVENT_EVAL|random|LE|80|FALSE SYNTH_START|mei|mei_voice_bashful|ありがとう。
 62   63   <eps>                               MOTION_ADD|mei|expression|Expression\mei_bashfulness\mei_bashfulness.vmd|PART|ONCE
 63   2    SYNTH_EVENT_STOP|mei                <eps>
 
 # 0071-0090 Guide
 
-1    71   RECOG_EVENT_STOP|�}����             MODEL_DELETE|menu
+1    71   RECOG_EVENT_STOP|図書館             MODEL_DELETE|menu
 71   72   <eps>                               MODEL_ADD|panel|Accessory\map\map_library.pmd|0.0,2.8,2.5|0.0,0.0,0.0|ON|mei
 72   73   <eps>                               MOTION_ADD|mei|action|Motion\mei_panel\mei_panel_on.vmd|PART|ONCE
 73   74   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_normal.vmd
-74   75   <eps>                               SYNTH_START|mei|mei_voice_normal|�}���ق́A���ʂ��猩��ƁA�E�O�̕����ɂ���܂��B
+74   75   <eps>                               SYNTH_START|mei|mei_voice_normal|図書館は、正面から見ると、右前の方向にあります。
 75   76   SYNTH_EVENT_STOP|mei                MOTION_ADD|mei|look|Motion\mei_look\mei_look_down.vmd|PART|ONCE
-76   77   <eps>                               SYNTH_START|mei|mei_voice_normal|�L�����p�X�}�b�v�ł́A������ɂȂ�܂��B
+76   77   <eps>                               SYNTH_START|mei|mei_voice_normal|キャンパスマップでは、こちらになります。
 77   78   <eps>                               MOTION_ADD|mei|action|Motion\mei_point\mei_point_center_buttom.vmd|PART|ONCE
 78   79   SYNTH_EVENT_STOP|mei                MOTION_CHANGE|mei|base|Motion\mei_guide\mei_guide_happy.vmd
-79   80   <eps>                               SYNTH_START|mei|mei_voice_normal|������ɂȂ�܂����H
+79   80   <eps>                               SYNTH_START|mei|mei_voice_normal|お解りになりますか？
 80   81   SYNTH_EVENT_STOP|mei                MODEL_DELETE|panel
 81   82   <eps>                               MODEL_ADD|menu|Accessory\menu\menu.pmd|0.0,-4.5,0.0|0.0,0.0,0.0|mei
 82   83   <eps>                               MOTION_CHANGE|mei|base|Motion\mei_wait\mei_wait.vmd
@@ -218,21 +218,21 @@
 
 # 0091-0100 Bye
 
-1    91   RECOG_EVENT_STOP|�o�C�o�C           SYNTH_START|mei|mei_voice_normal|���悤�Ȃ�B
-1    91   RECOG_EVENT_STOP|���悤�Ȃ�         SYNTH_START|mei|mei_voice_normal|���悤�Ȃ�B
-1    91   RECOG_EVENT_STOP|����Ȃ�           SYNTH_START|mei|mei_voice_normal|���悤�Ȃ�B
+1    91   RECOG_EVENT_STOP|バイバイ           SYNTH_START|mei|mei_voice_normal|さようなら。
+1    91   RECOG_EVENT_STOP|さようなら         SYNTH_START|mei|mei_voice_normal|さようなら。
+1    91   RECOG_EVENT_STOP|さよなら           SYNTH_START|mei|mei_voice_normal|さようなら。
 91   92   <eps>                               MOTION_ADD|mei|action|Motion\mei_bye\mei_bye.vmd|PART|ONCE
 92   2    SYNTH_EVENT_STOP|mei                <eps>
 
 # 0101-0110 Browsing
 
-1    101  RECOG_EVENT_STOP|�z�[���y�[�W       EXECUTE|http://www.mmdagent.jp/
-1    101  RECOG_EVENT_STOP|�l�l�c�`��������   EXECUTE|http://www.mmdagent.jp/
-101  102  <eps>                               SYNTH_START|mei|mei_voice_normal|�l�l�c�`���������́A�z�[���y�[�W��\�����܂��B
+1    101  RECOG_EVENT_STOP|ホームページ       EXECUTE|http://www.mmdagent.jp/
+1    101  RECOG_EVENT_STOP|ＭＭＤＡｇｅｎｔ   EXECUTE|http://www.mmdagent.jp/
+101  102  <eps>                               SYNTH_START|mei|mei_voice_normal|ＭＭＤＡｇｅｎｔの、ホームページを表示します。
 102  2    SYNTH_EVENT_STOP|mei                <eps>
 
 # 0111-0120 Screen
 
-1    111  RECOG_EVENT_STOP|�t���X�N���[��     KEY_POST|MMDAgent|F|OFF
-111  112  <eps>                               SYNTH_START|mei|mei_voice_normal|�X�N���[���̐ݒ���A�ύX���܂����B
+1    111  RECOG_EVENT_STOP|フルスクリーン     KEY_POST|MMDAgent|F|OFF
+111  112  <eps>                               SYNTH_START|mei|mei_voice_normal|スクリーンの設定を、変更しました。
 112  2    SYNTH_EVENT_STOP|mei                <eps>
