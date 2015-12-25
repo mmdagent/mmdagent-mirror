@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -41,8 +41,6 @@
 
 /* definitions */
 
-#define MMDAGENTUTILS_MAXCHARBYTE 3
-
 /* MMDAgent_getcharsize: get character size */
 unsigned char MMDAgent_getcharsize(const char *str);
 
@@ -61,8 +59,11 @@ int MMDAgent_strlen(const char *str);
 /* MMDAgent_strdup: strdup */
 char *MMDAgent_strdup(const char *str);
 
-/* MMDAgent_pathdup: convert charset from application to system */
-char *MMDAgent_pathdup(const char *str);
+/* MMDAgent_strdup_from_utf8_to_sjis: strdup with conversion from utf8 to sjis */
+char *MMDAgent_strdup_from_utf8_to_sjis(const char *str);
+
+/* MMDAgent_pathdup_from_application_to_system_locale: convert path charset from application to system locale */
+char *MMDAgent_pathdup_from_application_to_system_locale(const char *str);
 
 /* MMDAgent_intdup: integer type strdup */
 char *MMDAgent_intdup(const int digit);
@@ -106,6 +107,9 @@ bool MMDAgent_str2rot(const char *str, btQuaternion *rot);
 /* MMDAgent_fgettoken: get token from file pointer */
 int MMDAgent_fgettoken(FILE *fp, char *buff);
 
+/* MMDAgent_pwddup: get current directory */
+char *MMDAgent_pwddup();
+
 /* MMDAgent_chdir: change current directory */
 bool MMDAgent_chdir(const char *dir);
 
@@ -145,3 +149,15 @@ void MMDAgent_closedir(DIRECTORY *dir);
 
 /* MMDAgent_readdir: find files in directory */
 bool MMDAgent_readdir(DIRECTORY *dir, char *name);
+
+/* MMDAgent_roundf: round value */
+float MMDAgent_roundf(float f);
+
+/* MMDAgent_mkdir: make directory */
+bool MMDAgent_mkdir(const char *name);
+
+/* MMDAgent_rmdir: remove directory */
+bool MMDAgent_rmdir(const char *name);
+
+/* MMDAgent_tmpdirdup: duplicate temporary directory */
+char *MMDAgent_tmpdirdup();

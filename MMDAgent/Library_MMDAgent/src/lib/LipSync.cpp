@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -174,6 +174,7 @@ bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned in
    int i, j, k;
    int len;
    char *buf, *p, *save;
+   char *sjisBuff;
 
    LipKeyFrame *head, *tail, *tmp1, *tmp2;
    float f, diff;
@@ -284,7 +285,9 @@ bool LipSync::createMotion(const char *str, unsigned char **rawData, unsigned in
       currentFrame = 0;
       for(tmp1 = head; tmp1; tmp1 = tmp1->next) {
          face = (VMDFile_FaceFrame *) data;
-         strncpy(face->name, m_motion[i], 15);
+         sjisBuff = MMDAgent_strdup_from_utf8_to_sjis(m_motion[i]);
+         strncpy(face->name, sjisBuff, 15);
+         free(sjisBuff);
          face->keyFrame = currentFrame;
          face->weight = m_blendRate[tmp1->phone][i] * tmp1->rate;
          data += sizeof(VMDFile_FaceFrame);

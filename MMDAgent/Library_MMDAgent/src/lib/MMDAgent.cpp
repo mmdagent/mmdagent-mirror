@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -42,8 +42,177 @@
 /* headers */
 
 #include <stdarg.h>
-#include <locale.h>
+#include "unzip.h"
 #include "MMDAgent.h"
+
+/* loadZip: load zip archive */
+bool MMDAgent::loadZip(const char *zip)
+{
+   size_t i, len;
+   char *path, *tempDirName, *configFileName = NULL;
+   size_t count1, count2;
+   char buff1[MMDAGENT_MAXBUFLEN];
+   char buff2[MMDAGENT_MAXBUFLEN];
+   bool err = false;
+   unsigned char *bytes;
+   unzFile zfp;
+   unz_file_info zfi;
+   FILE *fp;
+
+   /* get temporary directory name */
+   tempDirName = MMDAgent_tmpdirdup();
+   if(tempDirName == NULL)
+      return false;
+
+   /* remove temporary directory */
+   if(MMDAgent_rmdir(tempDirName) == false) {
+      free(tempDirName);
+      return false;
+   }
+
+   /* make temporary directory */
+   if(MMDAgent_mkdir(tempDirName) == false) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      return false;
+   }
+
+   /* convert string */
+   path = MMDFiles_pathdup_from_application_to_system_locale(zip);
+   if(path == NULL) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      return false;
+   }
+
+   /* open zip archive */
+   zfp = unzOpen(path);
+   if(zfp == NULL) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      free(path);
+      return false;
+   }
+
+   /* find mdf */
+   count1 = 0;
+   do {
+      if(unzGetCurrentFileInfo(zfp, &zfi, buff1, MMDAGENT_MAXBUFLEN, NULL, 0, NULL, 0) != UNZ_OK)
+         break;
+
+      if(MMDAgent_strtailmatch(buff1, ".mdf")) {
+         count2 = 0;
+         len = MMDAgent_strlen(buff1);
+         for(i = 0; i < len; i++)
+            if(buff1[i] == MMDAGENT_DIRSEPARATOR)
+               count2++;
+         if(count1 < count2) {
+            if(configFileName)
+               free(configFileName);
+            sprintf(buff2, "%s%c%s", tempDirName, MMDAGENT_DIRSEPARATOR, buff1);
+            configFileName = MMDAgent_strdup(buff2);
+            count1 = count2;
+         }
+      }
+   } while(unzGoToNextFile(zfp) != UNZ_END_OF_LIST_OF_FILE);
+   unzClose(zfp);
+   if(configFileName == NULL) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      free(path);
+      return false;
+   }
+
+   /* open zip archive */
+   zfp = unzOpen(path);
+   free(path);
+   if(zfp == NULL) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      free(configFileName);
+      return false;
+   }
+
+   /* unzip */
+   do {
+      if(unzGetCurrentFileInfo(zfp, &zfi, buff1, MMDAGENT_MAXBUFLEN, NULL, 0, NULL, 0) != UNZ_OK) {
+         err = true;
+         break;
+      }
+      sprintf(buff2, "%s%c%s", tempDirName, MMDAGENT_DIRSEPARATOR, buff1);
+      len = MMDAgent_strlen(buff2);
+      if(len > 0 && buff2[len - 1] == MMDAGENT_DIRSEPARATOR) {
+         if(MMDAgent_mkdir(buff2) == false) {
+            err = true;
+            break;
+         }
+         continue;
+      }
+      if(zfi.uncompressed_size == 0) {
+         fp = MMDAgent_fopen(buff2, "wb");
+         if(fp == NULL) {
+            err = true;
+            break;
+         }
+         fclose(fp);
+      } else {
+         if(unzOpenCurrentFile(zfp) != UNZ_OK) {
+            err = true;
+            break;
+         }
+         bytes = (unsigned char *) malloc(zfi.uncompressed_size);
+         if(unzReadCurrentFile(zfp, bytes, zfi.uncompressed_size) == UNZ_OK) {
+            free(bytes);
+            unzCloseCurrentFile(zfp);
+            err = true;
+            break;
+         }
+         fp = MMDAgent_fopen(buff2, "wb");
+         if(fp == NULL) {
+            free(bytes);
+            unzCloseCurrentFile(zfp);
+            err = true;
+            break;
+         }
+         if(fwrite(bytes, 1, zfi.uncompressed_size, fp) <= 0) {
+            free(bytes);
+            unzCloseCurrentFile(zfp);
+            fclose(fp);
+            err = true;
+            break;
+         }
+         fclose(fp);
+         free(bytes);
+         unzCloseCurrentFile(zfp);
+      }
+   } while(unzGoToNextFile(zfp) != UNZ_END_OF_LIST_OF_FILE);
+   unzClose(zfp);
+   if(err) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      free(configFileName);
+      return false;
+   }
+
+   /* load mdf */
+   if (m_option->load(configFileName) == false) {
+      MMDAgent_rmdir(tempDirName);
+      free(tempDirName);
+      free(configFileName);
+      return false;
+   }
+
+   /* save directory/file names */
+   if(m_tempDirName)
+      free(m_tempDirName);
+   m_tempDirName = tempDirName;
+
+   if(m_configFileName)
+      free(m_configFileName);
+   m_configFileName = configFileName;
+
+   return true;
+}
 
 /* MMDAgent::getNewModelId: return new model ID */
 int MMDAgent::getNewModelId()
@@ -80,9 +249,8 @@ void MMDAgent::removeRelatedModels(int modelId)
       /* send message */
       if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
          sendMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", m_model[modelId].getAlias());
-      else {
+      else
          sendMessage(MMDAGENT_EVENT_MOTIONDELETE, "%s|%s", m_model[modelId].getAlias(), motionPlayer->name);
-      }
       /* unload from motion stocker */
       m_motion->unload(motionPlayer->vmd);
    }
@@ -116,7 +284,8 @@ void MMDAgent::setHighLight(int modelId)
 {
    float color[4];
 
-   if (m_highLightingModel == modelId) return;
+   if (m_highLightingModel == modelId)
+      return;
 
    if (m_highLightingModel != -1) {
       /* reset current highlighted model */
@@ -895,6 +1064,8 @@ void MMDAgent::initialize()
 {
    m_enable = false;
 
+   m_userDirName = NULL;
+   m_tempDirName = NULL;
    m_configFileName = NULL;
    m_configDirName = NULL;
    m_appDirName = NULL;
@@ -909,7 +1080,9 @@ void MMDAgent::initialize()
    m_lipSync = NULL;
    m_render = NULL;
    m_timer = NULL;
-   m_text = NULL;
+   m_atlas = NULL;
+   m_font = NULL;
+   memset(&m_elem, 0, sizeof(FTGLTextDrawElements));
    m_logger = NULL;
 
    m_model = NULL;
@@ -941,6 +1114,14 @@ void MMDAgent::clear()
 {
    m_enable = false;
 
+   if(m_userDirName) {
+      MMDAgent_chdir(m_userDirName);
+      free(m_userDirName);
+   }
+   if(m_tempDirName) {
+      MMDAgent_rmdir(m_tempDirName);
+      free(m_tempDirName);
+   }
    if(m_configFileName)
       free(m_configFileName);
    if(m_configDirName)
@@ -953,10 +1134,15 @@ void MMDAgent::clear()
       free(m_renderOrder);
    if (m_model)
       delete [] m_model;
+   if (m_elem.vertices) free(m_elem.vertices);
+   if (m_elem.texcoords) free(m_elem.texcoords);
+   if (m_elem.indices) free(m_elem.indices);
+   if (m_atlas)
+      delete m_atlas;
+   if (m_font)
+      delete m_font;
    if (m_logger)
       delete m_logger;
-   if (m_text)
-      delete m_text;
    if (m_timer)
       delete m_timer;
    if (m_render)
@@ -1008,13 +1194,13 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
 
    clear();
 
+   /* get current directory */
+   m_userDirName = MMDAgent_pwddup();
+
    /* get binary file name and its directory name */
    sprintf(buff, MMDAGENT_EXEFILE(argv[0]));
    binaryFileName = MMDAgent_strdup(buff);
    binaryDirName = MMDAgent_dirname(buff);
-
-   /* set local to japan */
-   setlocale(LC_CTYPE, "jpn");
 
    /* get application directory */
    if(m_appDirName)
@@ -1049,6 +1235,15 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
                free(m_configFileName);
             m_configFileName = MMDAgent_strdup(buff);
          }
+      }
+   }
+
+   /* load zip archive */
+   for (i = 1; i < argc; i++) {
+      sprintf(buff, MMDAGENT_CONFIGFILE(argv[i]));
+      if (MMDAgent_strtailmatch(buff, ".mmda")) {
+         if(loadZip(buff) == true)
+            break;
       }
    }
 
@@ -1106,13 +1301,22 @@ bool MMDAgent::setup(int argc, char **argv, const char *title)
    m_timer->setup();
    m_timer->startAdjustment();
 
-   /* setup text render */
-   m_text = new TextRenderer();
-   m_text->setup();
+   /* set up text rendering */
+   m_atlas = new FTGLTextureAtlas();
+   if(m_atlas->setup() == false) {
+      clear();
+      return 0;
+   }
+   m_font = new FTGLTextureFont();
+   sprintf(buff, "%s%c%s%c%s", m_appDirName, MMDAGENT_DIRSEPARATOR, FREETYPEGL_FONTDIR, MMDAGENT_DIRSEPARATOR, FREETYPEGL_FONTFILE);
+   if (m_font->setup(m_atlas, buff) == false) {
+      clear();
+      return 0;
+   }
 
    /* setup logger */
    m_logger = new LogText();
-   m_logger->setup(m_text, m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
+   m_logger->setup(m_font, m_option->getLogSize(), m_option->getLogPosition(), m_option->getLogScale());
 
    /* setup models */
    m_model = new PMDObject[m_option->getMaxNumModel()];
@@ -1281,9 +1485,8 @@ bool MMDAgent::updateScene()
                   /* send message */
                   if (MMDAgent_strequal(motionPlayer->name, LIPSYNC_MOTIONNAME))
                      sendMessage(MMDAGENT_EVENT_LIPSYNCSTOP, "%s", m_model[i].getAlias());
-                  else {
+                  else
                      sendMessage(MMDAGENT_EVENT_MOTIONDELETE, "%s|%s", m_model[i].getAlias(), motionPlayer->name);
-                  }
                   /* unload from motion stocker */
                   m_motion->unload(motionPlayer->vmd);
                }
@@ -1330,21 +1533,27 @@ bool MMDAgent::renderScene()
    int i;
    btVector3 pos;
    float fps;
-#ifndef MMDAGENT_DONTRENDERDEBUG
    char buff[MMDAGENT_MAXBUFLEN];
    static const GLfloat vertices[8][3] = {
-      { -0.5f, -0.5f, 0.5f},
-      { 0.5f, -0.5f, 0.5f},
-      { 0.5f, 0.5f, 0.5f},
-      { -0.5f, 0.5f, 0.5f},
-      { 0.5f, -0.5f, -0.5f},
-      { -0.5f, -0.5f, -0.5f},
-      { -0.5f, 0.5f, -0.5f},
-      { 0.5f, 0.5f, -0.5f}
+      { -0.5f, -0.5f, -0.5f },
+      { 0.5f, -0.5f, -0.5f },
+      { 0.5f, 0.5f, -0.5f },
+      { -0.5f, 0.5f, -0.5f },
+      { -0.5f, -0.5f, 0.5f },
+      { 0.5f, -0.5f, 0.5f },
+      { 0.5f, 0.5f, 0.5f },
+      { -0.5f, 0.5f, 0.5f }
    };
-#endif /* !MMDAGENT_DONTRENDERDEBUG */
+   static const GLubyte indices[] = {
+      0, 4, 5, 0, 5, 1,
+      1, 5, 6, 1, 6, 2,
+      2, 6, 7, 2, 7, 3,
+      3, 7, 4, 3, 4, 0,
+      4, 7, 6, 4, 6, 5,
+      3, 0, 1, 3, 1, 2
+   };
 
-   if(m_enable == false)
+   if (m_enable == false)
       return false;
 
    /* update model position and rotation */
@@ -1370,12 +1579,6 @@ bool MMDAgent::renderScene()
    /* render scene */
    m_render->render(m_model, m_renderOrder, m_numModel, m_stage, m_option->getUseMMDLikeCartoon(), m_option->getUseCartoonRendering(), m_option->getLightIntensity(), m_option->getLightDirection(), m_option->getLightColor(), m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst(), m_option->getShadowMappingSelfDensity(), m_option->getShadowMappingFloorDensity(), m_render->isViewMoving() ? m_timer->ellapsed() : 0.0);
 
-   /* show debug display */
-   if (m_dispModelDebug)
-      for (i = 0; i < m_numModel; i++)
-         if (m_model[m_renderOrder[i]].isEnable() == true)
-            m_model[m_renderOrder[i]].renderDebug(m_text);
-
    /* show bullet body */
    if (m_dispBulletBodyFlag)
       m_bullet->debugDisplay();
@@ -1387,133 +1590,146 @@ bool MMDAgent::renderScene()
    /* count fps */
    m_timer->countFrame();
 
-#ifndef MMDAGENT_DONTRENDERDEBUG
-   /* show fps */
+   /* render debug information */
+   GLint viewport[4];
+   glGetIntegerv(GL_VIEWPORT, viewport);
+   float width = (float)viewport[2] / MMDAGENT_DISPTEXTSIZE;
+   float height = (float)viewport[3] / MMDAGENT_DISPTEXTSIZE;
+   m_elem.textLen = 0; /* reset */
+   m_elem.numIndices = 0;
+
+   /* top-left indicator */
+   buff[0] = '\0';
    if (m_option->getShowFps()) {
-      if(m_screen->getNumMultiSampling() > 0)
+      /* show fps */
+      if (m_screen->getNumMultiSampling() > 0)
          sprintf(buff, "%5.1ffps %dx MSAA", m_timer->getFps(), m_screen->getNumMultiSampling());
       else
          sprintf(buff, "%5.1ffps No AA", m_timer->getFps());
-      glDisable(GL_LIGHTING);
-      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-      glPushMatrix();
-      glRasterPos3fv(m_option->getFpsPosition());
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
    }
-
-   /* show holding message */
    if (m_holdMotion) {
-      sprintf(buff, "<<HOLD>>");
-      glDisable(GL_LIGHTING);
-      glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-      glPushMatrix();
-      glWindowPos2f(m_render->getWidth() / 2 - 30.0f, m_render->getHeight() - 50.0f);
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
+      /* show holding message */
+      strncat(buff, " <<HOLD>>", MMDAGENT_MAXBUFLEN);
    }
-
+   if (MMDAgent_strlen(buff) > 0) {
+      if (m_font->getTextDrawElements(buff, &m_elem, m_elem.textLen, 0.2f, height - 1.2f, 0.0f) == false) {
+         m_elem.textLen = 0; /* reset */
+         m_elem.numIndices = 0;
+      }
+   }
+   /* bottom-left indicators */
    if (m_dispLog) {
       /* show adjustment time for audio */
       if (m_option->getMotionAdjustTime() > 0.0f)
-         sprintf(buff, "%d msec advance (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
+         sprintf(buff, "%d msec advance (current motion: %+d)", (int)(m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
       else if (m_option->getMotionAdjustTime() < 0.0f)
-         sprintf(buff, "%d msec delay (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f - 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 - 0.5f));
+         sprintf(buff, "%d msec delay (current motion: %+d)", (int)(m_option->getMotionAdjustTime() * 1000.0f - 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 - 0.5f));
       else
-         sprintf(buff, "%d msec (current motion: %+d)", (int) (m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
-      glDisable(GL_LIGHTING);
-      glColor3f(1.0f, 0.0f, 0.0f);
-      glPushMatrix();
-      glWindowPos2f(5.0f, 5.0f + 18.0f * 2);
-      m_text->drawAsciiStringBitmap(buff);
-      glPopMatrix();
-      glEnable(GL_LIGHTING);
+         sprintf(buff, "%d msec (current motion: %+d)", (int)(m_option->getMotionAdjustTime() * 1000.0f + 0.5f), (int)(m_timer->getCurrentAdjustmentFrame() * 1000.0 / 30.0 + 0.5f));
+      if (m_font->getTextDrawElements(buff, &m_elem, m_elem.textLen, 0.2f, 0.2f + 1.1f * 2.0f, 0.0f) == false) {
+         m_elem.textLen = 0; /* reset */
+         m_elem.numIndices = 0;
+      }
+   }
+   if (m_dispLog) {
+      /* show camera parameters */
+      m_render->getInfoString(buff);
+      if (m_font->getTextDrawElements(buff, &m_elem, m_elem.textLen, 0.2f, 0.2f + 1.1f * 1.0f, 0.0f) == false) {
+         m_elem.textLen = 0; /* reset */
+         m_elem.numIndices = 0;
+      }
+   }
+   buff[0] = '\0';
+   if (m_dispLog) {
       /* show model position */
-      strcpy(buff, "");
       for (i = 0; i < m_numModel; i++) {
          if (m_model[i].isEnable() == true) {
             m_model[i].getCurrentPosition(&pos);
-            if(MMDAgent_strlen(buff) <= 0)
+            if (MMDAgent_strlen(buff) <= 0)
                sprintf(buff, "(%.2f, %.2f, %.2f)", pos.x(), pos.y(), pos.z());
             else
                sprintf(buff, "%s (%.2f, %.2f, %.2f)", buff, pos.x(), pos.y(), pos.z());
          }
       }
-      if (MMDAgent_strlen(buff) > 0) {
-         glDisable(GL_LIGHTING);
-         glColor3f(1.0f, 0.0f, 0.0f);
-         glPushMatrix();
-         glWindowPos2f(5.0f, 5.0f);
-         m_text->drawAsciiStringBitmap(buff);
-         glPopMatrix();
-         glEnable(GL_LIGHTING);
+   }
+   if (MMDAgent_strlen(buff) > 0) {
+      if (m_font->getTextDrawElements(buff, &m_elem, m_elem.textLen, 0.2f, 0.2f + 1.1f * 0.0f, 0.0f) == false) {
+         m_elem.textLen = 0; /* reset */
+         m_elem.numIndices = 0;
       }
-      /* show camera parameters */
-      m_render->getInfoString(buff);
+   }
+
+   if (m_elem.numIndices > 0) {
+      /* start drawing as 2-D screen */
       glDisable(GL_LIGHTING);
-      glColor3f(1.0f, 1.0f, 0.0f);
+      glMatrixMode(GL_PROJECTION);
       glPushMatrix();
-      glWindowPos2f(5.0f, 5.0f + 18.0f);
-      m_text->drawAsciiStringBitmap(buff);
+      glLoadIdentity();
+      {
+         float left = 0, right = width, bottom = 0, top = height, vnear = -1, vfar = 1;
+         float a = 2.0f / (right - left);
+         float b = 2.0f / (top - bottom);
+         float c = -2.0f / (vfar - vnear);
+         float tx = -(right + left) / (right - left);
+         float ty = -(top + bottom) / (top - bottom);
+         float tz = -(vfar + vnear) / (vfar - vnear);
+         float ortho[16] = {
+            a, 0, 0, 0,
+            0, b, 0, 0,
+            0, 0, c, 0,
+            tx, ty, tz, 1
+         };
+         glMultMatrixf(ortho);
+      }
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+      glLoadIdentity();
+      glTranslatef(0.0f, 0.0f, 0.0f);
+      glEnable(GL_TEXTURE_2D);
+      glActiveTexture(GL_TEXTURE0);
+      glClientActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, m_font->getTextureID());
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+      glVertexPointer(3, GL_FLOAT, 0, m_elem.vertices);
+      glTexCoordPointer(2, GL_FLOAT, 0, m_elem.texcoords);
+      glDrawElements(GL_TRIANGLES, m_elem.numIndices, GL_UNSIGNED_INT, (const GLvoid *) m_elem.indices);
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glDisable(GL_TEXTURE_2D);
+      /* restore 3-D rendering */
       glPopMatrix();
+      glMatrixMode(GL_PROJECTION);
+      glPopMatrix();
+      glMatrixMode(GL_MODELVIEW);
+      glEnable(GL_LIGHTING);
+   }
+
+   if (m_dispLog) {
       /* show camera eye point */
+      glDisable(GL_LIGHTING);
       glPushMatrix();
       m_render->getCurrentViewCenterPos(&pos);
       glTranslatef(pos.x(), pos.y(), pos.z());
       glColor4f(0.9f, 0.4f, 0.0f, 1.0f);
-      glScaled(0.3, 0.3, 0.3);
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[0]);
-      glVertex3fv(vertices[1]);
-      glVertex3fv(vertices[2]);
-      glVertex3fv(vertices[3]);
-      glEnd();
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[4]);
-      glVertex3fv(vertices[5]);
-      glVertex3fv(vertices[6]);
-      glVertex3fv(vertices[7]);
-      glEnd();
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[1]);
-      glVertex3fv(vertices[4]);
-      glVertex3fv(vertices[7]);
-      glVertex3fv(vertices[2]);
-      glEnd();
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[5]);
-      glVertex3fv(vertices[0]);
-      glVertex3fv(vertices[3]);
-      glVertex3fv(vertices[6]);
-      glEnd();
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[3]);
-      glVertex3fv(vertices[2]);
-      glVertex3fv(vertices[7]);
-      glVertex3fv(vertices[6]);
-      glEnd();
-      glBegin(GL_POLYGON);
-      glVertex3fv(vertices[1]);
-      glVertex3fv(vertices[0]);
-      glVertex3fv(vertices[5]);
-      glVertex3fv(vertices[4]);
-      glEnd();
+      glScalef(0.3f, 0.3f, 0.3f);
+      glEnableClientState(GL_VERTEX_ARRAY);
+      glVertexPointer(3, GL_FLOAT, 0, vertices);
+      glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, indices);
+      glDisableClientState(GL_VERTEX_ARRAY);
       glPopMatrix();
       glEnable(GL_LIGHTING);
    }
 
-   /* show model comments and error */
+   /* show model debug display, comments and error */
    for (i = 0; i < m_numModel; i++) {
       if (m_model[m_renderOrder[i]].isEnable() == true) {
-         glPushMatrix();
-         m_model[m_renderOrder[i]].renderComment(m_text);
-         m_model[m_renderOrder[i]].renderError(m_text);
-         glPopMatrix();
+         m_model[m_renderOrder[i]].renderText(m_font, m_dispModelDebug);
+         if (m_dispModelDebug)
+            m_model[m_renderOrder[i]].renderModelDebug();
       }
    }
-#endif /* !MMDAGENT_DONTRENDERDEBUG */
 
    /* execute plugin */
    m_plugin->execRender(this);
@@ -1522,15 +1738,6 @@ bool MMDAgent::renderScene()
    m_screen->swapBuffers();
 
    return true;
-}
-
-/* MMDAgent::drawString: draw string */
-void MMDAgent::drawString(const char *str)
-{
-   if(m_enable == false)
-      return;
-
-   m_text->drawString(str);
 }
 
 /* resetAdjustmentTimer: reset adjustment timer */
@@ -1676,6 +1883,16 @@ char *MMDAgent::getAppDirName()
    return m_appDirName;
 }
 
+/* MMDAgent::getTextureFont: get texture font for plugin */
+FTGLTextureFont *MMDAgent::getTextureFont()
+{
+   if (m_enable == false)
+      return NULL;
+
+   return m_font;
+}
+
+
 /* MMDAgent::procWindowDestroyMessage: process window destroy message */
 void MMDAgent::procWindowDestroyMessage()
 {
@@ -1718,6 +1935,11 @@ void MMDAgent::procMouseLeftButtonDownMessage(int x, int y, bool withCtrl, bool 
    m_selectedModel = m_render->pickModel(m_model, m_numModel, x, y, NULL);
    if (withCtrl == true && withShift == false) /* with Ctrl-key */
       setHighLight(m_selectedModel);
+
+   /* send message */
+   if(m_selectedModel >= 0) {
+      sendMessage(MMDAGENT_EVENT_MODELSELECT, "%s", m_model[m_selectedModel].getAlias());
+   }
 }
 
 /* MMDAgent::procMouseLeftButtonUpMessage: process mouse left button up message */
@@ -1892,11 +2114,11 @@ void MMDAgent::procShadowMappingMessage()
    if(m_enable == false)
       return;
 
-   if(m_option->getUseShadowMapping() == true) {
+   if(m_option->getUseShadowMapping() == true)
       m_option->setUseShadowMapping(false);
-   } else {
+   else
       m_option->setUseShadowMapping(true);
-   }
+
    m_render->setShadowMapping(m_option->getUseShadowMapping(), m_option->getShadowMappingTextureSize(), m_option->getShadowMappingLightFirst());
 }
 
@@ -2389,11 +2611,10 @@ void MMDAgent::procReceivedMessage(const char *type, const char *value)
          m_logger->log("Error: %s: number of arguments should be 1 or 4-5.", type);
          return;
       }
-      if (num == 1) {
+      if (num == 1)
          changeCamera(argv[0], NULL, NULL, NULL, NULL);
-      } else {
+      else
          changeCamera(argv[0], argv[1], argv[2], argv[3], (num == 5) ? argv[4] : NULL);
-      }
    } else if (MMDAgent_strequal(type, MMDAGENT_COMMAND_LIGHTCOLOR)) {
       /* change light color */
       if (num != 1) {
@@ -2548,11 +2769,10 @@ void MMDAgent::procDropFileMessage(const char * file, int x, int y)
             targetModelID = m_selectedModel;
          else
             targetModelID = m_render->pickModel(m_model, m_numModel, x, y, &dropAllowedModelID);
-         if (targetModelID == -1) {
+         if (targetModelID == -1)
             m_logger->log("Warning: procDropFileMessage: there is no model at the point.");
-         } else {
+         else
             changeModel(m_model[targetModelID].getAlias(), file);
-         }
       }
    } else if (MMDAgent_strtailmatch(file, ".bmp") || MMDAgent_strtailmatch(file, ".tga") || MMDAgent_strtailmatch(file, ".png") || MMDAgent_strtailmatch(file, ".jpg") || MMDAgent_strtailmatch(file, ".jpeg") ||
               MMDAgent_strtailmatch(file, ".BMP") || MMDAgent_strtailmatch(file, ".TGA") || MMDAgent_strtailmatch(file, ".PNG") || MMDAgent_strtailmatch(file, ".JPG") || MMDAgent_strtailmatch(file, ".JPEG")) {

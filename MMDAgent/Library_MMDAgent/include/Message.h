@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -57,13 +57,16 @@ class Message
 {
 private:
 
-   GLFWmutex m_messageMutex;
-   GLFWmutex m_logStringMutex;
+   GLFWmutex m_messageMutex;         /* message mutex */
+   GLFWmutex m_logStringMutex;       /* log string mutex */
 
-   MessageQueue m_messageQueue;
-   MessageQueue m_logStringQueue;
+   MessageQueue m_messageQueue;      /* message queue */
+   MessageQueue m_logStringQueue;    /* log string queue */
 
+   /* initialize: initialize message queue */
    void initialize();
+
+   /* clear: free message queue */
    void clear();
 
 public:

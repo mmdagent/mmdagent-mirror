@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -45,11 +45,11 @@ class TileTexture
 private:
 
    PMDTexture m_texture;     /* texture */
-   bool m_isLoaded;
+   bool m_isLoaded;          /* loaded flag */
 
-   GLfloat m_vertices[12]; /* position */
-   GLfloat m_numx;
-   GLfloat m_numy;
+   GLfloat m_vertices[12];   /* drawing vertices */
+   GLfloat m_numx;           /* number of tiles in x */
+   GLfloat m_numy;           /* number of tiles in y */
 
    /* initialize: initialize texture */
    void initialize();

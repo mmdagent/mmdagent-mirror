@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -49,8 +49,8 @@ class BoneController
 private:
 
    int m_numBone;           /* number of target bone */
-   PMDBone **m_boneList;
-   btQuaternion *m_rotList;
+   PMDBone **m_boneList;    /* list of bones */
+   btQuaternion *m_rotList; /* list of rotations */
 
    float m_rateOn;            /* speed rate when switch on */
    float m_rateOff;           /* speed rate when switch off */
@@ -59,11 +59,11 @@ private:
    btVector3 m_lowerAngLimit; /* lower angular limit */
    btVector3 m_adjustPos;     /* offset to adjust target position */
 
-   int m_numChildBone;
-   PMDBone **m_childBoneList;
+   int m_numChildBone;        /* number of child bones */
+   PMDBone **m_childBoneList; /* list of child bones */
 
-   bool m_enable;
-   float m_fadingRate;
+   bool m_enable;             /* enable flag */
+   float m_fadingRate;        /* fading rate */
 
    /* initialize: initialize bone controller */
    void initialize();

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -51,20 +51,18 @@ class LogText
 {
 private:
 
-   TextRenderer *m_textRenderer; /* link of text renderer */
+   FTGLTextureFont *m_font;   /* text font */
+   int m_textHeight;          /* text height */
+   int m_textWidth;           /* text width */
+   float m_textX;             /* text position in x */
+   float m_textY;             /* text position in y */
+   float m_textZ;             /* text position in z */
+   float m_textScale;         /* text scale */
 
-   int m_textHeight;
-   int m_textWidth;
-   float m_textX;
-   float m_textY;
-   float m_textZ;
-   float m_textScale;
-
-   char **m_textList;            /* text list */
-   unsigned int **m_displayList; /* display list index for rendering */
-   int *m_lengthList;            /* length of each line */
-   int m_textIndex;              /* current position of text list */
-   int m_viewIndex;              /* relative position for rendering */
+   char **m_textList;                    /* text list */
+   FTGLTextDrawElements *m_drawElements; /* drawing elements for rendering */
+   int m_textIndex;                      /* current position of text list */
+   int m_viewIndex;                      /* relative position for rendering */
 
    /* LogText: initialize logger */
    void initialize();
@@ -81,7 +79,7 @@ public:
    ~LogText();
 
    /* setup: initialize and setup logger with args */
-   void setup(TextRenderer *text, const int *size, const float *position, float scale);
+   void setup(FTGLTextureFont *font, const int *size, const float *position, float scale);
 
    /* log: store log text */
    void log(const char *format, ...);

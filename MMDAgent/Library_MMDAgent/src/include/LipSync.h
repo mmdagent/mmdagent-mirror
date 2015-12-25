@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -60,12 +60,12 @@ class LipSync
 {
 private:
 
-   int m_numMotion; /* number of expression */
-   char **m_motion;
+   int m_numMotion;       /* number of expressions */
+   char **m_motion;       /* expressions */
 
-   int m_numPhone; /* number of phoneme */
-   char **m_phone;
-   float **m_blendRate;
+   int m_numPhone;        /* number of phonemes */
+   char **m_phone;        /* phonemes */
+   float **m_blendRate;   /* blending rates */
 
    /* initialize: initialize lipsync */
    void initialize();

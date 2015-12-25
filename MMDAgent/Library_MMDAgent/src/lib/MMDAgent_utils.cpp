@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -45,6 +45,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <dirent.h>
+#include <sys/stat.h>
 #endif /* !_WIN32 */
 #include "MMDAgent.h"
 
@@ -84,10 +85,16 @@ char *MMDAgent_strdup(const char *str)
    return MMDFiles_strdup(str);
 }
 
-/* MMDAgent_pathdup: convert charset from application to system */
-char *MMDAgent_pathdup(const char *str)
+/* MMDAgent_strdup_from_utf8_to_sjis: strdup with conversion from utf8 to sjis */
+char *MMDAgent_strdup_from_utf8_to_sjis(const char *str)
 {
-   return MMDFiles_pathdup(str);
+   return MMDFiles_strdup_from_utf8_to_sjis(str);
+}
+
+/* MMDAgent_pathdup_from_application_to_system_locale: convert path charset from application to system locale */
+char *MMDAgent_pathdup_from_application_to_system_locale(const char *str)
+{
+   return MMDFiles_pathdup_from_application_to_system_locale(str);
 }
 
 /* MMDAgent_intdup: integer type strdup */
@@ -138,8 +145,8 @@ char *MMDAgent_strtok(char *str, const char *pat, char **save)
 {
    char *s = NULL, *e = NULL, *p;
    const char *q;
-   char mbc1[MMDAGENTUTILS_MAXCHARBYTE];
-   char mbc2[MMDAGENTUTILS_MAXCHARBYTE];
+   char mbc1[MMDFILESUTILS_MAXCHARBYTE + 1];
+   char mbc2[MMDFILESUTILS_MAXCHARBYTE + 1];
    int find;
    int step = 0;
    unsigned char i, size;
@@ -339,21 +346,46 @@ int MMDAgent_fgettoken(FILE *fp, char *buff)
    return i;
 }
 
-/* MMDAgent_chdir: change current directory */
-bool MMDAgent_chdir(const char *dir)
+/* MMDAgent_pwddup: get current directory */
+char *MMDAgent_pwddup()
 {
-#ifdef _WIN32
-   return SetCurrentDirectoryA(dir) != 0 ? true : false;
-#else
+   char buff[MMDAGENT_MAXBUFLEN];
    bool result;
    char *path;
 
-   path = MMDAgent_pathdup(dir);
+#ifdef _WIN32
+   result = (GetCurrentDirectoryA(MMDAGENT_MAXBUFLEN, buff) != 0) ? true : false;
+#else
+   result = (getcwd(buff, MMDAGENT_MAXBUFLEN) != NULL) ? true : false;
+#endif /* _WIN32 */
+   if(result == false)
+      return NULL;
+
+   path = MMDFiles_pathdup_from_system_locale_to_application(buff);
+   if(path == NULL)
+      return NULL;
+
+   return path;
+}
+
+/* MMDAgent_chdir: change current directory */
+bool MMDAgent_chdir(const char *dir)
+{
+   bool result;
+   char *path;
+
+   path = MMDAgent_pathdup_from_application_to_system_locale(dir);
+   if(path == NULL)
+      return false;
+
+#ifdef _WIN32
+   result = SetCurrentDirectoryA(path) != 0 ? true : false;
+#else
    result = chdir(path) == 0 ? true : false;
+#endif /* _WIN32 */
    free(path);
 
    return result;
-#endif /* _WIN32 */
 }
 
 /* MMDAgent_sleep: sleep in sec */
@@ -386,21 +418,24 @@ double MMDAgent_diffTime(double now, double past)
 /* MMDAgent_dlopen: open dynamic library */
 void *MMDAgent_dlopen(const char *file)
 {
-#ifdef _WIN32
-   return (void *) LoadLibraryExA(file, NULL, 0);
-#else
    char *path;
    void *d;
 
    if(file == NULL)
       return NULL;
 
-   path = MMDFiles_pathdup(file);
-   d = dlopen(path, RTLD_NOW);
-   free(path);
+   path = MMDAgent_pathdup_from_application_to_system_locale(file);
+   if(path == NULL)
+      return NULL;
 
-   return d;
+#ifdef _WIN32
+   d = (void *) LoadLibraryExA(path, NULL, 0);
+#else
+   d = dlopen(path, RTLD_NOW);
 #endif /* _WIN32 */
+
+   free(path);
+   return d;
 }
 
 /* MMDAgent_dlclose: close dynamic library */
@@ -428,20 +463,26 @@ DIRECTORY *MMDAgent_opendir(const char *name)
 {
 #ifdef _WIN32
    DIRECTORY *dir;
+   char buff[MMDAGENT_MAXBUFLEN];
+   char *path;
 
    if(name == NULL)
       return NULL;
 
+   if(MMDAgent_strlen(name) <= 0)
+      strcpy(buff, "*");
+   else
+      sprintf(buff, "%s%c*", name, MMDAGENT_DIRSEPARATOR);
+
+   path = MMDAgent_pathdup_from_application_to_system_locale(buff);
+   if(path == NULL)
+      return NULL;
+
    dir = (DIRECTORY *) malloc(sizeof(DIRECTORY));
    dir->data = malloc(sizeof(WIN32_FIND_DATAA));
-   char name2[MMDAGENT_MAXBUFLEN];
-   if(MMDAgent_strlen(name) <= 0) {
-      strcpy(name2, "*");
-   } else {
-      sprintf(name2, "%s%c*", name, MMDAGENT_DIRSEPARATOR);
-   }
-   dir->find = FindFirstFileA(name2, (WIN32_FIND_DATAA *) dir->data);
+   dir->find = FindFirstFileA(path, (WIN32_FIND_DATAA *) dir->data);
    dir->first = true;
+   free(path);
    if(dir->find == INVALID_HANDLE_VALUE) {
       free(dir->data);
       free(dir);
@@ -456,7 +497,9 @@ DIRECTORY *MMDAgent_opendir(const char *name)
 
    dir = (DIRECTORY *) malloc(sizeof(DIRECTORY));
 
-   path = MMDFiles_pathdup(name);
+   path = MMDFiles_pathdup_from_application_to_system_locale(name);
+   if(path == NULL)
+      return NULL;
    dir->find = (void *) opendir(path);
    free(path);
    if(dir->find == NULL) {
@@ -493,22 +536,29 @@ bool MMDAgent_readdir(DIRECTORY *dir, char *name)
 #endif /* _WIN32 */
 
    if(dir == NULL || name == NULL) {
-      strcpy(name, "");
+      if(name)
+         strcpy(name, "");
       return false;
    }
 
 #ifdef _WIN32
    if(dir->first == true) {
+      char *buff;
       dir->first = false;
       dp = (WIN32_FIND_DATAA *) dir->data;
-      strcpy(name, dp->cFileName); /* if no file, does it work well? */
+      buff = MMDFiles_pathdup_from_system_locale_to_application(dp->cFileName); /* if no file, does it work well? */
+      strcpy(name, buff);
+      free(buff);
       return true;
    } else if(FindNextFileA(dir->find, (WIN32_FIND_DATAA *) dir->data) == 0) {
       strcpy(name, "");
       return false;
    } else {
+      char *buff;
       dp = (WIN32_FIND_DATAA *) dir->data;
-      strcpy(name, dp->cFileName);
+      buff = MMDFiles_pathdup_from_system_locale_to_application(dp->cFileName);
+      strcpy(name, buff);
+      free(buff);
       return true;
    }
 #else
@@ -517,8 +567,103 @@ bool MMDAgent_readdir(DIRECTORY *dir, char *name)
       strcpy(name, "");
       return false;
    } else {
-      strcpy(name, dp->d_name);
+      char *buff;
+      buff = MMDFiles_pathdup_from_system_locale_to_application(dp->d_name);
+      strcpy(name, buff);
+      free(buff);
       return true;
    }
 #endif /* _WIN32 */
+}
+
+/* MMDAgent_roundf: round value */
+float MMDAgent_roundf(float f)
+{
+   return (f >= 0.0f) ? floor(f + 0.5f) : ceil(f - 0.5f);
+}
+
+/* MMDAgent_mkdir: make directory */
+bool MMDAgent_mkdir(const char *name)
+{
+   char *path;
+
+   path = MMDFiles_pathdup_from_application_to_system_locale(name);
+   if(path == NULL)
+      return false;
+
+#ifdef _WIN32
+   if(!CreateDirectoryA(path, NULL)) {
+      free(path);
+      return false;
+   }
+#else
+   if(mkdir(path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH | S_IXOTH) != 0) {
+      free(path);
+      return false;
+   }
+#endif /* _WIN32 */
+   free(path);
+
+   return true;
+}
+
+/* MMDAgent_rmdir: remove directory */
+bool MMDAgent_rmdir(const char *name)
+{
+   char buff1[MMDAGENT_MAXBUFLEN];
+   char buff2[MMDAGENT_MAXBUFLEN];
+   char *p;
+   DIRECTORY *dir;
+
+   dir = MMDAgent_opendir(name);
+   if(dir != NULL) {
+      while(MMDAgent_readdir(dir, buff1) == true) {
+         if(MMDAgent_strequal(buff1, ".") == true || MMDAgent_strequal(buff1, "..") == true)
+            continue;
+         sprintf(buff2, "%s%c%s", name, MMDAGENT_DIRSEPARATOR, buff1);
+         MMDAgent_rmdir(buff2);
+         p = MMDFiles_pathdup_from_application_to_system_locale(buff2);
+#ifdef _WIN32
+         DeleteFileA(p);
+         RemoveDirectoryA(p);
+#else
+         remove(p);
+         rmdir(p);
+#endif /* _WIN32 */
+         free(p);
+      }
+      MMDAgent_closedir(dir);
+      p = MMDFiles_pathdup_from_application_to_system_locale(name);
+#ifdef _WIN32
+      RemoveDirectoryA(p);
+#else
+      rmdir(p);
+#endif /* _WIN32 */
+      free(p);
+   }
+   return true;
+}
+
+/* MMDAgent_tmpdirdup: duplicate temporary directory */
+char *MMDAgent_tmpdirdup()
+{
+   char *path;
+   char buff1[MMDAGENT_MAXBUFLEN];
+
+#if defined(_WIN32)
+   char buff2[MMDAGENT_MAXBUFLEN];
+   if(GetTempPathA(MMDAGENT_MAXBUFLEN, buff2) == 0)
+      return NULL;
+   sprintf(buff1, "%s%s%d", buff2, "MMDAgent-", (int) GetCurrentProcessId());
+#elif defined(__ANDROID__)
+   sprintf(buff1, "%s%s%d%s%d", "/sdcard/", "MMDAgent-", getuid(), "-", getpid());
+#else
+   sprintf(buff1, "%s%s%d%s%d", "/tmp/", "MMDAgent-", getuid(), "-", getpid());
+#endif /* _WIN32 && __ANDROID__ */
+
+   path = MMDFiles_pathdup_from_system_locale_to_application(buff1);
+   if(path == NULL)
+      return NULL;
+
+   return path;
 }

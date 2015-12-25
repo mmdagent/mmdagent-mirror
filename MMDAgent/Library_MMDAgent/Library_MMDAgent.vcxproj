@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\include\BoneController.h" />
+    <ClInclude Include="src\include\FreeTypeGL.h" />
     <ClInclude Include="src\include\LipSync.h" />
     <ClInclude Include="src\include\LogText.h" />
     <ClInclude Include="src\include\Message.h" />
@@ -24,12 +25,12 @@
     <ClInclude Include="src\include\Render.h" />
     <ClInclude Include="src\include\ScreenWindow.h" />
     <ClInclude Include="src\include\Stage.h" />
-    <ClInclude Include="src\include\TextRenderer.h" />
     <ClInclude Include="src\include\TileTexture.h" />
     <ClInclude Include="src\include\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\lib\BoneController.cpp" />
+    <ClCompile Include="src\lib\FreeTypeGL.cpp" />
     <ClCompile Include="src\lib\LipSync.cpp" />
     <ClCompile Include="src\lib\LogText.cpp" />
     <ClCompile Include="src\lib\Message.cpp" />
@@ -42,7 +43,6 @@
     <ClCompile Include="src\lib\Render.cpp" />
     <ClCompile Include="src\lib\ScreenWindow.cpp" />
     <ClCompile Include="src\lib\Stage.cpp" />
-    <ClCompile Include="src\lib\TextRenderer.cpp" />
     <ClCompile Include="src\lib\TileTexture.cpp" />
     <ClCompile Include="src\lib\Timer.cpp" />
   </ItemGroup>
@@ -80,7 +80,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;MMDAGENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;..\Library_FreeType\include;..\Library_UTF8-CPP\include;..\Library_zlib\include</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -102,7 +102,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;MMDAGENT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Library_Bullet_Physics\include;..\Library_MMDFiles\include;..\Library_GLee\include;src\include;..\Library_GLFW\include;..\Library_FreeType\include;..\Library_UTF8-CPP\include;..\Library_zlib\include</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>

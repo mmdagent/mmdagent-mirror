@@ -2,6 +2,7 @@
 TARGET   = lib/MMDAgent.a
 
 SOURCES  = src/lib/BoneController.cpp \
+           src/lib/FreeTypeGL.cpp \
            src/lib/LipSync.cpp \
            src/lib/LogText.cpp \
            src/lib/Message.cpp \
@@ -14,7 +15,6 @@ SOURCES  = src/lib/BoneController.cpp \
            src/lib/Render.cpp \
            src/lib/ScreenWindow.cpp \
            src/lib/Stage.cpp \
-           src/lib/TextRenderer.cpp \
            src/lib/TileTexture.cpp \
            src/lib/Timer.cpp
 
@@ -28,6 +28,8 @@ INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
            -I ../Library_zlib/include \
            -I ../Library_libpng/include \
+           -I ../Library_FreeType/include \
+           -I ../Library_UTF8-CPP/include \
            -I ../Library_JPEG/include \
            -I ../Library_MMDFiles/include \
            -I ../Library_GLFW/include \

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -86,6 +86,10 @@ private:
    double m_displayCommentFrame; /* number of frame to show comment ofs model */
 
    bool m_needResetKinematic; /* flag for reset Kinematic State when base motion is changed */
+
+   FTGLTextDrawElements m_commentElem;   /* comment element */
+   FTGLTextDrawElements m_errorElem;     /* error element */
+   FTGLTextDrawElements m_nameElem;      /* name element */
 
    /* initialize: initialize PMDObject */
    void initialize();
@@ -212,12 +216,9 @@ public:
    /* getAssignedModel: get parent model */
    PMDObject *getAssignedModel();
 
-   /* renderComment: render model comment */
-   void renderComment(TextRenderer *text);
+   /* renderText: render model name, comment and error text */
+   void renderText(FTGLTextureFont *font, bool displayModelNameFlag);
 
-   /* renderDebug: render model debug */
-   void renderDebug(TextRenderer *text);
-
-   /* renderError: render model error */
-   void renderError(TextRenderer *text);
+   /* renderModelDebug: render model debug */
+   void renderModelDebug();
 };

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -47,6 +47,7 @@
 #define MMDAGENT_MAXBUFLEN    MMDFILES_MAXBUFLEN
 #define MMDAGENT_DIRSEPARATOR MMDFILES_DIRSEPARATOR
 #define MMDAGENT_MAXNCOMMAND  10
+#define MMDAGENT_DISPTEXTSIZE 24.0f
 
 #ifdef MMDAGENT_OVERWRITEEXEFILE
 #define MMDAGENT_EXEFILE(binaryFileName) "%s", MMDAGENT_OVERWRITEEXEFILE
@@ -97,6 +98,7 @@
 #define MMDAGENT_EVENT_MODELADD         "MODEL_EVENT_ADD"
 #define MMDAGENT_EVENT_MODELCHANGE      "MODEL_EVENT_CHANGE"
 #define MMDAGENT_EVENT_MODELDELETE      "MODEL_EVENT_DELETE"
+#define MMDAGENT_EVENT_MODELSELECT      "MODEL_EVENT_SELECT"
 #define MMDAGENT_EVENT_MOTIONADD        "MOTION_EVENT_ADD"
 #define MMDAGENT_EVENT_MOTIONCHANGE     "MOTION_EVENT_CHANGE"
 #define MMDAGENT_EVENT_MOTIONACCELERATE "MOTION_EVENT_ACCELERATE"
@@ -124,7 +126,7 @@ class MMDAgent;
 
 #include "MMDAgent_utils.h"
 
-#include "TextRenderer.h"
+#include "FreeTypeGL.h"
 #include "LogText.h"
 #include "LipSync.h"
 #include "PMDObject.h"
@@ -143,8 +145,10 @@ class MMDAgent;
 class MMDAgent
 {
 private:
-   bool m_enable;
+   bool m_enable;          /* enable flag */
 
+   char *m_userDirName;    /* directory name before chdir() */
+   char *m_tempDirName;    /* temporary directory name */
    char *m_configFileName; /* config file name */
    char *m_configDirName;  /* directory name of config file */
    char *m_appDirName;     /* directory name of application data */
@@ -159,8 +163,11 @@ private:
    LipSync *m_lipSync;      /* system default lipsync */
    Render *m_render;        /* render */
    Timer *m_timer;          /* timer */
-   TextRenderer *m_text;    /* text render */
-   LogText *m_logger;       /* logger */
+
+   FTGLTextureAtlas *m_atlas;   /* texture atlas for text drawing */
+   FTGLTextureFont *m_font;     /* font information for text drawing */
+   FTGLTextDrawElements m_elem; /* text drawing element holder for debug display */
+   LogText *m_logger;           /* logger */
 
    PMDObject *m_model;      /* models */
    int *m_renderOrder;      /* model rendering order */
@@ -173,18 +180,21 @@ private:
    bool m_keyCtrl;           /* true if Ctrl-key is on */
    bool m_keyShift;          /* true if Shift-key is on */
    int m_selectedModel;      /* model ID selected by mouse */
-   int m_highLightingModel;
+   int m_highLightingModel;  /* ID of highlighted model */
    bool m_doubleClicked;     /* true if double clicked */
-   int m_mousePosX;
-   int m_mousePosY;
-   bool m_leftButtonPressed;
-   double m_restFrame;
+   int m_mousePosX;          /* mouse position in x*/
+   int m_mousePosY;          /* mouse position in y*/
+   bool m_leftButtonPressed; /* true if left button is on */
+   double m_restFrame;       /* remaining frames */
 
    bool m_enablePhysicsSimulation; /* true if physics simulation is on */
    bool m_dispLog;                 /* true if log window is shown */
    bool m_dispBulletBodyFlag;      /* true if bullet body is shown */
    bool m_dispModelDebug;          /* true if model debugger is on */
    bool m_holdMotion;              /* true if holding motion */
+
+   /* loadZip: load zip archive */
+   bool loadZip(const char *zip);
 
    /* getNewModelId: return new model ID */
    int getNewModelId();
@@ -293,9 +303,6 @@ public:
    /* updateAndRender: update and render the whole scene */
    bool updateAndRender();
 
-   /* drawString: draw string */
-   void drawString(const char *str);
-
    /* resetAdjustmentTimer: reset adjustment timer */
    void resetAdjustmentTimer();
 
@@ -331,6 +338,9 @@ public:
 
    /* getAppDirName: get application directory name for plugin */
    char *getAppDirName();
+
+   /* getTextureFont: get texture font for plugin */
+   FTGLTextureFont *getTextureFont();
 
    /* procWindowDestroyMessage: process window destroy message */
    void procWindowDestroyMessage();

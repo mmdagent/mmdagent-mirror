@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -60,8 +60,8 @@ class Plugin
 {
 private:
 
-   DLLibrary *m_head;
-   DLLibrary *m_tail;
+   DLLibrary *m_head;   /* head of list */
+   DLLibrary *m_tail;   /* tail of list */
 
    /* initialize: initialize plugin list */
    void initialize();

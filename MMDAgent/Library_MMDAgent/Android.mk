@@ -16,7 +16,7 @@ LOCAL_SRC_FILES  := src/lib/BoneController.cpp \
                     src/lib/Render.cpp \
                     src/lib/ScreenWindow.cpp \
                     src/lib/Stage.cpp \
-                    src/lib/TextRenderer.cpp \
+                    src/lib/FreeTypeGL.cpp \
                     src/lib/TileTexture.cpp \
                     src/lib/Timer.cpp
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include \
@@ -26,7 +26,9 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include \
                     $(LOCAL_PATH)/../Library_libpng/include \
                     $(LOCAL_PATH)/../Library_zlib/include \
                     $(LOCAL_PATH)/../Library_MMDFiles/include \
-                    $(LOCAL_PATH)/../Library_GLFW/include
+                    $(LOCAL_PATH)/../Library_GLFW/include \
+                    $(LOCAL_PATH)/../Library_FreeType/include \
+                    $(LOCAL_PATH)/../Library_UTF8-CPP/include
 LOCAL_CFLAGS     += -DMMDAGENT_DONTRENDERDEBUG \
                     -DMMDAGENT_DONTUSESHADOWMAP \
                     -DMMDAGENT_DONTPICKMODEL \

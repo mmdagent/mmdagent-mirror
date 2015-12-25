@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -49,6 +49,7 @@ void ScreenWindow::initialize()
    m_enable = false;
 
    m_vsync = true;
+   m_intervalFrameOfVsync = 1;
    m_numMultiSampling = 0;
    m_showMouse = true;
    m_mouseActiveLeftFrame = 0.0;
@@ -58,9 +59,6 @@ void ScreenWindow::initialize()
 /* ScreenWindow::clear: free screen */
 void ScreenWindow::clear()
 {
-   if(m_enable == true)
-      glfwTerminate();
-
    initialize();
 }
 
@@ -81,15 +79,11 @@ bool ScreenWindow::setup(const int *size, const char *title, int maxMultiSamplin
 {
    clear();
 
-   if(glfwInit() == GL_FALSE)
-      return false;
-
    /* try to set number of multi-sampling */
    glfwOpenWindowHint(GLFW_FSAA_SAMPLES, maxMultiSampling);
 
    /* create window */
    if(glfwOpenWindow(size[0], size[1], 24, 24, 24, 8, 24, 8, GLFW_WINDOW) == GL_FALSE) {
-      glfwTerminate();
       return false;
    }
 
@@ -100,7 +94,12 @@ bool ScreenWindow::setup(const int *size, const char *title, int maxMultiSamplin
    glfwSetWindowTitle(title);
 
    /* set vertical sync. */
-   glfwSwapInterval(1);
+   if (glfwExtensionSupported("WGL_EXT_swap_control_tear") == GL_TRUE || glfwExtensionSupported("GLX_EXT_swap_control_tear") == GL_TRUE)
+      m_intervalFrameOfVsync = -1;
+   else
+      m_intervalFrameOfVsync = 1;
+
+   glfwSwapInterval(m_intervalFrameOfVsync);
 
    m_enable = true;
    return true;
@@ -131,7 +130,7 @@ void ScreenWindow::toggleVSync()
       glfwSwapInterval(0);
       m_vsync = false;
    } else {
-      glfwSwapInterval(1);
+      glfwSwapInterval(m_intervalFrameOfVsync);
       m_vsync = true;
    }
 }

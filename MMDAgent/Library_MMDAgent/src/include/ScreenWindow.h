@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -43,9 +43,10 @@
 class ScreenWindow
 {
 private:
-   bool m_enable;
+   bool m_enable;                    /* enable flag */
 
    bool m_vsync;                     /* true if vertical sync. */
+   int m_intervalFrameOfVsync;       /* vsync interval frame */
    unsigned char m_numMultiSampling; /* number of multi-sampling */
    bool m_showMouse;                 /* true if mouse is showed */
    double m_mouseActiveLeftFrame;    /* store display frame after moving mouse */

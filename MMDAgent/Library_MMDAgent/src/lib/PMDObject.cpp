@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -79,6 +79,10 @@ void PMDObject::initialize()
    m_displayCommentFrame = 0.0;
 
    m_needResetKinematic = false;
+
+   memset(&m_commentElem, 0, sizeof(FTGLTextDrawElements));
+   memset(&m_errorElem, 0, sizeof(FTGLTextDrawElements));
+   memset(&m_nameElem, 0, sizeof(FTGLTextDrawElements));
 }
 
 /* PMDOjbect::clear: free PMDObject */
@@ -91,6 +95,17 @@ void PMDObject::clear()
       delete m_localLipSync;
    if(m_alias)
       free(m_alias);
+
+   if(m_commentElem.vertices) free(m_commentElem.vertices);
+   if(m_commentElem.texcoords) free(m_commentElem.texcoords);
+   if(m_commentElem.indices) free(m_commentElem.indices);
+   if(m_errorElem.vertices) free(m_errorElem.vertices);
+   if(m_errorElem.texcoords) free(m_errorElem.texcoords);
+   if(m_errorElem.indices) free(m_errorElem.indices);
+   if(m_nameElem.vertices) free(m_nameElem.vertices);
+   if(m_nameElem.texcoords) free(m_nameElem.texcoords);
+   if(m_nameElem.indices) free(m_nameElem.indices);
+
    initialize();
 }
 
@@ -161,6 +176,14 @@ bool PMDObject::load(const char *fileName, const char *alias, btVector3 *offsetP
 
    /* set comment frame */
    m_displayCommentFrame = commentFrame;
+
+   /* reset text rendering elements */
+   m_commentElem.textLen = 0;
+   m_commentElem.numIndices = 0;
+   m_errorElem.textLen = 0;
+   m_errorElem.numIndices = 0;
+   m_nameElem.textLen = 0;
+   m_nameElem.numIndices = 0;
 
    /* load model */
    if (m_pmd.load(fileName, bullet, systex) == false) {
@@ -613,101 +636,223 @@ PMDObject *PMDObject::getAssignedModel()
    return m_assignTo;
 }
 
-/* PMDObject::renderComment: render model comment */
-void PMDObject::renderComment(TextRenderer * text)
+/* PMDObject::renderText: render model name, comment and error text */
+void PMDObject::renderText(FTGLTextureFont *font, bool displayModelNameFlag)
 {
-#ifndef MMDAGENT_DONTRENDERDEBUG
-   char *buf, *p, *save;
+   char buf[MMDAGENT_MAXBUFLEN];
    btVector3 pos;
    float w, h;
    float tpos[3];
+   bool texture_loaded = false;
+   GLfloat vertices[] = { -1, -1, 0, /* bottom left corner */
+                          -1, 1, 0,  /* top left corner */
+                          1, 1, 0,   /* top right corner */
+                          1, -1, 0   /* bottom right corner */
+                        };
+   GLubyte indices[] = { 0, 1, 2, 0, 2, 3 };
+   unsigned int currentIndex;
 
-   if (m_displayCommentFrame <= 0.0)
-      return;
-
-   if(m_pmd.getComment() == NULL)
-      return;
-
-   buf = MMDAgent_strdup(m_pmd.getComment());
-
-   pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
-   w = 13.0f;
-   h = 5.0f;
-   pos.setX(btScalar(pos.x() - w * 0.5f));
-   pos.setZ(btScalar(pos.z() + 5.2f));
-   glDisable(GL_LIGHTING);
-   glPushMatrix();
-   glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
-   glNormal3f(0.0, 0.0, 1.0);
-   glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-   glBegin(GL_QUADS);
-   glVertex3f(0, 0, 0);
-   glVertex3f(w, 0, 0);
-   glVertex3f(w, h, 0);
-   glVertex3f(0, h, 0);
-   glEnd();
-   glPopMatrix();
-   glColor4f(0.7f, 0.8f, 0.5f, 1.0f);
-   tpos[0] = pos.x();
-   tpos[1] = pos.y() + 4.5f;
-   tpos[2] = pos.z();
-   for (p = MMDAgent_strtok(buf, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
-      tpos[1] -= 0.65f;
+   /* comment */
+   if (m_displayCommentFrame > 0.0 && m_pmd.getComment() != NULL) {
+      if (m_commentElem.numIndices == 0) {
+         /* first time since load, create rendering element */
+         if (font->getTextDrawElements(m_pmd.getComment(), &m_commentElem, 0, 0.0f, 0.0f, 0.0f) == false) {
+            m_commentElem.numIndices = (size_t) - 1; /* error */
+         }
+      }
+   }
+   if (m_displayCommentFrame > 0.0 && m_commentElem.numIndices != 0 && m_commentElem.numIndices != (size_t) - 1) {
+      pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
+      w = 13.0f;
+      h = 5.0f;
+      pos.setX(btScalar(pos.x() - w * 0.5f));
+      pos.setZ(btScalar(pos.z() + 5.2f));
+      glDisable(GL_LIGHTING);
+      if (texture_loaded == false) {
+         glEnable(GL_TEXTURE_2D);
+         glActiveTexture(GL_TEXTURE0);
+         glClientActiveTexture(GL_TEXTURE0);
+         glEnableClientState(GL_VERTEX_ARRAY);
+         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+         texture_loaded = true;
+      }
+      glPushMatrix();
+      glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
+      glNormal3f(0.0, 0.0, 1.0);
+      glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      vertices[0] = 0;
+      vertices[1] = 0;
+      vertices[2] = 0;
+      vertices[3] = w;
+      vertices[4] = 0;
+      vertices[5] = 0;
+      vertices[6] = w;
+      vertices[7] = h;
+      vertices[8] = 0;
+      vertices[9] = 0;
+      vertices[10] = h;
+      vertices[11] = 0;
+      glVertexPointer(3, GL_FLOAT, 0, vertices);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glPopMatrix();
+      glColor4f(0.7f, 0.8f, 0.5f, 1.0f);
+      tpos[0] = pos.x();
+      tpos[1] = pos.y() + 4.0f;
+      tpos[2] = pos.z();
       glPushMatrix();
       glTranslatef(tpos[0], tpos[1], tpos[2]);
-      glScalef(0.8f, 0.8f, 0.8f);
-      text->drawString(p);
+      glScalef(0.7f, 0.7f, 0.7f);
+      glVertexPointer(3, GL_FLOAT, 0, m_commentElem.vertices);
+      glTexCoordPointer(2, GL_FLOAT, 0, m_commentElem.texcoords);
+      glBindTexture(GL_TEXTURE_2D, font->getTextureID());
+      glDrawElements(GL_TRIANGLES, m_commentElem.numIndices, GL_UNSIGNED_INT, (const GLvoid *) m_commentElem.indices);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* error */
+   m_pmd.getErrorTextureList(buf, MMDAGENT_MAXBUFLEN);
+   if (MMDAgent_strlen(buf) > 0) {
+      if (m_errorElem.numIndices == 0) {
+         if (font->getTextDrawElements(buf, &m_errorElem, 0, 0.0f, 0.0f, 0.0f) == false) {
+            m_errorElem.numIndices = (size_t) - 1; /* error */
+         }
+      }
+   }
+   if (m_errorElem.numIndices != 0 && m_errorElem.numIndices != (size_t) - 1) {
+      pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
+      pos.setZ(btScalar(pos.z() + 5.0f));
+      glDisable(GL_LIGHTING);
+      if (texture_loaded == false) {
+         glEnable(GL_TEXTURE_2D);
+         glActiveTexture(GL_TEXTURE0);
+         glClientActiveTexture(GL_TEXTURE0);
+         glEnableClientState(GL_VERTEX_ARRAY);
+         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+         texture_loaded = true;
+      }
+      glPushMatrix();
+      glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
+      w = 10.0f;
+      h = 6.0f;
+      glNormal3f(0.0, 0.0, 1.0);
+      glColor4f(0.0f, 0.0f, 0.0f, 0.7f);
+      glBindTexture(GL_TEXTURE_2D, 0);
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      vertices[0] = 0;
+      vertices[1] = 0;
+      vertices[2] = 0;
+      vertices[3] = w;
+      vertices[4] = 0;
+      vertices[5] = 0;
+      vertices[6] = w;
+      vertices[7] = h;
+      vertices[8] = 0;
+      vertices[9] = 0;
+      vertices[10] = h;
+      vertices[11] = 0;
+      glVertexPointer(3, GL_FLOAT, 0, vertices);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+      glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+      glPopMatrix();
+      glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+      tpos[0] = pos.x();
+      tpos[1] = pos.y() + 5.0f;
+      tpos[2] = pos.z();
+      glPushMatrix();
+      glTranslatef(tpos[0], tpos[1], tpos[2]);
+      glVertexPointer(3, GL_FLOAT, 0, m_errorElem.vertices);
+      glTexCoordPointer(2, GL_FLOAT, 0, m_errorElem.texcoords);
+      glBindTexture(GL_TEXTURE_2D, font->getTextureID());
+      glDrawElements(GL_TRIANGLES, m_errorElem.numIndices, GL_UNSIGNED_INT, (const GLvoid *) m_errorElem.indices);
+      glPopMatrix();
+      glEnable(GL_LIGHTING);
+   }
+
+   /* model name */
+   if (displayModelNameFlag) {
+      m_nameElem.textLen = 0; /* reset */
+      m_nameElem.numIndices = 0;
+      pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
+      /* render model name */
+      if (m_pmd.getName()) {
+         sprintf(buf, "%s(%s)", m_alias, m_pmd.getName());
+      } else {
+         sprintf(buf, "%s", m_alias);
+      }
+      if (font->getTextDrawElements(buf, &m_nameElem, 0, pos.x() + 2.0f, m_pmd.getMaxHeight() + 2.0f, 0.0f) == false) {
+         m_nameElem.textLen = 0; /* reset */
+         m_nameElem.numIndices = 0;
+      }
+      /* render motion names */
+      float dest;
+      MotionPlayer *motionPlayer;
+      currentIndex = m_nameElem.numIndices;
+      for (dest = 1.1f, motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+         if (motionPlayer->active) {
+            if (font->getTextDrawElements(motionPlayer->name, &m_nameElem, m_nameElem.textLen, pos.x() + 2.0f + dest, m_pmd.getMaxHeight() + 2.0f - dest, 0.0f) == false)
+               continue;
+            dest += 1.1f;
+         }
+      }
+   }
+   if (displayModelNameFlag && m_nameElem.numIndices != 0) {
+      glDisable(GL_LIGHTING);
+      if (texture_loaded == false) {
+         glEnable(GL_TEXTURE_2D);
+         glActiveTexture(GL_TEXTURE0);
+         glClientActiveTexture(GL_TEXTURE0);
+         glEnableClientState(GL_VERTEX_ARRAY);
+         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+         texture_loaded = true;
+      }
+      glBindTexture(GL_TEXTURE_2D, font->getTextureID());
+      glPushMatrix();
+      glVertexPointer(3, GL_FLOAT, 0, m_nameElem.vertices);
+      glTexCoordPointer(2, GL_FLOAT, 0, m_nameElem.texcoords);
+      glTranslatef(0.0f, 0.0f, pos.z());
+      if (currentIndex > 0) {
+         glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+         glDrawElements(GL_TRIANGLES, currentIndex, GL_UNSIGNED_INT, (const GLvoid *)m_nameElem.indices);
+      }
+      if (m_nameElem.numIndices > currentIndex) {
+         glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+         glDrawElements(GL_TRIANGLES, m_nameElem.numIndices - currentIndex, GL_UNSIGNED_INT, (const GLvoid *) & (m_nameElem.indices[currentIndex]));
+      }
       glPopMatrix();
    }
-   glEnable(GL_LIGHTING);
-   free(buf);
-#endif /* !MMDAGENT_DONTRENDERDEBUG */
+   if (texture_loaded == true) {
+      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glDisable(GL_TEXTURE_2D);
+   }
 }
 
-/* PMDObject::renderDebug: render model debug */
-void PMDObject::renderDebug(TextRenderer * text)
+/* PMDObject::renderModelDebug: render model debug */
+void PMDObject::renderModelDebug()
 {
-#ifndef MMDAGENT_DONTRENDERDEBUG
    btVector3 pos, x, y;
    unsigned int i, j;
    float dest;
    MotionPlayer *motionPlayer;
    MotionControllerBoneElement *b;
+   GLfloat v[6];
+
+   glPushMatrix();
 
    /* render debug */
    m_pmd.renderDebug();
 
-   /* render model name */
-   glDisable(GL_LIGHTING);
-
-   glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-   glPushMatrix();
-   pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
-   glTranslatef(pos.x() + 2.0f, m_pmd.getMaxHeight() + 2.0f , pos.z());
-   if(m_alias)
-      text->drawString(m_alias);
-   if(m_pmd.getName()) {
-      text->drawString("(");
-      text->drawString(m_pmd.getName());
-      text->drawString(")");
-   }
-   glPopMatrix();
-
-   /* render motion names */
-   glColor4f(0.0, 1.0f, 1.0f, 1.0f);
-   for(dest = 0.7f, motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
-      if(motionPlayer->active) {
-         glPushMatrix();
-         glTranslatef(pos.x() + 2.0f + dest, m_pmd.getMaxHeight() + 2.0f - dest, pos.z() + dest);
-         text->drawString(motionPlayer->name);
-         glPopMatrix();
-         dest += 0.7f;
-      }
-   }
-
    /* render motion skeletons */
+   pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
    dest = 0.7f;
-   for(motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
+   glDisable(GL_LIGHTING);
+   glEnableClientState(GL_VERTEX_ARRAY);
+   glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
+   for (motionPlayer = getMotionManager()->getMotionPlayerList(); motionPlayer; motionPlayer = motionPlayer->next) {
       if(motionPlayer->active) {
          glPushMatrix();
          b = motionPlayer->mc.getBoneCtrlList();
@@ -752,10 +897,14 @@ void PMDObject::renderDebug(TextRenderer * text)
             } else {
                glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
             }
-            glBegin(GL_LINES);
-            glVertex3f(x.x(), x.y(), x.z());
-            glVertex3f(y.x(), y.y(), y.z());
-            glEnd();
+            v[0] = x.x();
+            v[1] = x.y();
+            v[2] = x.z();
+            v[3] = y.x();
+            v[4] = y.y();
+            v[5] = y.z();
+            glVertexPointer(3, GL_FLOAT, 0, v);
+            glDrawArrays(GL_LINES, 0, 2);
             if (b[i].bone->getType() == IK_DESTINATION) {
                /* when an IK is controlled in this motion, the releavant bones under the IK should also be drawn */
                for (j = 0; j < motionPlayer->mc.getNumBoneCtrl(); j++) {
@@ -767,10 +916,14 @@ void PMDObject::renderDebug(TextRenderer * text)
                      x = b[j].bone->getTransform()->getOrigin();
                      y = b[j].bone->getParentBone()->getTransform()->getOrigin();
                      glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
-                     glBegin(GL_LINES);
-                     glVertex3f(x.x(), x.y(), x.z());
-                     glVertex3f(y.x(), y.y(), y.z());
-                     glEnd();
+                     v[0] = x.x();
+                     v[1] = x.y();
+                     v[2] = x.z();
+                     v[3] = y.x();
+                     v[4] = y.y();
+                     v[5] = y.z();
+                     glVertexPointer(3, GL_FLOAT, 0, v);
+                     glDrawArrays(GL_LINES, 0, 2);
                   }
                }
             }
@@ -779,61 +932,12 @@ void PMDObject::renderDebug(TextRenderer * text)
          dest += 0.7f;
       }
    }
+   glDisableClientState(GL_VERTEX_ARRAY);
 
    /* restore the bone positions */
    updateMotion(0.0);
 
    glEnable(GL_LIGHTING);
-#endif /* !MMDAGENT_DONTRENDERDEBUG */
-}
 
-/* PMDObject::renderError: render model error */
-void PMDObject::renderError(TextRenderer * text)
-{
-#ifndef MMDAGENT_DONTRENDERDEBUG
-   char buf[MMDAGENT_MAXBUFLEN];
-   btVector3 pos;
-   float w, h;
-   float tpos[3];
-   char *p, *save;
-
-   m_pmd.getErrorTextureList(buf, MMDAGENT_MAXBUFLEN);
-   if (MMDAgent_strlen(buf) <= 0)
-      return;
-
-   pos = m_pmd.getCenterBone()->getTransform()->getOrigin();
-   pos.setZ(btScalar(pos.z() + 5.0f));
-   glDisable(GL_LIGHTING);
-   glPushMatrix();
-   glTranslatef(pos.x() - 0.3f, pos.y() - 0.3f, pos.z() - 0.01f);
-   w = 10.0f;
-   h = 6.0f;
-   glNormal3f(0.0, 0.0, 1.0);
-   glColor4f(0.0f, 0.0f, 0.0f, 0.7f);
-   glBegin(GL_QUADS);
-   glVertex3f(0, 0, 0);
-   glVertex3f(w, 0, 0);
-   glVertex3f(w, h, 0);
-   glVertex3f(0, h, 0);
-   glEnd();
    glPopMatrix();
-
-   glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-   tpos[0] = pos.x();
-   tpos[1] = pos.y() + 5.0f;
-   tpos[2] = pos.z();
-   glPushMatrix();
-   glTranslatef(tpos[0], tpos[1], tpos[2]);
-   text->drawString("[Texture Errors]");
-   glPopMatrix();
-
-   for (p = MMDAgent_strtok(buf, "\n", &save); p; p = MMDAgent_strtok(NULL, "\n", &save)) {
-      tpos[1] -= 0.7f;
-      glPushMatrix();
-      glTranslatef(tpos[0], tpos[1], tpos[2]);
-      text->drawString(p);
-      glPopMatrix();
-   }
-   glEnable(GL_LIGHTING);
-#endif /* !MMDAGENT_DONTRENDERDEBUG */
 }
