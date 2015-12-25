@@ -1,5 +1,6 @@
 Version 1.6:
  * change charcode from SJIS to UTF-8.
+ * change gravity factor.
 
 Version 1.4:
  * add 3D model and motions of SD Mei.
