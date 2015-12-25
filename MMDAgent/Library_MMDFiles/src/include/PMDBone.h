@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -39,9 +39,9 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define PMDBONE_KNEENAME "\x82\xd0\x82\xb4" /* knee */
+#define PMDBONE_KNEENAME "\xe3\x81\xb2\xe3\x81\x96" /* knee */
 
-#define PMDBONE_ADDITIONALROOTNAME  "\x91\x53\x82\xc4\x82\xcc\x90\x65", "\x97\xbc\x91\xab\x83\x49\x83\x74\x83\x5a", "\x89\x45\x91\xab\x83\x49\x83\x74\x83\x5a", "\x8d\xb6\x91\xab\x83\x49\x83\x74\x83\x5a" /* parent of all, both legs offset, right leg offset, left leg offset */
+#define PMDBONE_ADDITIONALROOTNAME  "\xe5\x85\xa8\xe3\x81\xa6\xe3\x81\xae\xe8\xa6\xaa", "\xe4\xb8\xa1\xe8\xb6\xb3\xe3\x82\xaa\xe3\x83\x95\xe3\x82\xbb", "\xe5\x8f\xb3\xe8\xb6\xb3\xe3\x82\xaa\xe3\x83\x95\xe3\x82\xbb", "\xe5\xb7\xa6\xe8\xb6\xb3\xe3\x82\xaa\xe3\x83\x95\xe3\x82\xbb" /* parent of all, both legs offset, right leg offset, left leg offset */
 #define PMDBONE_NADDITIONALROOTNAME 4
 
 /* PMDBone: bone of PMD */

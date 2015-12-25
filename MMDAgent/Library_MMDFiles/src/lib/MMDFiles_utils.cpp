@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -47,16 +47,29 @@
 
 #if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
 #include <iconv.h>
+#include <unistd.h>
 #endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */
+
+#ifdef _WIN32
+#include <windows.h>
+#endif /* _WIN32 */
+
+#ifdef __ANDROID__
+#include <stdio.h>
+#include <sys/sysconf.h>
+#include "UTF8Table.h"
+#endif /* __ANDROID__ */
 
 #include "MMDFiles.h"
 
 /* MMDFiles_charsize: number of character byte */
 static const unsigned char MMDFiles_charsize[] = {
-   1, 0x01, 0x7F, /* control and ASCII */
-   1, 0xA1, 0xDF, /* 1 byte char */
-   2, 0x81, 0x9F, /* 2 byte char */
-   2, 0xE0, 0xEF, /* 2 byte char */
+   1, 0x01, 0x7F,
+   2, 0xC2, 0xDF,
+   3, 0xE0, 0xEF,
+   4, 0xF0, 0xF7,
+   5, 0xF8, 0xFB,
+   6, 0xFC, 0xFD,
    0, 0, 0
 };
 
@@ -160,68 +173,129 @@ char *MMDFiles_strdup(const char *str)
    return buf;
 }
 
-/* MMDFiles_pathdup: convert charset from application to system */
-char *MMDFiles_pathdup(const char *str)
+#if defined(_WIN32)
+static char *MMDFiles_strdup_with_conversion(const char *str, UINT from, UINT to)
 {
-#ifdef _WIN32
-   return MMDFiles_strdup(str);
-#endif /* _WIN32 */
-#ifdef __APPLE__
+   int result;
+   size_t size;
+   char *buff;
+   int wideCharSize;
+   WCHAR *wideCharStr;
+
+   if(str == NULL)
+      return NULL;
+
+   result = MultiByteToWideChar(from, 0, (LPCSTR) str, -1, NULL, 0);
+   if(result <= 0) {
+      return NULL;
+   }
+   wideCharSize = result;
+
+   wideCharStr = (WCHAR *) malloc(sizeof(WCHAR) * (wideCharSize + 1));
+   if(wideCharStr == NULL) {
+      return NULL;
+   }
+
+   result = MultiByteToWideChar( from, 0, (LPCSTR) str, -1, (LPWSTR) wideCharStr, wideCharSize);
+   if(result != wideCharSize) {
+      free(wideCharStr);
+      return NULL;
+   }
+
+   result = WideCharToMultiByte(to, 0, (LPCWSTR) wideCharStr, -1, NULL, 0, NULL, NULL );
+   if(result <= 0) {
+      free(wideCharStr);
+      return NULL;
+   }
+   size = (size_t) result;
+
+   buff = (char *) malloc(sizeof(char) * (size + 1));
+   if(buff == NULL) {
+      free(wideCharStr);
+      return NULL;
+   }
+
+   result = WideCharToMultiByte(to, 0, (LPCWSTR) wideCharStr, -1, (LPSTR) buff, size, NULL, NULL);
+   if((size_t) result != size) {
+      free(wideCharStr);
+      free(buff);
+      return NULL;
+   }
+
+   free(wideCharStr);
+
+   return buff;
+}
+
+#elif defined(__APPLE__)
+static char *MMDFiles_strdup_with_conversion(const char *str, CFStringEncoding from, CFStringEncoding to)
+{
    size_t i, size;
    char *inBuff, *outBuff;
    size_t inLen, outLen;
    CFStringRef cfs;
 
-   inLen = MMDFiles_strlen(str);
-   if(inLen <= 0)
+   if(str == NULL)
       return NULL;
 
-   inBuff = MMDFiles_strdup(str);
-   if(inBuff == NULL)
-      return NULL;
-
-   /* convert directory separator */
-   for(i = 0; i < inLen; i += size) {
-      size = MMDFiles_getcharsize(&inBuff[i]);
-      if(size == 1 && MMDFiles_dirseparator(inBuff[i]) == true)
-         inBuff[i] = MMDFILES_DIRSEPARATOR;
-   }
-
-   /* convert multi-byte char */
-   cfs = CFStringCreateWithCString(NULL, inBuff, kCFStringEncodingDOSJapanese);
-   outLen = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingUTF8) + 1;
+   cfs = CFStringCreateWithCString(NULL, str, from);
+   outLen = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), to) + 1;
    outBuff = (char *) malloc(outLen);
-   CFStringGetCString(cfs, outBuff, outLen, kCFStringEncodingUTF8);
+   CFStringGetCString(cfs, outBuff, outLen, to);
    CFRelease(cfs);
 
-   free(inBuff);
    return outBuff;
-#endif /* __APPLE__ */
-#ifdef __ANDROID__
-   size_t i, size;
-   char *inBuff;
-   size_t inLen;
+}
+#elif defined(__ANDROID__)
+static char *MMDFiles_strdup_with_conversion(const char *str, bool systemToPmd)
+{
+   size_t len;
+   const char *p;
+   const char **f;
+   const char **t;
+   const char **from = &UTF8Table[0];
+   const char **to = &UTF8Table[1];
+   char *buff;
 
-   inLen = MMDFiles_strlen(str);
-   if(inLen <= 0)
+   len = MMDFiles_strlen(str);
+   if(len <= 0) {
       return NULL;
-
-   inBuff = MMDFiles_strdup(str);
-   if(inBuff == NULL)
-      return NULL;
-
-   /* convert directory separator */
-   for(i = 0; i < inLen; i += size) {
-      size = MMDFiles_getcharsize(&inBuff[i]);
-      if(size == 1 && MMDFiles_dirseparator(inBuff[i]) == true)
-         inBuff[i] = MMDFILES_DIRSEPARATOR;
    }
 
-   return inBuff;
-#endif /* __ANDROID__ */
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__ANDROID__)
+   buff = (char *) calloc(len * MMDFILESUTILS_MAXCHARBYTE, sizeof(char));
+   if(buff == NULL) {
+      return NULL;
+   }
+
+   if(!systemToPmd) {
+      from = &UTF8Table[1];
+      to = &UTF8Table[0];
+   }
+
+   for(p = str; *p != '\0';) {
+      f = from;
+      t = to;
+      while(f != NULL) {
+         if(MMDFiles_strheadmatch(p, *f)) {
+            strcat(buff, *t);
+            break;
+         }
+         f += 2;
+         t += 2;
+      }
+      if(f == NULL) {
+         p++;
+      } else {
+         p += strlen(*f);
+      }
+   }
+
+   return buff;
+}
+#else
+static char *MMDFiles_strdup_with_conversion(const char *str, const char *from, const char *to)
+{
    iconv_t ic;
-   size_t i, size;
    char *inBuff, *outBuff;
    char *inFile, *outFile;
    size_t inLen, outLen;
@@ -231,19 +305,12 @@ char *MMDFiles_pathdup(const char *str)
       return NULL;
    outLen = inLen * MMDFILESUTILS_MAXCHARBYTE;
 
-   ic = iconv_open(MMDFILES_CHARSET, "SJIS");
+   ic = iconv_open(to, from);
    if(ic < 0)
       return NULL;
 
    inBuff = inFile = MMDFiles_strdup(str);
    outBuff = outFile = (char *) calloc(outLen, sizeof(char));
-
-   /* convert directory separator */
-   for(i = 0; i < inLen; i += size) {
-      size = MMDFiles_getcharsize(&inFile[i]);
-      if(size == 1 && MMDFiles_dirseparator(inFile[i]) == true)
-         inFile[i] = MMDFILES_DIRSEPARATOR;
-   }
 
    /* convert muli-byte char */
    if(iconv(ic, &inFile, &inLen, &outFile, &outLen) >= 0) {
@@ -256,7 +323,116 @@ char *MMDFiles_pathdup(const char *str)
 
    free(inBuff);
    return outBuff;
+}
+#endif
+
+/* MMDFiles_strdup_from_sjis_to_utf8: strdup with conversion from sjis to utf8 */
+char *MMDFiles_strdup_from_sjis_to_utf8(const char *str)
+{
+#if defined(_WIN32)
+   return MMDFiles_strdup_with_conversion(str, CP_ACP, CP_UTF8);
+#elif defined(__APPLE__)
+   return MMDFiles_strdup_with_conversion(str, kCFStringEncodingDOSJapanese, kCFStringEncodingUTF8);
+#elif defined(__ANDROID__)
+   return MMDFiles_strdup_with_conversion(str, false);
+#else
+   return MMDFiles_strdup_with_conversion(str, "CP932", "UTF8");
 #endif /* !_WIN32 && !__APPLE__ && !__ANDROID__ */
+}
+
+/* MMDFiles_strdup_from_utf8_to_sjis: strdup with conversion from utf8 to sjis */
+char *MMDFiles_strdup_from_utf8_to_sjis(const char *str)
+{
+#if defined(_WIN32)
+   return MMDFiles_strdup_with_conversion(str, CP_UTF8, CP_ACP);
+#elif defined(__APPLE__)
+   return MMDFiles_strdup_with_conversion(str, kCFStringEncodingUTF8, kCFStringEncodingDOSJapanese);
+#elif defined(__ANDROID__)
+   return MMDFiles_strdup_with_conversion(str, true);
+#else
+   return MMDFiles_strdup_with_conversion(str, "UTF8", "CP932");
+#endif
+}
+
+/* MMDFiles_pathdup_from_application_to_system_locale: convert charset from application to system locale */
+char *MMDFiles_pathdup_from_application_to_system_locale(const char *str)
+{
+   size_t i, size, inLen;
+   char *inBuff, *outBuff;
+
+   if(str == NULL)
+      return NULL;
+
+   inBuff = MMDFiles_strdup(str);
+   if(inBuff == NULL)
+      return NULL;
+   inLen = strlen(inBuff);
+
+   /* convert directory separator */
+   for(i = 0; i < inLen; i += size) {
+      size = MMDFiles_getcharsize(&inBuff[i]);
+      if(size == 1 && MMDFiles_dirseparator(inBuff[i]) == true)
+         inBuff[i] = MMDFILESUTILS_SYSTEMDIRSEPARATOR;
+   }
+
+   outBuff = MMDFiles_strdup_from_application_to_system_locale(inBuff);
+   free(inBuff);
+   return outBuff;
+}
+
+/* MMDFiles_pathdup_from_system_locale_to_application: convert path charset from system locale to application */
+char *MMDFiles_pathdup_from_system_locale_to_application(const char *str)
+{
+   size_t i, size, outLen;
+   char *outBuff;
+
+   if(str == NULL)
+      return NULL;
+
+   outBuff = MMDFiles_strdup_from_system_locale_to_application(str);
+   if(outBuff == NULL)
+      return NULL;
+
+   outLen = strlen(outBuff);
+
+   /* convert directory separator */
+   for(i = 0; i < outLen; i += size) {
+      size = MMDFiles_getcharsize(&outBuff[i]);
+      if(size == 1 && MMDFiles_dirseparator(outBuff[i]) == true)
+         outBuff[i] = MMDFILES_DIRSEPARATOR;
+   }
+
+   return outBuff;
+}
+
+/* MMDFiles_strdup_from_application_to_system_locale: convert charset from application to system locale */
+char *MMDFiles_strdup_from_application_to_system_locale(const char *str)
+{
+   if(str == NULL)
+      return NULL;
+
+#if defined(_WIN32)
+   return MMDFiles_strdup_with_conversion(str, CP_UTF8, CP_ACP);
+#elif !defined(__APPLE__) && !defined(__ANDROID__)
+   return MMDFiles_strdup_with_conversion(str, "UTF-8", "");
+#else
+   return MMDFiles_strdup(str);
+#endif
+}
+
+/* MMDFiles_strdup_from_system_locale_to_application: convert charset from system locale to application */
+char *MMDFiles_strdup_from_system_locale_to_application(const char *str)
+{
+   if(str == NULL)
+      return NULL;
+
+#if defined(_WIN32)
+   return MMDFiles_strdup_with_conversion(str, CP_ACP, CP_UTF8);
+#elif !defined(__APPLE__) && !defined(__ANDROID__)
+   return MMDFiles_strdup_with_conversion(str, "", "UTF-8");
+#else
+   return MMDFiles_strdup(str);
+#endif
 }
 
 /* MMDFiles_dirname: get directory name from path */
@@ -314,24 +490,31 @@ char *MMDFiles_basename(const char *file)
 /* MMDFiles_fopen: get file pointer */
 FILE *MMDFiles_fopen(const char *file, const char *mode)
 {
-#ifdef _WIN32
-   if(file == NULL || mode == NULL)
-      return NULL;
-   else
-      return fopen(file, mode);
-#else
    char *path;
    FILE *fp;
 
    if(file == NULL || mode == NULL)
       return NULL;
 
-   path = MMDFiles_pathdup(file);
+   path = MMDFiles_pathdup_from_application_to_system_locale(file);
+   if(path == NULL)
+      return NULL;
+
    fp = fopen(path, mode);
    free(path);
 
+   // remove BOM
+   if(fp != NULL && strcmp(mode, "r") == 0) {
+      char c1, c2, c3;
+      c1 = fgetc(fp);
+      c2 = fgetc(fp);
+      c3 = fgetc(fp);
+      if(c1 == '\xEF' && c2 == '\xBB' && c3 == '\xBF')
+         return fp;
+      fseek(fp, 0, SEEK_SET);
+   }
+
    return fp;
-#endif /* _WIN32 */
 }
 
 /* MMDFiles_getfsize: get file size */
@@ -354,4 +537,18 @@ size_t MMDFiles_getfsize(const char *file)
 #else
    return (size_t) size.__pos;
 #endif /* _WIN32 || __APPLE__ || __ANDROID__ */
+}
+
+/* MMDFiles_getpagesize: get memory page size */
+unsigned int MMDFiles_getpagesize()
+{
+#if __APPLE__
+   return (unsigned int) 4096;
+#elif defined(_WIN32)
+   SYSTEM_INFO sysinfo;
+   GetSystemInfo(&sysinfo);
+   return (unsigned int) sysinfo.dwPageSize;
+#else
+   return (unsigned int) sysconf(_SC_PAGE_SIZE);
+#endif
 }

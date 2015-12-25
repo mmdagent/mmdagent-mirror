@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -41,8 +41,13 @@
 
 /* definitions */
 
-#define MMDFILESUTILS_MAXCHARBYTE   3
+#define MMDFILESUTILS_MAXCHARBYTE   6
 #define MMDFILESUTILS_DIRSEPARATORS '\\', '/'
+#ifdef _WIN32
+#define MMDFILESUTILS_SYSTEMDIRSEPARATOR '\\'
+#else
+#define MMDFILESUTILS_SYSTEMDIRSEPARATOR '/'
+#endif /* _WIN32 */
 
 /* MMDFiles_getcharsize: get character size */
 unsigned char MMDFiles_getcharsize(const char *str);
@@ -65,8 +70,23 @@ int MMDFiles_strlen(const char *str);
 /* MMDFiles_strdup: strdup */
 char *MMDFiles_strdup(const char *str);
 
-/* MMDFiles_pathdup: convert charset from application to system */
-char *MMDFiles_pathdup(const char *str);
+/* MMDFiles_strdup_from_sjis_to_utf8: strdup with conversion from sjis to utf8 */
+char *MMDFiles_strdup_from_sjis_to_utf8(const char *str);
+
+/* MMDFiles_strdup_from_utf8_to_sjis: strdup with conversion from utf8 to sjis */
+char *MMDFiles_strdup_from_utf8_to_sjis(const char *str);
+
+/* MMDFiles_strdup_from_system_locale_to_application: convert string charset from system locale to application */
+char *MMDFiles_strdup_from_system_locale_to_application(const char *str);
+
+/* MMDFiles_strdup_from_application_to_system_locale: convert string charset from application to system locale */
+char *MMDFiles_strdup_from_application_to_system_locale(const char *str);
+
+/* MMDFiles_pathdup_from_application_to_system_locale: convert path charset from application to system locale */
+char *MMDFiles_pathdup_from_application_to_system_locale(const char *str);
+
+/* MMDFiles_pathdup_from_system_locale_to_application: convert path charset from system locale to application */
+char *MMDFiles_pathdup_from_system_locale_to_application(const char *str);
 
 /* MMDFiles_dirname: get directory name from path */
 char *MMDFiles_dirname(const char *file);
@@ -79,3 +99,6 @@ FILE *MMDFiles_fopen(const char *file, const char *mode);
 
 /* MMDFiles_getfsize: get file size */
 size_t MMDFiles_getfsize(const char *file);
+
+/* MMDFiles_getpagesize: get memory page size */
+unsigned int MMDFiles_getpagesize();

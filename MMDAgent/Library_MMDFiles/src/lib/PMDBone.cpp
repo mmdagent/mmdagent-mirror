@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -95,14 +95,14 @@ PMDBone::~PMDBone()
 bool PMDBone::setup(PMDFile_Bone *b, PMDBone *boneList, unsigned short maxBones, PMDBone *rootBone)
 {
    bool ret = true;
-   char name[21];
+   char sjisBuff[21];
 
    clear();
 
    /* name */
-   strncpy(name, b->name, 20);
-   name[20] = '\0';
-   m_name = MMDFiles_strdup(name);
+   strncpy(sjisBuff, b->name, 20);
+   sjisBuff[20] = '\0';
+   m_name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
 
    /* mark if this bone should be treated as angle-constrained bone in IK process */
    if (strstr(m_name, PMDBONE_KNEENAME))
@@ -228,7 +228,10 @@ void PMDBone::update()
       m_trans.setRotation(m_targetBone->m_rot);
    } else if (m_type == FOLLOW_ROTATE) {
       /* for co-rotate bone, further apply the rotation of child bone scaled by the rotation weight */
-      r = m_rot * norot.slerp(m_childBone->m_rot, btScalar(m_rotateCoef));
+      if (m_rotateCoef >= 0.0f)
+         r = m_rot * norot.slerp(m_childBone->m_rot, btScalar(m_rotateCoef));
+      else
+         r = m_rot * norot.slerp(m_childBone->m_rot.inverse(), btScalar(-m_rotateCoef));
       m_trans.setRotation(r);
    } else {
       m_trans.setRotation(m_rot);
@@ -377,52 +380,23 @@ bool PMDBone::getIKSwitchFlag()
 #ifndef MMDFILES_DONTRENDERDEBUG
 static void drawCube()
 {
-   static GLfloat vertices [8][3] = {
-      { -0.5f, -0.5f, 0.5f},
-      { 0.5f, -0.5f, 0.5f},
-      { 0.5f, 0.5f, 0.5f},
-      { -0.5f, 0.5f, 0.5f},
-      { 0.5f, -0.5f, -0.5f},
-      { -0.5f, -0.5f, -0.5f},
-      { -0.5f, 0.5f, -0.5f},
-      { 0.5f, 0.5f, -0.5f}
+   static const GLfloat vertices[8][3] = {
+      { -0.5f, -0.5f, -0.5f },
+      { 0.5f, -0.5f, -0.5f },
+      { 0.5f, 0.5f, -0.5f },
+      { -0.5f, 0.5f, -0.5f },
+      { -0.5f, -0.5f, 0.5f },
+      { 0.5f, -0.5f, 0.5f },
+      { 0.5f, 0.5f, 0.5f },
+      { -0.5f, 0.5f, 0.5f }
    };
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[0]);
-   glVertex3fv(vertices[1]);
-   glVertex3fv(vertices[2]);
-   glVertex3fv(vertices[3]);
-   glEnd();
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[4]);
-   glVertex3fv(vertices[5]);
-   glVertex3fv(vertices[6]);
-   glVertex3fv(vertices[7]);
-   glEnd();
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[1]);
-   glVertex3fv(vertices[4]);
-   glVertex3fv(vertices[7]);
-   glVertex3fv(vertices[2]);
-   glEnd();
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[5]);
-   glVertex3fv(vertices[0]);
-   glVertex3fv(vertices[3]);
-   glVertex3fv(vertices[6]);
-   glEnd();
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[3]);
-   glVertex3fv(vertices[2]);
-   glVertex3fv(vertices[7]);
-   glVertex3fv(vertices[6]);
-   glEnd();
-   glBegin(GL_POLYGON);
-   glVertex3fv(vertices[1]);
-   glVertex3fv(vertices[0]);
-   glVertex3fv(vertices[5]);
-   glVertex3fv(vertices[4]);
-   glEnd();
+   static const GLubyte indices[] = {
+      0, 1, 1, 2, 2, 3, 3, 0,
+      4, 5, 5, 6, 6, 7, 7, 4,
+      0, 4, 1, 5, 2, 6, 3, 7
+   };
+   glVertexPointer(3, GL_FLOAT, 0, vertices);
+   glDrawElements(GL_LINES, 24, GL_UNSIGNED_BYTE, indices);
 }
 #endif /* !MMDFILES_DONTRENDERDEBUG */
 
@@ -433,6 +407,7 @@ void PMDBone::renderDebug()
    btScalar m[16];
    btVector3 a;
    btVector3 b;
+   GLfloat v[6];
 
    /* do not draw IK target bones if the IK chain is under simulation */
    if (m_type == IK_TARGET && m_parentBone && m_parentBone->m_simulated) return;
@@ -440,40 +415,41 @@ void PMDBone::renderDebug()
    m_trans.getOpenGLMatrix(m);
 
    /* draw node */
+   glEnableClientState(GL_VERTEX_ARRAY);
    glPushMatrix();
    glMultMatrixf(m);
    if (m_type != NO_DISP) { /* do not draw invisible bone nodes */
       if (m_simulated) {
          /* under physics simulation */
          glColor4f(0.8f, 0.8f, 0.0f, 1.0f);
-         glScaled(0.1, 0.1, 0.1);
+         glScalef(0.1f, 0.1f, 0.1f);
       } else {
          switch (m_type) {
          case IK_DESTINATION:
             glColor4f(0.7f, 0.2f, 0.2f, 1.0f);
-            glScaled(0.25, 0.25, 0.25);
+            glScalef(0.25f, 0.25f, 0.25f);
             break;
          case UNDER_IK:
             glColor4f(0.8f, 0.5f, 0.0f, 1.0f);
-            glScaled(0.15, 0.15, 0.15);
+            glScalef(0.15f, 0.15f, 0.15f);
             break;
          case IK_TARGET:
             glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
-            glScaled(0.15, 0.15, 0.15);
+            glScalef(0.15f, 0.15f, 0.15f);
             break;
          case UNDER_ROTATE:
          case TWIST:
          case FOLLOW_ROTATE:
             glColor4f(0.0f, 0.8f, 0.2f, 1.0f);
-            glScaled(0.15, 0.15, 0.15);
+            glScalef(0.15f, 0.15f, 0.15f);
             break;
          default:
             if (m_motionIndependent) {
                glColor4f(0.0f, 1.0f, 1.0f, 1.0f);
-               glScaled(0.25, 0.25, 0.25);
+               glScalef(0.25f, 0.25f, 0.25f);
             } else {
                glColor4f(0.0f, 0.5f, 1.0f, 1.0f);
-               glScaled(0.15, 0.15, 0.15);
+               glScalef(0.15f, 0.15f, 0.15f);
             }
             break;
          }
@@ -482,9 +458,15 @@ void PMDBone::renderDebug()
    }
    glPopMatrix();
 
-   if (! m_parentBone) return;
+   if (!m_parentBone) {
+      glDisableClientState(GL_VERTEX_ARRAY);
+      return;
+   }
 
-   if (m_type == IK_DESTINATION) return;
+   if (m_type == IK_DESTINATION) {
+      glDisableClientState(GL_VERTEX_ARRAY);
+      return;
+   }
 
    /* draw line from parent */
    glPushMatrix();
@@ -497,14 +479,18 @@ void PMDBone::renderDebug()
    } else {
       glColor4f(0.5f, 0.6f, 1.0f, 1.0f);
    }
-
-   glBegin(GL_LINES);
    a = m_parentBone->m_trans.getOrigin();
    b = m_trans.getOrigin();
-   glVertex3f(a.x(), a.y(), a.z());
-   glVertex3f(b.x(), b.y(), b.z());
-   glEnd();
+   v[0] = a.x();
+   v[1] = a.y();
+   v[2] = a.z();
+   v[3] = b.x();
+   v[4] = b.y();
+   v[5] = b.z();
+   glVertexPointer(3, GL_FLOAT, 0, v);
+   glDrawArrays(GL_LINES, 0, 2);
 
    glPopMatrix();
+   glDisableClientState(GL_VERTEX_ARRAY);
 #endif /* !MMDFILES_DONTRENDERDEBUG */
 }

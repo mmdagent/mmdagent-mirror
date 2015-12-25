@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -96,7 +96,6 @@ void VMD::addBoneMotion(const char *name)
 {
    BoneMotionLink *link;
    BoneMotion *bmNew;
-   BoneMotion *bmMatch;
 
    if(name == NULL) return;
 
@@ -109,9 +108,7 @@ void VMD::addBoneMotion(const char *name)
    link->next = m_boneLink;
    m_boneLink = link;
 
-   bmMatch = (BoneMotion *) m_name2bone.findNearest(name);
-   if (!bmMatch || MMDFiles_strequal(bmMatch->name, name) == false)
-      m_name2bone.add(name, bmNew, (bmMatch) ? bmMatch->name : NULL);
+   m_name2bone.add(name, strlen(name), bmNew);
 }
 
 /* VMD::addFaceMotion: add new face motion to list */
@@ -119,7 +116,6 @@ void VMD::addFaceMotion(const char *name)
 {
    FaceMotionLink *link;
    FaceMotion *fmNew;
-   FaceMotion *fmMatch;
 
    if(name == NULL) return;
 
@@ -131,10 +127,7 @@ void VMD::addFaceMotion(const char *name)
 
    link->next = m_faceLink;
    m_faceLink = link;
-
-   fmMatch = (FaceMotion *) m_name2face.findNearest(name);
-   if (!fmMatch || MMDFiles_strequal(fmMatch->name, name) == false)
-      m_name2face.add(name, fmNew, (fmMatch) ? fmMatch->name : NULL);
+   m_name2face.add(name, strlen(name), fmNew);
 }
 
 /* VMD::getBoneMotion: find bone motion by name */
@@ -145,8 +138,7 @@ BoneMotion* VMD::getBoneMotion(const char *name)
    if (name == NULL)
       return NULL;
 
-   bm = (BoneMotion *) m_name2bone.findNearest(name);
-   if (bm && MMDFiles_strequal(bm->name, name) == true)
+   if (m_name2bone.search(name, strlen(name), (void **)&bm) == true)
       return bm;
 
    return NULL;
@@ -160,8 +152,7 @@ FaceMotion* VMD::getFaceMotion(const char *name)
    if(name == NULL)
       return NULL;
 
-   fm = (FaceMotion *) m_name2face.findNearest(name);
-   if (fm && MMDFiles_strequal(fm->name, name) == true)
+   if (m_name2face.search(name, strlen(name), (void **)&fm) == true)
       return fm;
 
    return NULL;
@@ -394,7 +385,8 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    VMDFile_SwitchFrame *switchFrame;
    VMDFile_SwitchIK *switchIK;
 
-   char name[21];
+   char sjisBuff[21];
+   char *name;
 
    /* free VMD */
    clear();
@@ -414,13 +406,16 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
 
    /* list bones that exists in the data and count the number of defined key frames for each */
    for (i = 0; i < m_numTotalBoneKeyFrame; i++) {
-      strncpy(name, boneFrame[i].name, 15);
-      name[15] = '\0';
+      strncpy(sjisBuff, boneFrame[i].name, 15);
+      sjisBuff[15] = '\0';
+      name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
       bm = getBoneMotion(name);
       if (bm)
          bm->numKeyFrame++;
       else
          addBoneMotion(name);
+      if(name)
+         free(name);
    }
    /* allocate memory to store the key frames, and reset count again */
    for (bl = m_boneLink; bl; bl = bl->next) {
@@ -429,8 +424,9 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    }
    /* store the key frames, parse the data again, and compute max frame */
    for (i = 0; i < m_numTotalBoneKeyFrame; i++) {
-      strncpy(name, boneFrame[i].name, 15);
-      name[15] = '\0';
+      strncpy(sjisBuff, boneFrame[i].name, 15);
+      sjisBuff[15] = '\0';
+      name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
       bm = getBoneMotion(name);
       bm->keyFrameList[bm->numKeyFrame].keyFrame = (float) boneFrame[i].keyFrame;
       if (m_maxFrame < bm->keyFrameList[bm->numKeyFrame].keyFrame)
@@ -446,6 +442,8 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
       /* set interpolation table */
       setBoneInterpolationTable(&(bm->keyFrameList[bm->numKeyFrame]), boneFrame[i].interpolation);
       bm->numKeyFrame++;
+      if(name)
+         free(name);
    }
    /* sort the key frames in each boneMotion by frame */
    for (bl = m_boneLink; bl; bl = bl->next)
@@ -465,13 +463,16 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
 
    /* list faces that exists in the data and count the number of defined key frames for each */
    for (i = 0; i < m_numTotalFaceKeyFrame; i++) {
-      strncpy(name, faceFrame[i].name, 15);
-      name[15] = '\0';
+      strncpy(sjisBuff, faceFrame[i].name, 15);
+      sjisBuff[15] = '\0';
+      name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
       fm = getFaceMotion(name);
       if (fm)
          fm->numKeyFrame++;
       else
          addFaceMotion(name);
+      if(name)
+         free(name);
    }
    /* allocate memory to store the key frames, and reset count again */
    for (fl = m_faceLink; fl; fl = fl->next) {
@@ -480,14 +481,17 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
    }
    /* store the key frames, parse the data again, and compute max frame */
    for (i = 0; i < m_numTotalFaceKeyFrame; i++) {
-      strncpy(name, faceFrame[i].name, 15);
-      name[15] = '\0';
-      fm = getFaceMotion(faceFrame[i].name);
+      strncpy(sjisBuff, faceFrame[i].name, 15);
+      sjisBuff[15] = '\0';
+      name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
+      fm = getFaceMotion(name);
       fm->keyFrameList[fm->numKeyFrame].keyFrame = (float) faceFrame[i].keyFrame;
       if (m_maxFrame < fm->keyFrameList[fm->numKeyFrame].keyFrame)
          m_maxFrame = fm->keyFrameList[fm->numKeyFrame].keyFrame;
       fm->keyFrameList[fm->numKeyFrame].weight = faceFrame[i].weight;
       fm->numKeyFrame++;
+      if(name)
+         free(name);
    }
    /* sort the key frames in each faceMotion by frame */
    for (fl = m_faceLink; fl; fl = fl->next)
@@ -574,9 +578,9 @@ bool VMD::parse(const unsigned char *data, unsigned long size)
             m_switchMotion->keyFrameList[i].ikList = new SwitchIK[m_switchMotion->keyFrameList[i].numIK];
             switchIK = (VMDFile_SwitchIK *) data;
             for (j = 0; j < m_switchMotion->keyFrameList[i].numIK; j++) {
-               strncpy(name, switchIK[j].name, 20);
-               name[20] = '\0';
-               m_switchMotion->keyFrameList[i].ikList[j].name = MMDFiles_strdup(name);
+               strncpy(sjisBuff, switchIK[j].name, 20);
+               sjisBuff[20] = '\0';
+               m_switchMotion->keyFrameList[i].ikList[j].name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
                m_switchMotion->keyFrameList[i].ikList[j].enable = switchIK[j].enable ? true : false;
             }
             data += sizeof(VMDFile_SwitchIK) * m_switchMotion->keyFrameList[i].numIK;

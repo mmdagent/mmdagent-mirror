@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -42,7 +42,7 @@
 #define MOTIONCONTROLLER_BONESTARTMARGINFRAME 20.0 /* frame lengths for bone motion smoothing at loop head */
 #define MOTIONCONTROLLER_FACESTARTMARGINFRAME 6.0  /* frame lengths for face motion smoothing at loop head */
 
-#define MOTIONCONTROLLER_CENTERBONENAME "\x83\x5a\x83\x93\x83\x5e\x81\x5b" /* center */
+#define MOTIONCONTROLLER_CENTERBONENAME "\xe3\x82\xbb\xe3\x83\xb3\xe3\x82\xbf\xe3\x83\xbc" /* center */
 
 /* MotionControllerBoneElement: motion control element for bone */
 typedef struct _MotionControllerBoneElement {

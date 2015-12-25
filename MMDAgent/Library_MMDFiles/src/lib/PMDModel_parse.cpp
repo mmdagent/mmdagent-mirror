@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -52,6 +52,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    unsigned int i;
    btQuaternion defaultRot(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f), btScalar(1.0f));
 
+   char sjisBuff[257];
+
    PMDFile_Header *fileHeader;
    PMDFile_Vertex *fileVertex;
    PMDFile_Material *fileMaterial;
@@ -77,7 +79,6 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    unsigned int surfaceFrom, surfaceTo;
    char *name;
    PMDBone *bMatch;
-   PMDFace *fMatch;
 
    /* clear memory */
    clear();
@@ -104,13 +105,13 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    if (fileHeader->version != 1.0f)
       return false;
    /* name */
-   m_name = (char *) malloc(sizeof(char) * (20 + 1));
-   strncpy(m_name, fileHeader->name, 20);
-   m_name[20] = '\0';
+   strncpy(sjisBuff, fileHeader->name, 20);
+   sjisBuff[20] = '\0';
+   m_name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
    /* comment */
-   m_comment = (char *) malloc(sizeof(char) * (256 + 1));
-   strncpy(m_comment, fileHeader->comment, 256);
-   m_comment[256] = '\0';
+   strncpy(sjisBuff, fileHeader->comment, 256);
+   sjisBuff[256] = '\0';
+   m_comment = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
    data += sizeof(PMDFile_Header);
 
    /* vertex data and bone weights */
@@ -197,7 +198,7 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
             if (l >= j) {
                bMatch = m_orderedBoneList[j];
                if (j < m_numBone - 1)
-                  memmove(m_orderedBoneList[j], m_orderedBoneList[j + 1], sizeof(PMDBone *) * (m_numBone - 1 - j));
+                  memmove(&m_orderedBoneList[j], &m_orderedBoneList[j + 1], sizeof(PMDBone *) * (m_numBone - 1 - j));
                m_orderedBoneList[m_numBone - 1] = bMatch;
                i = 1;
             }
@@ -433,8 +434,8 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
    /* initialize material order */
-   m_materialRenderOrder = new unsigned int[m_numMaterial];
-   m_materialDistance = new MaterialDistanceData[m_numMaterial];
+   m_materialRenderOrder = (unsigned int *) malloc(sizeof(unsigned int) * m_numMaterial);
+   m_materialDistance = (MaterialDistanceData *) malloc(sizeof(MaterialDistanceData) * m_numMaterial);
    for (i = 0; i < m_numMaterial; i++)
       m_materialRenderOrder[i] = i;
    /* check if spheremap is used (single or multiple) */
@@ -514,15 +515,11 @@ bool PMDModel::parse(const unsigned char *data, unsigned long size, BulletPhysic
    /* build name->entity index for fast lookup */
    for (j = 0; j < m_numBone; j++) {
       name = m_boneList[j].getName();
-      bMatch = (PMDBone *) m_name2bone.findNearest(name);
-      if (bMatch == NULL || MMDFiles_strequal(bMatch->getName(), name) == false)
-         m_name2bone.add(name, &(m_boneList[j]), (bMatch) ? bMatch->getName() : NULL); /* add */
+      m_name2bone.add(name, strlen(name), &(m_boneList[j]));
    }
    for (j = 0; j < m_numFace; j++) {
       name = m_faceList[j].getName();
-      fMatch = (PMDFace *) m_name2face.findNearest(name);
-      if (fMatch == NULL || MMDFiles_strequal(fMatch->getName(), name) == false)
-         m_name2face.add(name, &(m_faceList[j]), (fMatch) ? fMatch->getName() : NULL); /* add */
+      m_name2face.add(name, strlen(name), &(m_faceList[j]));
    }
 
    /* get maximum height */

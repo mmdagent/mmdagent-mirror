@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -92,7 +92,8 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    char *p;
    char buf[MMDFILES_MAXBUFLEN];
    bool ret = true;
-   char name[21];
+   char sjisBuff[21];
+   char *name;
    unsigned int j;
    float f[3], d, tmp = 0.0f;
    unsigned short *surface;
@@ -124,8 +125,9 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
    m_edgeFlag = m->edgeFlag ? true : false;
 
    /* load model texture */
-   strncpy(name, m->textureFile, 20);
-   name[20] = '\0';
+   strncpy(sjisBuff, m->textureFile, 20);
+   sjisBuff[20] = '\0';
+   name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
    if (MMDFiles_strlen(name) > 0) {
       p = strchr(name, '*');
       if (p) {
@@ -147,6 +149,8 @@ bool PMDMaterial::setup(PMDFile_Material *m, PMDTextureLoader *textureLoader, co
             ret = false;
       }
    }
+   if(name != NULL)
+      free(name);
 
    /* store pointer to surface */
    m_surfaceList = indices;

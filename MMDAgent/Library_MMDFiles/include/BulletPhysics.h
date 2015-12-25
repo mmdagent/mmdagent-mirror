@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -44,6 +44,14 @@
 #define BULLETPHYSICS_RIGIDBODYFLAGB 0x10
 #define BULLETPHYSICS_RIGIDBODYFLAGP 0x20
 #define BULLETPHYSICS_RIGIDBODYFLAGA 0x40
+/* latitude division for debug sphere rendering */
+#define BULLETPHYSICS_SPHERELATS 10
+/* longitude division for debug sphere rendering */
+#define BULLETPHYSICS_SPHERELONGS 10
+/* number of vertices for debug sphere rendering */
+#define BULLETPHYSICS_SPHEREVERTEXNUM ((BULLETPHYSICS_SPHERELATS - 1) * BULLETPHYSICS_SPHERELONGS + 2) // 92
+/* number of indices for debug sphere rendering */
+#define BULLETPHYSICS_SPHEREINDEXNUM ((BULLETPHYSICS_SPHERELATS - 1) * BULLETPHYSICS_SPHERELONGS + (BULLETPHYSICS_SPHERELATS * BULLETPHYSICS_SPHERELONGS) + 1) // 191
 
 /* BulletPhysics: Bullet Physics engine */
 class BulletPhysics
@@ -63,6 +71,10 @@ private:
    bool m_boxListEnabled;
    GLuint m_sphereList;      /* display list (sphere) */
    bool m_sphereListEnabled;
+
+   bool m_sphereVertexInitialized; /* true when data for drawSphere() is initialized */
+   GLfloat m_sphereVertices[BULLETPHYSICS_SPHEREVERTEXNUM * 3];
+   GLubyte m_sphereIndices[BULLETPHYSICS_SPHEREINDEXNUM];
 
    /* initialize: initialize BulletPhysics */
    void initialize();
@@ -86,6 +98,15 @@ public:
 
    /* getWorld: get simulation world */
    btDiscreteDynamicsWorld *getWorld();
+
+   /* drawCube: draw a cube */
+   void drawCube();
+
+   /* drawSphere: draw a sphere */
+   void drawSphere();
+
+   /* drawConvex: draw a convex shape */
+   static void drawConvex(btConvexShape* shape);
 
    /* debugDisplay: render rigid bodies */
    void debugDisplay();

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -51,11 +51,7 @@
 
 #define MMDFILES_MAXBUFLEN 2048
 
-#ifdef _WIN32
-#define MMDFILES_DIRSEPARATOR '\\'
-#else
 #define MMDFILES_DIRSEPARATOR '/'
-#endif /* _WIN32 */
 
 #include "btBulletDynamicsCommon.h"
 

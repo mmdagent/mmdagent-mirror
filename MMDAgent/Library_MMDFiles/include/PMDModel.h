@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -39,7 +39,7 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-#define PMDMODEL_CENTERBONENAME "\x83\x5a\x83\x93\x83\x5e\x81\x5b" /* center */
+#define PMDMODEL_CENTERBONENAME "\xe3\x82\xbb\xe3\x83\xb3\xe3\x82\xbf\xe3\x83\xbc" /* center */
 
 #define PMDMODEL_MINBONEWEIGHT 0.0001f
 #define PMDMODEL_MINFACEWEIGHT 0.001f

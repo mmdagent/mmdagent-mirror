@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -263,9 +263,9 @@ bool PMDModel::load(const char *file, BulletPhysics *bullet, SystemTexture *syst
 /* PMDModel::getBone: find bone data by name */
 PMDBone *PMDModel::getBone(const char *name)
 {
-   PMDBone *match = (PMDBone *) m_name2bone.findNearest(name);
+   PMDBone *match;
 
-   if (match && MMDFiles_strequal(match->getName(), name) == true)
+   if (m_name2bone.search(name, strlen(name), (void **)&match) == true)
       return match;
    else
       return NULL;
@@ -274,9 +274,9 @@ PMDBone *PMDModel::getBone(const char *name)
 /* PMDModel::getFace: find face data by name */
 PMDFace *PMDModel::getFace(const char *name)
 {
-   PMDFace *match = (PMDFace *) m_name2face.findNearest(name);
+   PMDFace *match;
 
-   if (match && MMDFiles_strequal(match->getName(), name) == true)
+   if (m_name2face.search(name, strlen(name), (void **)&match) == true)
       return match;
    else
       return NULL;

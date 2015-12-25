@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -80,14 +80,14 @@ PMDFace::~PMDFace()
 void PMDFace::setup(PMDFile_Face *face, PMDFile_Face_Vertex *faceVertexList)
 {
    unsigned long i;
-   char name[21];
+   char sjisBuff[21];
 
    clear();
 
    /* name */
-   strncpy(name, face->name, 20);
-   name[20] = '\0';
-   m_name = MMDFiles_strdup(name);
+   strncpy(sjisBuff, face->name, 20);
+   sjisBuff[20] = '\0';
+   m_name = MMDFiles_strdup_from_sjis_to_utf8(sjisBuff);
 
    /* type */
    m_type = face->type;
