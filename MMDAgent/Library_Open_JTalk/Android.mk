@@ -59,7 +59,7 @@ LOCAL_CFLAGS     += -DDIC_VERSION=102 \
                     -DPACKAGE="\"open_jtalk\"" \
                     -DVERSION="\"1.07\"" \
                     -DMECAB_WITHOUT_SHARE_DIC \
-                    -DCHARSET_SHIFT_JIS \
+                    -DCHARSET_UTF_8 \
                     -DHAVE_CTYPE_H=1 \
                     -DHAVE_DIRENT_H=1 \
                     -DHAVE_FCNTL_H=1 \
@@ -95,7 +95,7 @@ LOCAL_CFLAGS     += -DDIC_VERSION=102 \
                     -DSIZEOF_SHORT=2 \
                     -DSIZEOF_SIZE_T=4 \
                     -DSTDC_HEADERS=1 \
-                    -DMECAB_DEFAULT_CHARSET="\"SHIFT-JIS\"" \
+                    -DMECAB_DEFAULT_CHARSET="\"UTF-8\"" \
                     -DASCII_HEADER=1
 
 include $(BUILD_STATIC_LIBRARY)

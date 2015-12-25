@@ -44,13 +44,13 @@ OBJECTS  = $(SOURCES:.c=.o) $(CXXSOURCES:.cpp=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -DDIC_VERSION=102 \
            -DMECAB_DEFAULT_RC="\"dummy\"" \
            -DPACKAGE="\"open_jtalk\"" \
-           -DVERSION="\"1.07\"" \
+           -DVERSION="\"1.09\"" \
            -DMECAB_WITHOUT_SHARE_DIC \
-           -DCHARSET_SHIFT_JIS \
+           -DCHARSET_UTF_8 \
            -DHAVE_CTYPE_H=1 \
            -DHAVE_DIRENT_H=1 \
            -DHAVE_FCNTL_H=1 \
@@ -76,9 +76,9 @@ CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
            -DHAVE_UNISTD_H=1 \
            -DPACKAGE_BUGREPORT="open-jtalk-users@lists.sourceforge.net" \
            -DPACKAGE_NAME="open_jtalk" \
-           -DPACKAGE_STRING="open_jtalk 1.07" \
+           -DPACKAGE_STRING="open_jtalk 1.09" \
            -DPACKAGE_TARNAME="open_jtalk" \
-           -DPACKAGE_VERSION="1.07" \
+           -DPACKAGE_VERSION="1.09" \
            -DSIZEOF_CHAR=1 \
            -DSIZEOF_INT=4 \
            -DSIZEOF_LONG=4 \
@@ -86,7 +86,7 @@ CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
            -DSIZEOF_SHORT=2 \
            -DSIZEOF_SIZE_T=4 \
            -DSTDC_HEADERS=1 \
-           -DMECAB_DEFAULT_CHARSET="\"SHIFT-JIS\"" \
+           -DMECAB_DEFAULT_CHARSET="\"UTF-8\"" \
            -DASCII_HEADER=1
 INCLUDE  = -I src/jpcommon \
            -I src/mecab/src \
