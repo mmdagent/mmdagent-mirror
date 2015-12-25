@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -174,7 +174,6 @@ void VIManager_Thread::clear()
          glfwDestroyCond(m_cond);
       if(m_mutex != NULL)
          glfwDestroyMutex(m_mutex);
-      glfwTerminate();
    }
 
    /* free */
@@ -212,8 +211,10 @@ void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
       return;
 
    /* load FST for VIManager */
-   if (m_vim.load(file) == false)
+   if (m_vim.load(file) == false) {
+      mmdagent->sendLogString("Main FST file (%s) cannot be loaded.", file);
       return;
+   }
 
    /* setup logger */
    m_logger.setup(mmdagent);
@@ -232,6 +233,7 @@ void VIManager_Thread::loadAndStart(MMDAgent *mmdagent, const char *file)
             l = new VIManager_Link;
             l->next = NULL;
             if(l->vim.load(buf) == false) {
+               mmdagent->sendLogString("Sub FST file (%s) cannot be loaded.", buf);
                delete l;
             } else {
                if(m_sub == NULL)

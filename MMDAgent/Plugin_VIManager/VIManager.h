@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -46,12 +46,14 @@
 #define VIMANAGER_COMMENT    '#'
 #define VIMANAGER_STARTSTATE 0
 #define VIMANAGER_EPSILON    "<eps>"
+#define VIMANAGER_REGEXP_BRACE '@'
 
 /* InputArguments: input for state transition */
 typedef struct _InputArguments {
    int size;
    char ***args;
    int *argc;
+   char *str;
 } InputArguments;
 
 /* InputArguments_initialize: initialize input */
@@ -120,6 +122,9 @@ private:
 
    /* checkStringMatch: check if vstr with variables matches the string */
    bool checkStringMatch(const char *vstr, const char *str);
+
+   /* checkStringMatchRegExp: check if vstr with variables matches the string as regular expression */
+   bool checkStringMatchRegExp(const char *vstr, const char *str1, const char *str2);
 
    /* checkArcMatch: check if an arc matches an input */
    bool checkArcMatch(const char *arc_type, const char *input_type, const InputArguments *arc_arg, const InputArguments *input_arg);

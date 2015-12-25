@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -66,15 +66,17 @@ class VIManager_Logger
 {
 private:
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent;          /* mmdagent */
 
-   VIManager_Arc *m_history[VIMANAGERLOGGER_TEXTHEIGHT + 1];
+   VIManager_Arc *m_history[VIMANAGERLOGGER_TEXTHEIGHT + 1];   /* history of arc */
 
-   /* drawArc: draw arc string */
-   void drawArc(unsigned int from, VIManager_Arc *arc);
+   FTGLTextDrawElements m_elem;   /* text drawing element */
+
+   /* addArcToElement: add arc to element */
+   void addArcToElement(unsigned int from, VIManager_Arc *arc, float x, float y);
 
    /* drawVariable: draw variable string */
-   void drawVariable(VIManager_Variable *v);
+   void addVariableToElement(VIManager_Variable *v, float x, float y);
 
    /* initialize: initialize logger */
    void initialize();

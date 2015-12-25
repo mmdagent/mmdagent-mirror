@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -42,6 +42,7 @@
 /* headers */
 #include <ctype.h>
 
+#include "re2/re2.h"
 #include "MMDAgent.h"
 #include "VIManager.h"
 
@@ -53,14 +54,38 @@ static const char* findAsciiString(const char *str, const char *c)
    return strchr(str, (int) * c);
 }
 
+/* checkVariableName: check variable name */
+static bool checkVariableName(const char *name)
+{
+   int i, len;
+   const char *c;
+   unsigned char size;
+
+   len = MMDAgent_strlen(name);
+   if (len <= 0)
+      return false;
+
+   c = name;
+   for(i = 0; i < len; i += size) {
+      size = MMDAgent_getcharsize(c);
+      if(size == 0) /* fail safe */
+         return false;
+      if (size != 1 || ! (isalnum(*c) || *c == '_'))
+         return false;
+      c += size;
+   }
+
+   return true;
+}
+
 /* getTokenFromStringWithQuoters: a general string separator with quote handling, quote will be erased */
 static int getTokenFromStringWithQuoters(const char *str, int *index, char *buff, const char *separators, const char *quoters)
 {
    int i, j = 0, len;
    const char *c;
    unsigned char size;
-   bool in_quote = false;
-   char current_quote;
+   bool inQuote = false;
+   char currentQuote = '\0';
 
    if (str == NULL) {
       buff[0] = '\0';
@@ -81,27 +106,39 @@ static int getTokenFromStringWithQuoters(const char *str, int *index, char *buff
          return 0;
       }
       size = MMDAgent_getcharsize(c);
+      if (size == 0) {
+         buff[0] = '\0';
+         return -1;
+      }
       (*index) += size;
       c += size;
    }
 
    /* copy the token to buff till the end of the token */
-   for (i = 0; i < len && *c != '\0' && (in_quote == true || findAsciiString(separators, c) == NULL); i += size) {
-      if (quoters != NULL && findAsciiString(quoters, c) != NULL && ! (in_quote == true && *c != current_quote)) {
+   for (i = 0; i < len && *c != '\0' && (inQuote == true || findAsciiString(separators, c) == NULL); i += size) {
+      if (quoters != NULL && findAsciiString(quoters, c) != NULL && ! (inQuote == true && *c != currentQuote)) {
          /* toggle quote mode */
-         if (in_quote)
-            in_quote = false;
+         if (inQuote)
+            inQuote = false;
          else {
-            in_quote = true;
-            current_quote = *c;
+            inQuote = true;
+            currentQuote = *c;
          }
          /* skip quote */
          size = MMDAgent_getcharsize(c);
+         if (size == 0) {
+            buff[0] = '\0';
+            return -1;
+         }
          (*index) += size;
          c += size;
          continue;
       }
       size = MMDAgent_getcharsize(c);
+      if (size == 0) {
+         buff[0] = '\0';
+         return -1;
+      }
       memcpy(&buff[j], c, sizeof(char) * size);
       j += size;
       (*index) += size;
@@ -113,6 +150,10 @@ static int getTokenFromStringWithQuoters(const char *str, int *index, char *buff
    /* move index forward to skip the last separator sequence */
    for (; i < len && *c != '\0' && findAsciiString(separators, c) != NULL; i += size) {
       size = MMDAgent_getcharsize(c);
+      if (size == 0) {
+         buff[0] = '\0';
+         return -1;
+      }
       (*index) += size;
       c += size;
    }
@@ -150,6 +191,9 @@ static int countArgs(const char *str, char separator)
    c = str;
    for(i = 0; i < len; i += size) {
       size = MMDAgent_getcharsize(c);
+      if(size == 0) { /* fail safe */
+         return 0;
+      }
       if (size == 1 && *c == separator)
          num++;
       c += size;
@@ -171,11 +215,13 @@ void InputArguments_initialize(InputArguments *ia, const char *str)
       ia->size = 0;
       ia->args = NULL;
       ia->argc = NULL;
+      ia->str = NULL;
       return;
    }
 
-   ia->argc = (int *) malloc(ia->size * sizeof(int));
    ia->args = (char ***) malloc(ia->size * sizeof(char **));
+   ia->argc = (int *) malloc(ia->size * sizeof(int));
+   ia->str = MMDAgent_strdup(str);
 
    /* get event arguments */
    idx1 = 0;
@@ -210,9 +256,12 @@ void InputArguments_clear(InputArguments *ia)
       }
       free(ia->args);
       free(ia->argc);
+      if (ia->str != NULL)
+         free(ia->str);
       ia->size = 0;
       ia->args = NULL;
       ia->argc = NULL;
+      ia->str = NULL;
    }
 }
 
@@ -353,11 +402,17 @@ static void VIManager_SList_addArc(VIManager_SList *l, int index_s1, int index_s
    arc_list = &s1->arc_list;
 
    /* analyze input symbol */
-   idx = 0;
-   i = getArgFromString(isymbol, &idx, itype, VIMANAGER_SEPARATOR1);
-   if (i <= 0)
-      return;
-   getArgFromString(isymbol, &idx, iargs, '\0');
+   if (MMDAgent_strlen(isymbol) > 1 && isymbol[0] == VIMANAGER_REGEXP_BRACE && isymbol[MMDAgent_strlen(isymbol) - 1] == VIMANAGER_REGEXP_BRACE) {
+      /* regular expression, save all isymbol to itype */
+      strcpy(itype, isymbol);
+      iargs[0] = '\0';
+   } else {
+      idx = 0;
+      i = getArgFromString(isymbol, &idx, itype, VIMANAGER_SEPARATOR1);
+      if (i <= 0)
+         return;
+      getArgFromString(isymbol, &idx, iargs, '\0');
+   }
 
    /* analyze output symbol */
    idx = 0;
@@ -423,9 +478,8 @@ static VIManager_Variable *VIManager_VList_search(VIManager_VList *vlist, const 
    if (MMDAgent_strlen(name) <= 0)
       return NULL;
    for (v = vlist->head; v != NULL; v = v->next) {
-      if (MMDAgent_strequal(v->name, name)) {
+      if (MMDAgent_strequal(v->name, name))
          return v;
-      }
    }
    return NULL;
 }
@@ -475,7 +529,6 @@ void VIManager::substituteVariableAndCopy(const char *input, char *output)
    const char *c;
    char *out, *cv;
    unsigned char size;
-   bool braced;
    VIManager_Variable *v;
 
    len = MMDAgent_strlen(input);
@@ -488,6 +541,10 @@ void VIManager::substituteVariableAndCopy(const char *input, char *output)
    out = output;
    for (i = 0; i < len; i += size) {
       size = MMDAgent_getcharsize(c);
+      if(size == 0) { /* fail safe */
+         *out = '\0';
+         return;
+      }
       memcpy(out, c, size);
       if (size == 1 && *c == '$') {
          /* variable start, hold this place to cv and read variable name */
@@ -501,28 +558,31 @@ void VIManager::substituteVariableAndCopy(const char *input, char *output)
             size = 1;
             continue;
          }
-         braced = false;
-         if (MMDAgent_getcharsize(c) == 1 && *c == '{') {
-            braced = true;
-            c += 1;
-            i += 1;
+         if (MMDAgent_getcharsize(c) != 1 || *c != '{') {
+            size = 0;
+            continue;
          }
+         c += 1;
+         i += 1;
          for (; i < len; i += size) {
             size = MMDAgent_getcharsize(c);
-            if (braced == true) {
-               if (MMDAgent_getcharsize(c) == 1 && *c == '}') {
-                  c += 1;
-                  i += 1;
-                  break;
-               }
-            } else {
-               if (size != 1 || ! (isalnum(*c) || *c == '_')) break;
+            if(size == 0) { /* fail safe */
+               *out = '\0';
+               return;
+            }
+            if (MMDAgent_getcharsize(c) == 1 && *c == '}') {
+               c += 1;
+               i += 1;
+               break;
             }
             memcpy(out, c, size);
             c += size;
             out += size;
          }
          *out = '\0';
+         /* check if variable name is valid */
+         if (checkVariableName(cv + 1) == false)
+            return;
          /* search for variable */
          v = VIManager_VList_search(&m_variableList, cv + 1);
          /* rewind out buf to the start of variable name */
@@ -545,21 +605,86 @@ void VIManager::substituteVariableAndCopy(const char *input, char *output)
 /* VIManager::checkStringMatch: check if vstr with variables matches the string */
 bool VIManager::checkStringMatch(const char *vstr, const char *str)
 {
-   char buf[MMDAGENT_MAXBUFLEN];
+   char buf1[MMDAGENT_MAXBUFLEN];
 
    if (vstr == NULL || str == NULL)
       return false;
 
-   substituteVariableAndCopy(vstr, buf);
+   /* substitute variables in pattern */
+   substituteVariableAndCopy(vstr, buf1);
 
-   return MMDAgent_strequal(str, buf);
+   return MMDAgent_strequal(str, buf1);
+}
+
+/* VIManager::checkStringMatchRegExp: check if vstr with variables matches the string as regular expression */
+bool VIManager::checkStringMatchRegExp(const char *vstr, const char *str1, const char *str2)
+{
+   char buf1[MMDAGENT_MAXBUFLEN];
+   char buf2[MMDAGENT_MAXBUFLEN];
+   int i, n;
+   bool match;
+
+   if (vstr == NULL || str1 == NULL)
+      return false;
+
+   /* substitute variables in pattern */
+   substituteVariableAndCopy(vstr, buf1);
+
+   /* set target pattern */
+   if (str2 != NULL)
+      sprintf(buf2, "%s%c%s", str1, VIMANAGER_SEPARATOR1, str2);
+   else
+      strcpy(buf2, str1);
+
+   /* create re2 instance with given pattern */
+   RE2 re(buf1);
+
+   if (re.ok() == false)
+      return MMDAgent_strequal(buf2, buf1);
+
+   /* get number of match argument to be taken */
+   n = re.NumberOfCapturingGroups();
+   if (n == 0)
+      return RE2::FullMatch(buf2, re);
+
+   std::string *result = new std::string[n];
+   RE2::Arg *arg = new RE2::Arg[n];
+   RE2::Arg **argp = new RE2::Arg*[n];
+   for (i = 0; i < n; i++) {
+      arg[i] = &result[i];
+      argp[i] = &arg[i];
+   }
+   match = RE2::FullMatchN(buf2, re, &(argp[0]), n);
+   if (match == true) {
+      /* set numeric variables */
+      for (i = 0; i < n; i++) {
+         sprintf(buf2, "%d", i + 1);
+         VIManager_VList_set(&m_variableList, buf2, result[i].c_str());
+      }
+   }
+   delete[] result;
+   delete[] arg;
+   delete[] argp;
+
+   return match;
 }
 
 /* VIManager::checkArcMatch: check if an arc matches an input */
 bool VIManager::checkArcMatch(const char *arc_type, const char *input_type, const InputArguments *arc_arg, const InputArguments *input_arg)
 {
+   char buf[MMDAGENT_MAXBUFLEN];
    int i, j, k;
    bool match;
+
+   if (MMDAgent_strlen(arc_type) > 1 && arc_type[0] == VIMANAGER_REGEXP_BRACE && arc_type[MMDAgent_strlen(arc_type) - 1] == VIMANAGER_REGEXP_BRACE) {
+      /* regular expression match */
+      strcpy(buf, &(arc_type[1]));
+      buf[MMDAgent_strlen(buf) - 1] = '\0';
+      if (input_arg != NULL)
+         return checkStringMatchRegExp(buf, input_type, input_arg->str);
+      else
+         return checkStringMatchRegExp(buf, input_type, NULL);
+   }
 
    if (checkStringMatch(arc_type, input_type) == false)
       return false;
@@ -609,7 +734,7 @@ bool VIManager::assignVariableByEquation(const char *va)
    tok[1] = '\0';
 
    idx1 = 0;
-   while (getTokenFromStringWithQuoters(va, &idx1, buff, tok, "\"'") != 0) {
+   while (getTokenFromStringWithQuoters(va, &idx1, buff, tok, "\"'") > 0) {
       /* separate by equal */
       if (countArgs(buff, '=') != 2)
          return false;
@@ -623,6 +748,9 @@ bool VIManager::assignVariableByEquation(const char *va)
          if (buffn[len - 1] != '}')
             return false;
          buffn[len - 1] = '\0';
+         /* check if variable name is valid */
+         if (checkVariableName(&(buffn[2])) == false)
+            return false;
          s = 2;
       }
       getArgFromString(buff, &idx2, buffv, '=');
@@ -668,6 +796,7 @@ bool VIManager::load(const char *file)
    char *err_s2;
    unsigned int index_s1;
    unsigned int index_s2;
+   bool ret = true;
 
    /* open */
    fp = MMDAgent_fopen(file, "r");
@@ -693,11 +822,17 @@ bool VIManager::load(const char *file)
          size_os = getTokenFromString(buff, &idx, buff_os);
          size_vs = getTokenFromString(buff, &idx, buff_vs);
          size_er = getTokenFromString(buff, &idx, buff_er);
-         if (size_s1 > 0 && size_s2 > 0 && size_is > 0 && size_os > 0 && size_er == 0 && buff_s1[0] != VIMANAGER_COMMENT) {
-            index_s1 = (unsigned int) strtoul(buff_s1, &err_s1, 10);
-            index_s2 = (unsigned int) strtoul(buff_s2, &err_s2, 10);
-            if (buff_s1 + size_s1 == err_s1 && buff_s2 + size_s2 == err_s2)
-               VIManager_SList_addArc(&m_stateList, index_s1, index_s2, buff_is, buff_os, buff_vs);
+
+         if (buff_s1[0] != VIMANAGER_COMMENT) {
+            if (size_s1 > 0 && size_s2 > 0 && size_is > 0 && size_os > 0 && size_er == 0) {
+               index_s1 = (unsigned int) strtoul(buff_s1, &err_s1, 10);
+               index_s2 = (unsigned int) strtoul(buff_s2, &err_s2, 10);
+               if (buff_s1 + size_s1 == err_s1 && buff_s2 + size_s2 == err_s2)
+                  VIManager_SList_addArc(&m_stateList, index_s1, index_s2, buff_is, buff_os, buff_vs);
+               else
+                  ret = false;
+            } else
+               ret = false;
          }
       }
       if (feof(fp) || ferror(fp))
@@ -708,8 +843,10 @@ bool VIManager::load(const char *file)
 
    /* set current state to zero */
    m_currentState = VIManager_SList_searchState(&m_stateList, VIMANAGER_STARTSTATE);
+   if (m_currentState == NULL)
+      ret = false;
 
-   return true;
+   return ret;
 }
 
 /* VIManager::transition: state transition (if jumped, return arc) */

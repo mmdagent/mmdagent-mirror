@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -51,7 +51,6 @@
 
 /* headers */
 
-#include <locale.h>
 #include "MMDAgent.h"
 #include "VIManager.h"
 #include "VIManager_Logger.h"
@@ -68,8 +67,6 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
 {
    char *buf;
    int len;
-
-   setlocale(LC_CTYPE, "japanese");
 
    buf = MMDAgent_strdup(mmdagent->getConfigFileName());
    len = MMDAgent_strlen(buf);

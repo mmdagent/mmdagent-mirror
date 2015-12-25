@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -52,13 +52,23 @@ void VIManager_Logger::initialize()
    int i;
 
    m_mmdagent = NULL;
+
    for(i = 0; i < VIMANAGERLOGGER_TEXTHEIGHT + 1; i++)
       m_history[i] = NULL;
+
+   memset(&m_elem, 0, sizeof(FTGLTextDrawElements));
 }
 
 /* VIManager_Logger::clear: free logger */
 void VIManager_Logger::clear()
 {
+   if(m_elem.vertices)
+      free(m_elem.vertices);
+   if(m_elem.texcoords)
+      free(m_elem.texcoords);
+   if(m_elem.indices)
+      free(m_elem.indices);
+
    initialize();
 }
 
@@ -102,10 +112,10 @@ bool VIManager_Logger::setTransition(VIManager_Arc *arc)
 }
 
 /* VIManager_Logger::drawArc: render arc */
-void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
+void VIManager_Logger::addArcToElement(unsigned int from, VIManager_Arc *arc, float x, float y)
 {
    int i, j;
-   static char buf1[MMDAGENT_MAXBUFLEN], buf2[MMDAGENT_MAXBUFLEN]; /* static buffer */
+   char buf1[MMDAGENT_MAXBUFLEN], buf2[MMDAGENT_MAXBUFLEN];
 
    strcpy(buf1, arc->input_event_type);
    for(i = 0; i < arc->input_event_args.size; i++) {
@@ -117,22 +127,25 @@ void VIManager_Logger::drawArc(unsigned int from, VIManager_Arc *arc)
       }
    }
    if (MMDAgent_strlen(arc->output_command_args) > 0)
-      sprintf(buf2, "%d %d %s %s|%s %s", from, arc->next_state->number, buf1, arc->output_command_type, arc->output_command_args, arc->variable_action);
+      sprintf(buf2, "%d %d %s %s|%s", from, arc->next_state->number, buf1, arc->output_command_type, arc->output_command_args);
    else
-      sprintf(buf2, "%d %d %s %s %s", from, arc->next_state->number, buf1, arc->output_command_type, arc->variable_action);
-   m_mmdagent->drawString(buf2);
+      sprintf(buf2, "%d %d %s %s", from, arc->next_state->number, buf1, arc->output_command_type);
+   if (arc->variable_action) {
+      strcat(buf2, " ");
+      strcat(buf2, arc->variable_action);
+   }
+
+   m_mmdagent->getTextureFont()->getTextDrawElements(buf2, &m_elem, m_elem.textLen, x, y, 0.0f);
 }
 
 /* VIManager_Logger::drawVariable: render variable */
-void VIManager_Logger::drawVariable(VIManager_Variable *v)
+void VIManager_Logger::addVariableToElement(VIManager_Variable *v, float x, float y)
 {
-   static char buf[MMDAGENT_MAXBUFLEN]; /* static buffer */
+   char buf[MMDAGENT_MAXBUFLEN];
 
    sprintf(buf, "$%s=%s", v->name, v->value);
-   m_mmdagent->drawString(buf);
+   m_mmdagent->getTextureFont()->getTextDrawElements(buf, &m_elem, m_elem.textLen, x, y, 0.0f);
 }
-
-
 
 /* VIManager_Logger::render: render log */
 void VIManager_Logger::render(VIManager_State *currentState, VIManager_VList *currentVariableList)
@@ -142,14 +155,44 @@ void VIManager_Logger::render(VIManager_State *currentState, VIManager_VList *cu
    VIManager_Arc *arc;
    VIManager_Arc *prevArc;
    VIManager_Variable *v;
+   size_t indexLen[3];
+   GLfloat vertices[12];
+   GLubyte indices[] = { 0, 1, 2, 0, 2, 3 };
+
 
    if(m_mmdagent == NULL || currentState == NULL)
       return;
 
-   /* start of draw */
-   glPushMatrix();
+   /* reset rendering data for text */
+   m_elem.textLen = 0;
+   m_elem.numIndices = 0;
+
+   /* prepare text drawing element */
+   for (i = 0; i < VIMANAGERLOGGER_TEXTHEIGHT; i++) {
+      arc = m_history[i];
+      if (arc == NULL) break;
+      prevArc = m_history[i + 1];
+      addArcToElement(prevArc == NULL ? VIMANAGER_STARTSTATE : prevArc->next_state->number, arc, 0.0f, VIMANAGERLOGGER_LINESTEP * i);
+   }
+   indexLen[0] = m_elem.numIndices;
+   for (i = 0, arc = currentState->arc_list.head; i < VIMANAGERLOGGER_TEXTHEIGHT && arc != NULL; i++, arc = arc->next) {
+      addArcToElement(currentState->number, arc, 0.0f, - VIMANAGERLOGGER_LINESTEP * i);
+   }
+   indexLen[1] = m_elem.numIndices - indexLen[0];
+   if (currentVariableList != NULL) {
+      for (v = currentVariableList->head; v != NULL; i++, v = v->next) {
+         addVariableToElement(v, 0.0f, -VIMANAGERLOGGER_LINESTEP * i);
+      }
+   }
+   indexLen[2] = m_elem.numIndices - (indexLen[0] + indexLen[1]);
+
+   /* start of drawing */
    glDisable(GL_CULL_FACE);
    glDisable(GL_LIGHTING);
+   glEnable(GL_TEXTURE_2D);
+   glActiveTexture(GL_TEXTURE0);
+   glClientActiveTexture(GL_TEXTURE0);
+   glEnableClientState(GL_VERTEX_ARRAY);
 
    /* show the history */
    glPushMatrix();
@@ -157,23 +200,29 @@ void VIManager_Logger::render(VIManager_State *currentState, VIManager_VList *cu
    glRotatef(VIMANAGERLOGGER_ROTATE1);
    glScalef(VIMANAGERLOGGER_SCALE, VIMANAGERLOGGER_SCALE, VIMANAGERLOGGER_SCALE);
    glColor4f(VIMANAGERLOGGER_BGCOLOR1);
-   glBegin(GL_QUADS);
-   glVertex3f(0.0f, 0.0f, 0.0f);
-   glVertex3f(VIMANAGERLOGGER_WIDTH1, 0.0f, 0.0f);
-   glVertex3f(VIMANAGERLOGGER_WIDTH1, VIMANAGERLOGGER_HEIGHT1, 0.0f);
-   glVertex3f(0.0f, VIMANAGERLOGGER_HEIGHT1, 0.0f);
-   glEnd();
+   glBindTexture(GL_TEXTURE_2D, 0);
+   vertices[0] = 0;
+   vertices[1] = 0;
+   vertices[2] = 0;
+   vertices[3] = VIMANAGERLOGGER_WIDTH1;
+   vertices[4] = 0;
+   vertices[5] = 0;
+   vertices[6] = VIMANAGERLOGGER_WIDTH1;
+   vertices[7] = VIMANAGERLOGGER_HEIGHT1;
+   vertices[8] = 0;
+   vertices[9] = 0;
+   vertices[10] = VIMANAGERLOGGER_HEIGHT1;
+   vertices[11] = 0;
+   glVertexPointer(3, GL_FLOAT, 0, vertices);
+   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, m_elem.vertices);
+   glTexCoordPointer(2, GL_FLOAT, 0, m_elem.texcoords);
    glTranslatef(0.5f, VIMANAGERLOGGER_LINESTEP * 0.7f, 0.01f);
    glColor4f(VIMANAGERLOGGER_TEXTCOLOR1);
-   for(i = 0; i < VIMANAGERLOGGER_TEXTHEIGHT; i++) {
-      arc = m_history[i];
-      if(arc == NULL) break;
-      prevArc = m_history[i + 1];
-      glPushMatrix();
-      drawArc(prevArc == NULL ? VIMANAGER_STARTSTATE : prevArc->next_state->number, arc);
-      glPopMatrix();
-      glTranslatef(0.0f, VIMANAGERLOGGER_LINESTEP, 0.0f);
-   }
+   glBindTexture(GL_TEXTURE_2D, m_mmdagent->getTextureFont()->getTextureID());
+   glDrawElements(GL_TRIANGLES, indexLen[0], GL_UNSIGNED_INT, (const GLvoid *) m_elem.indices);
+   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
    glPopMatrix();
 
    /* show the future */
@@ -182,37 +231,40 @@ void VIManager_Logger::render(VIManager_State *currentState, VIManager_VList *cu
    glRotatef(VIMANAGERLOGGER_ROTATE2);
    glScalef(VIMANAGERLOGGER_SCALE, VIMANAGERLOGGER_SCALE, VIMANAGERLOGGER_SCALE);
    glColor4f(VIMANAGERLOGGER_BGCOLOR2);
-   glBegin(GL_QUADS);
-   glVertex3f(0.0f, 0.0f, 0.0f);
-   glVertex3f(VIMANAGERLOGGER_WIDTH2, 0.0f, 0.0f);
-   glVertex3f(VIMANAGERLOGGER_WIDTH2, VIMANAGERLOGGER_HEIGHT2, 0.0f);
-   glVertex3f(0.0f, VIMANAGERLOGGER_HEIGHT2, 0.0f);
-   glEnd();
+   glBindTexture(GL_TEXTURE_2D, 0);
+   vertices[0] = 0;
+   vertices[1] = 0;
+   vertices[2] = 0;
+   vertices[3] = VIMANAGERLOGGER_WIDTH2;
+   vertices[4] = 0;
+   vertices[5] = 0;
+   vertices[6] = VIMANAGERLOGGER_WIDTH2;
+   vertices[7] = VIMANAGERLOGGER_HEIGHT2;
+   vertices[8] = 0;
+   vertices[9] = 0;
+   vertices[10] = VIMANAGERLOGGER_HEIGHT2;
+   vertices[11] = 0;
+   glVertexPointer(3, GL_FLOAT, 0, vertices);
+   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   glVertexPointer(3, GL_FLOAT, 0, m_elem.vertices);
+   glTexCoordPointer(2, GL_FLOAT, 0, m_elem.texcoords);
    glTranslatef(0.5f, VIMANAGERLOGGER_HEIGHT2 - VIMANAGERLOGGER_LINESTEP * 1.2f, 0.01f);
    glColor4f(VIMANAGERLOGGER_TEXTCOLOR2);
-   for(i = 0, arc = currentState->arc_list.head; i < VIMANAGERLOGGER_TEXTHEIGHT && arc != NULL; i++, arc = arc->next) {
-      glPushMatrix();
-      drawArc(currentState->number, arc);
-      glPopMatrix();
-      glTranslatef(0.0f, -VIMANAGERLOGGER_LINESTEP, 0.0f);
-   }
-
+   glBindTexture(GL_TEXTURE_2D, m_mmdagent->getTextureFont()->getTextureID());
+   glDrawElements(GL_TRIANGLES, indexLen[1], GL_UNSIGNED_INT, (const GLvoid *) & (m_elem.indices[indexLen[0]]));
    /* draw variables */
    if (currentVariableList != NULL) {
       glColor4f(VIMANAGERLOGGER_TEXTCOLOR3);
-      for (v = currentVariableList->head; v != NULL; v = v->next) {
-         glPushMatrix();
-         drawVariable(v);
-         glPopMatrix();
-         glTranslatef(0.0f, -VIMANAGERLOGGER_LINESTEP, 0.0f);
-      }
+      glDrawElements(GL_TRIANGLES, indexLen[2], GL_UNSIGNED_INT, (const GLvoid *) & (m_elem.indices[indexLen[0] + indexLen[1]]));
    }
-
+   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
    glPopMatrix();
 
    /* end of draw */
+   glDisableClientState(GL_VERTEX_ARRAY);
+   glDisable(GL_TEXTURE_2D);
    glEnable(GL_LIGHTING);
    glEnable(GL_CULL_FACE);
-   glPopMatrix();
 #endif /* !VIMANAGER_DONTRENDERDEBUG */
 }

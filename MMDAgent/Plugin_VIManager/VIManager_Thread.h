@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -62,15 +62,15 @@ class VIManager_Thread
 {
 private:
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent;   /* mmdagent */
 
-   GLFWmutex m_mutex;
-   GLFWcond m_cond;
-   GLFWthread m_thread;
+   GLFWmutex m_mutex;      /* mutex */
+   GLFWcond m_cond;        /* condition variable */
+   GLFWthread m_thread;    /* thread */
 
-   int m_count;
+   int m_count;            /* number of elements in event queue */
 
-   bool m_kill;
+   bool m_kill;            /* kill flag */
 
    VIManager_EventQueue eventQueue; /* queue of input message */
 
