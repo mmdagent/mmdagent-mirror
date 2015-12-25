@@ -1,10 +1,10 @@
 # number of expressions
 4
 # expression names
-Ç†
-Ç¢
-Ç§
-Ç®
+„ÅÇ
+„ÅÑ
+„ÅÜ
+„Åä
 # number of phonemes
 44
 # phone names and interpolation weight

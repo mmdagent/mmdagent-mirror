@@ -1,6 +1,6 @@
 ===============================================================================
-                     Acoustic Model for Julius version 1.5
-                           release December 25, 2014
+                     Acoustic Model for Julius version 1.6
+                           release December 25, 2015
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp). These
@@ -16,7 +16,7 @@ models were trained by using Japanese Newspaper Article Sentences (JNAS).
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
