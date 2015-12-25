@@ -1,3 +1,20 @@
+2015-12-23 17:18  uratec
+
+	* lib/HTS_sstream.c: add label file checker.
+
+2015-12-21 10:19  uratec
+
+	* COPYING, NEWS, README, configure.ac, bin/hts_engine.c,
+	  include/HTS_engine.h, lib/HTS_audio.c, lib/HTS_engine.c,
+	  lib/HTS_gstream.c, lib/HTS_hidden.h, lib/HTS_label.c,
+	  lib/HTS_misc.c, lib/HTS_model.c, lib/HTS_pstream.c,
+	  lib/HTS_sstream.c, lib/HTS_vocoder.c: update to version 1.10
+
+2015-08-26 11:22  uratec
+
+	* lib/: HTS_engine.c, HTS_hidden.h, HTS_model.c, HTS_sstream.c: fix
+	  a bug of interpolation weights: reported by Martin Sulir.
+
 2014-12-11 19:01  uratec
 
 	* configure.ac: update autoconf setting
