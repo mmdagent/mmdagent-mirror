@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -46,8 +46,8 @@
 
 /* headers */
 
-#ifdef _WIN32
 #include <locale.h>
+#ifdef _WIN32
 #include <windows.h>
 #endif /* _WIN32 */
 #ifdef __APPLE__
@@ -101,30 +101,10 @@ void GLFWCALL procWindowSizeMessage(int w, int h)
 /* procDropFileMessage: process drop files message */
 void GLFWCALL procDropFileMessage(const char *file, int x, int y)
 {
-#ifdef __APPLE__
-   CFStringRef cfs;
-   size_t len;
-   char *buff;
-
-   if(enable == false)
-      return;
-
-   mousePosX = x;
-   mousePosY = y;
-
-   cfs = CFStringCreateWithCString(NULL, file, kCFStringEncodingUTF8);
-   len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingDOSJapanese) + 1;
-   buff = (char *) malloc(len);
-   CFStringGetCString(cfs, buff, len, kCFStringEncodingDOSJapanese);
-   CFRelease(cfs);
-   mmdagent->procDropFileMessage(buff,  mousePosX, mousePosY);
-   free(buff);
-#else
    if(enable == false)
       return;
 
    mmdagent->procDropFileMessage(file, mousePosX, mousePosY);
-#endif /* __APPLE__ */
 }
 
 /* procKeyMessage: process key message */
@@ -345,6 +325,7 @@ int commonMain(int argc, char **argv)
    mouseLastWheel = 0;
 
    /* create MMDAgent window */
+   glfwInit();
    mmdagent = new MMDAgent();
    if(mmdagent->setup(argc, argv, MAIN_TITLE) == false) {
       delete mmdagent;
@@ -379,6 +360,7 @@ int commonMain(int argc, char **argv)
    /* free */
    mmdagent->procWindowDestroyMessage();
    delete mmdagent;
+   glfwTerminate();
    return 0;
 }
 
@@ -392,22 +374,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
    wchar_t **wargv;
    char **argv;
    int result;
+   bool error = false;
 
-   setlocale(LC_CTYPE, "japanese");
+   /* change LC_CTYPE from C to system locale */
+   setlocale(LC_CTYPE, "");
 
+   /* get UTF8 arguments */
    wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
    if(argc < 1) return 0;
    argv = (char **) malloc(sizeof(char *) * argc);
    for(i = 0; i < argc; i++) {
-      argv[i] = (char *) malloc(sizeof(char) * MMDAGENT_MAXBUFLEN);
-      wcstombs_s(&len, argv[i], MMDAGENT_MAXBUFLEN, wargv[i], _TRUNCATE);
+      argv[i] = NULL;
+      result = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) wargv[i], -1, NULL, 0, NULL, NULL );
+      if(result <= 0) {
+         error = true;
+         continue;
+      }
+      len = (size_t) result;
+      argv[i] = (char *) malloc(sizeof(char) * (len + 1));
+      if(argv[i] == NULL) {
+         error = true;
+         continue;
+      }
+      result = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) wargv[i], -1, (LPSTR) argv[i], len, NULL, NULL);
+      if((size_t) result != len) {
+         error = true;
+         continue;
+      }
    }
-   result = commonMain(argc, argv);
-   for(i = 0; i < argc; i++)
-      free(argv[i]);
+
+   /* run MMDAgent */
+   if(error == false)
+      result = commonMain(argc, argv);
+   for(i = 0; i < argc; i++) {
+      if(argv[i])
+         free(argv[i]);
+   }
    free(argv);
 
-   return result;
+   return (error == false) ? -1 : result;
 }
 #endif /* _WIN32 && !__MINGW32__ */
 #if defined(_WIN32) && defined(__MINGW32__)
@@ -420,31 +425,32 @@ int main(int argc, char **argv)
 int main(int argc, char **argv)
 {
    int i;
-   char inBuff[PATH_MAX + 1];
-   CFStringRef cfs;
-   size_t len;
+   char buff[PATH_MAX + 1];
    char **newArgv;
    int result;
+   bool error = false;
 
    newArgv = (char **) malloc(sizeof(char *) * argc);
    for(i = 0; i < argc; i++) {
-      /* prepare buffer */
-      memset(inBuff, 0, PATH_MAX + 1);
-      realpath(argv[i], inBuff);
-
-      cfs = CFStringCreateWithCString(NULL, inBuff, kCFStringEncodingUTF8);
-      len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(cfs), kCFStringEncodingDOSJapanese) + 1;
-      newArgv[i] = (char *) malloc(len);
-      CFStringGetCString(cfs, newArgv[i], len, kCFStringEncodingDOSJapanese);
-      CFRelease(cfs);
+      newArgv[i] = NULL;
+      memset(buff, 0, PATH_MAX + 1);
+      if(realpath(argv[i], buff) == NULL) {
+         error = true;
+         continue;
+      }
+      newArgv[i] = MMDAgent_strdup(buff);
    }
-   result = commonMain(argc, newArgv);
+
+   if(error == false)
+      result = commonMain(argc, newArgv);
+
    for(i = 0; i < argc; i++) {
-      free(newArgv[i]);
+      if(newArgv[i])
+         free(newArgv[i]);
    }
    free(newArgv);
 
-   return result;
+   return (error == false) ? -1 : result;
 }
 #endif /* __APPLE__ */
 #ifdef __ANDROID__
@@ -472,7 +478,9 @@ int main(int argc, char **argv)
    size_t inLen, outLen;
    int result = 0;
 
-   ic = iconv_open("SHIFT-JIS", MAIN_CHARSET);
+   setlocale(LC_CTYPE, "");
+
+   ic = iconv_open("UTF-8", "");
    if(ic < 0)
       return -1;
 

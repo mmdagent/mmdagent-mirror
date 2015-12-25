@@ -11,6 +11,7 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
            ../Library_zlib/lib/zlib.a
 
@@ -43,6 +44,7 @@ clean:
 	mkdir -p ../Release/MMDAgent.app/Contents/MacOS/AppData/Julius/lang_m
 	mkdir -p ../Release/MMDAgent.app/Contents/MacOS/AppData/Julius/phone_m
 	mkdir -p ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk
+	mkdir -p ../Release/MMDAgent.app/Contents/MacOS/AppData/Noto_Fonts
 	mkdir -p ../Release/MMDAgent.app/Contents/MacOS/Plugins
 	mkdir -p ../Release/MMDAgent.app/Contents/Resources
 	cp ../Release/AppData/Julius/jconf.txt ../Release/MMDAgent.app/Contents/MacOS/AppData/Julius/jconf.txt
@@ -55,13 +57,11 @@ clean:
 	cp ../Release/AppData/Julius/phone_m/tri_tied.list.bin ../Release/MMDAgent.app/Contents/MacOS/AppData/Julius/phone_m/tri_tied.list.bin
 	cp ../Release/AppData/Open_JTalk/COPYRIGHT.txt ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/COPYRIGHT.txt
 	cp ../Release/AppData/Open_JTalk/char.bin ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/char.bin
-	cp ../Release/AppData/Open_JTalk/left-id.def ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/left-id.def
 	cp ../Release/AppData/Open_JTalk/matrix.bin ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/matrix.bin
-	cp ../Release/AppData/Open_JTalk/pos-id.def ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/pos-id.def
-	cp ../Release/AppData/Open_JTalk/rewrite.def ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/rewrite.def
-	cp ../Release/AppData/Open_JTalk/right-id.def ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/right-id.def
 	cp ../Release/AppData/Open_JTalk/sys.dic ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/sys.dic
 	cp ../Release/AppData/Open_JTalk/unk.dic ../Release/MMDAgent.app/Contents/MacOS/AppData/Open_JTalk/unk.dic
+	cp ../Release/AppData/Noto_Fonts/COPYRIGHT.txt ../Release/MMDAgent.app/Contents/MacOS/AppData/Noto_Fonts/COPYRIGHT.txt
+	cp ../Release/AppData/Noto_Fonts/NotoSansCJKjp-Medium.otf ../Release/MMDAgent.app/Contents/MacOS/AppData/Noto_Fonts/NotoSansCJKjp-Medium.otf
 	cp ../Release/AppData/lip.txt ../Release/MMDAgent.app/Contents/MacOS/AppData/lip.txt
 	cp ../Release/AppData/toon0.bmp ../Release/MMDAgent.app/Contents/MacOS/AppData/toon0.bmp
 	cp ../Release/AppData/toon01.bmp ../Release/MMDAgent.app/Contents/MacOS/AppData/toon01.bmp
