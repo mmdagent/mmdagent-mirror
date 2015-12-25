@@ -1,3 +1,14 @@
+Version 1.6:
+ * change charcode of all strings in application from SJIS to UTF-8.
+ * support rendering text for Mac OS X, Linux, and Android.
+ * support playing audio for Android.
+ * support regular expression for input symbol of FST.
+ * add zip (dialogue contents package) loader.
+ * remove some Makefiles (Visual Studio 2008, Carbon 32bit in Mac OS X, and MinGW).
+ * add libraries and fonts (FreeType, RE2, Noto Fonts, UTF8-CPP, and Freetype GL).
+ * fix some bugs.
+ * update libraries (hts_engine API 1.10 and Open JTalk 1.09).
+
 Version 1.5:
  * add new fixed view of Julius log bar, can be toggled by SHIFT+J key.
  * support variables in FST files.
