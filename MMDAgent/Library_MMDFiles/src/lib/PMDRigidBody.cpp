@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -105,9 +105,6 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    btVector3 localInertia(btScalar(0.0f), btScalar(0.0f), btScalar(0.0f));
    btQuaternion rot;
    btTransform startTrans;
-#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   btQuaternion rx, ry, rz;
-#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
 
@@ -144,12 +141,9 @@ bool PMDRigidBody::setup(PMDFile_RigidBody *rb, PMDBone *bone)
    /* set position and rotation of the rigid body, local to the associated bone */
    m_trans.setIdentity();
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   rx.setEulerZYX(btScalar(-rb->rot[0]), btScalar(0.0f), btScalar(0.0f));
-   ry.setEulerZYX(btScalar(0.0f), btScalar(-rb->rot[1]), btScalar(0.0f));
-   rz.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(rb->rot[2]));
-   rot = ry * rz * rx;
+   rot.setEuler(btScalar(-rb->rot[1]), btScalar(-rb->rot[0]), btScalar(rb->rot[2]));
 #else
-   rot.setEulerZYX(btScalar(rb->rot[0]), btScalar(rb->rot[1]), btScalar(rob->rot[2]));
+   rot.setEulerZYX(btScalar(rb->rot[2]), btScalar(rb->rot[1]), btScalar(rb->rot[0]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    m_trans.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM

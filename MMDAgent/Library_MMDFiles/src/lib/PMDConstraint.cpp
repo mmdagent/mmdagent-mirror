@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -84,9 +84,6 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    btQuaternion rot;
    btTransform trA;
    btTransform trB;
-#ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   btQuaternion rx, ry, rz;
-#endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
 
    clear();
 
@@ -99,12 +96,9 @@ bool PMDConstraint::setup(PMDFile_Constraint *c, PMDRigidBody *bodyList, btVecto
    /* make global transform of this constraint */
    tr.setIdentity();
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
-   rx.setEulerZYX(btScalar(-c->rot[0]), btScalar(0.0f), btScalar(0.0f));
-   ry.setEulerZYX(btScalar(0.0f), btScalar(-c->rot[1]), btScalar(0.0f));
-   rz.setEulerZYX(btScalar(0.0f), btScalar(0.0f), btScalar(c->rot[2]));
-   rot = ry * rz * rx;
+   rot.setEuler(btScalar(-c->rot[1]), btScalar(-c->rot[0]), btScalar(c->rot[2]));
 #else
-   rot.setEulerZYX(btScalar(c->rot[0]), btScalar(c->rot[1]), btScalar(c->rot[2]));
+   rot.setEulerZYX(btScalar(c->rot[2]), btScalar(c->rot[1]), btScalar(c->rot[0]));
 #endif /* MMDFILES_CONVERTCOORDINATESYSTEM */
    tr.setRotation(rot);
 #ifdef MMDFILES_CONVERTCOORDINATESYSTEM
