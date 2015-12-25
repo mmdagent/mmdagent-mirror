@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -39,40 +39,77 @@
 /* POSSIBILITY OF SUCH DAMAGE.                                       */
 /* ----------------------------------------------------------------- */
 
-/* PTreeNode: data pointer tree */
-typedef struct _PTreeNode {
-   union {
-      void *data;    /* data pointer */
-      int thres_bit; /* or thershold bit */
-   } value;
-   struct _PTreeNode *left0;  /* left child node */
-   struct _PTreeNode *right1; /* right child node */
-} PTreeNode;
-
-/* PTreeNodeList: list of PTreeNode */
-typedef struct _PTreeNodeList {
-   PTreeNode *list; /* list of allocated nodes */
-   int current;     /* current index */
-   int size;        /* size of list */
-   struct _PTreeNodeList *next;  /* pointer to next stocker */
-} PTreeNodeList;
-
 /* PTree: Pointer tree */
 class PTree
 {
 private:
 
-   PTreeNodeList *m_stocker; /* node stocker */
-   PTreeNode *m_root;   /* root index node */
+   /* PNode: node of patricia tree */
+   typedef struct _PNode {
+      union {
+         void *ptr;        /* ponter to data */
+         int thresholdBit; /* threshold bit at branch */
+      } data;
+      char *key;           /* key sequence */
+      int len;             /* length of the key */
+      struct _PNode *left;  /* link to left node (bit=0) */
+      struct _PNode *right; /* link to right node (bit=1) */
+      struct _PNode *up;    /* up link */
+   } PNode;
 
-   /* newNode: allocate a new node */
-   PTreeNode *newNode();
+   /* block allocator */
+   class BlockAllocator
+   {
+   private:
+      /* AllocationUnit: allocation unit */
+      typedef struct _AllocationUnit {
+         void *base;                   /* pointer to the actually allocated memory block */
+         char *now;                    /* start pointer of currently assigned area */
+         char *end;                    /* end pointer of currently assigned area */
+         struct _AllocationUnit *next; /* link to next data, NULL if no more */
+      } AllocationUnit;
+      AllocationUnit *m_root;
+      unsigned int m_blockSize; /* block size in bytes */
+      int m_align;              /* allocation alignment size in bytes */
+      unsigned int m_alignMask; /* bit mask to compute the actual aligned memory size */
+      /* initialize: initialize memory */
+      void initialize();
+      /* clear: free memory */
+      void clear();
+   public:
+      /* BlockAllocator: constructor */
+      BlockAllocator();
+      /* BlockAllocator: destructor */
+      ~BlockAllocator();
+      /* allocData: prepare data memory */
+      void *allocData(unsigned int size);
+      /* release: free memory */
+      void release();
+   };
+
+   PNode *m_root;              /* root node of index tree */
+   BlockAllocator m_allocator; /* memory allocator */
 
    /* initialize: initialize PTree */
    void initialize();
 
    /* clear: free PTree */
    void clear();
+
+   /* testBit: test a bit */
+   int testBit(const char *key, int len, int bitPlace) const;
+
+   /* testBitMax: test a bit with max bit limit */
+   int testBitMax(const char *key, int bitPlace, int maxBitPlace) const;
+
+   /* getDiffPoint: return which bit differs first between two strings */
+   int getDiffPoint(const char *key1, int len1, const char *key2, int len2) const;
+
+   /* getNearestNode: return the nearest node */
+   PNode *getNearestNode(const char *key, int len) const;
+
+   /* matchKey: check if the two keys match */
+   bool matchKey(const char *key1, int len1, const char *key2, int len2) const;
 
 public:
 
@@ -82,12 +119,12 @@ public:
    /* PTree: destructor */
    ~PTree();
 
-   /* release: free PTree */
+   /* add: add a set of key and ptr to index tree */
+   bool add(const char *key, int len, void *ptr);
+
+   /* search: search for a key in the index tree */
+   bool search(const char *key, int len, void **ptr) const;
+
+   /* release: free index tree */
    void release();
-
-   /* add: add an entry to the tree */
-   void add(const char *str, void *data, char *matchStr);
-
-   /* findNearest: return the nearest entry */
-   void *findNearest(const char *str);
 };

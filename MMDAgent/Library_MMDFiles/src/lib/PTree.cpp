@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -43,88 +43,166 @@
 
 #include "MMDFiles.h"
 
-/* testBit: test a bit */
-static int testBit(const char *str, int slen, int bitplace)
-{
-   int maskptr;
-   const unsigned char mbit[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+#define PTREE_BLOCKSIZE          2048
+#define PTREE_ALIGNMENTUNITBYTES 4
 
-   if ((maskptr = bitplace >> 3) > slen)
-      return 0;
-   return(str[maskptr] & mbit[bitplace & 7]);
+const static unsigned char PTREE_BITLIST[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+
+/* PTree::BlockAllocator::initialize: initialize memory */
+void PTree::BlockAllocator::initialize()
+{
+   m_root = NULL;
 }
 
-/* testBitMax: test a bit with max bit limit */
-static int testBitMax(const char *str, int bitplace, int maxbitplace)
+/* PTree::BlockAllocator::clear: free memory */
+void PTree::BlockAllocator::clear()
 {
-   const unsigned char mbit[] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+   AllocationUnit *curr, *next;
 
-   if (bitplace >= maxbitplace)
-      return 0;
-   return (str[bitplace >> 3] & mbit[bitplace & 7]);
-}
-
-/* getDiffPoint: return which bit differs first between two strings */
-static int getDiffPoint(const char *str1, const char *str2)
-{
-   int p = 0;
-   int bitloc;
-   int slen1, slen2;
-
-   while (str1[p] == str2[p])
-      p++;
-   bitloc = p * 8;
-   slen1 = MMDFiles_strlen( str1 );
-   slen2 = MMDFiles_strlen( str2 );
-   while (testBit( str1, slen1, bitloc) == testBit(str2, slen2, bitloc))
-      bitloc++;
-
-   return bitloc;
-}
-
-/* PTree::newNode: allocate a new node */
-PTreeNode * PTree::newNode()
-{
-   PTreeNodeList *newlist;
-   PTreeNode *tmp;
-
-   if (m_stocker == NULL || m_stocker->current == m_stocker->size) {
-      newlist = (PTreeNodeList *) malloc(sizeof(PTreeNodeList));
-      newlist->size = 200;
-      newlist->list = (PTreeNode *) malloc(sizeof(PTreeNode) * newlist->size);
-      newlist->current = 0;
-      newlist->next = m_stocker;
-      m_stocker = newlist;
+   for (curr = m_root; curr; curr = next) {
+      next = curr->next;
+      free(curr->base);
+      free(curr);
    }
-   tmp = &(m_stocker->list[m_stocker->current]);
-   m_stocker->current++;
 
-   tmp->left0 = NULL;
-   tmp->right1 = NULL;
+   initialize();
+}
 
-   return tmp;
+/* PTree::BlockAllocator::BlockAllocator: constructor */
+PTree::BlockAllocator::BlockAllocator()
+{
+   unsigned int pageSize = MMDFiles_getpagesize();
+   unsigned int numBlockPage = (PTREE_BLOCKSIZE + (pageSize - 1)) / pageSize;
+
+   initialize();
+
+   m_blockSize = pageSize * numBlockPage;
+   m_align = PTREE_ALIGNMENTUNITBYTES;
+   m_alignMask = ~(m_align - 1); /* assume power or 2 */
+}
+
+/* PTree::BlockAllocator::~BlockAllocator: destructor */
+PTree::BlockAllocator::~BlockAllocator()
+{
+   clear();
+}
+
+/* PTree::BlockAllocator::allocData: prepare data memory */
+void *PTree::BlockAllocator::allocData(unsigned int size)
+{
+   void *allocated;
+   AllocationUnit *u;
+
+   /* align given size */
+   size = (size + m_align - 1) & m_alignMask;
+   if (m_root == NULL || m_root->now + size >= m_root->end) {
+      u = (AllocationUnit *) malloc(sizeof(AllocationUnit));
+      if (!u) return NULL;
+      if (size > m_blockSize) {
+         /* large block, allocate a whole block */
+         u->base = malloc(size);
+         if (!u->base) {
+            free(u);
+            return NULL;
+         }
+         u->end = (char *) u->base + size;
+      } else {
+         /* allocate per blocksize */
+         u->base = malloc(m_blockSize);
+         if (!u->base) {
+            free(u);
+            return NULL;
+         }
+         u->end = (char *) u->base + m_blockSize;
+      }
+      u->now = (char *) u->base;
+      u->next = m_root;
+      m_root = u;
+   }
+
+   /* return current pointer */
+   allocated = m_root->now;
+   m_root->now += size;
+
+   return allocated;
+}
+
+/* PTree::BlockAllocator::release: free memory */
+void PTree::BlockAllocator::release()
+{
+   clear();
 }
 
 /* PTree::initialize: initialize PTree */
 void PTree::initialize()
 {
-   m_stocker = NULL;
    m_root = NULL;
 }
 
 /* PTree::clear: free PTree */
 void PTree::clear()
 {
-   PTreeNodeList *tmp1, *tmp2;
-
-   tmp1 = m_stocker;
-   while (tmp1) {
-      tmp2 = tmp1->next;
-      free(tmp1->list);
-      free(tmp1);
-      tmp1 = tmp2;
-   }
+   m_allocator.release();
    initialize();
+}
+
+/* PTree::testBit: test a bit */
+int PTree::testBit(const char *key, int len, int bitPlace) const
+{
+   int maskPtr;
+
+   if ((maskPtr = bitPlace >> 3) > len) return 0;
+   return (key[maskPtr] & PTREE_BITLIST[bitPlace & 7]);
+}
+
+/* PTree::testBitMax: test a bit with max bit limit */
+int PTree::testBitMax(const char *key, int bitPlace, int maxBitPlace) const
+{
+   if (bitPlace >= maxBitPlace) return 0;
+   return (key[bitPlace >> 3] & PTREE_BITLIST[bitPlace & 7]);
+}
+
+/* PTree::getDiffPoint: return which bit differs first between two strings */
+int PTree::getDiffPoint(const char *key1, int len1, const char *key2, int len2) const
+{
+   int p = 0;
+   int bitloc;
+
+   while (key1[p] == key2[p]) p++;
+   bitloc = p * 8;
+   while (testBit(key1, len1, bitloc) == testBit(key2, len2, bitloc)) bitloc++;
+
+   return bitloc;
+}
+
+/* PTree::getNearestNode: return the nearest node */
+PTree::PNode *PTree::getNearestNode(const char *key, int len) const
+{
+   PNode *n = m_root;
+   int maxBitPlace = len * 8 + 8;
+
+   if (n == NULL) return NULL;
+
+   while (n->left != NULL || n->right != NULL) {
+      if (testBitMax(key, n->data.thresholdBit, maxBitPlace) != 0) {
+         n = n->right;
+      } else {
+         n = n->left;
+      }
+   }
+   return n;
+}
+
+/* PTree::matchKey: check if the two keys match */
+bool PTree::matchKey(const char *key1, int len1, const char *key2, int len2) const
+{
+   int i;
+
+   if (len1 != len2) return false;
+   for (i = 0; i < len1; i++) {
+      if (key1[i] != key2[i]) return false;
+   }
+   return true;
 }
 
 /* PTree::PTree: constructor */
@@ -133,73 +211,101 @@ PTree::PTree()
    initialize();
 }
 
-/* PTree::PTree: destructor */
+/* PTree::~PTree: destructor */
 PTree::~PTree()
 {
    clear();
 }
 
-/* PTree::release: free PTree */
+/* PTree::add: add a set of key and ptr to index tree */
+bool PTree::add(const char *key, int len, void *ptr)
+{
+   PNode *newLeaf;
+
+   if (m_root == NULL) {
+      /* add first node */
+      newLeaf = (PNode *) (m_allocator.allocData(sizeof(PNode)));
+      if (!newLeaf) return false;
+      newLeaf->left = NULL;
+      newLeaf->right = NULL;
+      newLeaf->up = NULL;
+      newLeaf->key = (char *)m_allocator.allocData(len + 1);
+      if (!newLeaf->key) return false;
+      memcpy(newLeaf->key, key, len);
+      newLeaf->key[len] = 0;
+      newLeaf->len = len;
+      newLeaf->data.ptr = ptr;
+      m_root = newLeaf;
+   } else {
+      PNode *nearest = getNearestNode(key, len);
+      if (matchKey(nearest->key, nearest->len, key, len)) {
+         /* already exist */
+         return false;
+      }
+
+      /* find insertion node */
+      int bitloc = getDiffPoint(key, len, nearest->key, nearest->len);
+      PNode **node = &m_root;
+      PNode *newBranch;
+      while ((*node)->data.thresholdBit <= bitloc && ((*node)->left != NULL || (*node)->right != NULL)) {
+         if (testBit(key, len, (*node)->data.thresholdBit) != 0) {
+            node = &((*node)->right);
+         } else {
+            node = &((*node)->left);
+         }
+      }
+
+      /* insert */
+      newLeaf = (PNode *) m_allocator.allocData(sizeof(PNode));
+      if (!newLeaf) return false;
+      newLeaf->left = NULL;
+      newLeaf->right = NULL;
+      newLeaf->key = (char *)m_allocator.allocData(len + 1);
+      if (!newLeaf->key) return false;
+      memcpy(newLeaf->key, key, len);
+      newLeaf->key[len] = 0;
+      newLeaf->len = len;
+      newLeaf->data.ptr = ptr;
+      newBranch = (PNode *) m_allocator.allocData(sizeof(PNode));
+      if (!newBranch) return false;
+      newBranch->left = NULL;
+      newBranch->right = NULL;
+      newBranch->key = NULL;
+      newBranch->len = 0;
+      newBranch->data.thresholdBit = bitloc;
+      if (testBit(key, len, bitloc) == 0) {
+         newBranch->left = newLeaf;
+         newBranch->right = (*node);
+      } else {
+         newBranch->left = (*node);
+         newBranch->right = newLeaf;
+      }
+      newBranch->up = (*node)->up;
+      newLeaf->up = newBranch;
+      (*node)->up = newBranch;
+      (*node) = newBranch;
+   }
+
+   return true;
+}
+
+/* PTree::search: search for a key in the index tree */
+bool PTree::search(const char *key, int len, void **ptr) const
+{
+   PNode *nearest;
+
+   if (m_root == NULL) return false;
+
+   nearest = getNearestNode(key, len);
+   if (matchKey(nearest->key, nearest->len, key, len)) {
+      *ptr = nearest->data.ptr;
+      return true;
+   }
+   return false;
+}
+
+/* PTree::release: free index tree */
 void PTree::release()
 {
    clear();
-}
-
-/* PTree::add: add an entry to the tree */
-void PTree::add(const char *str, void *data, char *matchstr)
-{
-   int slen, bitloc;
-   PTreeNode **p;
-   PTreeNode *newleaf, *newbranch, *node;
-
-   if (m_root == NULL) {
-      m_root = newNode();
-      m_root->value.data = data;
-   } else {
-      slen = MMDFiles_strlen(str);
-      bitloc = getDiffPoint(str, matchstr);
-
-      p = &m_root;
-      node = *p;
-      while (node->value.thres_bit <= bitloc && (node->left0 != NULL || node->right1 != NULL)) {
-         if (testBit(str, slen, node->value.thres_bit) != 0)
-            p = &(node->right1);
-         else
-            p = &(node->left0);
-         node = *p;
-      }
-
-      /* insert between [parent] and [node] */
-      newleaf = newNode();
-      newleaf->value.data = data;
-      newbranch = newNode();
-      newbranch->value.thres_bit = bitloc;
-      *p = newbranch;
-      if (testBit(str, slen, bitloc) == 0) {
-         newbranch->left0 = newleaf;
-         newbranch->right1 = node;
-      } else {
-         newbranch->left0 = node;
-         newbranch->right1 = newleaf;
-      }
-   }
-}
-
-/* PTree::findNearest: return the nearest entry */
-void * PTree::findNearest(const char *str)
-{
-   PTreeNode *n;
-   int maxbitplace;
-
-   if (m_root == NULL) return NULL;
-
-   n = m_root;
-   maxbitplace = MMDFiles_strlen(str) * 8 + 8;
-   while (n->left0 != NULL || n->right1 != NULL) {
-      if (testBitMax(str, n->value.thres_bit, maxbitplace) != 0)
-         n = n->right1;
-      else
-         n = n->left0;
-   }
-   return n->value.data;
 }
