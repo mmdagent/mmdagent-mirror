@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -51,6 +51,17 @@
 #include <audiounit/AudioUnit.h>
 #endif /* __APPLE__ */
 
+#ifdef __ANDROID__
+#include <media/NdkMediaExtractor.h>
+#include <media/NdkMediaCodec.h>
+#include <media/NdkMediaCrypto.h>
+#include <media/NdkMediaFormat.h>
+#include <media/NdkMediaMuxer.h>
+#include <media/NdkMediaDrm.h>
+#include <fcntl.h>
+#include "portaudio.h"
+#endif /* __ANDROID__ */
+
 #include "MMDAgent.h"
 #include "Audio_Thread.h"
 
@@ -71,9 +82,12 @@ static void Audio_clear(Audio *audio)
 static bool Audio_openAndStart(Audio *audio, const char *alias, char *file)
 {
    bool first = true;
+   char *filepath;
 
    /* wait */
-   sprintf(audio->buf, "open \"%s\" alias _%s wait", file, alias);
+   filepath = MMDFiles_pathdup_from_application_to_system_locale(file);
+   sprintf(audio->buf, "open \"%s\" alias _%s wait", filepath, alias);
+   free(filepath);
    if (mciSendStringA(audio->buf, NULL, 0, 0) != 0) {
       return false;
    }
@@ -209,7 +223,7 @@ static bool Audio_openAndStart(Audio *audio, const char *alias, char *file)
    Component comp;
    AURenderCallbackStruct input;
 
-   buff = MMDAgent_pathdup(file);
+   buff = MMDAgent_pathdup_from_application_to_system_locale(file);
 
    /* convert file name */
    err1 = FSPathMakeRef ((const UInt8 *) buff, &path, NULL);
@@ -321,6 +335,237 @@ static void Audio_close(Audio *audio, const char *alias)
 }
 #endif /* __APPLE__ */
 
+#ifdef __ANDROID__
+/* Audio structure */
+typedef struct _Audio {
+   AMediaExtractor *extractor;
+   AMediaCodec *codec;
+   PaStream *stream;
+   int channels;
+} Audio;
+
+/* Audio_initialize: initialize audio */
+static void Audio_initialize(Audio *audio)
+{
+   audio->extractor = NULL;
+   audio->codec = NULL;
+   audio->stream = NULL;
+   audio->channels = 0;
+}
+
+/* Audio_clear: clear audio */
+static void Audio_clear(Audio *audio)
+{
+   /* clear codec */
+   if (audio->codec) {
+      AMediaCodec_stop(audio->codec);
+      AMediaCodec_delete(audio->codec);
+   }
+   /* clear extractor */
+   if (audio->extractor)
+      AMediaExtractor_delete(audio->extractor);
+   /* clear stream */
+   if (audio->stream) {
+      Pa_StopStream(audio->stream);
+      Pa_CloseStream(audio->stream);
+      Pa_Terminate();
+   }
+   Audio_initialize(audio);
+}
+
+/* Audio_openAndStart: open and start audio */
+static bool Audio_openAndStart(Audio *audio, const char *alias, char *file)
+{
+   char *filePath;
+   int fd;
+   int exErr;
+   AMediaFormat *format;
+   int numTracks;
+   const char *mime;
+   int32_t samplingFrequency;
+   int32_t channels;
+   PaError err;
+   PaStreamParameters parameters;
+
+   /* get file descriptor to pass to MediaExtractor */
+   filePath = MMDAgent_pathdup_from_application_to_system_locale(file);
+   fd = open(filePath, O_RDONLY);
+   free(filePath);
+   if (fd < 0)
+      return false;
+
+   /* create MediaExtractor */
+   audio->extractor = AMediaExtractor_new();
+   exErr = AMediaExtractor_setDataSourceFd(audio->extractor, fd, 0, LONG_MAX);
+   close(fd);
+   if (exErr != 0) {
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* get track count */
+   numTracks = AMediaExtractor_getTrackCount(audio->extractor);
+   if (numTracks <= 0) {
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* get track format */
+   format = AMediaExtractor_getTrackFormat(audio->extractor, 0);
+   if (!AMediaFormat_getString(format, AMEDIAFORMAT_KEY_MIME, &mime)) {
+      AMediaFormat_delete(format);
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* if not audio, exit */
+   if (! MMDAgent_strheadmatch(mime, "audio/")) {
+      AMediaFormat_delete(format);
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* create decoder */
+   audio->codec = AMediaCodec_createDecoderByType(mime);
+   if (audio->codec == NULL) {
+      AMediaFormat_delete(format);
+      Audio_clear(audio);
+      return false;
+   }
+   if (AMediaCodec_configure(audio->codec, format, NULL, NULL, 0) != AMEDIA_OK) {
+      AMediaFormat_delete(format);
+      Audio_clear(audio);
+      return false;
+   }
+   if (AMediaCodec_start(audio->codec) != AMEDIA_OK) {
+      AMediaFormat_delete(format);
+      Audio_clear(audio);
+      return false;
+   }
+   /* select the first track to play */
+   AMediaExtractor_selectTrack(audio->extractor, 0);
+
+   /* get sampling rate and channel count */
+   AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_SAMPLE_RATE, &samplingFrequency);
+   AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_CHANNEL_COUNT, &channels);
+   audio->channels = channels;
+
+   AMediaFormat_delete(format);
+
+   /* initialize audio */
+   err = Pa_Initialize();
+   if (err != paNoError) {
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* set output format */
+   parameters.device = Pa_GetDefaultOutputDevice();
+   parameters.channelCount = channels;
+   parameters.sampleFormat = paInt16;
+   parameters.suggestedLatency = Pa_GetDeviceInfo(parameters.device)->defaultLowOutputLatency;
+   parameters.hostApiSpecificStreamInfo = NULL;
+
+   /* open stream */
+   err = Pa_OpenStream(&(audio->stream), NULL, &parameters, samplingFrequency, AUDIOTHREAD_FRAMEPERBUFFER, paClipOff, NULL, NULL);
+   if (err != paNoError) {
+      Audio_clear(audio);
+      return false;
+   }
+
+   /* start stream */
+   err = Pa_StartStream(audio->stream);
+   if (err != paNoError) {
+      Audio_clear(audio);
+      return false;
+   }
+
+   return true;
+}
+
+/* Audio_waitToStop: wait to stop audio */
+static void Audio_waitToStop(Audio *audio, const char *alias, bool *m_playing)
+{
+   bool inputEOS = false;
+   bool outputEOS = false;
+   ssize_t bufIndex;
+   size_t bufSize;
+   uint8_t *buf;
+   int sampleSize;
+   int64_t presentationTimeUs;
+   AMediaCodecBufferInfo info;
+   int status;
+   AMediaFormat *format;
+   int32_t samplingFrequency;
+   int32_t channels;
+   PaStreamParameters parameters;
+
+   while ((outputEOS == false || inputEOS == false) && *m_playing == true) {
+      if (inputEOS == false) {
+         /* data exists in input stream */
+         bufIndex = AMediaCodec_dequeueInputBuffer(audio->codec, AUDIOTHREAD_TIMEOUTUS);
+         if (bufIndex >= 0) {
+            /* read input samples */
+            buf = AMediaCodec_getInputBuffer(audio->codec, bufIndex, &bufSize);
+            sampleSize = AMediaExtractor_readSampleData(audio->extractor, buf, bufSize);
+            if (sampleSize < 0) {
+               /* end of input stream */
+               sampleSize = 0;
+               inputEOS = true;
+            }
+            /* enqueue samples to decoder */
+            presentationTimeUs = AMediaExtractor_getSampleTime(audio->extractor);
+            AMediaCodec_queueInputBuffer(audio->codec, bufIndex, 0, sampleSize, presentationTimeUs, inputEOS ? AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM : 0);
+            AMediaExtractor_advance(audio->extractor);
+         }
+      }
+      if (outputEOS == false) {
+         /* data exist in output buffer */
+         status = AMediaCodec_dequeueOutputBuffer(audio->codec, &info, 1);
+         if (status >= 0) {
+            if (info.flags & AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM) {
+               /* end of output stream */
+               outputEOS = true;
+            }
+            if (info.size > 0) {
+               /* dequeue samples from decoder */
+               buf = AMediaCodec_getOutputBuffer(audio->codec, status, &bufSize);
+               /* write the decoded samples to output device */
+               Pa_WriteStream(audio->stream, buf, info.size / 2);
+            }
+            /* flush the processed samples from the queue */
+            AMediaCodec_releaseOutputBuffer(audio->codec, status, false);
+            MMDAgent_sleep(AUDIOTHREAD_OUTPUTFLUSHWAITSEC);
+         } else if (status == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
+            /* format changes detected in the input stream */
+            format = AMediaCodec_getOutputFormat(audio->codec);
+            /* get the new format */
+            AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_SAMPLE_RATE, &samplingFrequency);
+            AMediaFormat_getInt32(format, AMEDIAFORMAT_KEY_CHANNEL_COUNT, &channels);
+            AMediaFormat_delete(format);
+            /* re-open audio */
+            Pa_StopStream(audio->stream);
+            Pa_CloseStream(audio->stream);
+            audio->channels = channels;
+            parameters.device = Pa_GetDefaultOutputDevice();
+            parameters.channelCount = channels;
+            parameters.sampleFormat = paInt16;
+            parameters.suggestedLatency = Pa_GetDeviceInfo(parameters.device)->defaultLowOutputLatency;
+            parameters.hostApiSpecificStreamInfo = NULL;
+            Pa_OpenStream(&(audio->stream), NULL, &parameters, samplingFrequency, AUDIOTHREAD_FRAMEPERBUFFER, paClipOff, NULL, NULL);
+            Pa_StartStream(audio->stream);
+         }
+      }
+   }
+   Audio_clear(audio);
+}
+
+/* Audio_close: close audio */
+static void Audio_close(Audio *audio, const char *alias)
+{
+}
+#endif /* __ANDROID__ */
+
 /* mainThread: main thread */
 static void mainThread(void *param)
 {
@@ -365,7 +610,6 @@ void Audio_Thread::clear()
          glfwDestroyCond(m_cond);
       if(m_mutex != NULL)
          glfwDestroyMutex(m_mutex);
-      glfwTerminate();
    }
 
    if(m_alias) free(m_alias);

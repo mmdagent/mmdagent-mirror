@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -46,24 +46,30 @@
 #define AUDIOTHREAD_EVENTSTART    "SOUND_EVENT_START"
 #define AUDIOTHREAD_EVENTSTOP     "SOUND_EVENT_STOP"
 
+#ifdef __ANDROID__
+#define AUDIOTHREAD_FRAMEPERBUFFER     3200  /* frames per buffer in PortAudio */
+#define AUDIOTHREAD_TIMEOUTUS          5000  /* timeout in microseconds */
+#define AUDIOTHREAD_OUTPUTFLUSHWAITSEC 0.005 /* output flush wait time in seconds */
+#endif /* __ANDROID__ */
+
 /* Audio_Thread: thread for audio */
 class Audio_Thread
 {
 private:
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent; /* mmdagent */
 
-   GLFWmutex m_mutex;
-   GLFWcond m_cond;
-   GLFWthread m_thread;
+   GLFWmutex m_mutex;    /* mutex */
+   GLFWcond m_cond;      /* condition variable */
+   GLFWthread m_thread;  /* thread */
 
-   int m_count;
+   int m_count;          /* number of elements in event queue */
 
-   bool m_playing;
-   bool m_kill;
+   bool m_playing;       /* playing flag */
+   bool m_kill;          /* kill flag */
 
-   char *m_alias;
-   char *m_file;
+   char *m_alias;        /* alias name */
+   char *m_file;         /* file */
 
    /* initialize: initialize thread */
    void initialize();
