@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -183,7 +183,56 @@ PaError Pa_OpenStream(PaStream** stream, const PaStreamParameters *inputParamete
       /* create player */
       {
          SLDataLocator_AndroidSimpleBufferQueue androidSimpleBufferQueue = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 2 };
-         SLDataFormat_PCM dataFormat = { SL_DATAFORMAT_PCM, 1, SL_SAMPLINGRATE_48, SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_CENTER, SL_BYTEORDER_LITTLEENDIAN };
+         SLDataFormat_PCM dataFormat = { SL_DATAFORMAT_PCM, outputParameters->channelCount, 0, SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16, 0, SL_BYTEORDER_LITTLEENDIAN };
+         if (outputParameters->channelCount == 1) {
+            dataFormat.channelMask = SL_SPEAKER_FRONT_CENTER;
+         } else {
+            dataFormat.channelMask = SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT;
+         }
+         switch((int)sampleRate) {
+         case 8000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_8;
+            break;
+         case 11025:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_11_025;
+            break;
+         case 12000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_12;
+            break;
+         case 16000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_16;
+            break;
+         case 22050:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_22_05;
+            break;
+         case 24000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_24;
+            break;
+         case 32000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_32;
+            break;
+         case 44100:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_44_1;
+            break;
+         case 48000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_48;
+            break;
+         case 64000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_64;
+            break;
+         case 88200:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_88_2;
+            break;
+         case 96000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_96;
+            break;
+         case 192000:
+            dataFormat.samplesPerSec = SL_SAMPLINGRATE_192;
+            break;
+         default:
+            Pa_Terminate();
+            return paInternalError;
+         }
          SLDataSource dataSource = { &androidSimpleBufferQueue, &dataFormat };
          const SLInterfaceID interfaceID[1] = { SL_IID_BUFFERQUEUE };
          const SLboolean interfaceRequired[1] = { SL_BOOLEAN_TRUE };
