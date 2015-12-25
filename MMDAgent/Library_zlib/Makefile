@@ -4,6 +4,8 @@ TARGET   = lib/zlib.a
 SOURCES  = src/adler32.c \
            src/compress.c \
            src/crc32.c \
+           src/contrib/minizip/ioapi.c \
+           src/contrib/minizip/unzip.c \
            src/deflate.c \
            src/gzclose.c \
            src/gzlib.c \
@@ -31,6 +33,7 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(AR) cru $(TARGET) $(OBJECTS)
 	cp src/*.h include
+	cp src/contrib/minizip/*.h include
 
 .c.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(<:.c=.o) -c $<

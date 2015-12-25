@@ -13,6 +13,8 @@
   <ItemGroup>
     <ClCompile Include="src\adler32.c" />
     <ClCompile Include="src\compress.c" />
+    <ClCompile Include="src\contrib\minizip\ioapi.c" />
+    <ClCompile Include="src\contrib\minizip\unzip.c" />
     <ClCompile Include="src\crc32.c" />
     <ClCompile Include="src\deflate.c" />
     <ClCompile Include="src\gzclose.c" />
@@ -28,6 +30,8 @@
     <ClCompile Include="src\zutil.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\contrib\minizip\ioapi.h" />
+    <ClInclude Include="src\contrib\minizip\unzip.h" />
     <ClInclude Include="src\crc32.h" />
     <ClInclude Include="src\deflate.h" />
     <ClInclude Include="src\gzguts.h" />
@@ -76,6 +80,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>src;src\contrib\minizip;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,6 +107,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>src;src\contrib\minizip;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
