@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.5
-                           release December 25, 2014
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.6
+                           release December 25, 2015
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -24,7 +24,7 @@ the conditions in the following license:
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -76,6 +76,7 @@ See also "COPYRIGHT.txt" files as follows for details.
  .\COPYRIGHT.txt
  .\AppData\Julius\lang_m\COPYRIGHT.txt
  .\AppData\Julius\phone_m\COPYRIGHT.txt
+ .\AppData\Note_Fonts\COPYRIGHT.txt
  .\AppData\Open_JTalk\COPYRIGHT.txt
 
 *******************************************************************************

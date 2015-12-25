@@ -1,6 +1,6 @@
 ===============================================================================
-   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.5
-                           release December 25, 2014
+   The Toolkit for Building Voice Interaction Systems "MMDAgent" version 1.6
+                           release December 25, 2015
 
 
 The Toolkit for Building Voice Interaction Systems "MMDAgent"
@@ -24,7 +24,7 @@ the conditions in the following license:
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -75,17 +75,23 @@ See also "COPYRIGHT.txt" files as follows for details.
 
  .\COPYRIGHT.txt
  .\Library_Bullet_Physics\COPYRIGHT.txt
+ .\Library_FreeType\COPYRIGHT.txt
  .\Library_GLee\COPYRIGHT.txt
  .\Library_GLFW\COPYRIGHT.txt
  .\Library_hts_engine_API\COPYRIGHT.txt
  .\Library_JPEG\COPYRIGHT.txt
  .\Library_Julius\COPYRIGHT.txt
  .\Library_libpng\COPYRIGHT.txt
+ .\Library_MMDAgent\COPYRIGHT.txt
+ .\Library_MMDFiles\COPYRIGHT.txt
  .\Library_Open_JTalk\COPYRIGHT.txt
  .\Library_PortAudio\COPYRIGHT.txt
+ .\Library_RE2\COPYRIGHT.txt
+ .\Library_UTF8-CPP\COPYRIGHT.txt
  .\Library_zlib\COPYRIGHT.txt
  .\Release\AppData\Julius\phone_m\COPYRIGHT.txt
  .\Release\AppData\Julius\lang_m\COPYRIGHT.txt
+ .\Release\AppData\Note_Fonts\COPYRIGHT.txt
  .\Release\AppData\Open_JTalk\COPYRIGHT.txt
 
 *******************************************************************************
