@@ -34,7 +34,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -1041,6 +1041,55 @@ static LRESULT CALLBACK windowProc( HWND hWnd, UINT uMsg,
                 num = DragQueryFileA( (HDROP) wParam, -1, file, GLFW_MAXBUFLEN );
                 for(i = 0;i < num; i++){
                     DragQueryFileA( (HDROP) wParam, i, file, GLFW_MAXBUFLEN );
+                    { // system locale to UTF8
+                        int result;
+                        size_t size;
+                        char *buff;
+                        int wideCharSize;
+                        WCHAR *wideCharStr;
+
+                        result = mbstowcs(NULL, file, -1);
+                        if(result <= 0) {
+                            continue;
+                        }
+                        wideCharSize = result;
+
+                        wideCharStr = (WCHAR *) malloc(sizeof(WCHAR) * (wideCharSize + 1));
+                        if(wideCharStr == NULL) {
+                            continue;
+                        }
+
+                        result = mbstowcs(wideCharStr, file, wideCharSize + 1);
+                        if(result != wideCharSize) {
+                            free(wideCharStr);
+                            continue;
+                        }
+
+                        result = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) wideCharStr, -1, NULL, 0, NULL, NULL );
+                        if(result <= 0) {
+                            free(wideCharStr);
+                            continue;
+                        }
+                        size = (size_t) result;
+
+                        buff = (char *) malloc(sizeof(char) * (size + 1));
+                        if(buff == NULL) {
+                            free(wideCharStr);
+                            continue;
+                        }
+
+                        result = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) wideCharStr, -1, (LPSTR) buff, size, NULL, NULL);
+                        if((size_t) result != size) {
+                            free(wideCharStr);
+                            free(buff);
+                            continue;
+                        }
+
+                        strcpy(file, buff);
+
+                        free(wideCharStr);
+                        free(buff);
+                    }
                     _glfwWin.dropFileCallback( file, _glfwInput.MousePosX, _glfwInput.MousePosY );
                 }
             }
