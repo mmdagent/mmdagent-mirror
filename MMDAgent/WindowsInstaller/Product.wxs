@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+
+<?define ProductName = "MMDAgent" ?>
+<?define Version = "1.6" ?>
+<?define DetailedVersion = "1.6.0.0" ?>
+<?define Manufacturer = "MMDAgent Project Team" ?>
+<?define SrcDir = "$(sys.CURRENTDIR)..\Release\" ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product
+    Name="$(var.ProductName) $(var.Version)"
+    Id="9FE25939-6B42-46C2-82E0-9F02040E02D9"
+    UpgradeCode="88AC4B90-CE33-43CD-ACF7-68988BAABF14"
+    Language="1033"
+    Codepage="1252"
+    Version="$(var.DetailedVersion)"
+    Manufacturer="$(var.Manufacturer)">
+
+    <Package
+      Id="*" Keywords="dialog,speech,interaction,recognition,synthesis,agent"
+      Description="$(var.ProductName) $(var.Version)"
+      Manufacturer="$(var.Manufacturer)"
+      InstallerVersion="200"
+      Languages="1033"
+      Compressed="yes"
+      SummaryCodepage="1252" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="Complete" Level="1" ConfigurableDirectory="INSTALLDIR">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ProgramMenuDir"/>
+    </Feature>
+    <UI />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <UIRef Id="WixUI_InstallDir"/>
+    <WixVariable Id="WixUILicenseRtf" Value="COPYRIGHT.rtf"/>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder" Name="PFiles">
+        <Directory Id="MMDAgentDir" Name="$(var.ProductName)">
+          <Directory Id="INSTALLDIR" Name="$(var.Version)">
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="$(var.ProductName) $(var.Version)">
+          <Component Id="ProgramMenuDir" Guid="C712C051-2A29-4D52-8AFC-92FF8921477D">
+            <RemoveFolder Id='ProgramMenuDir' On='uninstall' />
+            <RegistryValue Root='HKCU'
+                           Key='Software\[Manufacturer]\[ProductName]'
+                           Type='string' Value='' KeyPath='yes' />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="DesktopFolder" Name="Desktop" />
+    </Directory>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="PluginDir" Name="Plugins" />
+    </DirectoryRef>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="AppDataDir" Name="AppData" />
+    </DirectoryRef>
+    <DirectoryRef Id="AppDataDir">
+      <Directory Id="FontDir" Name="Noto_Fonts" />
+    </DirectoryRef>
+    <DirectoryRef Id="AppDataDir">
+      <Directory Id="JuliusDir" Name="Julius" />
+    </DirectoryRef>
+    <DirectoryRef Id="AppDataDir">
+      <Directory Id="OpenJTalkDir" Name="Open_JTalk" />
+    </DirectoryRef>
+    <DirectoryRef Id="JuliusDir">
+      <Directory Id="LanguageModelDir" Name="lang_m" />
+    </DirectoryRef>
+    <DirectoryRef Id="JuliusDir">
+      <Directory Id="AcousticModelDir" Name="phone_m" />
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <Icon Id="MMDAgentIcon.exe" SourceFile="$(var.SrcDir)MMDAgent.exe" />
+    <ComponentGroup Id="ProductComponents">
+      <Component Id="MainExecutable" Directory="INSTALLDIR" Guid="E851A280-984A-4F5C-9EA2-E3B78D003BE4">
+        <File
+          Id='MMDAgentEXE'
+          Name='MMDAgent.exe'
+          Source='$(var.SrcDir)MMDAgent.exe' KeyPath='yes'>
+          <Shortcut
+            Id="startMenuMMDAgent" Directory="ProgramMenuDir"
+            Name="$(var.ProductName) $(var.Version)" WorkingDirectory='INSTALLDIR'
+            Icon="MMDAgentIcon.exe" IconIndex="0"
+            Advertise="yes" />
+          <Shortcut
+            Id="desktopMMDAgent" Directory="DesktopFolder"
+            Name="$(var.ProductName) $(var.Version)" WorkingDirectory='INSTALLDIR'
+            Icon="MMDAgentIcon.exe" IconIndex="0"
+            Advertise="yes" />
+        </File>
+        <ProgId Id="MMDAgent.mdf" Description="MMDAgent setup file">
+          <Extension Id="mdf" ContentType="application/mdf">
+            <Verb Id="open" Command="Open" TargetFile="MMDAgentEXE" Argument='"%1"' />
+          </Extension>
+        </ProgId>
+        <ProgId Id="MMDAgent.mmda" Description="MMDAgent contents file">
+            <Extension Id="mmda" ContentType="application/mmdagent">
+            <Verb Id="open" Command="Open" TargetFile="MMDAgentEXE" Argument='"%1"' />
+          </Extension>
+        </ProgId>
+      </Component>
+      <Component Id="Documents" Directory="INSTALLDIR" Guid="2AE6C3B5-5150-424F-BE1D-04B28413C1D3">
+        <File Id="Copyright" Name="COPYRIGHT.txt" Source="$(var.SrcDir)COPYRIGHT.txt" />
+        <File Id="News" Name="NEWS.txt" Source="$(var.SrcDir)NEWS.txt" />
+        <File Id="README" Name="README.txt" Source="$(var.SrcDir)README.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="SiteSetting" Directory="INSTALLDIR" Guid="33D24C3E-5390-4E30-95CA-BDE28E0593E5">
+        <File Id="DefaultMDF" Name="MMDAgent.mdf" Source="$(var.SrcDir)MMDAgent.mdf" KeyPath="yes" />
+      </Component>
+      <Component Id="Plugins" Directory="PluginDir" Guid="231F3572-7E97-45CC-8D98-09070195125D">
+        <File Id="Plugin_Audio" Name="Plugin_Audio.dll" Source="$(var.SrcDir)Plugins\Plugin_Audio.dll" />
+        <File Id="Plugin_Julius" Name="Plugin_Julius.dll" Source="$(var.SrcDir)Plugins\Plugin_Julius.dll" />
+        <File Id="Plugin_LookAt" Name="Plugin_LookAt.dll" Source="$(var.SrcDir)Plugins\Plugin_LookAt.dll" />
+        <File Id="Plugin_Open_JTalk" Name="Plugin_Open_JTalk.dll" Source="$(var.SrcDir)Plugins\Plugin_Open_JTalk.dll" />
+        <File Id="Plugin_Variables" Name="Plugin_Variables.dll" Source="$(var.SrcDir)Plugins\Plugin_Variables.dll" />
+        <File Id="Plugin_VIManager" Name="Plugin_VIManager.dll" Source="$(var.SrcDir)Plugins\Plugin_VIManager.dll" KeyPath="yes" />
+        <File Id="Plugin_WindowController" Name="Plugin_WindowController.dll" Source="$(var.SrcDir)Plugins\Plugin_WindowController.dll" />
+      </Component>
+      <Component Id="ToonData" Directory="AppDataDir" Guid="A5CD845D-24E7-47D0-AA05-CD1F93AC68D9">
+        <File Id="Toon0" Name="toon0.bmp" Source="$(var.SrcDir)AppData\toon0.bmp" KeyPath="yes" />
+        <File Id="Toon01" Name="toon01.bmp" Source="$(var.SrcDir)AppData\toon01.bmp" />
+        <File Id="Toon02" Name="toon02.bmp" Source="$(var.SrcDir)AppData\toon02.bmp" />
+        <File Id="Toon03" Name="toon03.bmp" Source="$(var.SrcDir)AppData\toon03.bmp" />
+        <File Id="Toon04" Name="toon04.bmp" Source="$(var.SrcDir)AppData\toon04.bmp" />
+        <File Id="Toon05" Name="toon05.bmp" Source="$(var.SrcDir)AppData\toon05.bmp" />
+        <File Id="Toon06" Name="toon06.bmp" Source="$(var.SrcDir)AppData\toon06.bmp" />
+        <File Id="Toon07" Name="toon07.bmp" Source="$(var.SrcDir)AppData\toon07.bmp" />
+        <File Id="Toon08" Name="toon08.bmp" Source="$(var.SrcDir)AppData\toon08.bmp" />
+        <File Id="Toon09" Name="toon09.bmp" Source="$(var.SrcDir)AppData\toon09.bmp" />
+        <File Id="Toon10" Name="toon10.bmp" Source="$(var.SrcDir)AppData\toon10.bmp" />
+      </Component>
+      <Component Id="LipSyncDef" Directory="AppDataDir" Guid="7DA04338-1CBA-484E-948A-88907D0BAA65">
+        <File Id="Lip.txt" Name="lip.txt" Source="$(var.SrcDir)AppData\lip.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="FontDef" Directory="FontDir" Guid="34122A7F-F8EE-4F1F-B935-AC80E323B59B">
+        <File Id="NotoSansCJKjpMedium" Name="NotoSansCJKjp-Medium.otf" Source="$(var.SrcDir)AppData\Noto_Fonts\NotoSansCJKjp-Medium.otf" KeyPath="yes" />
+        <File Id="Font_COPYRIGHT" Name="COPYRIGHT.txt" Source="$(var.SrcDir)AppData\Noto_Fonts\COPYRIGHT.txt" />
+      </Component>
+      <Component Id="OpenJTalkData" Directory="OpenJTalkDir" Guid="28C9B603-3DE6-4D8B-9605-144D657337CB">
+        <File Id="OJT_COPYRIGHT" Name="COPYRIGHT.txt" Source="$(var.SrcDir)AppData\Open_JTalk\COPYRIGHT.txt" KeyPath="yes" />
+        <File Id="OJT_char.bin" Name="char.bin" Source="$(var.SrcDir)AppData\Open_JTalk\char.bin" />
+        <File Id="OJT_matrix.bin" Name="matrix.bin" Source="$(var.SrcDir)AppData\Open_JTalk\matrix.bin" />
+        <File Id="OJT_sys.dic" Name="sys.dic" Source="$(var.SrcDir)AppData\Open_JTalk\sys.dic" />
+        <File Id="OJT_unk.dic" Name="unk.dic" Source="$(var.SrcDir)AppData\Open_JTalk\unk.dic" />
+      </Component>
+      <Component Id="JuliusConf" Directory="JuliusDir" Guid="99AC889C-4DF2-465C-8DC0-6FE7EBA3EB97">
+        <File Id="JuliusConfigFile" Name="jconf.txt" Source="$(var.SrcDir)AppData\Julius\jconf.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="JuliusLanguageModel" Directory="LanguageModelDir" Guid="1D0A3DEA-6CA3-4AEB-A2DB-92C2345424CA">
+        <File Id="JLM_COPYRIGHT" Name="COPYRIGHT.txt" Source="$(var.SrcDir)AppData\Julius\lang_m\COPYRIGHT.txt" KeyPath="yes" />
+        <File Id="JLM_bingram" Name="web.60k.8-8.bingramv5.gz" Source="$(var.SrcDir)AppData\Julius\lang_m\web.60k.8-8.bingramv5.gz" />
+        <File Id="JLM_dictionary" Name="web.60k.htkdic" Source="$(var.SrcDir)AppData\Julius\lang_m\web.60k.htkdic" />
+      </Component>
+      <Component Id="JuliusAcousticModel" Directory="AcousticModelDir" Guid="C6A7D2C8-E574-44FE-B163-EDCA27AD0637">
+        <File Id="JAM_COPYRIGHT" Name="COPYRIGHT.txt" Source="$(var.SrcDir)AppData\Julius\phone_m\COPYRIGHT.txt" KeyPath="yes" />
+        <File Id="JAM_README" Name="README.txt" Source="$(var.SrcDir)AppData\Julius\phone_m\README.txt" />
+        <File Id="JAM_TRI" Name="clustered.mmf.16mix.all.julius.binhmm" Source="$(var.SrcDir)AppData\Julius\phone_m\clustered.mmf.16mix.all.julius.binhmm" />
+        <File Id="JAM_PTM" Name="clustered.mmf.ptm.16mix.all.julius.binhmm" Source="$(var.SrcDir)AppData\Julius\phone_m\clustered.mmf.ptm.16mix.all.julius.binhmm" />
+        <File Id="JAM_MONO" Name="monophone.mmf.16mix.julius.gshmm" Source="$(var.SrcDir)AppData\Julius\phone_m\monophone.mmf.16mix.julius.gshmm" />
+        <File Id="JAM_TRI_TIEDLIST" Name="tri_tied.list.bin" Source="$(var.SrcDir)AppData\Julius\phone_m\tri_tied.list.bin" />
+        <File Id="JAM_PTM_TIEDLIST" Name="tri_tied.list.ptm.bin" Source="$(var.SrcDir)AppData\Julius\phone_m\tri_tied.list.ptm.bin" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

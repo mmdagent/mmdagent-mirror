@@ -1,0 +1,897 @@
+{\rtf1\ansi\ansicpg932\deff0\deflang1033\deflangfe1041{\fonttbl{\f0\fmodern\fprq1\fcharset0 Consolas;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\nowidctlpar\f0\fs16 #######################################################################\par
+# MMDAgent                                                            #\par
+#######################################################################\par
+\par
+/* ----------------------------------------------------------------- */\par
+/*           The Toolkit for Building Voice Interaction Systems      */\par
+/*           "MMDAgent" developed by MMDAgent Project Team           */\par
+/*           {\field{\*\fldinst{HYPERLINK "http://www.mmdagent.jp/"}}{\fldrslt{\ul\cf1 http://www.mmdagent.jp/}}}\f0\fs16                                  */\par
+/* ----------------------------------------------------------------- */\par
+/*                                                                   */\par
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */\par
+/*                           Department of Computer Science          */\par
+/*                                                                   */\par
+/* All rights reserved.                                              */\par
+/*                                                                   */\par
+/* Redistribution and use in source and binary forms, with or        */\par
+/* without modification, are permitted provided that the following   */\par
+/* conditions are met:                                               */\par
+/*                                                                   */\par
+/* - Redistributions of source code must retain the above copyright  */\par
+/*   notice, this list of conditions and the following disclaimer.   */\par
+/* - Redistributions in binary form must reproduce the above         */\par
+/*   copyright notice, this list of conditions and the following     */\par
+/*   disclaimer in the documentation and/or other materials provided */\par
+/*   with the distribution.                                          */\par
+/* - Neither the name of the MMDAgent project team nor the names of  */\par
+/*   its contributors may be used to endorse or promote products     */\par
+/*   derived from this software without specific prior written       */\par
+/*   permission.                                                     */\par
+/*                                                                   */\par
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */\par
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */\par
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */\par
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */\par
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */\par
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */\par
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */\par
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */\par
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */\par
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */\par
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */\par
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */\par
+/* POSSIBILITY OF SUCH DAMAGE.                                       */\par
+/* ----------------------------------------------------------------- */\par
+\par
+#######################################################################\par
+# Bullet Physics                                                      #\par
+#######################################################################\par
+\par
+/*\par
+Bullet Continuous Collision Detection and Physics Library\par
+Copyright (c) 2003-2011 Erwin Coumans  {\field{\*\fldinst{HYPERLINK "http://bulletphysics.org"}}{\fldrslt{\ul\cf1 http://bulletphysics.org}}}\f0\fs16\par
+\par
+This software is provided 'as-is', without any express or implied warranty.\par
+In no event will the authors be held liable for any damages arising from the use of this software.\par
+Permission is granted to anyone to use this software for any purpose,\par
+including commercial applications, and to alter it and redistribute it freely,\par
+subject to the following restrictions:\par
+\par
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.\par
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.\par
+3. This notice may not be removed or altered from any source distribution.\par
+*/\par
+\par
+All files in the Bullet/src folder are under this Zlib license.\par
+Files in the Extras and Demos folder may have a different license, see the respective files.\par
+\par
+#######################################################################\par
+# FreeType                                                            #\par
+#######################################################################\par
+\par
+                    The FreeType Project LICENSE\par
+                    ----------------------------\par
+\par
+                            2006-Jan-27\par
+\par
+                    Copyright 1996-2002, 2006 by\par
+          David Turner, Robert Wilhelm, and Werner Lemberg\par
+\par
+\par
+\par
+Introduction\par
+============\par
+\par
+  The FreeType  Project is distributed in  several archive packages;\par
+  some of them may contain, in addition to the FreeType font engine,\par
+  various tools and  contributions which rely on, or  relate to, the\par
+  FreeType Project.\par
+\par
+  This  license applies  to all  files found  in such  packages, and\par
+  which do not  fall under their own explicit  license.  The license\par
+  affects  thus  the  FreeType   font  engine,  the  test  programs,\par
+  documentation and makefiles, at the very least.\par
+\par
+  This  license   was  inspired  by  the  BSD,   Artistic,  and  IJG\par
+  (Independent JPEG  Group) licenses, which  all encourage inclusion\par
+  and  use of  free  software in  commercial  and freeware  products\par
+  alike.  As a consequence, its main points are that:\par
+\par
+    o We don't promise that this software works. However, we will be\par
+      interested in any kind of bug reports. (`as is' distribution)\par
+\par
+    o You can  use this software for whatever you  want, in parts or\par
+      full form, without having to pay us. (`royalty-free' usage)\par
+\par
+    o You may not pretend that  you wrote this software.  If you use\par
+      it, or  only parts of it,  in a program,  you must acknowledge\par
+      somewhere  in  your  documentation  that  you  have  used  the\par
+      FreeType code. (`credits')\par
+\par
+  We  specifically  permit  and  encourage  the  inclusion  of  this\par
+  software, with  or without modifications,  in commercial products.\par
+  We  disclaim  all warranties  covering  The  FreeType Project  and\par
+  assume no liability related to The FreeType Project.\par
+\par
+\par
+  Finally,  many  people  asked  us  for  a  preferred  form  for  a\par
+  credit/disclaimer to use in compliance with this license.  We thus\par
+  encourage you to use the following text:\par
+\par
+   """\par
+    Portions of this software are copyright <year> The FreeType\par
+    Project ({\field{\*\fldinst{HYPERLINK "www.freetype.org"}}{\fldrslt{\ul\cf1 www.freetype.org}}}\f0\fs16 ).  All rights reserved.\par
+   """\par
+\par
+  Please replace <year> with the value from the FreeType version you\par
+  actually use.\par
+\par
+\par
+Legal Terms\par
+===========\par
+\par
+0. Definitions\par
+--------------\par
+\par
+  Throughout this license,  the terms `package', `FreeType Project',\par
+  and  `FreeType  archive' refer  to  the  set  of files  originally\par
+  distributed  by the  authors  (David Turner,  Robert Wilhelm,  and\par
+  Werner Lemberg) as the `FreeType Project', be they named as alpha,\par
+  beta or final release.\par
+\par
+  `You' refers to  the licensee, or person using  the project, where\par
+  `using' is a generic term including compiling the project's source\par
+  code as  well as linking it  to form a  `program' or `executable'.\par
+  This  program is  referred to  as  `a program  using the  FreeType\par
+  engine'.\par
+\par
+  This  license applies  to all  files distributed  in  the original\par
+  FreeType  Project,   including  all  source   code,  binaries  and\par
+  documentation,  unless  otherwise  stated   in  the  file  in  its\par
+  original, unmodified form as  distributed in the original archive.\par
+  If you are  unsure whether or not a particular  file is covered by\par
+  this license, you must contact us to verify this.\par
+\par
+  The FreeType  Project is copyright (C) 1996-2000  by David Turner,\par
+  Robert Wilhelm, and Werner Lemberg.  All rights reserved except as\par
+  specified below.\par
+\par
+1. No Warranty\par
+--------------\par
+\par
+  THE FREETYPE PROJECT  IS PROVIDED `AS IS' WITHOUT  WARRANTY OF ANY\par
+  KIND, EITHER  EXPRESS OR IMPLIED,  INCLUDING, BUT NOT  LIMITED TO,\par
+  WARRANTIES  OF  MERCHANTABILITY   AND  FITNESS  FOR  A  PARTICULAR\par
+  PURPOSE.  IN NO EVENT WILL ANY OF THE AUTHORS OR COPYRIGHT HOLDERS\par
+  BE LIABLE  FOR ANY DAMAGES CAUSED  BY THE USE OR  THE INABILITY TO\par
+  USE, OF THE FREETYPE PROJECT.\par
+\par
+2. Redistribution\par
+-----------------\par
+\par
+  This  license  grants  a  worldwide, royalty-free,  perpetual  and\par
+  irrevocable right  and license to use,  execute, perform, compile,\par
+  display,  copy,   create  derivative  works   of,  distribute  and\par
+  sublicense the  FreeType Project (in  both source and  object code\par
+  forms)  and  derivative works  thereof  for  any  purpose; and  to\par
+  authorize others  to exercise  some or all  of the  rights granted\par
+  herein, subject to the following conditions:\par
+\par
+    o Redistribution of  source code  must retain this  license file\par
+      (`FTL.TXT') unaltered; any  additions, deletions or changes to\par
+      the original  files must be clearly  indicated in accompanying\par
+      documentation.   The  copyright   notices  of  the  unaltered,\par
+      original  files must  be  preserved in  all  copies of  source\par
+      files.\par
+\par
+    o Redistribution in binary form must provide a  disclaimer  that\par
+      states  that  the software is based in part of the work of the\par
+      FreeType Team,  in  the  distribution  documentation.  We also\par
+      encourage you to put an URL to the FreeType web page  in  your\par
+      documentation, though this isn't mandatory.\par
+\par
+  These conditions  apply to any  software derived from or  based on\par
+  the FreeType Project,  not just the unmodified files.   If you use\par
+  our work, you  must acknowledge us.  However, no  fee need be paid\par
+  to us.\par
+\par
+3. Advertising\par
+--------------\par
+\par
+  Neither the  FreeType authors and  contributors nor you  shall use\par
+  the name of the  other for commercial, advertising, or promotional\par
+  purposes without specific prior written permission.\par
+\par
+  We suggest,  but do not require, that  you use one or  more of the\par
+  following phrases to refer  to this software in your documentation\par
+  or advertising  materials: `FreeType Project',  `FreeType Engine',\par
+  `FreeType library', or `FreeType Distribution'.\par
+\par
+  As  you have  not signed  this license,  you are  not  required to\par
+  accept  it.   However,  as  the FreeType  Project  is  copyrighted\par
+  material, only  this license, or  another one contracted  with the\par
+  authors, grants you  the right to use, distribute,  and modify it.\par
+  Therefore,  by  using,  distributing,  or modifying  the  FreeType\par
+  Project, you indicate that you understand and accept all the terms\par
+  of this license.\par
+\par
+4. Contacts\par
+-----------\par
+\par
+  There are two mailing lists related to FreeType:\par
+\par
+    o freetype@nongnu.org\par
+\par
+      Discusses general use and applications of FreeType, as well as\par
+      future and  wanted additions to the  library and distribution.\par
+      If  you are looking  for support,  start in  this list  if you\par
+      haven't found anything to help you in the documentation.\par
+\par
+    o freetype-devel@nongnu.org\par
+\par
+      Discusses bugs,  as well  as engine internals,  design issues,\par
+      specific licenses, porting, etc.\par
+\par
+  Our home page can be found at\par
+\par
+    {\field{\*\fldinst{HYPERLINK "http://www.freetype.org"}}{\fldrslt{\ul\cf1 http://www.freetype.org}}}\f0\fs16\par
+\par
+\par
+--- end of FTL.TXT ---\par
+\par
+#######################################################################\par
+# Freetype GL                                                         #\par
+#######################################################################\par
+\par
+/* =========================================================================\par
+* Freetype GL - A C OpenGL Freetype engine\par
+* Platform:    Any\par
+* WWW:         {\field{\*\fldinst{HYPERLINK "http://code.google.com/p/freetype-gl/"}}{\fldrslt{\ul\cf1 http://code.google.com/p/freetype-gl/}}}\f0\fs16\par
+* -------------------------------------------------------------------------\par
+* Copyright 2011,2012 Nicolas P. Rougier. All rights reserved.\par
+*\par
+* Redistribution and use in source and binary forms, with or without\par
+* modification, are permitted provided that the following conditions are met:\par
+*\par
+*  1. Redistributions of source code must retain the above copyright notice,\par
+*     this list of conditions and the following disclaimer.\par
+*\par
+*  2. Redistributions in binary form must reproduce the above copyright\par
+*     notice, this list of conditions and the following disclaimer in the\par
+*     documentation and/or other materials provided with the distribution.\par
+*\par
+* THIS SOFTWARE IS PROVIDED BY NICOLAS P. ROUGIER ''AS IS'' AND ANY EXPRESS OR\par
+* IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF\par
+* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO\par
+* EVENT SHALL NICOLAS P. ROUGIER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,\par
+* INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\par
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\par
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\par
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\par
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF\par
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\par
+*\par
+* The views and conclusions contained in the software and documentation are\par
+* those of the authors and should not be interpreted as representing official\par
+* policies, either expressed or implied, of Nicolas P. Rougier.\par
+* ========================================================================= */\par
+\par
+#######################################################################\par
+# GLee                                                                #\par
+#######################################################################\par
+\par
+Copyright (c)2009  Ben Woodhouse  All rights reserved.\par
+\par
+Redistribution and use in source and binary forms, with or without\par
+modification, are permitted provided that the following conditions are \par
+met:\par
+1. Redistributions of source code must retain the above copyright\par
+notice, this list of conditions and the following disclaimer as\par
+the first lines of this file unmodified.\par
+2. Redistributions in binary form must reproduce the above copyright\par
+notice, this list of conditions and the following disclaimer in the\par
+documentation and/or other materials provided with the distribution.\par
+\par
+THIS SOFTWARE IS PROVIDED BY BEN WOODHOUSE ``AS IS'' AND ANY EXPRESS OR\par
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES\par
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\par
+IN NO EVENT SHALL BEN WOODHOUSE BE LIABLE FOR ANY DIRECT, INDIRECT,\par
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT\par
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\par
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\par
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\par
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF\par
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\par
+\par
+#######################################################################\par
+# GLFW                                                                #\par
+#######################################################################\par
+\par
+Copyright (c) 2002-2006 Marcus Geelnard\par
+Copyright (c) 2006-2010 Camilla Berglund <elmindreda@elmindreda.org>\par
+\par
+This software is provided 'as-is', without any express or implied\par
+warranty. In no event will the authors be held liable for any damages\par
+arising from the use of this software.\par
+\par
+Permission is granted to anyone to use this software for any purpose,\par
+including commercial applications, and to alter it and redistribute it\par
+freely, subject to the following restrictions:\par
+\par
+1. The origin of this software must not be misrepresented; you must not\par
+   claim that you wrote the original software. If you use this software\par
+   in a product, an acknowledgment in the product documentation would\par
+   be appreciated but is not required.\par
+\par
+2. Altered source versions must be plainly marked as such, and must not\par
+   be misrepresented as being the original software.\par
+\par
+3. This notice may not be removed or altered from any source\par
+   distribution.\par
+\par
+#######################################################################\par
+# hts_engine API                                                      #\par
+#######################################################################\par
+\par
+/* ----------------------------------------------------------------- */\par
+/*           The HMM-Based Speech Synthesis Engine "hts_engine API"  */\par
+/*           developed by HTS Working Group                          */\par
+/*           {\field{\*\fldinst{HYPERLINK "http://hts-engine.sourceforge.net/"}}{\fldrslt{\ul\cf1 http://hts-engine.sourceforge.net/}}}\f0\fs16                       */\par
+/* ----------------------------------------------------------------- */\par
+/*                                                                   */\par
+/*  Copyright (c) 2001-2015  Nagoya Institute of Technology          */\par
+/*                           Department of Computer Science          */\par
+/*                                                                   */\par
+/*                2001-2008  Tokyo Institute of Technology           */\par
+/*                           Interdisciplinary Graduate School of    */\par
+/*                           Science and Engineering                 */\par
+/*                                                                   */\par
+/* All rights reserved.                                              */\par
+/*                                                                   */\par
+/* Redistribution and use in source and binary forms, with or        */\par
+/* without modification, are permitted provided that the following   */\par
+/* conditions are met:                                               */\par
+/*                                                                   */\par
+/* - Redistributions of source code must retain the above copyright  */\par
+/*   notice, this list of conditions and the following disclaimer.   */\par
+/* - Redistributions in binary form must reproduce the above         */\par
+/*   copyright notice, this list of conditions and the following     */\par
+/*   disclaimer in the documentation and/or other materials provided */\par
+/*   with the distribution.                                          */\par
+/* - Neither the name of the HTS working group nor the names of its  */\par
+/*   contributors may be used to endorse or promote products derived */\par
+/*   from this software without specific prior written permission.   */\par
+/*                                                                   */\par
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */\par
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */\par
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */\par
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */\par
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */\par
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */\par
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */\par
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */\par
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */\par
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */\par
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */\par
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */\par
+/* POSSIBILITY OF SUCH DAMAGE.                                       */\par
+/* ----------------------------------------------------------------- */\par
+\par
+#######################################################################\par
+# JPEG                                                                #\par
+#######################################################################\par
+\par
+In plain English:\par
+\par
+1. We don't promise that this software works.  (But if you find any bugs,\par
+   please let us know!)\par
+2. You can use this software for whatever you want.  You don't have to pay us.\par
+3. You may not pretend that you wrote this software.  If you use it in a\par
+   program, you must acknowledge somewhere in your documentation that\par
+   you've used the IJG code.\par
+\par
+In legalese:\par
+\par
+The authors make NO WARRANTY or representation, either express or implied,\par
+with respect to this software, its quality, accuracy, merchantability, or\par
+fitness for a particular purpose.  This software is provided "AS IS", and you,\par
+its user, assume the entire risk as to its quality and accuracy.\par
+\par
+This software is copyright (C) 1991-2011, Thomas G. Lane, Guido Vollbeding.\par
+All Rights Reserved except as specified below.\par
+\par
+Permission is hereby granted to use, copy, modify, and distribute this\par
+software (or portions thereof) for any purpose, without fee, subject to these\par
+conditions:\par
+(1) If any part of the source code for this software is distributed, then this\par
+README file must be included, with this copyright and no-warranty notice\par
+unaltered; and any additions, deletions, or changes to the original files\par
+must be clearly indicated in accompanying documentation.\par
+(2) If only executable code is distributed, then the accompanying\par
+documentation must state that "this software is based in part on the work of\par
+the Independent JPEG Group".\par
+(3) Permission for use of this software is granted only if the user accepts\par
+full responsibility for any undesirable consequences; the authors accept\par
+NO LIABILITY for damages of any kind.\par
+\par
+These conditions apply to any software derived from or based on the IJG code,\par
+not just to the unmodified library.  If you use our work, you ought to\par
+acknowledge us.\par
+\par
+Permission is NOT granted for the use of any IJG author's name or company name\par
+in advertising or publicity relating to this software or products derived from\par
+it.  This software may be referred to only as "the Independent JPEG Group's\par
+software".\par
+\par
+We specifically permit and encourage the use of this software as the basis of\par
+commercial products, provided that all warranty or liability claims are\par
+assumed by the product vendor.\par
+\par
+\par
+ansi2knr.c is included in this distribution by permission of L. Peter Deutsch,\par
+sole proprietor of its copyright holder, Aladdin Enterprises of Menlo Park, CA.\par
+ansi2knr.c is NOT covered by the above copyright and conditions, but instead\par
+by the usual distribution terms of the Free Software Foundation; principally,\par
+that you must include source code if you redistribute it.  (See the file\par
+ansi2knr.c for full details.)  However, since ansi2knr.c is not needed as part\par
+of any program generated from the IJG code, this does not limit you more than\par
+the foregoing paragraphs do.\par
+\par
+The Unix configuration script "configure" was produced with GNU Autoconf.\par
+It is copyright by the Free Software Foundation but is freely distributable.\par
+The same holds for its supporting scripts (config.guess, config.sub,\par
+ltmain.sh).  Another support script, install-sh, is copyright by X Consortium\par
+but is also freely distributable.\par
+\par
+The IJG distribution formerly included code to read and write GIF files.\par
+To avoid entanglement with the Unisys LZW patent, GIF reading support has\par
+been removed altogether, and the GIF writer has been simplified to produce\par
+"uncompressed GIFs".  This technique does not use the LZW algorithm; the\par
+resulting GIF files are larger than usual, but are readable by all standard\par
+GIF decoders.\par
+\par
+We are required to state that\par
+    "The Graphics Interchange Format(c) is the Copyright property of\par
+    CompuServe Incorporated.  GIF(sm) is a Service Mark property of\par
+    CompuServe Incorporated."\par
+\par
+#######################################################################\par
+# Julius                                                              #\par
+#######################################################################\par
+\par
+*** This is English translation of the Japanese original for reference ***\par
+\par
+\par
+     Large Vocabulary Continuous Speech Recognition Engine Julius\par
+\par
+\par
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University\par
+ Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan\par
+ Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology\par
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology\par
+\par
+"Large Vocabulary Continuous Speech Recognition Engine Julius",\par
+including Julian, is being developed at Kawahara Lab., Kyoto\par
+University, Shikano Lab., Nara Institute of Science and Technology,\par
+and Julius project team, Nagoya Institute of Technology (collectively\par
+referred to herein as the "Licensers").  Julius was funded by the\par
+Advanced Information Technology Program Project of\par
+Information-technology Promotion Agency (IPA), Japan for three years\par
+since 1997.\par
+\par
+The Licensers reserve the copyright thereto.  However, as long as you\par
+accept and remain in strict compliance with the terms and conditions\par
+of the license set forth herein, you are hereby granted a royalty-free\par
+license to use "Large Vocabulary Continuous Speech Recognition Engine\par
+Julius" including the source code thereof and the documentation\par
+thereto (collectively referred to herein as the "Software").  Use by\par
+you of the Software shall constitute acceptance by you of all terms\par
+and conditions of the license set forth herein.\par
+\par
+\tab       TERMS AND CONDITIONS OF LICENSE\par
+\par
+1. So long as you accept and strictly comply with the terms and\par
+conditions of the license set forth herein, the Licensers will not\par
+enforce the copyright or moral rights in respect of the Software, in\par
+connection with the use, copying, duplication, adaptation,\par
+modification, preparation of a derivative work, aggregation with\par
+another program, or insertion into another program of the Software or\par
+the distribution or transmission of the Software.  However, in the\par
+event you or any other user of the Software revises all or any portion\par
+of the Software, and such revision is distributed, then, in addition\par
+to the notice required to be affixed pursuant to paragraph 2 below, a\par
+notice shall be affixed indicating that the Software has been revised,\par
+and indicating the date of such revision and the name of the person or\par
+entity that made the revision.\par
+\par
+2. In the event you provide to any third party all or any portion of\par
+the Software, whether for copying, duplication, adaptation,\par
+modification, preparation of a derivative work, aggregation with\par
+another program, insertion into another program, or other use, you\par
+shall affix the following copyright notice and all terms and\par
+conditions of this license (both the Japanese original and English\par
+translation) as set forth herein, without any revision or change\par
+whatsoever.\par
+\par
+                      Form of copyright notice:\par
+\par
+ Copyright (c) 1991-2013 Kawahara Lab., Kyoto University\par
+ Copyright (c) 1997-2000 Information-technology Promotion Agency, Japan\par
+ Copyright (c) 2000-2005 Shikano Lab., Nara Institute of Science and Technology\par
+ Copyright (c) 2005-2013 Julius project team, Nagoya Institute of Technology\par
+\par
+3. When you publish or present any results by using the Software, you\par
+must explicitly mention your use of "Large Vocabulary Continuous\par
+Speech Recognition Engine Julius".\par
+\par
+4. The Licensers are licensing the Software, which is the trial\par
+product of research and project, on an "as is" and royalty-free basis,\par
+and makes no warranty or guaranty whatsoever with respect to the\par
+Software, whether express or implied, irrespective of the nation where\par
+used, and whether or not arising out of statute or otherwise,\par
+including but not limited to any warranty or guaranty with respect to\par
+quality, performance, merchantability, fitness for a particular\par
+purpose, absence of defects, or absence of infringement of copyright,\par
+patent rights, trademark rights or other intellectual property rights,\par
+trade secrets or proprietary rights of any third party.  You and every\par
+other user of the Software hereby acknowledge that the Software is\par
+licensed without any warranty or guaranty, and assume all risks\par
+arising out of the absence of any warranty or guaranty.  In the event\par
+that obligations imposed upon you by judgment of a court would make it\par
+impossible for you to comply with the conditions of this license, you\par
+may not use the Software.\par
+\par
+The Licensers shall not have any liability to you or to any third\par
+party for damages or liabilities of any nature whatsoever arising out\par
+of your use of or inability to use the Software, whether of an\par
+ordinary, special, direct, indirect, consequential or incidental\par
+nature (including without limitation lost profits) or otherwise, and\par
+whether arising out of contract, negligence, tortuous conduct, product\par
+liability or any other legal theory or reason whatsoever of any nation\par
+or jurisdiction.\par
+\par
+5. This license of use of the Software shall be governed by the laws\par
+of Japan, and the Kyoto District Court shall have exclusive primary\par
+jurisdiction with respect to all disputes arising with respect\par
+thereto.\par
+\par
+6. Inquiries for support or maintenance of the Software, or inquiries\par
+concerning this license of use besides the conditions above, may be\par
+sent to Julius project team, Nagoya Institute of Technology, or\par
+Kawahara Lab., Kyoto University.\par
+\par
+#######################################################################\par
+# libpng                                                              #\par
+#######################################################################\par
+\par
+This copy of the libpng notices is provided for your convenience.  In case of\par
+any discrepancy between this copy and the notices in the file png.h that is\par
+included in the libpng distribution, the latter shall prevail.\par
+\par
+COPYRIGHT NOTICE, DISCLAIMER, and LICENSE:\par
+\par
+If you modify libpng you may insert additional notices immediately following\par
+this sentence.\par
+\par
+This code is released under the libpng license.\par
+\par
+libpng versions 1.2.6, August 15, 2004, through 1.5.12, July 11, 2012, are\par
+Copyright (c) 2004, 2006-2012 Glenn Randers-Pehrson, and are\par
+distributed according to the same disclaimer and license as libpng-1.2.5\par
+with the following individual added to the list of Contributing Authors\par
+\par
+   Cosmin Truta\par
+\par
+libpng versions 1.0.7, July 1, 2000, through 1.2.5 - October 3, 2002, are\par
+Copyright (c) 2000-2002 Glenn Randers-Pehrson, and are\par
+distributed according to the same disclaimer and license as libpng-1.0.6\par
+with the following individuals added to the list of Contributing Authors\par
+\par
+   Simon-Pierre Cadieux\par
+   Eric S. Raymond\par
+   Gilles Vollant\par
+\par
+and with the following additions to the disclaimer:\par
+\par
+   There is no warranty against interference with your enjoyment of the\par
+   library or against infringement.  There is no warranty that our\par
+   efforts or the library will fulfill any of your particular purposes\par
+   or needs.  This library is provided with all faults, and the entire\par
+   risk of satisfactory quality, performance, accuracy, and effort is with\par
+   the user.\par
+\par
+libpng versions 0.97, January 1998, through 1.0.6, March 20, 2000, are\par
+Copyright (c) 1998, 1999 Glenn Randers-Pehrson, and are\par
+distributed according to the same disclaimer and license as libpng-0.96,\par
+with the following individuals added to the list of Contributing Authors:\par
+\par
+   Tom Lane\par
+   Glenn Randers-Pehrson\par
+   Willem van Schaik\par
+\par
+libpng versions 0.89, June 1996, through 0.96, May 1997, are\par
+Copyright (c) 1996, 1997 Andreas Dilger\par
+Distributed according to the same disclaimer and license as libpng-0.88,\par
+with the following individuals added to the list of Contributing Authors:\par
+\par
+   John Bowler\par
+   Kevin Bracey\par
+   Sam Bushell\par
+   Magnus Holmgren\par
+   Greg Roelofs\par
+   Tom Tanner\par
+\par
+libpng versions 0.5, May 1995, through 0.88, January 1996, are\par
+Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.\par
+\par
+For the purposes of this copyright and license, "Contributing Authors"\par
+is defined as the following set of individuals:\par
+\par
+   Andreas Dilger\par
+   Dave Martindale\par
+   Guy Eric Schalnat\par
+   Paul Schmidt\par
+   Tim Wegner\par
+\par
+The PNG Reference Library is supplied "AS IS".  The Contributing Authors\par
+and Group 42, Inc. disclaim all warranties, expressed or implied,\par
+including, without limitation, the warranties of merchantability and of\par
+fitness for any purpose.  The Contributing Authors and Group 42, Inc.\par
+assume no liability for direct, indirect, incidental, special, exemplary,\par
+or consequential damages, which may result from the use of the PNG\par
+Reference Library, even if advised of the possibility of such damage.\par
+\par
+Permission is hereby granted to use, copy, modify, and distribute this\par
+source code, or portions hereof, for any purpose, without fee, subject\par
+to the following restrictions:\par
+\par
+1. The origin of this source code must not be misrepresented.\par
+\par
+2. Altered versions must be plainly marked as such and must not\par
+   be misrepresented as being the original source.\par
+\par
+3. This Copyright notice may not be removed or altered from any\par
+   source or altered source distribution.\par
+\par
+The Contributing Authors and Group 42, Inc. specifically permit, without\par
+fee, and encourage the use of this source code as a component to\par
+supporting the PNG file format in commercial products.  If you use this\par
+source code in a product, acknowledgment is not required but would be\par
+appreciated.\par
+\par
+\par
+A "png_get_copyright" function is available, for convenient use in "about"\par
+boxes and the like:\par
+\par
+   printf("%s",png_get_copyright(NULL));\par
+\par
+Also, the PNG logo (in PNG format, of course) is supplied in the\par
+files "pngbar.png" and "pngbar.jpg (88x31) and "pngnow.png" (98x31).\par
+\par
+Libpng is OSI Certified Open Source Software.  OSI Certified Open Source is a\par
+certification mark of the Open Source Initiative.\par
+\par
+Glenn Randers-Pehrson\par
+glennrp at users.sourceforge.net\par
+July 11, 2012\par
+\par
+#######################################################################\par
+# MeCab                                                               #\par
+#######################################################################\par
+\par
+Copyright (c) 2001-2008, Taku Kudo\par
+Copyright (c) 2004-2008, Nippon Telegraph and Telephone Corporation\par
+All rights reserved.\par
+\par
+Redistribution and use in source and binary forms, with or without modification, are\par
+permitted provided that the following conditions are met:\par
+\par
+ * Redistributions of source code must retain the above\par
+   copyright notice, this list of conditions and the\par
+   following disclaimer.\par
+\par
+ * Redistributions in binary form must reproduce the above\par
+   copyright notice, this list of conditions and the\par
+   following disclaimer in the documentation and/or other\par
+   materials provided with the distribution.\par
+\par
+ * Neither the name of the Nippon Telegraph and Telegraph Corporation\par
+   nor the names of its contributors may be used to endorse or\par
+   promote products derived from this software without specific\par
+   prior written permission.\par
+\par
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED\par
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A\par
+PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR\par
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\par
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\par
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR\par
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF\par
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\par
+\par
+#######################################################################\par
+# Open JTalk                                                          #\par
+#######################################################################\par
+\par
+/* ----------------------------------------------------------------- */\par
+/*           The Japanese TTS System "Open JTalk"                    */\par
+/*           developed by HTS Working Group                          */\par
+/*           {\field{\*\fldinst{HYPERLINK "http://open-jtalk.sourceforge.net/"}}{\fldrslt{\ul\cf1 http://open-jtalk.sourceforge.net/}}}\f0\fs16                       */\par
+/* ----------------------------------------------------------------- */\par
+/*                                                                   */\par
+/*  Copyright (c) 2008-2015  Nagoya Institute of Technology          */\par
+/*                           Department of Computer Science          */\par
+/*                                                                   */\par
+/* All rights reserved.                                              */\par
+/*                                                                   */\par
+/* Redistribution and use in source and binary forms, with or        */\par
+/* without modification, are permitted provided that the following   */\par
+/* conditions are met:                                               */\par
+/*                                                                   */\par
+/* - Redistributions of source code must retain the above copyright  */\par
+/*   notice, this list of conditions and the following disclaimer.   */\par
+/* - Redistributions in binary form must reproduce the above         */\par
+/*   copyright notice, this list of conditions and the following     */\par
+/*   disclaimer in the documentation and/or other materials provided */\par
+/*   with the distribution.                                          */\par
+/* - Neither the name of the HTS working group nor the names of its  */\par
+/*   contributors may be used to endorse or promote products derived */\par
+/*   from this software without specific prior written permission.   */\par
+/*                                                                   */\par
+/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND            */\par
+/* CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,       */\par
+/* INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF          */\par
+/* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE          */\par
+/* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS */\par
+/* BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,          */\par
+/* EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED   */\par
+/* TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,     */\par
+/* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON */\par
+/* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,   */\par
+/* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    */\par
+/* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE           */\par
+/* POSSIBILITY OF SUCH DAMAGE.                                       */\par
+/* ----------------------------------------------------------------- */\par
+\par
+#######################################################################\par
+# PortAudio                                                           #\par
+#######################################################################\par
+\par
+/*\par
+ * PortAudio Portable Real-Time Audio Library\par
+ * PortAudio API Header File\par
+ * Latest version available at: {\field{\*\fldinst{HYPERLINK "http://www.portaudio.com"}}{\fldrslt{\ul\cf1 http://www.portaudio.com}}}\f0\fs16\par
+ *\par
+ * Copyright (c) 1999-2006 Ross Bencina and Phil Burk\par
+ *\par
+ * Permission is hereby granted, free of charge, to any person obtaining\par
+ * a copy of this software and associated documentation files\par
+ * (the "Software"), to deal in the Software without restriction,\par
+ * including without limitation the rights to use, copy, modify, merge,\par
+ * publish, distribute, sublicense, and/or sell copies of the Software,\par
+ * and to permit persons to whom the Software is furnished to do so,\par
+ * subject to the following conditions:\par
+ *\par
+ * The above copyright notice and this permission notice shall be\par
+ * included in all copies or substantial portions of the Software.\par
+ *\par
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,\par
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\par
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\par
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR\par
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF\par
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION\par
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\par
+ */\par
+\par
+/*\par
+ * The text above constitutes the entire PortAudio license; however, \par
+ * the PortAudio community also makes the following non-binding requests:\par
+ *\par
+ * Any person wishing to distribute modifications to the Software is\par
+ * requested to send the modifications to the original developer so that\par
+ * they can be incorporated into the canonical version. It is also \par
+ * requested that these non-binding requests be included along with the \par
+ * license above.\par
+ */\par
+\par
+#######################################################################\par
+# RE2                                                                 #\par
+#######################################################################\par
+\par
+// Copyright (c) 2009 The RE2 Authors. All rights reserved.\par
+//\par
+// Redistribution and use in source and binary forms, with or without\par
+// modification, are permitted provided that the following conditions are\par
+// met:\par
+//\par
+//    * Redistributions of source code must retain the above copyright\par
+// notice, this list of conditions and the following disclaimer.\par
+//    * Redistributions in binary form must reproduce the above\par
+// copyright notice, this list of conditions and the following disclaimer\par
+// in the documentation and/or other materials provided with the\par
+// distribution.\par
+//    * Neither the name of Google Inc. nor the names of its\par
+// contributors may be used to endorse or promote products derived from\par
+// this software without specific prior written permission.\par
+//\par
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\par
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\par
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\par
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\par
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\par
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\par
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\par
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\par
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\par
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\par
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\par
+\par
+#######################################################################\par
+# UTF8 CPP                                                            #\par
+#######################################################################\par
+\par
+// Copyright 2006 Nemanja Trifunovic\par
+\par
+/*\par
+Permission is hereby granted, free of charge, to any person or organization\par
+obtaining a copy of the software and accompanying documentation covered by\par
+this license (the "Software") to use, reproduce, display, distribute,\par
+execute, and transmit the Software, and to prepare derivative works of the\par
+Software, and to permit third-parties to whom the Software is furnished to\par
+do so, all subject to the following:\par
+\par
+The copyright notices in the Software and this entire statement, including\par
+the above license grant, this restriction and the following disclaimer,\par
+must be included in all copies of the Software, in whole or in part, and\par
+all derivative works of the Software, unless such copies or derivative\par
+works are solely in the form of machine-executable object code generated by\par
+a source language processor.\par
+\par
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\par
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\par
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT\par
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE\par
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,\par
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER\par
+DEALINGS IN THE SOFTWARE.\par
+*/\par
+\par
+#######################################################################\par
+# zlib                                                                #\par
+#######################################################################\par
+\par
+ (C) 1995-2012 Jean-loup Gailly and Mark Adler\par
+\par
+  This software is provided 'as-is', without any express or implied\par
+  warranty.  In no event will the authors be held liable for any damages\par
+  arising from the use of this software.\par
+\par
+  Permission is granted to anyone to use this software for any purpose,\par
+  including commercial applications, and to alter it and redistribute it\par
+  freely, subject to the following restrictions:\par
+\par
+  1. The origin of this software must not be misrepresented; you must not\par
+     claim that you wrote the original software. If you use this software\par
+     in a product, an acknowledgment in the product documentation would be\par
+     appreciated but is not required.\par
+  2. Altered source versions must be plainly marked as such, and must not be\par
+     misrepresented as being the original software.\par
+  3. This notice may not be removed or altered from any source distribution.\par
+\par
+  Jean-loup Gailly        Mark Adler\par
+  jloup@gzip.org          madler@alumni.caltech.edu\par
+\par
+If you use the zlib library in a product, we would appreciate *not* receiving\par
+lengthy legal documents to sign.  The sources are provided for free but without\par
+warranty of any kind.  The library has been entirely written by Jean-loup\par
+Gailly and Mark Adler; it does not include third-party code.\par
+\par
+If you redistribute modified sources, we would appreciate that you include in\par
+the file ChangeLog history information documenting your changes.  Please read\par
+the FAQ for more information on the distribution of modified source versions.\par
+\par
+}
+ 

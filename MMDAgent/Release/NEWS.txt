@@ -3,6 +3,7 @@ Version 1.6:
  * support rendering text for Mac OS X, Linux, and Android.
  * support playing audio for Android.
  * support regular expression for input symbol of FST.
+ * add Windows installer.
  * add zip (dialogue contents package) loader.
  * remove some Makefiles (Visual Studio 2008, Carbon 32bit in Mac OS X, and MinGW).
  * add libraries and fonts (FreeType, RE2, Noto Fonts, UTF8-CPP, and Freetype GL).
