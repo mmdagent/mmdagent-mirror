@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -41,6 +41,7 @@
 
 /* definitions */
 
+#define JULIUSTHREAD_PLUGINNAME    "Julius"
 #define JULIUSTHREAD_LATENCY       50
 #define JULIUSTHREAD_EVENTSTART    "RECOG_EVENT_START"
 #define JULIUSTHREAD_EVENTSTOP     "RECOG_EVENT_STOP"
@@ -112,6 +113,9 @@ public :
 
    /* resume: resume recognition process */
    void resume();
+
+   /* procResult: process recognition result */
+   void procResult();
 
    /* procCommand: process command message to modify recognition condition */
    void procCommand();

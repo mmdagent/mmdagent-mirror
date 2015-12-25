@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -47,7 +47,7 @@
 #define EXPORT extern "C"
 #endif /* _WIN32 */
 
-#define PLUGINJULIUS_NAME          "Julius"
+#define PLUGINJULIUS_NAME          JULIUSTHREAD_PLUGINNAME
 #define PLUGINJULIUS_MODIFYCOMMAND "RECOG_MODIFY"
 
 #define PLUGINJULIUS_LANGUAGEMODEL(appDirName)          "%s%c%s%c%s%c%s", appDirName, MMDAGENT_DIRSEPARATOR, PLUGINJULIUS_NAME, MMDAGENT_DIRSEPARATOR, "lang_m", MMDAGENT_DIRSEPARATOR, "web.60k.8-8.bingramv5.gz"
@@ -114,7 +114,6 @@ EXPORT void extAppStart(MMDAgent *mmdagent)
    julius_thread.loadAndStart(mmdagent, languageModel, dictionary, triphoneAcousticModel, triphoneList, monophoneAcousticModel, configFile, userDictionary);
 
    enable = true;
-   mmdagent->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, "%s", PLUGINJULIUS_NAME);
 }
 
 /* extProcMessage: process message */

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -53,38 +53,11 @@ static void callbackRecogBegin(Recog *recog, void *data)
    j->sendMessage(JULIUSTHREAD_EVENTSTART, "");
 }
 
-/* callbackRecogResult: callback for recognitional result */
+/* callbackRecogResult: callback for recognition result */
 static void callbackRecogResult(Recog *recog, void *data)
 {
-   int i;
-   int first;
-   Sentence *s;
-   RecogProcess *r;
-   static char str[MMDAGENT_MAXBUFLEN]; /* static buffer */
    Julius_Thread *j = (Julius_Thread *) data;
-
-   /* get status */
-   r = recog->process_list;
-   if (!r->live)
-      return;
-   if (r->result.status < 0) {
-      return;
-   }
-   s = &(r->result.sent[0]);
-   strcpy(str, "");
-   first = 1;
-   for (i = 0; i < s->word_num; i++) {
-      if (MMDAgent_strlen(r->lm->winfo->woutput[s->word[i]]) > 0) {
-         if (first == 0)
-            strcat(str, ",");
-         strcat(str, r->lm->winfo->woutput[s->word[i]]);
-         if (first == 1)
-            first = 0;
-      }
-   }
-
-   if(first == 0)
-      j->sendMessage(JULIUSTHREAD_EVENTSTOP, str);
+   j->procResult();
 }
 
 /* callbackPoll: callback called per about 0.1 sec during audio input */
@@ -92,6 +65,13 @@ static void callbackPoll(Recog *recog, void *data)
 {
    Julius_Thread *j = (Julius_Thread *) data;
    j->procCommand();
+}
+
+/* callbackOnLine: callback for start of processing */
+static void callbackOnLine(Recog *recog, void *data)
+{
+   Julius_Thread *j = (Julius_Thread *) data;
+   j->sendMessage(MMDAGENT_EVENT_PLUGINENABLE, JULIUSTHREAD_PLUGINNAME);
 }
 
 /* mainThread: main thread */
@@ -134,15 +114,13 @@ void Julius_Thread::clear()
          j_close_stream(m_recog);
       glfwWaitThread(m_thread, GLFW_WAIT);
       glfwDestroyThread(m_thread);
-      glfwTerminate();
    }
    if(m_mutex != NULL)
       glfwDestroyMutex(m_mutex);
-   if (m_recog) {
+   if (m_recog)
       j_recog_free(m_recog); /* jconf is also released in j_recog_free */
-   } else if (m_jconf) {
+   else if (m_jconf)
       j_jconf_free(m_jconf);
-   }
 
    if(m_languageModel != NULL)
       free(m_languageModel);
@@ -237,46 +215,41 @@ void Julius_Thread::run()
    jlog_set_output(NULL);
 
    /* load models */
-   tmp = MMDAgent_pathdup(m_languageModel);
+   tmp = MMDAgent_pathdup_from_application_to_system_locale(m_languageModel);
    sprintf(buff, "-d \"%s\"", tmp);
    free(tmp);
    m_jconf = j_config_load_string_new(buff);
-   if (m_jconf == NULL) {
+   if (m_jconf == NULL)
       return;
-   }
 
-   tmp = MMDAgent_pathdup(m_dictionary);
+   tmp = MMDAgent_pathdup_from_application_to_system_locale(m_dictionary);
    sprintf(buff, "-v \"%s\"", tmp);
    free(tmp);
-   if(j_config_load_string(m_jconf, buff) < 0) {
+   if(j_config_load_string(m_jconf, buff) < 0)
       return;
-   }
 
-   tmp = MMDAgent_pathdup(m_triphoneAcousticModel);
+   tmp = MMDAgent_pathdup_from_application_to_system_locale(m_triphoneAcousticModel);
    sprintf(buff, "-h \"%s\"", tmp);
    free(tmp);
-   if(j_config_load_string(m_jconf, buff) < 0) {
+   if(j_config_load_string(m_jconf, buff) < 0)
       return;
-   }
 
-   tmp = MMDAgent_pathdup(m_triphoneList);
+   tmp = MMDAgent_pathdup_from_application_to_system_locale(m_triphoneList);
    sprintf(buff, "-hlist \"%s\"", tmp);
    free(tmp);
-   if(j_config_load_string(m_jconf, buff) < 0) {
+   if(j_config_load_string(m_jconf, buff) < 0)
       return;
-   }
 
    if(MMDAgent_strlen(m_monophoneAcousticModel) > 0) {
-      tmp = MMDAgent_pathdup(m_monophoneAcousticModel);
+      tmp = MMDAgent_pathdup_from_application_to_system_locale(m_monophoneAcousticModel);
       sprintf(buff, "-gshmm \"%s\"", tmp);
       free(tmp);
-      if(j_config_load_string(m_jconf, buff) < 0) {
+      if(j_config_load_string(m_jconf, buff) < 0)
          return;
-      }
    }
 
    /* load config file */
-   tmp = MMDAgent_pathdup(m_configFile);
+   tmp = MMDAgent_pathdup_from_application_to_system_locale(m_configFile);
    if(j_config_load_file(m_jconf, tmp) < 0) {
       free(tmp);
       return;
@@ -284,12 +257,14 @@ void Julius_Thread::run()
    free(tmp);
 
    /* load user dictionary */
-   fp = MMDAgent_fopen(m_userDictionary, "r");
-   if(fp != NULL) {
-      fclose(fp);
-      tmp = MMDAgent_pathdup(m_userDictionary);
-      j_add_dict(m_jconf->lm_root, tmp);
-      free(tmp);
+   if (MMDAgent_strlen(m_userDictionary) > 0) {
+      fp = MMDAgent_fopen(m_userDictionary, "r");
+      if (fp != NULL) {
+         fclose(fp);
+         tmp = MMDAgent_pathdup_from_application_to_system_locale(m_userDictionary);
+         j_add_dict(m_jconf->lm_root, tmp);
+         free(tmp);
+      }
    }
 
    /* create instance */
@@ -302,6 +277,9 @@ void Julius_Thread::run()
    callback_add(m_recog, CALLBACK_EVENT_RECOGNITION_BEGIN, callbackRecogBegin, this);
    callback_add(m_recog, CALLBACK_RESULT, callbackRecogResult, this);
    callback_add(m_recog, CALLBACK_POLL, callbackPoll, this);
+   callback_add(m_recog, CALLBACK_EVENT_PROCESS_ONLINE, callbackOnLine, this);
+
+   /* open audio device */
    if (!j_adin_init(m_recog)) {
       return;
    }
@@ -332,6 +310,54 @@ void Julius_Thread::resume()
 {
    if(m_recog != NULL)
       j_request_resume(m_recog);
+}
+
+/* Julius_Thread::procResult: process recognition result */
+void Julius_Thread::procResult()
+{
+   int i;
+   int first;
+   Sentence *sentence;
+   RecogProcess *process;
+   char result[MMDAGENT_MAXBUFLEN];
+   float maxScore;
+   RecogProcess *processWithMaxScore;
+
+   maxScore = LOG_ZERO;
+   processWithMaxScore = NULL;
+   for (process = m_recog->process_list; process; process = process->next) {
+      if (!process->live) {
+         continue;
+      }
+      if (process->result.status < 0) {
+         continue;
+      }
+      sentence = &(process->result.sent[0]);
+      if (maxScore < sentence->score_am) {
+         maxScore = sentence->score_am;
+         processWithMaxScore = process;
+      }
+   }
+
+   if (processWithMaxScore != NULL) {
+      process = processWithMaxScore;
+      sentence = &(process->result.sent[0]);
+      strcpy(result, "");
+      first = 1;
+      for (i = 0; i < sentence->word_num; i++) {
+         if (MMDAgent_strlen(process->lm->winfo->woutput[sentence->word[i]]) > 0) {
+            if(first == 1) {
+               first = 0;
+            } else {
+               strcat(result, ",");
+            }
+            strcat(result, process->lm->winfo->woutput[sentence->word[i]]);
+         }
+      }
+      if (first == 0) {
+         sendMessage(JULIUSTHREAD_EVENTSTOP, result);
+      }
+   }
 }
 
 /* Julius_Thread::procCommand: process command message to modify recognition condition */
@@ -387,7 +413,7 @@ void Julius_Thread::procCommand()
                   }
                   /* set additional dictionary name */
                   lm->config->additional_dict_files = (JCONF_LM_NAMELIST *) malloc(sizeof(JCONF_LM_NAMELIST));
-                  lm->config->additional_dict_files->name = MMDAgent_strdup(p2);
+                  lm->config->additional_dict_files->name = MMDAgent_pathdup_from_application_to_system_locale(p2);
                   lm->config->additional_dict_files->next = NULL;
                   /* reload */
                   j_reload_adddict(m_recog, lm);
