@@ -23,7 +23,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -D_LARGEFILE64_SOURCE=1 \
            -DNO_VIZ
 INCLUDE  = -I src

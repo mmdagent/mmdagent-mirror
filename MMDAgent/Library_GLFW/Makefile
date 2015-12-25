@@ -13,25 +13,32 @@ SOURCES  = src/lib/enable.c \
            src/lib/thread.c \
            src/lib/time.c \
            src/lib/window.c \
-           src/lib/carbon/carbon_enable.c \
-           src/lib/carbon/carbon_fullscreen.c \
-           src/lib/carbon/carbon_glext.c \
-           src/lib/carbon/carbon_init.c \
-           src/lib/carbon/carbon_joystick.c \
-           src/lib/carbon/carbon_thread.c \
-           src/lib/carbon/carbon_time.c \
-           src/lib/carbon/carbon_window.c
+           src/lib/x11/x11_enable.c \
+           src/lib/x11/x11_fullscreen.c \
+           src/lib/x11/x11_glext.c \
+           src/lib/x11/x11_init.c \
+           src/lib/x11/x11_joystick.c \
+           src/lib/x11/x11_keysym2unicode.c \
+           src/lib/x11/x11_thread.c \
+           src/lib/x11/x11_time.c \
+           src/lib/x11/x11_window.c
 
 OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
-           -fno-common \
-           -DMMDAGENT
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
+           -pthread \
+           -DMMDAGENT \
+           -D_GLFW_USE_LINUX_JOYSTICKS \
+           -D_GLFW_HAS_XRANDR \
+           -D_GLFW_HAS_PTHREAD \
+           -D_GLFW_HAS_SCHED_YIELD \
+           -D_GLFW_HAS_GLXGETPROCADDRESS \
+           -D_GLFW_HAS_SYSCONF
 INCLUDE  = -I src/include \
            -I src/lib \
-           -I src/lib/carbon
+           -I src/lib/x11
 
 all: $(TARGET)
 

@@ -28,7 +28,7 @@ OBJECTS  = $(SOURCES:.c=.o) $(OBJCSOURCES1:.m=.o) $(OBJCSOURCES2:.m=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -fno-common \
            -DMMDAGENT
 INCLUDE  = -I src/include \

@@ -1,9 +1,7 @@
 
-TARGET   = ../Release/Plugins/Plugin_Audio.dll
+TARGET   = ../Release/MMDAgent
 
-SOURCES  = Audio_Manager.cpp \
-           Audio_Thread.cpp \
-           Plugin_Audio.cpp
+SOURCES  = main.cpp
 
 OBJECTS  = $(SOURCES:.cpp=.o)
 
@@ -13,14 +11,13 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
            ../Library_zlib/lib/zlib.a
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
-           -shared \
-           -Wl,--kill-at \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -DMMDAGENT
 INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
@@ -32,7 +29,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(LDADD)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDADD) -o $(TARGET) \
-	-lgdi32 -lopengl32 -lglu32 -lwinmm -lstdc++
+	-ldl -lstdc++ -pthread -lm -lXrandr -lrt -lX11 -lGL -lGLU
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(<:.cpp=.o) -c $<

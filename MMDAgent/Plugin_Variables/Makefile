@@ -1,7 +1,9 @@
 
-TARGET   = ../Release/Plugins/Plugin_LookAt.so
+TARGET   = ../Release/Plugins/Plugin_Variables.so
 
-SOURCES  = Plugin_LookAt.cpp
+SOURCES  = CountDown_Thread.cpp \
+           Plugin_Variables.cpp \
+           Variables.cpp
 
 OBJECTS  = $(SOURCES:.cpp=.o)
 
@@ -11,12 +13,13 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
            ../Library_zlib/lib/zlib.a
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -shared \
            -DMMDAGENT
 INCLUDE  = -I ../Library_Bullet_Physics/include \

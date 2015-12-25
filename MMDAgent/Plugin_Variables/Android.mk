@@ -7,7 +7,7 @@ LOCAL_SRC_FILES        := Plugin_Variables.cpp \
                           Variables.cpp \
                           CountDown_Thread.cpp
 LOCAL_LDLIBS           := -landroid -lEGL -lGLESv1_CM
-LOCAL_STATIC_LIBRARIES := MMDAgent MMDFiles Bullet_Physics JPEG libpng zlib GLFW GLee
+LOCAL_STATIC_LIBRARIES := MMDAgent MMDFiles Bullet_Physics JPEG libpng zlib GLFW GLee FreeType
 LOCAL_C_INCLUDES       := $(LOCAL_PATH)/../Library_MMDAgent/include \
                           $(LOCAL_PATH)/../Library_JPEG/include \
                           $(LOCAL_PATH)/../Library_Bullet_Physics/include \

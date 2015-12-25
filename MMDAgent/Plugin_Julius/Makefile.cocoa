@@ -13,6 +13,7 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
            ../Library_Julius/lib/Julius.a \
            ../Library_PortAudio/lib/PortAudio.a \
@@ -20,7 +21,7 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -dynamiclib \
            -fno-common \
            -DMMDAGENT \

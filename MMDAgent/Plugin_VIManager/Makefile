@@ -1,9 +1,10 @@
 
-TARGET   = ../Release/Plugins/Plugin_Julius.dll
+TARGET   = ../Release/Plugins/Plugin_VIManager.so
 
-SOURCES  = Julius_Logger.cpp \
-           Julius_Thread.cpp \
-           Plugin_Julius.cpp
+SOURCES  = Plugin_VIManager.cpp \
+           VIManager.cpp \
+           VIManager_Logger.cpp \
+           VIManager_Thread.cpp
 
 OBJECTS  = $(SOURCES:.cpp=.o)
 
@@ -13,30 +14,28 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
-           ../Library_Julius/lib/Julius.a \
-           ../Library_PortAudio/lib/PortAudio.a \
-           ../Library_zlib/lib/zlib.a
+           ../Library_zlib/lib/zlib.a \
+           ../Library_RE2/lib/RE2.a
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -shared \
-           -Wl,--kill-at \
            -DMMDAGENT
 INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
            -I ../Library_GLFW/include \
            -I ../Library_MMDFiles/include \
            -I ../Library_MMDAgent/include \
-           -I ../Library_PortAudio/include \
-           -I ../Library_Julius/include
+           -I ../Library_RE2/include
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(LDADD)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDADD) -o $(TARGET) \
-	-lgdi32 -lopengl32 -lglu32 -lstdc++ -lwinmm -lws2_32
+	-lGLU -lGL -lX11
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(<:.cpp=.o) -c $<

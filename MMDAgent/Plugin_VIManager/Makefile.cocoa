@@ -14,12 +14,14 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
-           ../Library_zlib/lib/zlib.a
+           ../Library_zlib/lib/zlib.a \
+           ../Library_RE2/lib/RE2.a
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -dynamiclib \
            -fno-common \
            -DMMDAGENT \
@@ -28,7 +30,8 @@ INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
            -I ../Library_GLFW/include \
            -I ../Library_MMDFiles/include \
-           -I ../Library_MMDAgent/include
+           -I ../Library_MMDAgent/include \
+           -I ../Library_RE2/include
 
 all: $(TARGET)
 

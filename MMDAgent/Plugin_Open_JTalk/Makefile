@@ -1,7 +1,10 @@
 
-TARGET   = ../Release/Plugins/Plugin_LookAt.dll
+TARGET   = ../Release/Plugins/Plugin_Open_JTalk.so
 
-SOURCES  = Plugin_LookAt.cpp
+SOURCES  = Open_JTalk.cpp \
+           Open_JTalk_Manager.cpp \
+           Open_JTalk_Thread.cpp \
+           Plugin_Open_JTalk.cpp
 
 OBJECTS  = $(SOURCES:.cpp=.o)
 
@@ -11,26 +14,33 @@ LDADD    = ../Library_MMDAgent/lib/MMDAgent.a \
            ../Library_GLee/lib/GLee.a \
            ../Library_Bullet_Physics/lib/Bullet_Physics.a \
            ../Library_libpng/lib/libpng.a \
+           ../Library_FreeType/lib/FreeType.a \
            ../Library_JPEG/lib/JPEG.a \
-           ../Library_zlib/lib/zlib.a
+           ../Library_zlib/lib/zlib.a \
+           ../Library_hts_engine_API/lib/hts_engine_API.a \
+           ../Library_Open_JTalk/lib/Open_JTalk.a \
+           ../Library_PortAudio/lib/PortAudio.a
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer -m32 \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -shared \
-           -Wl,--kill-at \
-           -DMMDAGENT
+           -DMMDAGENT \
+           -DAUDIO_PLAY_PORTAUDIO
 INCLUDE  = -I ../Library_Bullet_Physics/include \
            -I ../Library_GLee/include \
            -I ../Library_GLFW/include \
            -I ../Library_MMDFiles/include \
-           -I ../Library_MMDAgent/include
+           -I ../Library_MMDAgent/include \
+           -I ../Library_hts_engine_API/include \
+           -I ../Library_Open_JTalk/include \
+           -I ../Library_PortAudio/include
 
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS) $(LDADD)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LDADD) -o $(TARGET) \
-	-lgdi32 -lopengl32 -lglu32 -lstdc++
+	-lGLU -lGL -lX11 -lasound -ldl -lrt -lm -lpthread
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -o $(<:.cpp=.o) -c $<

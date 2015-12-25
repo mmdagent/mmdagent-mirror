@@ -141,7 +141,7 @@ OBJECTS  = $(SOURCES:.c=.o)
 
 CXX      = gcc
 AR       = ar
-CXXFLAGS = -Wall -O3 -fomit-frame-pointer \
+CXXFLAGS = -Wall -O3 -fomit-frame-pointer -fPIC \
            -DHAVE_ZLIB \
            -DHAVE_STRCASECMP
 INCLUDE  = -I src/libjulius/include \
@@ -167,4 +167,3 @@ src/libjulius/include/julius/config.h:
 
 src/libsent/include/sent/config.h:
 	cd src/libsent; chmod +x ./configure; ./configure --with-mictype=libportaudio --without-sndfile; cd ../..;
-	sed -i -e 's/gzip command/zlib/g' src/libsent/include/sent/config.h
