@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -69,10 +69,10 @@ class Variables
 {
 private:
 
-   Value *m_head;
-   Value *m_tail;
+   Value *m_head;        /* head of variables manager */
+   Value *m_tail;        /* tail of variables manager */
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent; /* mmdagent */
 
    /* initialize: initialize variables */
    void initialize();

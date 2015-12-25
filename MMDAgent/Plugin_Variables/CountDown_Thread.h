@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -58,15 +58,15 @@ class CountDown_Thread
 {
 private:
 
-   CountDown *m_head;
-   CountDown *m_tail;
+   CountDown *m_head;    /* head of thread */
+   CountDown *m_tail;    /* tail of thread */
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent; /* mmdagent */
 
-   GLFWmutex m_mutex;   /* mutex */
-   GLFWthread m_thread; /* thread */
+   GLFWmutex m_mutex;    /* mutex */
+   GLFWthread m_thread;  /* thread */
 
-   bool m_kill;
+   bool m_kill;          /* kill flag */
 
    /* initialize: initialize thread */
    void initialize();

@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -99,7 +99,8 @@ void Variables::set(const char *alias, const char *str1, const char *str2)
 
    float max, min, tmp;
 
-   if(MMDAgent_strlen(alias) <= 0) return;
+   if(MMDAgent_strlen(alias) <= 0)
+      return;
 
    /* check the same alias */
    for(val = m_head; val; val = val->next) {
