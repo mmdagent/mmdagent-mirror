@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -40,8 +40,6 @@
 /* ----------------------------------------------------------------- */
 
 /* headers */
-
-#include <locale.h>
 
 #include "MMDAgent.h"
 
@@ -116,12 +114,14 @@ void Open_JTalk_Thread::clear()
          glfwDestroyCond(m_cond);
       if(m_mutex != NULL)
          glfwDestroyMutex(m_mutex);
-      glfwTerminate();
    }
 
-   if(m_charaBuff) free(m_charaBuff);
-   if(m_styleBuff) free(m_styleBuff);
-   if(m_textBuff) free(m_textBuff);
+   if(m_charaBuff)
+      free(m_charaBuff);
+   if(m_styleBuff)
+      free(m_styleBuff);
+   if(m_textBuff)
+      free(m_textBuff);
 
    /* free model names */
    if (m_numModels > 0) {
@@ -237,8 +237,6 @@ bool Open_JTalk_Thread::loadAndStart(MMDAgent *mmdagent, const char *dicDir, con
       clear();
       return false;
    }
-   setlocale(LC_CTYPE, "japanese");
-
    free(weights);
 
    m_mmdagent = mmdagent;
@@ -307,9 +305,12 @@ void Open_JTalk_Thread::run()
       /* send SYNTH_EVENT_STOP */
       m_mmdagent->sendMessage(OPENJTALKTHREAD_EVENTSTOP, "%s", chara);
 
-      if(chara) free(chara);
-      if(style) free(style);
-      if(text) free(text);
+      if(chara)
+         free(chara);
+      if(style)
+         free(style);
+      if(text)
+         free(text);
       m_speaking = false;
    }
 }
@@ -363,9 +364,12 @@ void Open_JTalk_Thread::synthesis(const char *chara, const char *style, const ch
    glfwLockMutex(m_mutex);
 
    /* save character name, speaking style, and text */
-   if(m_charaBuff) free(m_charaBuff);
-   if(m_styleBuff) free(m_styleBuff);
-   if(m_textBuff) free(m_textBuff);
+   if(m_charaBuff)
+      free(m_charaBuff);
+   if(m_styleBuff)
+      free(m_styleBuff);
+   if(m_textBuff)
+      free(m_textBuff);
    m_charaBuff = MMDAgent_strdup(chara);
    m_styleBuff = MMDAgent_strdup(style);
    m_textBuff = MMDAgent_strdup(text);

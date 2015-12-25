@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -115,7 +115,7 @@ bool Open_JTalk::load(const char *dicDir, char **modelFiles, int numModels, doub
    m_numStyles = numStyles;
 
    /* load dictionary */
-   dn_mecab = MMDAgent_pathdup(dicDir);
+   dn_mecab = MMDAgent_pathdup_from_application_to_system_locale(dicDir);
    if(Mecab_load(&m_mecab, dn_mecab) != TRUE) {
       free(dn_mecab);
       return false;
@@ -125,7 +125,7 @@ bool Open_JTalk::load(const char *dicDir, char **modelFiles, int numModels, doub
    /* load acoustic models */
    fn_models = (char **) calloc(m_numModels, sizeof(char *));
    for (i = 0; i < m_numModels; i++)
-      fn_models[i] = MMDAgent_pathdup(modelFiles[i]);
+      fn_models[i] = MMDAgent_pathdup_from_application_to_system_locale(modelFiles[i]);
    if(HTS_Engine_load(&m_engine, fn_models, m_numModels) != TRUE) {
       for(i = 0; i < m_numModels; i++)
          free(fn_models[i]);
@@ -240,9 +240,8 @@ void Open_JTalk::synthesis()
 {
    if(m_numStyles <= 0)
       return;
-   if (JPCommon_get_label_size(&m_jpcommon) > 2) {
+   if (JPCommon_get_label_size(&m_jpcommon) > 2)
       HTS_Engine_generate_sample_sequence(&m_engine);
-   }
    HTS_Engine_refresh(&m_engine);
    JPCommon_refresh(&m_jpcommon);
    NJD_refresh(&m_njd);
@@ -269,9 +268,9 @@ bool Open_JTalk::setStyle(int val)
    /* interpolation weight */
    index = val * (m_numModels * 3 + 4);
    for (i = 0; i < m_numModels; i++)
-      HTS_Engine_set_parameter_interpolation_weight(&m_engine, 0, i, m_styleWeights[index + m_numModels * 0 + i]);
+      HTS_Engine_set_parameter_interpolation_weight(&m_engine, i, 0, m_styleWeights[index + m_numModels * 0 + i]);
    for (i = 0; i < m_numModels; i++)
-      HTS_Engine_set_parameter_interpolation_weight(&m_engine, 1, i, m_styleWeights[index + m_numModels * 1 + i]);
+      HTS_Engine_set_parameter_interpolation_weight(&m_engine, i, 1, m_styleWeights[index + m_numModels * 1 + i]);
    for (i = 0; i < m_numModels; i++)
       HTS_Engine_set_duration_interpolation_weight(&m_engine, i, m_styleWeights[index + m_numModels * 2 + i]);
 

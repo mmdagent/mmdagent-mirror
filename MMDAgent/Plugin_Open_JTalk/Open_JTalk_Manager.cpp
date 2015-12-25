@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -192,7 +192,6 @@ void Open_JTalk_Manager::clear()
          glfwDestroyCond(m_cond);
       if(m_mutex != NULL)
          glfwDestroyMutex(m_mutex);
-      glfwTerminate();
    }
 
    if(m_dicDir)
@@ -218,7 +217,7 @@ Open_JTalk_Manager::~Open_JTalk_Manager()
 }
 
 /* Open_JTalk_Manager::loadAndStart: load and start thread */
-void Open_JTalk_Manager::loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config)
+bool Open_JTalk_Manager::loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config)
 {
    clear();
 
@@ -228,7 +227,7 @@ void Open_JTalk_Manager::loadAndStart(MMDAgent *mmdagent, const char *dicDir, co
 
    if(m_mmdagent == NULL || m_dicDir == NULL || m_config == NULL) {
       clear();
-      return;
+      return false;
    }
 
    glfwInit();
@@ -237,8 +236,9 @@ void Open_JTalk_Manager::loadAndStart(MMDAgent *mmdagent, const char *dicDir, co
    m_thread = glfwCreateThread(mainThread, this);
    if(m_mutex == NULL || m_cond == NULL || m_thread < 0) {
       clear();
-      return;
+      return false;
    }
+   return true;
 }
 
 /* Open_JTalk_Manager::stopAndRelease: stop and release thread */

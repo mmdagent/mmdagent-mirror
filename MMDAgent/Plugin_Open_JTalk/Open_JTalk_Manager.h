@@ -4,7 +4,7 @@
 /*           http://www.mmdagent.jp/                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/*  Copyright (c) 2009-2014  Nagoya Institute of Technology          */
+/*  Copyright (c) 2009-2015  Nagoya Institute of Technology          */
 /*                           Department of Computer Science          */
 /*                                                                   */
 /* All rights reserved.                                              */
@@ -66,21 +66,21 @@ class Open_JTalk_Manager
 {
 private:
 
-   MMDAgent *m_mmdagent;
+   MMDAgent *m_mmdagent;                /* mmdagent */
 
-   GLFWmutex m_mutex;
-   GLFWcond m_cond;
-   GLFWthread m_thread;
+   GLFWmutex m_mutex;                   /* mutex */
+   GLFWcond m_cond;                     /* condition variable */
+   GLFWthread m_thread;                 /* thread */
 
-   int m_count;
+   int m_count;                         /* number of elements in event queue */
 
-   bool m_kill;
+   bool m_kill;                         /* kill flag */
 
-   Open_JTalk_EventQueue m_bufferQueue;
-   Open_JTalk_Link *m_list;
+   Open_JTalk_EventQueue m_bufferQueue; /* buffer queque */
+   Open_JTalk_Link *m_list;             /* list of threads */
 
-   char *m_dicDir;
-   char *m_config;
+   char *m_dicDir;                      /* dictionary directory */
+   char *m_config;                      /* config file */
 
    /* initialize: initialize */
    void initialize();
@@ -97,7 +97,7 @@ public:
    ~Open_JTalk_Manager();
 
    /* loadAndStart: load and start thread */
-   void loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config);
+   bool loadAndStart(MMDAgent *mmdagent, const char *dicDir, const char *config);
 
    /* stopAndRelease: stop and release thread */
    void stopAndRelease();
