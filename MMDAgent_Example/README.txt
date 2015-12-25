@@ -1,6 +1,6 @@
 ===============================================================================
-                     MMDAgent "Sample Script" version 1.4
-                           release December 25, 2013
+                     MMDAgent "Sample Script" version 1.6
+                           release December 25, 2015
 
 
 The work is released as a part of MMDAgent (http://www.mmdagent.jp/).
